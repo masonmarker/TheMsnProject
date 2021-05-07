@@ -1,0 +1,9291 @@
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.WritableRaster;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NoSuchElementException;
+import java.util.Random;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
+
+/**
+ * Includes like 639487639486 methods Java should already have implemented.
+ * 
+ * Method descriptions containing "(WIP)" indicates that specific method is still in experimental
+ * stages, using them could cause errors.
+ * 
+ * TODO aboveAll() belowAll() leftAll() rightAll() neAll() nwAll() seAll() swAll()
+ * 
+ * @author Mason Marker
+ * @version 0.1.5.2.6 - 05/06/2021
+ */
+public class Msn {
+
+  // true = prints the return value after method execution if possible
+  // false = little to no information printed after method execution
+  private static boolean verbose = false;
+
+  // Used in array directional methods
+  private static final int intDirectionalConstant = Integer.MAX_VALUE;
+  private static final double doubleDirectionalConstant = Double.MAX_VALUE;
+  private static final char charDirectionalConstant = Character.MAX_VALUE;
+
+  // ----------------------------VERBOSITY-------------------------------------
+
+  /**
+   * Sets verbosity for the MSN class.
+   * 
+   * @param setVerbose the verbosity
+   * @since 0.1.0.0.0
+   */
+  public static void setVerbosity(boolean setVerbose) {
+    if (setVerbose)
+      verbose = true;
+    else
+      verbose = false;
+  }
+
+  // -----------------------------ALPHABET-------------------------------------
+
+  /**
+   * Returns the String representation of the English alphabet.
+   * 
+   * @return the alphabet
+   */
+  public static String alphabet() {
+    if (verbose)
+      println("[+] retrieved alphabet");
+    return String.valueOf(alphabetArray());
+  }
+
+  /**
+   * Returns the array representation of the English alphabet.
+   * 
+   * @return the alphabet
+   */
+  public static char[] alphabetArray() {
+    if (verbose)
+      println("[+] retrieved alphabet");
+    return new char[] {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+        'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+  }
+
+  /**
+   * Gets all vowels in the English alphabet.
+   * 
+   * @return vowels
+   */
+  public static char[] vowels() {
+    if (verbose)
+      println("[+] retrieved vowels");
+    return new char[] {'a', 'e', 'i', 'o', 'u', 'y'};
+  }
+
+  /**
+   * Gets the consonants that exist in the English alphabet.
+   * 
+   * @return the consonants
+   */
+  public static char[] consonants() { 
+    if (verbose)
+      println("[+] retrieved vowels");
+    return new char[] {'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's',
+        't', 'v', 'w', 'x', 'z'};
+  }
+
+  // ----------------------------CONSOLE--------------------------------------
+
+  /**
+   * Prints a String
+   * 
+   * @param s the String to print
+   */
+  public static void println(String s) {
+    System.out.println(s);
+  }
+  
+  /**
+   * Clears the console.
+   * 
+   * @throws IOException
+   */
+  public static void clear(int lines) {
+    for (int i = 0; i < lines; i++) {
+      System.out.println();
+    }
+  }
+
+  /**
+   * Pauses runtime for a certain amount of milliseconds.
+   * 
+   * @param waitTime the time to wait
+   * @throws InterruptedException
+   */
+  public static void wait(int waitTime, String timeunit) throws InterruptedException {
+    if (timeunit.equals("ms")) {
+      TimeUnit.MILLISECONDS.sleep(waitTime);
+    } else if (timeunit.equals("s")) {
+      TimeUnit.SECONDS.sleep(waitTime);
+    } else if (timeunit.equals("m")) {
+      TimeUnit.MINUTES.sleep(waitTime);
+    } else if (timeunit.equals("ns")) {
+      TimeUnit.NANOSECONDS.sleep(waitTime);
+    } else {
+      TimeUnit.MILLISECONDS.sleep(waitTime);
+    }
+  }
+
+  // ----------------------------BINARY---------------------------------------
+
+  /**
+   * Returns the binary representation of the passed number.
+   * 
+   * @param num the number to use
+   * @return binary representation of 'num'
+   */
+  public static String binary(int num) {
+    if (verbose) 
+      println("binary rep of " + num + " is " + Integer.toBinaryString(num));
+    return Integer.toBinaryString(num);
+  }
+
+  /**
+   * Returns binary representation with base expansion.
+   * 
+   * @param num the number to use
+   * @param base the base expantion to use
+   * @return bin
+   */
+  public static String binary(int num, int base) {
+    String bin = "";
+    int nextNum = num;
+    for (int i = 0; i < base; i++) {
+      bin += nextNum % base;
+      nextNum = nextNum / base;
+    }
+    StringBuilder sb = new StringBuilder(bin);
+    sb.reverse();
+    if (verbose) 
+      println("binary rep of " + num + " base " + base + " is " + sb.toString());
+    return sb.toString();
+  }
+
+  // ----------------------------CONTAINS-------------------------------------
+
+  /**
+   * Checks for an element that is contained in the given array.
+   * 
+   * @param array the array to parse
+   * @param check the element to check for
+   * @return whether the element is contained in the array
+   * @since 0.1.0.0.0
+   */
+  public static boolean contains(Object[] array, Object check) {
+    for (int i = 0; i < array.length; i++) {
+      if (check.equals(array[i])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks for an element that is contained in the given array.
+   * 
+   * @param array the array to parse
+   * @param check the element to check for
+   * @return whether the element is contained in the array
+   * @since 0.1.0.0.0
+   */
+  public static boolean contains(int[] array, int check) {
+    for (int i = 0; i < array.length; i++) {
+      if (check == array[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks for an element that is contained in the given array.
+   * 
+   * @param array the array to parse
+   * @param check the element to check for
+   * @return whether the element is contained in the array
+   * @since 0.1.0.0.0
+   */
+  public static boolean contains(double[] array, double check) {
+    for (int i = 0; i < array.length; i++) {
+      if (check == array[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks for an element that is contained in the given array.
+   * 
+   * @param array the array to parse
+   * @param check the element to check for
+   * @return whether the element is contained in the array
+   * @since 0.1.0.0.0
+   */
+  public static boolean contains(boolean[] array, boolean check) {
+    for (int i = 0; i < array.length; i++) {
+      if (check == array[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks for an element that is contained in the given array.
+   * 
+   * @param array the array to parse
+   * @param check the element to check for
+   * @return whether the element is contained in the array
+   * @since 0.1.0.0.0
+   */
+  public static boolean contains(char[] array, char check) {
+    for (int i = 0; i < array.length; i++) {
+      if (check == array[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks for an element that is contained in the given array.
+   * 
+   * @param array the array to parse
+   * @param check the element to check for
+   * @return whether the element is contained in the array
+   * @since 0.1.0.0.0
+   */
+  public static boolean contains(Object[][] array, Object check) {
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (array[i][j].equals(check)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks for an element that is contained in the given array.
+   * 
+   * @param array the array to parse
+   * @param check the element to check for
+   * @return whether the element is contained in the array
+   * @since 0.1.0.0.0
+   */
+  public static boolean contains(int[][] array, int check) {
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (array[i][j] == check) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks for an element that is contained in the given array.
+   * 
+   * @param array the array to parse
+   * @param check the element to check for
+   * @return whether the element is contained in the array
+   */
+  public static boolean contains(double[][] array, double check) {
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (array[i][j] == check) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks for an element that is contained in the given array.
+   * 
+   * @param array the array to parse
+   * @param check the element to check for
+   * @return whether the element is contained in the array
+   * @since 0.1.0.0.0
+   */
+  public static boolean contains(boolean[][] array, boolean check) {
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (array[i][j] == check) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks for an element that is contained in the given array.
+   * 
+   * @param array the array to parse
+   * @param check the element to check for
+   * @return whether the element is contained in the array
+   * @since 0.1.0.0.0
+   */
+  public static boolean contains(char[][] array, char check) {
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (array[i][j] == check) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks for an element that is contained in the given array.
+   * 
+   * @param array the array to parse
+   * @param check the element to check for
+   * @return whether the element is contained in the array
+   * @since 0.1.0.0.0
+   */
+  public static boolean containsAnyOf(String s, String[] sContains) {
+    for (int i = 0; i < sContains.length; i++) {
+      if (s.contains(sContains[i]))
+        return true;
+    }
+    return false;
+  }
+
+  /**
+   * Checks for an element that is contained in the given array.
+   * 
+   * @param array the array to parse
+   * @param check the element to check for
+   * @return whether the element is contained in the array
+   * @since 0.1.0.0.0
+   */
+  public static boolean containsIgnoreCase(String s, String sContains) {
+    return s.toLowerCase().contains(sContains.toLowerCase());
+  }
+
+  /**
+   * Checks for an element that is contained in the given array.
+   * 
+   * @param array the array to parse
+   * @param check the element to check for
+   * @return whether the element is contained in the array
+   * @since 0.1.0.0.0
+   */
+  public static boolean containsIgnoreCase(String[] array, String check) {
+
+    for (int i = 0; i < array.length; i++) {
+      if (array[i].toLowerCase().equals(check.toLowerCase())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks for an element that is contained in the given array.
+   * 
+   * @param array the array to parse
+   * @param check the element to check for
+   * @return whether the element is contained in the array
+   * @since 0.1.0.0.0
+   */
+  public static boolean containsIgnoreCase(String[][] array, String check) {
+
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (array[i][j].toLowerCase().equals(check.toLowerCase())) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // ----------------------------COUNTING-------------------------------------
+
+  /**
+   * Counts the amount of integers that exist in a given String.
+   * 
+   * @param input the string to parse
+   * @return the number of integers
+   * @since 0.1.0.0.0
+   */
+  public static int countInts(String input) {
+    int ints = 0;
+    boolean prev = false;
+    for (int i = 0; i < input.length(); i++) {
+      if (Character.isDigit(input.charAt(i))) {
+        if (!prev) {
+          ints++;
+          prev = true;
+        }
+      } else {
+        prev = false;
+      }
+    }
+    if (verbose)
+      println(ints + " ints found");
+    return ints;
+  }
+
+  /**
+   * Counts the words in a given String.
+   * 
+   * @param input the String to use
+   * @return the number of words
+   * @since 0.1.0.0.0
+   */
+  public static int countWords(String input) {
+    int count = input.split(" ").length;
+    if (verbose)
+      println(count + " words found");
+    return count;
+  }
+
+  /**
+   * Counts the amount of times a certain char appears in a String.
+   * 
+   * @param input the input to use
+   * @param c the char to search for
+   * @return the amount of times the given char appears in the given String
+   * @since 0.1.0.0.0
+   */
+  public static int countChars(String input, char c) {
+    int count = 0;
+    for (int i = 0; i < input.length(); i++) {
+      if (input.charAt(i) == c) {
+        count++;
+      }
+    }
+    if (verbose)
+      System.out.println(c + " appears in String " + count + " times");
+    return count;
+  }
+
+  /**
+   * Counts the number of existing lines in a String.
+   * 
+   * @param input the String to read
+   * @return the amount of lines containing at least one character
+   * @since 0.1.1.0.0
+   */
+  public static int countLines(String input) {
+    String noEmpties = removeEmptyLines(input);
+    Scanner kb = new Scanner(noEmpties);
+    int count = 0;
+    while (kb.hasNextLine()) {
+      count++;
+      kb.nextLine();
+    }
+    if (verbose)
+      System.out.println(count + " lines found");
+    return count;
+  }
+
+  /**
+   * Computes the inverse of the countLines() method, counts the number of words in the first line.
+   * 
+   * @param input the input to use
+   * @return the amount of words in the top line of the String.
+   * @since 0.1.1.0.0
+   */
+  public static int countWidth(String input) {
+    return getLine(input, 0).split(" ").length;
+  }
+
+  /**
+   * Counts the total elements in a 2D array.
+   * 
+   * @param array the array to use
+   * @return the amount of elements that exist in the entire array
+   */
+  public static int eCount(Object[][] array) {
+    int sum = 0;
+    for (int i = 0; i < array.length; i++) {
+      sum += array[i].length;
+    }
+    if (verbose)
+      System.out.println(sum + " elements found in array");
+    return sum;
+  }
+
+  /**
+   * Counts the total elements in a 2D array.
+   * 
+   * @param array the array to use
+   * @return the amount of elements that exist in the entire array
+   */
+  public static int eCount(int[][] array) {
+    int count = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        count++;
+      }
+    }
+    if (verbose)
+      System.out.println(count + " elements found in array");
+    return count;
+  }
+
+  /**
+   * Counts the total elements in a 2D array.
+   * 
+   * @param array the array to use
+   * @return the amount of elements that exist in the entire array
+   */
+  public static int eCount(double[][] array) {
+    int count = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        count++;
+      }
+    }
+    if (verbose)
+      System.out.println(count + " elements found in array");
+    return count;
+  }
+
+  /**
+   * Counts the total elements in a 2D array.
+   * 
+   * @param array the array to use
+   * @return the amount of elements that exist in the entire array
+   */
+  public static int eCount(boolean[][] array) {
+    int count = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        count++;
+      }
+    }
+    if (verbose)
+      System.out.println(count + " elements found in array");
+    return count;
+  }
+
+  /**
+   * Counts the total elements in a 2D array.
+   * 
+   * @param array the array to use
+   * @return the amount of elements that exist in the entire array
+   */
+  public static int eCount(char[][] array) {
+    int count = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        count++;
+      }
+    }
+    if (verbose)
+      System.out.println(count + " elements found in array");
+    return count;
+  }
+
+  /**
+   * Counts the amount of times a specified element in an array occurs.
+   * 
+   * @param array the array to use
+   * @param obj the element to search for
+   * @return the amount of times 'obj' occurs in 'array'
+   */
+  public static int countFreq(Object[] array, Object obj) {
+    int count = 0;
+    for (int i = 0; i < array.length; i++) {
+      if (array[i].equals(obj)) {
+        count++;
+      }
+    }
+    if (verbose) {
+      System.out.println(count + "x " + obj + " found in array");
+    }
+    return count;
+  }
+
+  /**
+   * Counts the amount of times a specified element in an array occurs.
+   * 
+   * @param array the array to use
+   * @param obj the element to search for
+   * @return the amount of times 'obj' occurs in 'array'
+   */
+  public static int countFreq(int[] array, int obj) {
+
+    int count = 0;
+    for (int i = 0; i < array.length; i++) {
+      if (array[i] == obj) {
+        count++;
+      }
+    }
+    if (verbose) {
+      System.out.println(count + "x " + obj + " found in array");
+    }
+    return count;
+  }
+
+  /**
+   * Counts the amount of times a specified element in an array occurs.
+   * 
+   * @param array the array to use
+   * @param obj the element to search for
+   * @return the amount of times 'obj' occurs in 'array'
+   */
+  public static int countFreq(double[] array, double obj) {
+    int count = 0;
+    for (int i = 0; i < array.length; i++) {
+      if (array[i] == obj) {
+        count++;
+      }
+    }
+    if (verbose) {
+      System.out.println(count + "x " + obj + " found in array");
+    }
+    return count;
+  }
+
+  /**
+   * Counts the amount of times a specified element in an array occurs.
+   * 
+   * @param array the array to use
+   * @param obj the element to search for
+   * @return the amount of times 'obj' occurs in 'array'
+   */
+  public static int countFreq(boolean[] array, boolean obj) {
+    int count = 0;
+    for (int i = 0; i < array.length; i++) {
+      if (array[i] == obj) {
+        count++;
+      }
+    }
+    if (verbose) {
+      System.out.println(count + "x " + obj + " found in array");
+    }
+    return count;
+  }
+
+  /**
+   * Counts the amount of times a specified element in an array occurs.
+   * 
+   * @param array the array to use
+   * @param obj the element to search for
+   * @return the amount of times 'obj' occurs in 'array'
+   */
+  public static int countFreq(char[] array, char obj) {
+    int count = 0;
+    for (int i = 0; i < array.length; i++) {
+      if (array[i] == obj) {
+        count++;
+      }
+    }
+    if (verbose) {
+      System.out.println(count + "x " + obj + " found in array");
+    }
+    return count;
+  }
+
+  /**
+   * Counts the amount of times a specified element in an array occurs.
+   * 
+   * @param array the array to use
+   * @param obj the element to search for
+   * @return the amount of times 'obj' occurs in 'array'
+   */
+  public static int countFreq(Object[][] array, Object obj) {
+    int count = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (array[i][j].equals(obj)) {
+          count++;
+        }
+      }
+    }
+    if (verbose) {
+      System.out.println(count + "x " + obj + " found in array");
+    }
+    return count;
+  }
+
+  /**
+   * Counts the amount of times a specified element in an array occurs.
+   * 
+   * @param array the array to use
+   * @param obj the element to search for
+   * @return the amount of times 'obj' occurs in 'array'
+   */
+  public static int countFreq(int[][] array, int obj) {
+    int count = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (array[i][j] == obj) {
+          count++;
+        }
+      }
+    }
+    if (verbose) {
+      System.out.println(count + "x " + obj + " found in array");
+    }
+    return count;
+  }
+
+  /**
+   * Counts the amount of times a specified element in an array occurs.
+   * 
+   * @param array the array to use
+   * @param obj the element to search for
+   * @return the amount of times 'obj' occurs in 'array'
+   */
+  public static int countFreq(double[][] array, double obj) {
+    int count = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (array[i][j] == obj) {
+          count++;
+        }
+      }
+    }
+    if (verbose) {
+      System.out.println(count + "x " + obj + " found in array");
+    }
+    return count;
+  }
+
+  /**
+   * Counts the amount of times a specified element in an array occurs.
+   * 
+   * @param array the array to use
+   * @param obj the element to search for
+   * @return the amount of times 'obj' occurs in 'array'
+   */
+  public static int countFreq(boolean[][] array, boolean obj) {
+    int count = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (array[i][j] == obj) {
+          count++;
+        }
+      }
+    }
+    if (verbose) {
+      System.out.println(count + "x " + obj + " found in array");
+    }
+    return count;
+  }
+
+  /**
+   * Counts the amount of times a specified element in an array occurs.
+   * 
+   * @param array the array to use
+   * @param obj the element to search for
+   * @return the amount of times 'obj' occurs in 'array'
+   */
+  public static int countFreq(char[][] array, char obj) {
+    int count = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (array[i][j] == obj) {
+          count++;
+        }
+      }
+    }
+    if (verbose) 
+      System.out.println(count + "x " + obj + " found in array");
+    return count;
+  }
+
+  /**
+   * Creates a HashMap consisting of the frequency of every existing char.
+   * 
+   * @param s the String to use
+   * @return the HashMap of Character frequencies
+   */
+  public static HashMap<Character, Integer> charFreqMap(String s) {
+    HashMap<Character, Integer> freqs = new HashMap<>();
+    for (int i = 0; i < s.length(); i++) {
+      freqs.put(s.charAt(i), countChars(s, s.charAt(i)));
+    }
+    if (verbose) 
+      System.out.println("char map built with " + freqs.size() + " entries");
+    return freqs;
+  }
+
+  /**
+   * Creates a HashMap consisting of the frequency of every existing String in the String passed.
+   * 
+   * @param s the String to use
+   * @return the String frequency map
+   */
+  public static HashMap<String, Integer> stringFreqMap(String s) {
+    HashMap<String, Integer> map = new HashMap<>();
+    String[] words = toStringArray(s);
+    for (int i = 0; i < words.length; i++) {
+      map.put(words[i], countFreq(words, words[i]));
+    }
+    if (verbose) 
+      System.out.println("String map built with " + map.size() + " entries");
+    return map;
+  }
+
+  /**
+   * Prints the Character Frequency Map that's a little easier on the eyes.
+   * 
+   * @param s the String to use for map development
+   */
+  public static void printCharFreqMap(String s) {
+    HashMap<Character, Integer> map = charFreqMap(s);
+    String sorted = Msn.sortString(s, true);
+    for (int i = 0; i < map.size(); i++) {
+      System.out.println(sorted.charAt(i) + "  " + map.get(sorted.charAt(i)));
+    }
+  }
+
+  /**
+   * Prints the String Frequency Map that's a little easier on the eyes.
+   * 
+   * @param s the String to use for map development
+   */
+  public static void printStringFreqMap(String s) {
+    String[] allWords = toStringArray(s);
+    String[] words = toString(removeDups(toStringArray(s)));
+    Arrays.sort(words);
+    for (int i = 0; i < words.length; i++) {
+      System.out.println(words[i] + "  " + countFreq(allWords, words[i]));
+    }
+  }
+
+  // -----------------------------COLORS--------------------------------------
+
+  /**
+   * Returns the color representation of the String provided.
+   * 
+   * @param color the color to search for
+   * @return the Color object
+   */
+  public static Color getColor(String color) {
+    Color c = null;
+    if (containsIgnoreCase(color, "black")) {
+      c = Color.BLACK;
+    } else if (containsIgnoreCase(color, "blue")) {
+      c = Color.BLUE;
+    } else if (containsIgnoreCase(color, "cyan")) {
+      c = Color.CYAN;
+    } else if (containsIgnoreCase(color, "dark gray") || containsIgnoreCase(color, "darkgray")) {
+      c = Color.DARK_GRAY;
+    } else if (containsIgnoreCase(color, "gray")) {
+      c = Color.GRAY;
+    } else if (containsIgnoreCase(color, "green")) {
+      c = Color.GREEN;
+    } else if (containsIgnoreCase(color, "light gray") || containsIgnoreCase(color, "lightgray")) {
+      c = Color.LIGHT_GRAY;
+    } else if (containsIgnoreCase(color, "magenta")) {
+      c = Color.MAGENTA;
+    } else if (containsIgnoreCase(color, "orange")) {
+      c = Color.ORANGE;
+    } else if (containsIgnoreCase(color, "pink")) {
+      c = Color.PINK;
+    } else if (containsIgnoreCase(color, "red")) {
+      c = Color.RED;
+    } else if (containsIgnoreCase(color, "white")) {
+      c = Color.WHITE;
+    } else if (containsIgnoreCase(color, "yellow")) {
+      c = Color.YELLOW;
+    }
+    if (verbose)
+      println("converted " + color + " to " + c);
+    return c;
+  }
+
+  /**
+   * Darkens a Color a certain amount of times.
+   * 
+   * @param times the amount of times to darken the Color
+   * @return the new Color
+   */
+  public static Color multiDarken(Color color, int times) {
+    Color fixed = color;
+    for (int i = 0; i < times; i++) {
+      fixed = fixed.darker();
+    }
+    return fixed;
+  }
+
+  /**
+   * Brightens a Color a certain amount of times.
+   * 
+   * @param times the amount of times to brighten the Color
+   * @return the new Color
+   */
+  public static Color multiBrighten(Color color, int times) {
+    Color fixed = color;
+    for (int i = 0; i < times; i++) {
+      fixed = fixed.brighter();
+    }
+    return fixed;
+  }
+
+  /**
+   * Returns an average Color for the Colors given.
+   * 
+   * @param colors the colors to use
+   * @return an average Color
+   */
+  public static Color avgColor(Color[] colors) {
+    int[] reds = new int[colors.length];
+    int[] greens = new int[colors.length];
+    int[] blues = new int[colors.length];
+    for (int i = 0; i < colors.length; i++) {
+      reds[i] = colors[i].getRed();
+      greens[i] = colors[i].getGreen();
+      blues[i] = colors[i].getBlue();
+    }
+    return new Color((int) avg(reds), (int) avg(greens), (int) avg(blues));
+  }
+
+  /**
+   * Checks whether the two colors contain the same rgb values.
+   * 
+   * @param color the first color
+   * @param color2 the second color
+   * @return whether the colors are equal or not
+   */
+  public static boolean equals(Color color, Color color2) {
+    return color.getRed() == color2.getRed() && color.getGreen() == color2.getGreen()
+        && color.getBlue() == color2.getBlue();
+  }
+
+  /**
+   * Checks whether one color is brighter than another.
+   * 
+   * @param isBrighterThan the first Color
+   * @param thisColor the second Color
+   * @return whether the first Color is brighter than the second
+   */
+  public static boolean isBrighterThan(Color isBrighterThan, Color thisColor) {
+    return brightness(isBrighterThan) > brightness(thisColor);
+  }
+
+  /**
+   * Uses the W3C algorithm to determine the brightness value for a Color.
+   * 
+   * @param the Color to check
+   * @return the brightness value
+   */
+  public static double brightness(Color color) {
+    return Math.sqrt(0.299 * Math.pow(color.getRed(), 2) + 0.587 * Math.pow(color.getGreen(), 2)
+        + 0.114 * Math.pow(color.getBlue(), 2));
+  }
+
+  // ----------------------------CREATION-------------------------------------
+
+  /**
+   * Generates an array with random values.
+   * 
+   * @param length the length of the array
+   * @return the new array
+   */
+  public static String[] createStringArray(int length) {
+    String[] array = new String[length];
+    for (int i = 0; i < array.length; i++) {
+      array[i] = randomString(5);
+    }
+    return array;
+  }
+
+  /**
+   * Generates an array with random values.
+   * 
+   * @param length the length of the array
+   * @return the new array
+   */
+  public static int[] createIntArray(int length) {
+    int[] array = new int[length];
+    for (int i = 0; i < array.length; i++) {
+      array[i] = randomInt(0, 10);
+    }
+    return array;
+  }
+
+  /**
+   * Generates an array with random values.
+   * 
+   * @param length the length of the array
+   * @return the new array
+   */
+  public static double[] createDoubleArray(int length) {
+    double[] array = new double[length];
+    for (int i = 0; i < array.length; i++) {
+      array[i] = Msn.decFormat(Msn.random(0, 10), 2);
+    }
+    return array;
+  }
+
+  /**
+   * Generates an array with random values.
+   * 
+   * @param length the length of the array
+   * @return the new array
+   */
+  public static char[] createCharArray(int length) {
+    char[] array = new char[length];
+    for (int i = 0; i < array.length; i++) {
+      array[i] = randomLetter();
+    }
+    return array;
+  }
+
+  /**
+   * Generates an array with random values.
+   * 
+   * @param length the length of the array
+   * @return the new array
+   */
+  public static boolean[] createBoolArray(int length) {
+    boolean[] array = new boolean[length];
+    for (int i = 0; i < array.length; i++) {
+      array[i] = coinflip();
+    }
+    return array;
+  }
+
+  /**
+   * Generates an array with random values.
+   * 
+   * @param length the length of the array
+   * @return the new array
+   */
+  public static String[][] create2DStringArray(int rows, int cols) {
+    String[][] array = new String[rows][cols];
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        array[i][j] = Msn.randomString(5);
+      }
+    }
+    return array;
+  }
+
+  /**
+   * Generates an array with random values.
+   * 
+   * @param length the length of the array
+   * @return the new array
+   */
+  public static int[][] create2DIntArray(int rows, int cols) {
+    int[][] array = new int[rows][cols];
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        array[i][j] = randomInt(0, 10);
+      }
+    }
+    return array;
+  }
+
+  /**
+   * Generates an array with random values.
+   * 
+   * @param length the length of the array
+   * @return the new array
+   */
+  public static double[][] create2DDoubleArray(int rows, int cols) {
+    double[][] array = new double[rows][cols];
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        array[i][j] = Msn.decFormat(Msn.random(0, 10), 2);
+      }
+    }
+    return array;
+  }
+
+  /**
+   * Generates an array with random values.
+   * 
+   * @param length the length of the array
+   * @return the new array
+   */
+  public static char[][] create2DCharArray(int rows, int cols) {
+    char[][] array = new char[rows][cols];
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        array[i][j] = randomLetter();
+      }
+    }
+    return array;
+  }
+
+  /**
+   * Generates an array with random values.
+   * 
+   * @param length the length of the array
+   * @return the new array
+   */
+  public static boolean[][] create2DBoolArray(int rows, int cols) {
+    boolean[][] array = new boolean[rows][cols];
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        array[i][j] = coinflip();
+      }
+    }
+    return array;
+  }
+
+  /**
+   * Creates a 2D array from the Object array's dimensions.
+   * 
+   * @param array the array
+   * @return the new int[][]
+   */
+  public static int[][] create2DIntArrayFromObj(Object[][] array) {
+    int[][] destination = new int[array.length][];
+    for (int i = 0; i < destination.length; ++i) {
+      destination[i] = new int[array[i].length];
+      for (int j = 0; j < destination[i].length; ++j) {
+        destination[i][j] = 0;
+      }
+    }
+    return destination;
+  }
+
+  /**
+   * Creates a 2D array from the Object array's dimensions.
+   * 
+   * @param array the array
+   * @return the new int[][]
+   */
+  public static double[][] create2DDoubleArrayFromObj(Object[][] array) {
+    double[][] destination = new double[array.length][];
+    for (int i = 0; i < destination.length; ++i) {
+      destination[i] = new double[array[i].length];
+      for (int j = 0; j < destination[i].length; ++j) {
+        destination[i][j] = 0;
+      }
+    }
+    return destination;
+  }
+
+  // -----------------------------USER INPUT----------------------------------
+
+  /**
+   * Optimal for quick user input.
+   * 
+   * @param msg the message to display before input
+   * @param kb the already initialized Scanner
+   * @return the user's input
+   */
+  public static String nextLine(String msg, Scanner kb) {
+    System.out.print(msg);
+    String entry = kb.nextLine();
+    if (verbose)
+      System.out.println("entered " + entry);
+    return entry;
+  }
+
+  /**
+   * Optimal for quick user input, works in unison with the typo remover.
+   * 
+   * @param msg the message to display before input
+   * @param kb the already initialized Scanner
+   * @return the user's input
+   */
+  public static double nextDouble(String msg, Scanner kb) {
+    System.out.print(msg);
+    double entry = dubWithoutTypo(kb.nextLine());
+    if (verbose)
+      System.out.println("entered " + entry);
+    return entry;
+  }
+
+  /**
+   * Optimal for quick user input, works in unison with the typo remover.
+   * 
+   * @param msg the message to display before input
+   * @param kb the already initialized Scanner
+   * @return the user's input
+   */
+  public static int nextInt(String msg, Scanner kb) {
+    System.out.print(msg);
+    int entry = intWithoutTypo(kb.nextLine());
+    if (verbose)
+      System.out.println("entered " + entry);
+    return entry;
+  }
+
+  // ----------------------------IS IN BOUNDS---------------------------------
+
+  /**
+   * Checks whether a number is inside the given bounds.
+   * 
+   * Note that this method uses the bounds inclusively
+   * 
+   * @param leftBound the left bound
+   * @param rightBound the right bound
+   * @param check the number to check
+   * @return whether the number is within the bounds
+   */
+  public static boolean isInBounds(double leftBound, double rightBound, double check) {
+
+    validateIIB(leftBound, rightBound);
+    if (check >= leftBound && check <= rightBound) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Checks whether a number is inside the given bounds.
+   * 
+   * @param leftBound the left bound
+   * @param rightBound the right bound
+   * @param check the number to check
+   * @param inclusive whether the bounds are inclusive or not
+   * @return whether the number is within the bounds
+   */
+  public static boolean isInBounds(double leftBound, double rightBound, double check,
+      boolean inclusive) {
+    validateIIB(leftBound, rightBound);
+    boolean isIn = false;
+    if (inclusive) {
+      if (check >= leftBound && check <= rightBound) {
+        isIn = true;
+      }
+    } else {
+      if (check > leftBound && check < rightBound) {
+        isIn = true;
+      }
+    }
+    return isIn;
+  }
+
+  /**
+   * Validates the arguments passed for this method.
+   * 
+   * @param left the leftBound
+   * @param right the rightBound
+   * @return whether the arguments passed are valid
+   */
+  public static boolean validateIIB(double left, double right) {
+    if (left > right) {
+      throw new IllegalArgumentException("leftBound cannot be less than rightBound");
+    }
+    return true;
+  }
+
+  // ----------------------------STRINGS--------------------------------------
+
+  /**
+   * Verifies that every character in the passed String is an English character.
+   * 
+   * @param s the String to parse
+   * @return whether the String is entirely comprised of English chars or not
+   * @since 0.1.0.0.3
+   */
+  public static boolean isEnglish(String s) {
+    for (int i = 0; i < s.length(); i++) {
+      if (!contains(alphabetArray(), s.charAt(i)))
+        return false;
+    }
+    return true;
+  }
+
+  /**
+   * Reverses the character order of the given String.
+   * 
+   * @param s the String to use
+   * @return the new String
+   */
+  public static String reverse(String s) {
+    String reverse = new StringBuilder(s).reverse().toString();
+    if (verbose)
+      System.out.println("String reversed to " + reverse);
+    return reverse;
+  }
+
+  /**
+   * Removes all instances of the specified char from a String.
+   * 
+   * @param the String to fix
+   * @param toRemove the char to remove
+   * @return the fixed String
+   */
+  public static String removeChar(String s, char toRemove) {
+    String fixed = "";
+    for (int i = 0; i < s.length(); i++) {
+      if (s.charAt(i) != toRemove) {
+        fixed += s.charAt(i);
+      }
+    }
+    return fixed;
+  }
+
+  /**
+   * Counts the most common character in the String.
+   * 
+   * @param s the String to use
+   * @return the most common character
+   * @since 0.1.1.0.4
+   */
+  public static char mostCommonChar(String s) {
+    ArrayList<Character> chars = new ArrayList<Character>();
+    for (int i = 0; i < s.length(); i++) {
+      if (s.charAt(i) != ' ' && !contains(chars.toArray(), s.charAt(i))) {
+        chars.add(s.charAt(i));
+      }
+    }
+    int[] freqs = new int[chars.size()];
+    for (int i = 0; i < chars.size(); i++) {
+      freqs[i] = countChars(s, chars.get(i));
+    }
+    int max = max(freqs);
+    int indexAt = -1;
+    boolean is = countFreq(freqs, max) == 1;
+    for (int i = 0; i < chars.size(); i++) {
+      if (is && freqs[i] == max) {
+        indexAt = i;
+      }
+    }
+    try {
+      if (verbose) {
+        System.out.println("most common char is " + chars.get(indexAt));
+      }
+      return (char) chars.get(indexAt);
+    } catch (ArrayIndexOutOfBoundsException e) {
+      System.out.println("error: most common char does not exist, returning '?'");
+    }
+    return '?';
+  }
+
+  /**
+   * Returns a certain line in the String given.
+   * 
+   * @param s the String to use
+   * @param index the index of the specified line
+   * @return the line specified
+   */
+  public static String getLine(String s, int index) {
+    if (index > countLines(s)) {
+      throw new IllegalArgumentException(
+          "index " + index + " out of bounds for line count " + countLines(s));
+    }
+    Scanner kb = new Scanner(s);
+    for (int i = 0; i < index; i++) {
+      kb.nextLine();
+    }
+    return kb.nextLine();
+  }
+
+  /**
+   * Finds the first line index containing toFind.
+   * 
+   * @param text the text to search through
+   * @param toFind the String to find
+   * @return the line index where 'toFind' exists in 'text', -1 if it doesn't exist
+   */
+  public static int lineIndexOf(String text, String toFind) {
+    String[] lineArray = toLineArray(text);
+    for (int i = 0; i < lineArray.length; i++) {
+      if (lineArray[i].contains(toFind)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Converts a String into an array of lines existing in that String.
+   * 
+   * @param s the String to use
+   * @return array value of each line in the String given
+   */
+  public static String[] toLineArray(String s) {
+    Scanner kb = new Scanner(s);
+    String[] lineArray = new String[countLines(s)];
+    for (int i = 0; i < lineArray.length; i++) {
+      if (kb.hasNextLine()) {
+        lineArray[i] = kb.nextLine();
+      } else {
+        lineArray[i] = "";
+      }
+    }
+    if (verbose) {
+      System.out.println("line array created");
+    }
+    return lineArray;
+  }
+
+  /**
+   * Removes the specified lines in a String with line index format.
+   * 
+   * @param s the String to use
+   * @param startLine the first line (inclusive)
+   * @param finishLine the line to stop deletion (inclusive)
+   * @return the fixed String
+   */
+  public static String removeLines(String s, int startLine, int finishLine) {
+    String fixed = "";
+    String[] lines = toLineArray(s);
+    for (int i = 0; i < lines.length; i++) {
+      if (i < startLine || i > finishLine) {
+        fixed += lines[i] + "\n";
+      }
+    }
+    if (verbose)
+      System.out.println("lines removed");
+    return fixed;
+  }
+
+  /**
+   * Gets the section of lines between startLine and finishLine, inclusively.
+   * 
+   * @param s the String to use
+   * @param startLine the starting point
+   * @param finishLine the ending point
+   * @return the lines including and between the lines specified
+   */
+  public static String getLines(String s, int startLine, int finishLine) {
+    String fixed = "";
+    String[] lines = toLineArray(s);
+    for (int i = 0; i < lines.length; i++) {
+      if (i >= startLine && i <= finishLine) {
+        fixed += lines[i] + "\n";
+      }
+    }
+    if (verbose)
+      System.out.println("lines " + startLine + " through " + finishLine + " found");
+    return fixed;
+  }
+
+  /**
+   * Inserts a newline escape sequence at a certain index, useful for formatting longer Strings.
+   * 
+   * @param s the String to use
+   * @param index the common index to insert the escape sequence
+   * @return the new String
+   */
+  public static String formatString(String s, int index) {
+    StringBuilder sb = new StringBuilder(s);
+    int index2 = index;
+    int offset = 0;
+    try {
+      while (true) {
+        while (sb.charAt(index2) != ' ') {
+          index2--;
+          offset++;
+        }
+        sb.replace(index2, index2 + 1, "\n");
+        index2 = index2 + offset + index;
+      }
+    } catch (StringIndexOutOfBoundsException e) {
+      System.out.print("");
+    }
+    if (verbose)
+      System.out.println("String successfully formatted");
+    return sb.toString();
+  }
+
+  /**
+   * Rebuilds a String based on data types. (String > Integer > Double > Misc).
+   * 
+   * @param s the String to use
+   * @param removeDups whether duplicate chars should be removed or not
+   * @return the sorted String
+   */
+  public static String sortString(String s, boolean removeDups) {
+    ArrayList<Integer> nums = new ArrayList<>();
+    ArrayList<Character> letters = new ArrayList<>();
+    ArrayList<Character> misc = new ArrayList<>();
+    for (int i = 0; i < s.length(); i++) {
+      if (Character.isLetter(s.charAt(i))) {
+        letters.add(s.charAt(i));
+      } else if (Character.isDigit(s.charAt(i))) {
+        nums.add(Integer.parseInt(String.valueOf((s.charAt(i)))));
+      } else {
+        misc.add(s.charAt(i));
+      }
+    }
+    Object[] alph = letters.toArray();
+    Object[] numbers = nums.toArray();
+    Object[] misce = misc.toArray();
+    Arrays.sort(alph);
+    Arrays.sort(numbers);
+    Arrays.sort(misce);
+    String n = "";
+    for (int i = 0; i < alph.length; i++) {
+      n += alph[i];
+    }
+    for (int i = 0; i < numbers.length; i++) {
+      n += numbers[i];
+    }
+    for (int i = 0; i < misce.length; i++) {
+      n += misce[i];
+    }
+    if (!removeDups) {
+      return n;
+    }
+    if (verbose)
+      System.out.println("String successfully sorted");
+    return toSequence(removeDups(n.toCharArray()));
+  }
+
+  /**
+   * Takes a char array and turns it into a String array.
+   * 
+   * @param array to array to modify
+   * @return the String array
+   */
+  public static String[] toStringArray(char[] array) {
+    String[] s = new String[array.length];
+    for (int i = 0; i < array.length; i++) {
+      s[i] = Character.toString(array[i]);
+    }
+    if (verbose)
+      System.out.println("String array created");
+    return s;
+  }
+
+  /**
+   * Takes a char array and turns it into a String array.
+   * 
+   * @param array to array to modify
+   * @return the String array
+   */
+  public static String[][] toStringArray(char[][] array) {
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("Char 2D array must not be ragged");
+    }
+    String[][] s = new String[array.length][array[0].length];
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        s[i][j] = Character.toString(array[i][j]);
+      }
+    }
+    if (verbose)
+      System.out.println("String array created");
+    return s;
+  }
+
+  /**
+   * Converts the given String into an array of words.
+   * 
+   * @param s the String to use
+   * @return the String array of words
+   */
+  public static String[] toStringArray(String s) {
+    Scanner kb = new Scanner(s);
+    String[] strings = new String[countWords(s)];
+    for (int i = 0; i < strings.length; i++) {
+      strings[i] = kb.next();
+    }
+    if (verbose)
+      System.out.println("String array created");
+    return strings;
+  }
+
+  /**
+   * Converts an array into a single String of every element in the array.
+   * 
+   * @param array the array to use
+   * @return the String representation of every element in the array
+   */
+  public static String toSequence(String[] array) {
+    String s = "";
+    for (int i = 0; i < array.length; i++) {
+      s += array[i];
+      if (i != array.length - 1)
+        s += " ";
+    }
+    if (verbose)
+      System.out.println("Sequence created: " + s);
+    return s;
+  }
+
+  /**
+   * Converts an array into a single String of every element in the array.
+   * 
+   * @param array the array to use
+   * @return the String representation of every element in the array
+   */
+  public static String toSequence(int[] array) {
+    String s = "";
+    for (int i = 0; i < array.length; i++) {
+      s += array[i];
+      if (i != array.length - 1)
+        s += " ";
+    }
+    if (verbose)
+      System.out.println("Sequence created: " + s);
+    return s;
+  }
+
+  /**
+   * Converts an array into a single String of every element in the array.
+   * 
+   * @param array the array to use
+   * @return the String representation of every element in the array
+   */
+  public static String toSequence(double[] array) {
+    String s = "";
+    for (int i = 0; i < array.length; i++) {
+      s += array[i];
+      if (i != array.length - 1)
+        s += " ";
+    }
+    if (verbose)
+      System.out.println("Sequence created: " + s);
+    return s;
+  }
+
+  /**
+   * Converts an array into a single String of every element in the array.
+   * 
+   * @param array the array to use
+   * @return the String representation of every element in the array
+   */
+  public static String toSequence(boolean[] array) {
+    String s = "";
+    for (int i = 0; i < array.length; i++) {
+      s += array[i];
+      if (i != array.length - 1)
+        s += " ";
+    }
+    if (verbose)
+      System.out.println("Sequence created: " + s);
+    return s;
+  }
+
+  /**
+   * Converts an array into a single String of every element in the array.
+   * 
+   * @param array the array to use
+   * @return the String representation of every element in the array
+   */
+  public static String toSequence(char[] array) {
+    String s = "";
+    for (int i = 0; i < array.length; i++) {
+      s += array[i];
+      if (i != array.length - 1)
+        s += " ";
+    }
+    if (verbose)
+      System.out.println("Sequence created: " + s);
+    return s;
+  }
+
+  /**
+   * Converts an Object array to a String array.
+   * 
+   * @param array the array to use
+   * @return the String[]
+   */
+  public static String[] toString(Object[] array) {
+    String[] array2 = new String[array.length];
+    for (int i = 0; i < array.length; i++) {
+      array2[i] = String.valueOf(array[i]);
+    }
+    if (verbose)
+      System.out.println("Object[] successfully casted to String[]");
+    return array2;
+  }
+
+  /**
+   * Converts a 2D array into a single String comprising of every element that exists in the array.
+   * 
+   * @param array the array to use
+   * @return the String representation of the array
+   */
+  public static String toSequence(String[][] array) {
+    String s = "";
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        s += array[i][j];
+      }
+    }
+    if (verbose)
+      System.out.println("Sequence created");
+    return s;
+  }
+
+  /**
+   * Converts a 2D array into a single String comprising of every element that exists in the array.
+   * 
+   * @param array the array to use
+   * @return the String representation of the array
+   */
+  public static String toSequence(int[][] array) {
+    String s = "";
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        s += array[i][j];
+      }
+    }
+    if (verbose)
+      System.out.println("Sequence created");
+    return s;
+  }
+
+  /**
+   * Converts a 2D array into a single String comprising of every element that exists in the array.
+   * 
+   * @param array the array to use
+   * @return the String representation of the array
+   */
+  public static String toSequence(double[][] array) {
+    String s = "";
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        s += array[i][j] + " ";
+      }
+    }
+    if (verbose)
+      System.out.println("Sequence created");
+    return s;
+  }
+
+  /**
+   * Converts a 2D array into a single String comprising of every element that exists in the array.
+   * 
+   * @param array the array to use
+   * @return the String representation of the array
+   */
+  public static String toSequence(boolean[][] array) {
+    String s = "";
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        s += array[i][j] + " ";
+      }
+    }
+    if (verbose)
+      System.out.println("Sequence created");
+    return s;
+  }
+
+  /**
+   * Converts a 2D array into a single String comprising of every element that exists in the array.
+   * 
+   * @param array the array to use
+   * @return the String representation of the array
+   */
+  public static String toSequence(char[][] array) {
+    String s = "";
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        s += array[i][j];
+      }
+    }
+    if (verbose)
+      System.out.println("Sequence created");
+    return s;
+  }
+
+  /**
+   * Parses through a String, removing all letters.
+   * 
+   * @param s the String to parse.
+   * @return
+   */
+  public static String extractNums(String s) {
+    s = s.replaceAll(" . ", " ");
+    StringBuilder sb = new StringBuilder(s);
+    for (int i = 0; i < sb.length(); i++) {
+      if (!Character.isDigit(sb.charAt(i)) && sb.charAt(i) != '.') {
+        sb.replace(i, i + 1, " ");
+      }
+      try {
+        if (sb.charAt(i) == ' ' && sb.charAt(i + 1) == '.') {
+          sb.replace(i, i + 2, " 0.");
+        }
+        if (sb.charAt(i + 1) == ' ' && sb.charAt(i) == '.') {
+          sb.replace(i, i + 1, ".0");
+        }
+      } catch (StringIndexOutOfBoundsException e) {
+        System.out.print("");
+      }
+    }
+    if (verbose)
+      System.out.println("Numbers extracted: " + sb.toString());
+    return sb.toString();
+  }
+
+  /**
+   * (WIP) Different from parseInt() and findAllInts(), this method searches every String for
+   * integers regardless of characters surrounding them.
+   * 
+   * EX: extractInts("45230fms34.7231aldf3405fj28fjgfm39") would yield {45230, 3405, 28, 39}
+   * 
+   * @param s the String to parse
+   * @return an integer array of the extracted ints
+   */
+  public static int[] extractInts(String s) {
+    String[] intArray = toStringArray(extractNums(s));
+    String[] types = toString(existingTypes(s, false));
+    ArrayList<Integer> ints = new ArrayList<>();
+    for (int i = 0; i < intArray.length; i++) {
+      try {
+        ints.add(Integer.valueOf(intArray[i]));
+      } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+        System.out.print("");
+      }
+    }
+    if (verbose)
+      System.out.println("extracted ints: " + Arrays.toString(ints.toArray()));
+    return toInt(ints.toArray());
+  }
+
+  /**
+   * (WIP) This method searches every String for doubles regardless of characters surrounding them.
+   * 
+   * EX: extractDoubles("45230fms34.7231aldf3405fj28fjgfm39") would yield {34.7231}
+   * 
+   * @param s the String to parse
+   * @return an integer array of the extracted ints
+   */
+  public static double[] extractDoubles(String s) {
+    String[] doub = toStringArray(extractNums(s));
+    String[] types = toString(existingTypes(s, false));
+    ArrayList<Double> doubles = new ArrayList<>();
+    for (int i = 0; i < doub.length; i++) {
+      if (doub[i].contains(".")) {
+        doubles.add(-Double.valueOf(doub[i]));
+      }
+    }
+    if (verbose)
+      System.out.println("extracted doubles: " + Arrays.toString(doubles.toArray()));
+    return toDouble(doubles.toArray());
+  }
+
+  /**
+   * Returns an array of existing types in a single String.
+   * 
+   * @param s the String to use
+   * @return an array of types as Strings (ex. Integer is "Integer")
+   */
+  public static Object[] existingTypes(String s, boolean removeDups) {
+    ArrayList<String> types = new ArrayList<>();
+    String[] stringArray = toStringArray(s);
+
+    for (int i = 0; i < stringArray.length; i++) {
+      boolean found = false;
+      try {
+        if (Integer.parseInt(stringArray[i]) < 999999
+            && Integer.valueOf(stringArray[i]) instanceof Integer) {
+          types.add("Integer");
+          found = true;
+        }
+      } catch (NumberFormatException e) {
+        System.out.print("");
+      }
+      try {
+        if (!found && Double.parseDouble(stringArray[i]) < 999999 && !found
+            && Double.valueOf(stringArray[i]) instanceof Double) {
+          types.add("Double");
+          found = true;
+        }
+      } catch (NumberFormatException e) {
+        System.out.print("");
+      }
+      try {
+        if (!found && Boolean.valueOf(stringArray[i]) && !found
+            && Boolean.valueOf(stringArray[i]) instanceof Boolean) {
+          types.add("Boolean");
+          found = true;
+        }
+      } catch (NumberFormatException e) {
+        System.out.print("");
+      }
+      if (!found && stringArray[i] instanceof String) {
+        types.add("String");
+        found = true;
+      } else {
+        System.out.print("");
+      }
+    }
+    if (verbose)
+      System.out.println("existing types extracted");
+    if (!removeDups) {
+      return types.toArray();
+    }
+    return removeDups(types.toArray());
+  }
+
+  /**
+   * Creates a String types map for usage of below methods in the following order.
+   * 
+   * Line 1: All existing Strings Line 2: All existing Integers Line 3: All existing Doubles Line 4:
+   * All existing Booleans
+   * 
+   * @param s the String to use
+   * @return types array
+   */
+  public static String typesMap(String s) {
+
+    ArrayList<String> strings = new ArrayList<>();
+    ArrayList<Integer> integers = new ArrayList<>();
+    ArrayList<Double> doubles = new ArrayList<>();
+    ArrayList<Boolean> booleans = new ArrayList<>();
+    String[] stringArray = toStringArray(s);
+    String[] types = toString(existingTypes(s, false));
+    for (int i = 0; i < types.length; i++) {
+      if (types[i].equals("Boolean")) {
+        booleans.add(Boolean.valueOf(stringArray[i]));
+      } else if (types[i].equals("String")) {
+        strings.add(String.valueOf(stringArray[i]));
+      } else if (types[i].equals("Integer")) {
+        integers.add(Integer.valueOf(stringArray[i]));
+      } else if (types[i].equals("Double")) {
+        doubles.add(Double.valueOf(stringArray[i]));
+      }
+    }
+    String ss = "";
+    if (!strings.isEmpty()) {
+      ss += Arrays.toString(strings.toArray()) + "\n";
+    }
+    if (!integers.isEmpty()) {
+      ss += Arrays.toString(integers.toArray()) + "\n";
+    }
+    if (!doubles.isEmpty()) {
+      ss += Arrays.toString(doubles.toArray()) + "\n";
+    }
+    if (!booleans.isEmpty()) {
+      ss += Arrays.toString(booleans.toArray()) + "\n";
+    }
+    return ss.replaceAll("\\[", "").replaceAll("\\]", "").replaceAll(",", "");
+  }
+
+  /**
+   * Gets an array of every instance of a certain Object in the String.
+   * 
+   * @param s the String to use
+   * @return the Object array
+   */
+  public static String[] findAllStrings(String s) {
+    String typesMap = typesMap(s).replaceAll("\\[", "").replaceAll("\\]", "").replaceAll(",", "");
+    String[] incase = new String[0];
+    try {
+      return toStringArray(getLine(typesMap, 0));
+    } catch (IllegalArgumentException | NoSuchElementException e) {
+      System.out.println("No Strings exist, returning a blank String[]");
+      return incase;
+    }
+  }
+
+  /**
+   * Removes all Strings found in the given String.
+   * 
+   * @param s the String to use
+   * @return the cleaned String
+   */
+  public static String removeAllStrings(String s) {
+    String[] strings = findAllStrings(s);
+    String noStrings = s;
+    for (int i = 0; i < strings.length; i++) {
+      noStrings = noStrings.replaceFirst(strings[i], "");
+    }
+    if (verbose) {
+      System.out.println("removed all strings: " + noStrings);
+    }
+    return noStrings;
+  }
+
+  /**
+   * Filters a int from a single char sequence. Useful when user input involves a typo.
+   * 
+   * This method is works the same way as extractInts(), however returns only the first int found.
+   * 
+   * EX: filterInt("nofw4infmaw4.623423fj932lf,.3") would yield 4
+   * 
+   * @param s the String to use
+   * @return the double found
+   */
+  public static int intWithoutTypo(String s) {
+    try {
+      if (s.contains("-")) {
+        return -extractInts(s)[0];
+      }
+      return extractInts(s)[0];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      System.out.println("no ints exist, returning -1");
+    }
+    return -1;
+  }
+
+  /**
+   * Filters a double from a single char sequence. Useful when user input involves a typo.
+   * 
+   * This method is works the same way as extractDoubles(), however returns only the first int
+   * found.
+   *
+   * EX: filterInt("nofw4infmaw4.623423fj932lf,.3") would yield 4.623423
+   * 
+   * @param s the String to use
+   * @return the filtered double
+   */
+  public static double dubWithoutTypo(String s) {
+    double ret = -1;
+    try {
+      if (s.contains("-")) {
+        ret = extractDoubles(s)[0];
+      } else {
+        ret = extractDoubles(s)[0];
+      }
+    } catch (ArrayIndexOutOfBoundsException e) {
+      try {
+        if (s.contains("-")) {
+          ret = -Double.valueOf(extractInts(s)[0]);
+        } else {
+          ret = Double.valueOf(extractInts(s)[0]);
+        }
+      } catch (ArrayIndexOutOfBoundsException r) {
+        System.out.println("no numbers found, returning -1.0");
+      }
+    }
+    return ret;
+  }
+
+  // ----------------------------IS RAGGED------------------------------------
+
+  /**
+   * Decides whether a 2D array is ragged or not.
+   * 
+   * return true = not a perfect table / amount of entries in one subarray is not consistent among
+   * all subarrays
+   * 
+   * @param matrix the matrix to parse
+   * @return whether the matrix is ragged or not
+   */
+  public static boolean isRagged(Object[][] matrix) {
+    for (int i = 0; i < matrix.length; i++) {
+      for (int j = 0; j < matrix.length; j++) {
+        if (matrix[i].length != matrix[j].length) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Decides whether a 2D array is ragged or not.
+   * 
+   * return true = not a perfect table / amount of entries in one subarray is not consistent among
+   * all subarrays
+   * 
+   * @param matrix the matrix to parse
+   * @return whether the matrix is ragged or not
+   */
+  public static boolean isRagged(int[][] matrix) {
+    for (int i = 0; i < matrix.length; i++) {
+      for (int j = 0; j < matrix.length; j++) {
+        if (matrix[i].length != matrix[j].length) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Decides whether a 2D array is ragged or not.
+   * 
+   * return true = not a perfect table / amount of entries in one subarray is not consistent among
+   * all subarrays
+   * 
+   * @param matrix the matrix to parse
+   * @return whether the matrix is ragged or not
+   */
+  public static boolean isRagged(double[][] matrix) {
+    for (int i = 0; i < matrix.length; i++) {
+      for (int j = 0; j < matrix.length; j++) {
+        if (matrix[i].length != matrix[j].length) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Decides whether a 2D array is ragged or not.
+   * 
+   * return true = not a perfect table / amount of entries in one subarray is not consistent among
+   * all subarrays
+   * 
+   * @param matrix the matrix to parse
+   * @return whether the matrix is ragged or not
+   */
+  public static boolean isRagged(boolean[][] matrix) {
+    for (int i = 0; i < matrix.length; i++) {
+      for (int j = 0; j < matrix.length; j++) {
+        if (matrix[i].length != matrix[j].length) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Decides whether a 2D array is ragged or not.
+   * 
+   * return true = not a perfect table / amount of entries in one subarray is not consistent among
+   * all subarrays
+   * 
+   * @param matrix the matrix to parse
+   * @return whether the matrix is ragged or not
+   */
+  public static boolean isRagged(char[][] matrix) {
+    for (int i = 0; i < matrix.length; i++) {
+      for (int j = 0; j < matrix.length; j++) {
+        if (matrix[i].length != matrix[j].length) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // -----------------TEXT FILE OPERATIONS AND OTHER STUFF--------------------
+
+  /**
+   * Reads a file line-by-line. Can be used to remove empty lines with replaceAll("(?m)^\\s", "") or
+   * with removeEmptyLines().
+   * 
+   * https://howtodoinjava.com/
+   * 
+   * @param path the file path
+   * @return the contents of the file specified
+   * @since 0.1.2.1.0
+   */
+  public static String contentsOf(String filePath) {
+    StringBuilder contentBuilder = new StringBuilder();
+    try (Stream<String> STREAM = Files.lines(Paths.get(filePath), StandardCharsets.UTF_8)) {
+      STREAM.forEach(s -> contentBuilder.append(s).append("\n"));
+    } catch (IOException e) {
+      System.out.println("file not found");
+    }
+    return contentBuilder.toString();
+  }
+
+  /**
+   * Removes all empty lines in a given String.
+   * 
+   * @param s the String to use
+   * @return the String representation with no empty lines
+   * @since 0.1.2.1.0
+   */
+  public static String removeEmptyLines(String s) {
+    return s.replaceAll("(?m)^\\s", "");
+  }
+
+  /**
+   * Returns the contents of a file without empty lines.
+   * 
+   * @param path the path of the file
+   * @return the string representation without empty lines
+   * @since 0.1.2.1.0
+   */
+  public static String contentsOfNoEmptyLines(String path) {
+    StringBuilder contentBuilder = new StringBuilder();
+    try (Stream<String> STREAM = Files.lines(Paths.get(path), StandardCharsets.UTF_8)) {
+      STREAM.forEach(s -> contentBuilder.append(s).append("\n"));
+    } catch (IOException e) {
+      System.out.print("file not found");
+
+    }
+    return contentBuilder.toString().replaceAll("(?m)^\\s", "");
+  }
+
+  /**
+   * Prepares a file to be parsed and returns the Scanner containing the contents of the file.
+   * 
+   * @param path the path to the file to read
+   * @return the Scanner that will be used to parse through the file
+   * @since 0.1.2.1.0
+   */
+  public static Scanner prepare(String path) {
+    Scanner s = new Scanner(contentsOfNoEmptyLines(path));
+    if (verbose) {
+      System.out.println("scanner prepared");
+    }
+    return s;
+  }
+
+  /**
+   * Replaces the most common character in the File given with a whitespace.
+   * 
+   * @param path the path to the file
+   * @return the String version of the file with spaces
+   * @throws FileNotFoundException
+   * @since 0.1.2.1.0
+   */
+  public static String toSSV(String path) {
+    String contents = contentsOf(path).toLowerCase();
+    char mostcommon = mostCommonChar(contents);
+    String replaced = contents.replaceAll(String.valueOf(mostcommon), " ");
+    return replaced;
+  }
+
+  /**
+   * Replaces every non-Eng char or number with a whitespace.
+   * 
+   * @param s the String to parse
+   * @return the String with
+   * @since 0.1.2.1.0
+   */
+  public static String nuke(String s) {
+    StringBuilder sb = new StringBuilder(s);
+    for (int i = 0; i < sb.length(); i++) {
+      if (!Character.isLetter(sb.charAt(i)) && !Character.isDigit(sb.charAt(i))) {
+        sb.replace(i, i + 1, " ");
+      }
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Writes specified text into a new txt file (given path).
+   * 
+   * @param path the path to the file
+   * @param text the text
+   * @throws FileNotFoundException cannot find file
+   * @since 0.1.2.1.0
+   */
+  public static void writeTo(String path, String text) throws FileNotFoundException {
+    File f = new File(path);
+    PrintWriter pw = new PrintWriter(f);
+    pw.write(text);
+  }
+
+  // ------------------------------PARSING------------------------------------
+
+  /**
+   * Returns a vertical piece of the passed 2D array in the form of a 1D array.
+   * 
+   * ex. a 2D array such as [5, 3, 8] [4, 0, 3] [2, 3, 3] when running parseVertArray(array, 1)
+   * would return {3, 0, 3}
+   * 
+   * @param array the array to use
+   * @param index the row index to parse
+   * @return the parsed array
+   * @since 0.1.0.1.0
+   */
+  public static Object[] parseVertArray(Object[][] array, int index) {
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("array cannot be ragged");
+    }
+    Object[] vert = new Object[array[0].length];
+
+    for (int i = 0; i < vert.length; i++) {
+      vert[i] = array[i][index];
+    }
+    if (verbose) {
+      System.out.println("parsed " + Arrays.toString(vert));
+    }
+    return vert;
+  }
+
+  /**
+   * Returns a vertical piece of the passed 2D array in the form of a 1D array.
+   * 
+   * ex. a 2D array such as [5, 3, 8] [4, 0, 3] [2, 3, 3] when running parseVertArray(array, 1)
+   * would return {3, 0, 3}
+   * 
+   * @param array the array to use
+   * @param index the row index to parse
+   * @return the parsed array
+   * @since 0.1.0.1.0
+   */
+  public static int[] parseVertArray(int[][] array, int index) {
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("array cannot be ragged");
+    }
+    int[] vert = new int[array[0].length];
+
+    for (int i = 0; i < vert.length; i++) {
+      vert[i] = array[i][index];
+    }
+    if (verbose) {
+      System.out.println("parsed " + Arrays.toString(vert));
+    }
+    return vert;
+  }
+
+  /**
+   * Returns a vertical piece of the passed 2D array in the form of a 1D array.
+   * 
+   * ex. a 2D array such as [5, 3, 8] [4, 0, 3] [2, 3, 3] when running parseVertArray(array, 1)
+   * would return {3, 0, 3}
+   * 
+   * @param array the array to use
+   * @param index the row index to parse
+   * @return the parsed array
+   * @since 0.1.0.1.0
+   */
+  public static double[] parseVertArray(double[][] array, int index) {
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("array cannot be ragged");
+    }
+    double[] vert = new double[array[0].length];
+
+    for (int i = 0; i < vert.length; i++) {
+      vert[i] = array[i][index];
+    }
+    if (verbose) {
+      System.out.println("parsed " + Arrays.toString(vert));
+    }
+    return vert;
+  }
+
+  /**
+   * Returns a vertical piece of the passed 2D array in the form of a 1D array.
+   * 
+   * ex. a 2D array such as [5, 3, 8] [4, 0, 3] [2, 3, 3] when running parseVertArray(array, 1)
+   * would return {3, 0, 3}
+   * 
+   * @param array the array to use
+   * @param index the row index to parse
+   * @return the parsed array
+   * @since 0.1.0.1.0
+   */
+  public static boolean[] parseVertArray(boolean[][] array, int index) {
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("array cannot be ragged");
+    }
+    boolean[] vert = new boolean[array[0].length];
+
+    for (int i = 0; i < vert.length; i++) {
+      vert[i] = array[i][index];
+    }
+    if (verbose) {
+      System.out.println("parsed " + Arrays.toString(vert));
+    }
+    return vert;
+  }
+
+  /**
+   * Returns a vertical piece of the passed 2D array in the form of a 1D array.
+   * 
+   * ex. a 2D array such as [5, 3, 8] [4, 0, 3] [2, 3, 3] when running parseVertArray(array, 1)
+   * would return {3, 0, 3}
+   * 
+   * @param array the array to use
+   * @param index the row index to parse
+   * @return the parsed array
+   * @since 0.1.0.1.0
+   */
+  public static char[] parseVertArray(char[][] array, int index) {
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("array cannot be ragged");
+    }
+    char[] vert = new char[array[0].length];
+
+    for (int i = 0; i < vert.length; i++) {
+      vert[i] = array[i][index];
+    }
+    if (verbose) {
+      System.out.println("parsed " + Arrays.toString(vert));
+    }
+    return vert;
+  }
+
+  /**
+   * Opposite of parseVertArray
+   * 
+   * @param array the array to use
+   * @param index the index to use
+   * @return the horizontal array
+   * @since 0.1.0.1.0
+   */
+  public static Object[] parseHorizArray(Object[][] array, int index) {
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("array cannot be ragged");
+    }
+    Object[] vert = new Object[array.length];
+
+    for (int i = 0; i < vert.length; i++) {
+      vert[i] = array[index][i];
+    }
+    if (verbose) {
+      System.out.println("parsed " + Arrays.toString(vert));
+    }
+    return vert;
+  }
+
+  /**
+   * Opposite of parseVertArray
+   * 
+   * @param array the array to use
+   * @param index the index to use
+   * @return the horizontal array
+   * @since 0.1.0.1.0
+   */
+  public static int[] parseHorizArray(int[][] array, int index) {
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("array cannot be ragged");
+    }
+    int[] vert = new int[array.length];
+
+    for (int i = 0; i < vert.length; i++) {
+      vert[i] = array[index][i];
+    }
+    if (verbose) {
+      System.out.println("parsed " + Arrays.toString(vert));
+    }
+    return vert;
+  }
+
+  /**
+   * Opposite of parseVertArray
+   * 
+   * @param array the array to use
+   * @param index the index to use
+   * @return the horizontal array
+   * @since 0.1.0.1.0
+   */
+  public static double[] parseHorizArray(double[][] array, int index) {
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("array cannot be ragged");
+    }
+    double[] vert = new double[array.length];
+
+    for (int i = 0; i < vert.length; i++) {
+      vert[i] = array[index][i];
+    }
+    if (verbose) {
+      System.out.println("parsed " + Arrays.toString(vert));
+    }
+    return vert;
+  }
+
+  /**
+   * Opposite of parseVertArray
+   * 
+   * @param array the array to use
+   * @param index the index to use
+   * @return the horizontal array
+   * @since 0.1.0.1.0
+   */
+  public static boolean[] parseHorizArray(boolean[][] array, int index) {
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("array cannot be ragged");
+    }
+    boolean[] vert = new boolean[array.length];
+
+    for (int i = 0; i < vert.length; i++) {
+      vert[i] = array[index][i];
+    }
+    if (verbose) {
+      System.out.println("parsed " + Arrays.toString(vert));
+    }
+    return vert;
+  }
+
+  /**
+   * Opposite of parseVertArray
+   * 
+   * @param array the array to use
+   * @param index the index to use
+   * @return the horizontal array
+   * @since 0.1.0.1.0
+   */
+  public static char[] parseHorizArray(char[][] array, int index) {
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("array cannot be ragged");
+    }
+    char[] vert = new char[array.length];
+
+    for (int i = 0; i < vert.length; i++) {
+      vert[i] = array[index][i];
+    }
+    if (verbose) {
+      System.out.println("parsed " + Arrays.toString(vert));
+    }
+    return vert;
+  }
+
+  // ---------------------------ARRAY OPERATIONS------------------------------
+
+  /**
+   * Prints an array, useful when needing to print arrays quickly.
+   * 
+   * @param arr the array to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(Object[] arr) {
+    System.out.println(Arrays.toString(arr));
+  }
+
+  /**
+   * Prints an array, useful when needing to print arrays quickly.
+   * 
+   * @param arr the array to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(int[] arr) {
+    System.out.println(Arrays.toString(arr));
+  }
+
+  /**
+   * Prints an array, useful when needing to print arrays quickly.
+   * 
+   * @param arr the array to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(double[] arr) {
+    System.out.println(Arrays.toString(arr));
+  }
+
+  /**
+   * Prints an array, useful when needing to print arrays quickly.
+   * 
+   * @param arr the array to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(boolean[] arr) {
+    System.out.println(Arrays.toString(arr));
+  }
+
+  /**
+   * Prints an array, useful when needing to print arrays quickly.
+   * 
+   * @param arr the array to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(char[] arr) {
+    System.out.println(Arrays.toString(arr));
+  }
+
+  /**
+   * Prints a 2D array thats a little easier on the eyes.
+   * 
+   * @param matrix the 2D matrix to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(Object[][] matrix) {
+    System.out.println(
+        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
+  }
+
+  /**
+   * Prints a 2D array thats a little easier on the eyes.
+   * 
+   * @param matrix the 2D matrix to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(String[][] matrix) {
+    System.out.println(
+        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
+  }
+
+  /**
+   * Prints a 2D array thats a little easier on the eyes.
+   * 
+   * @param matrix the 2D matrix to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(int[][] matrix) {
+    System.out.println(
+        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
+  }
+
+  /**
+   * Prints a 2D array thats a little easier on the eyes.
+   * 
+   * @param matrix the 2D matrix to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(double[][] matrix) {
+    System.out.println(
+        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
+  }
+
+  /**
+   * Prints a 2D array thats a little easier on the eyes.
+   * 
+   * @param matrix the 2D matrix to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(boolean[][] matrix) {
+    System.out.println(
+        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
+  }
+
+  /**
+   * Prints a 2D array thats a little easier on the eyes.
+   * 
+   * @param matrix the 2D matrix to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(char[][] matrix) {
+    System.out.println(
+        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
+  }
+
+  /**
+   * Reverses the passed array.
+   * 
+   * @param array the array to reverse
+   * @since 0.1.1.0.0
+   */
+  public static void reverse(Object[] array) {
+    Object[] copy = Arrays.copyOf(array, array.length);
+    ArrayList<Object> newArray = new ArrayList<>();
+    for (int i = copy.length - 1; i >= 0; i--) {
+      newArray.add(copy[i]);
+    }
+    for (int i = 0; i < newArray.size(); i++) {
+      array[i] = newArray.get(i);
+    }
+  }
+
+  /**
+   * Reverses the passed array.
+   * 
+   * @param array the array to reverse
+   * @since 0.1.1.0.0
+   */
+  public static void reverse(int[] array) {
+    int[] copy = Arrays.copyOf(array, array.length);
+    ArrayList<Object> newArray = new ArrayList<>();
+    for (int i = copy.length - 1; i >= 0; i--) {
+      newArray.add(copy[i]);
+    }
+    for (int i = 0; i < newArray.size(); i++) {
+      array[i] = (int) newArray.get(i);
+    }
+  }
+
+  /**
+   * Reverses the passed array.
+   * 
+   * @param array the array to reverse
+   * @since 0.1.1.0.0
+   */
+  public static void reverse(double[] array) {
+    double[] copy = Arrays.copyOf(array, array.length);
+    ArrayList<Object> newArray = new ArrayList<>();
+    for (int i = copy.length - 1; i >= 0; i--) {
+      newArray.add(copy[i]);
+    }
+    for (int i = 0; i < newArray.size(); i++) {
+      array[i] = (double) newArray.get(i);
+    }
+  }
+
+  /**
+   * Reverses the passed array.
+   * 
+   * @param array the array to reverse
+   * @since 0.1.1.0.0
+   */
+  public static void reverse(char[] array) {
+    char[] copy = Arrays.copyOf(array, array.length);
+    ArrayList<Object> newArray = new ArrayList<>();
+    for (int i = copy.length - 1; i >= 0; i--) {
+      newArray.add(copy[i]);
+    }
+    for (int i = 0; i < newArray.size(); i++) {
+      array[i] = (char) newArray.get(i);
+    }
+  }
+
+  /**
+   * Checks whether the coordinates are valid.
+   * 
+   * @param <E> e
+   * @param array the array to check
+   * @param coord the coordinates
+   * @return whether the coordinates passed are valid
+   * @since 0.1.5.0.4
+   */
+  public static boolean validCoord(Object[][] array, int[] coord) {
+    try {
+      Object e = array[coord[0]][coord[1]];
+    } catch (IndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the coordinates are valid.
+   * 
+   * @param <E> e
+   * @param array the array to check
+   * @param coord the coordinates
+   * @return whether the coordinates passed are valid
+   * @since 0.1.5.0.4
+   */
+  public static boolean validCoord(int[][] array, int[] coord) {
+    try {
+      Object e = array[coord[0]][coord[1]];
+    } catch (IndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the coordinates are valid.
+   * 
+   * @param <E> e
+   * @param array the array to check
+   * @param coord the coordinates
+   * @return whether the coordinates passed are valid
+   * @since 0.1.5.0.4
+   */
+  public static boolean validCoord(double[][] array, int[] coord) {
+    try {
+      Object e = array[coord[0]][coord[1]];
+    } catch (IndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the coordinates are valid.
+   * 
+   * @param <E> e
+   * @param array the array to check
+   * @param coord the coordinates
+   * @return whether the coordinates passed are valid
+   * @since 0.1.5.0.4
+   */
+  public static boolean validCoord(boolean[][] array, int[] coord) {
+    try {
+      Object e = array[coord[0]][coord[1]];
+    } catch (IndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the coordinates are valid.
+   * 
+   * @param <E> e
+   * @param array the array to check
+   * @param coord the coordinates
+   * @return whether the coordinates passed are valid
+   * @since 0.1.5.0.4
+   */
+  public static boolean validCoord(char[][] array, int[] coord) {
+    try {
+      Object e = array[coord[0]][coord[1]];
+    } catch (IndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
+   * 
+   * @param <E> e
+   * @param array the array
+   * @return a new array
+   * @since 0.1.5.0.4
+   */
+  public static Object[][] arraycopy(Object[][] array) {
+    Object[][] destination = new Object[array.length][];
+
+    for (int i = 0; i < destination.length; ++i) {
+      destination[i] = new Object[array[i].length];
+      for (int j = 0; j < destination[i].length; ++j) {
+        destination[i][j] = array[i][j];
+      }
+    }
+    return destination;
+  }
+
+  /**
+   * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
+   * 
+   * @param <E> e
+   * @param array the array
+   * @return a new array
+   * @since 0.1.5.0.4
+   */
+  public static int[][] arraycopy(int[][] array) {
+    int[][] destination = new int[array.length][];
+    for (int i = 0; i < destination.length; ++i) {
+      destination[i] = new int[array[i].length];
+      for (int j = 0; j < destination[i].length; ++j) {
+        destination[i][j] = array[i][j];
+      }
+    }
+    return destination;
+  }
+
+  /**
+   * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
+   * 
+   * @param <E> e
+   * @param array the array
+   * @return a new array
+   * @since 0.1.5.0.4
+   */
+  public static double[][] arraycopy(double[][] array) {
+    double[][] destination = new double[array.length][];
+    for (int i = 0; i < destination.length; ++i) {
+      destination[i] = new double[array[i].length];
+      for (int j = 0; j < destination[i].length; ++j) {
+        destination[i][j] = array[i][j];
+      }
+    }
+    return destination;
+  }
+
+  /**
+   * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
+   * 
+   * @param <E> e
+   * @param array the array
+   * @return a new array
+   * @since 0.1.5.0.4
+   */
+  public static boolean[][] arraycopy(boolean[][] array) {
+    boolean[][] destination = new boolean[array.length][];
+    for (int i = 0; i < destination.length; ++i) {
+      destination[i] = new boolean[array[i].length];
+      for (int j = 0; j < destination[i].length; ++j) {
+        destination[i][j] = array[i][j];
+      }
+    }
+    return destination;
+  }
+
+  /**
+   * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
+   * 
+   * @param <E> e
+   * @param array the array
+   * @return a new array
+   * @since 0.1.5.0.4
+   */
+  public static char[][] arraycopy(char[][] array) {
+    char[][] destination = new char[array.length][];
+    for (int i = 0; i < destination.length; ++i) {
+      destination[i] = new char[array[i].length];
+      for (int j = 0; j < destination[i].length; ++j) {
+        destination[i][j] = array[i][j];
+      }
+    }
+    return destination;
+  }
+
+  /**
+   * Imports all values from the array into the Collection specified.
+   * 
+   * @param from the from array
+   * @param to the collection to import the arrays values to
+   * @since 0.1.4.3.2
+   */
+  public static void importAll(Object[] from, Collection<Object> to) {
+    for (Object o : from) {
+      to.add(o);
+    }
+  }
+
+  /**
+   * Imports all values from the array into the Collection specified.
+   * 
+   * @param from the from array
+   * @param to the collection to import the arrays values to
+   * @since 0.1.4.3.2
+   */
+  public static void importAll(int[] from, Collection<Integer> to) {
+    for (Integer o : from) {
+      to.add((Integer) o);
+    }
+  }
+
+  /**
+   * Imports all values from the array into the Collection specified.
+   * 
+   * @param from the from array
+   * @param to the collection to import the arrays values to
+   * @since 0.1.4.3.2
+   */
+  public static void importAll(double[] from, Collection<Double> to) {
+    for (Double o : from) {
+      to.add((Double) o);
+    }
+  }
+
+  /**
+   * Imports all values from the array into the Collection specified.
+   * 
+   * @param from the from array
+   * @param to the collection to import the arrays values to
+   * @since 0.1.4.3.2
+   */
+  public static void importAll(char[] from, Collection<Character> to) {
+    for (Character o : from) {
+      to.add((Character) o);
+    }
+  }
+
+  /**
+   * Imports all values from the array into the Collection specified.
+   * 
+   * @param from the from array
+   * @param to the collection to import the arrays values to
+   * @since 0.1.4.3.2
+   */
+  public static void importAll(boolean[] from, Collection<Boolean> to) {
+    for (Boolean o : from) {
+      to.add((Boolean) o);
+    }
+  }
+
+  /**
+   * Removes all instances of the specified element in an array.
+   * 
+   * @param array the array to use
+   * @param toRemove the element to remove
+   * @return the fixed array
+   * @since 0.1.4.3.2
+   */
+  public static Object[] removeAll(Object[] array, Object toRemove) {
+    ArrayList<Object> wo = new ArrayList<>(Arrays.asList(array));
+    while (wo.contains(toRemove)) {
+      wo.remove(toRemove);
+    }
+    if (verbose)
+      System.out.println("removed " + toRemove + " from array");
+    return wo.toArray();
+  }
+
+  /**
+   * Removes all instances of the specified element in an array.
+   * 
+   * @param array the array to use
+   * @param toRemove the element to remove
+   * @return the fixed array
+   * @since 0.1.2.4.0
+   */
+  public static int[] removeAll(int[] array, int toRemove) {
+    ArrayList<Integer> fixed = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      if (array[i] != toRemove) {
+        fixed.add(array[i]);
+      }
+    }
+    if (verbose)
+      System.out.println("removed " + toRemove + " from array");
+    return toInt(fixed.toArray());
+  }
+
+  /**
+   * Removes all instances of the specified element in an array.
+   * 
+   * @param array the array to use
+   * @param toRemove the element to remove
+   * @return the fixed array
+   * @since 0.1.2.4.0
+   */
+  public static double[] removeAll(double[] array, double toRemove) {
+    ArrayList<Double> fixed = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      if (array[i] != toRemove) {
+        fixed.add(array[i]);
+      }
+    }
+    if (verbose)
+      System.out.println("removed " + toRemove + " from array");
+    return toDouble(fixed.toArray());
+  }
+
+  /**
+   * Removes all instances of the specified element in an array.
+   * 
+   * @param array the array to use
+   * @param toRemove the element to remove
+   * @return the fixed array
+   * @since 0.1.2.4.0
+   */
+  public static char[] removeAll(char[] array, char toRemove) {
+    ArrayList<Character> fixed = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      if (array[i] != toRemove) {
+        fixed.add(array[i]);
+      }
+    }
+    if (verbose)
+      System.out.println("removed " + toRemove + " from array");
+    return toChar(fixed.toArray());
+  }
+
+  /**
+   * Removes all of the given values in toRemove from array.
+   * 
+   * @param array the array to remove elements from
+   * @param toRemove the elements to remove from array
+   * @return the fixed array
+   * @since 0.1.2.4.0
+   */
+  public static Object[] removeAll(Object[] array, Object[] toRemove) {
+    ArrayList<Object> a = new ArrayList<>(Arrays.asList(array));
+    for (int i = 0; i < toRemove.length; i++)
+      a = new ArrayList<>(Arrays.asList(removeAll(a.toArray(), toRemove[i])));
+    return a.toArray();
+  }
+
+  /**
+   * Removes all of the given values in toRemove from array.
+   * 
+   * @param array the array to remove elements from
+   * @param toRemove the elements to remove from array
+   * @return the fixed array
+   * @since 0.1.2.4.0
+   */
+  public static int[] removeAll(int[] array, int[] toRemove) {
+    int[] a = array;
+    for (int i = 0; i < toRemove.length; i++)
+      a = removeAll(a, toRemove[i]);
+    return a;
+  }
+
+  /**
+   * Removes all of the given values in toRemove from array.
+   * 
+   * @param array the array to remove elements from
+   * @param toRemove the elements to remove from array
+   * @return the fixed array
+   * @since 0.1.2.4.0
+   */
+  public static double[] removeAll(double[] array, double[] toRemove) {
+    double[] a = array;
+    for (int i = 0; i < toRemove.length; i++)
+      a = removeAll(a, toRemove[i]);
+    return a;
+  }
+
+  /**
+   * Removes all of the given values in toRemove from array.
+   * 
+   * @param array the array to remove elements from
+   * @param toRemove the elements to remove from array
+   * @return the fixed array
+   * @since 0.1.2.4.0
+   */
+  public static char[] removeAll(char[] array, char[] toRemove) {
+    char[] a = array;
+    for (int i = 0; i < toRemove.length; i++)
+      a = removeAll(a, toRemove[i]);
+    return a;
+  }
+
+  /**
+   * Gets the indices of every instance of the Object passed in the array passed.
+   * 
+   * @param array the array to search
+   * @param obj the Object to find
+   * @return the indicies in an int array
+   */
+  public static int[] indicesOf(Object[] array, Object obj) {
+    ArrayList<Integer> indicies = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      if (array[i].equals(obj)) {
+        indicies.add(i);
+      }
+    }
+    return toInt(indicies.toArray());
+  }
+
+  /**
+   * Gets the indices of every instance of the Object passed in the array passed.
+   * 
+   * @param array the array to search
+   * @param obj the Object to find
+   * @return the indicies in an int array
+   */
+  public static int[] indicesOf(int[] array, int obj) {
+    ArrayList<Integer> indicies = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      if (array[i] == obj) {
+        indicies.add(i);
+      }
+    }
+    return toInt(indicies.toArray());
+  }
+
+  /**
+   * Gets the indices of every instance of the Object passed in the array passed.
+   * 
+   * @param array the array to search
+   * @param obj the Object to find
+   * @return the indicies in an int array
+   */
+  public static int[] indicesOf(double[] array, double obj) {
+    ArrayList<Integer> indicies = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      if (array[i] == obj) {
+        indicies.add(i);
+      }
+    }
+    return toInt(indicies.toArray());
+  }
+
+  /**
+   * Gets the indices of every instance of the Object passed in the array passed.
+   * 
+   * @param array the array to search
+   * @param obj the Object to find
+   * @return the indicies in an int array
+   */
+  public static int[] indicesOf(char[] array, char obj) {
+    ArrayList<Integer> indicies = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      if (array[i] == obj) {
+        indicies.add(i);
+      }
+    }
+    return toInt(indicies.toArray());
+  }
+
+  /**
+   * Gets the indices of every instance of the Object passed in the array passed.
+   * 
+   * @param array the array to search
+   * @param obj the Object to find
+   * @return the indicies in an int array
+   */
+  public static int[] indicesOf(boolean[] array, boolean obj) {
+    ArrayList<Integer> indicies = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      if (array[i] == obj) {
+        indicies.add(i);
+      }
+    }
+    return toInt(indicies.toArray());
+  }
+
+  /**
+   * Finds the dimensions of the given array.
+   * 
+   * @param array the array to use
+   * @return the dimensions
+   */
+  public static int[] getDims(Object[][] array) {
+
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("array must be a table (not ragged)");
+    }
+    int[] dims = new int[2];
+    dims[0] = array.length;
+    dims[1] = array[0].length;
+    if (verbose) {
+      System.out.println(Arrays.toString(dims));
+      System.out.println(dims[0] + "x" + dims[1]);
+    }
+    return dims;
+  }
+
+  /**
+   * Finds the dimensions of the given array.
+   * 
+   * @param array the array to use
+   * @return the dimensions
+   */
+  public static int[] getDims(int[][] array) {
+
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("array must be a table (not ragged)");
+    }
+    int[] dims = new int[2];
+    dims[0] = array.length;
+    dims[1] = array[0].length;
+    if (verbose) {
+      System.out.println(Arrays.toString(dims));
+    }
+    return dims;
+  }
+
+  /**
+   * Finds the dimensions of the given array.
+   * 
+   * @param array the array to use
+   * @return the dimensions
+   */
+  public static int[] getDims(double[][] array) {
+
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("array must be a table (not ragged)");
+    }
+    int[] dims = new int[2];
+    dims[0] = array.length;
+    dims[1] = array[0].length;
+    if (verbose) {
+      System.out.println(Arrays.toString(dims));
+      System.out.println(dims[0] + "x" + dims[1]);
+    }
+    return dims;
+  }
+
+  /**
+   * Finds the dimensions of the given array.
+   * 
+   * @param array the array to use
+   * @return the dimensions
+   */
+  public static int[] getDims(boolean[][] array) {
+
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("array must be a table (not ragged)");
+    }
+    int[] dims = new int[2];
+    dims[0] = array.length;
+    dims[1] = array[0].length;
+    if (verbose) {
+      System.out.println(Arrays.toString(dims));
+      System.out.println(dims[0] + "x" + dims[1]);
+    }
+    return dims;
+  }
+
+  /**
+   * Finds the dimensions of the given array.
+   * 
+   * @param array the array to use
+   * @return the dimensions
+   */
+  public static int[] getDims(char[][] array) {
+
+    if (isRagged(array)) {
+      throw new IllegalArgumentException("array must be a table (not ragged)");
+    }
+    int[] dims = new int[2];
+    dims[0] = array.length;
+    dims[1] = array[0].length;
+    if (verbose) {
+      System.out.println(Arrays.toString(dims));
+      System.out.println(dims[0] + "x" + dims[1]);
+    }
+    return dims;
+  }
+
+  /**
+   * Gets the position of an element in an array if ArrayUtils cannot be resolved.
+   * 
+   * @param array the array to use
+   * @param obj the object to find
+   * @return the index of the element, -1 if not found
+   */
+  public static int getPosition(Object[] array, Object obj) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i].equals(obj))
+        return i;
+    return -1;
+  }
+
+  /**
+   * Gets the position of an element in an array if ArrayUtils cannot be resolved.
+   * 
+   * @param array the array to use
+   * @param obj the object to find
+   * @return the index of the element, -1 if not found
+   */
+  public static int getPosition(int[] array, int obj) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i] == (obj))
+        return i;
+    return -1;
+  }
+
+  /**
+   * Gets the position of an element in an array if ArrayUtils cannot be resolved.
+   * 
+   * @param array the array to use
+   * @param obj the object to find
+   * @return the index of the element, -1 if not found
+   */
+  public static int getPosition(double[] array, double obj) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i] == (obj))
+        return i;
+    return -1;
+  }
+
+  /**
+   * Gets the position of an element in an array if ArrayUtils cannot be resolved.
+   * 
+   * @param array the array to use
+   * @param obj the object to find
+   * @return the index of the element, -1 if not found
+   */
+  public static int getPosition(boolean[] array, boolean obj) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i] == (obj))
+        return i;
+    return -1;
+  }
+
+  /**
+   * Gets the position of an element in an array if ArrayUtils cannot be resolved.
+   * 
+   * @param array the array to use
+   * @param obj the object to find
+   * @return the index of the element, -1 if not found
+   */
+  public static int getPosition(char[] array, char obj) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i] == (obj))
+        return i;
+    return -1;
+  }
+
+  /**
+   * Finds the x and y coordinates for the first instance of the specified value in a 2D array.
+   * 
+   * @param array the array to search
+   * @param obj the element to search for
+   * @return the elements' coordinates
+   */
+  public static int[] getPosition(Object[][] array, Object obj) {
+    if (!contains(array, obj)) {
+      throw new IllegalArgumentException("obj specified must be in the array");
+    }
+    int[] coordinates = new int[2];
+    boolean found = false;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (obj.equals(array[i][j])) {
+          coordinates[0] = i;
+          coordinates[1] = j;
+          found = true;
+          if (found) {
+            break;
+          }
+        }
+
+      }
+      if (found) {
+        break;
+      }
+    }
+    if (verbose) {
+      System.out.println("element found at " + Arrays.toString(coordinates));
+    }
+    return coordinates;
+  }
+
+  /**
+   * Finds the x and y coordinates for the first instance of the specified value in a 2D array.
+   * 
+   * @param array the array to search
+   * @param obj the element to search for
+   * @return the elements' coordinates
+   */
+  public static int[] getPosition(int[][] array, int obj) {
+    if (!contains(array, obj)) {
+      throw new IllegalArgumentException("obj specified must be in the array");
+    }
+    int[] coordinates = new int[2];
+    boolean found = false;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (obj == array[i][j]) {
+          coordinates[0] = i;
+          coordinates[1] = j;
+          found = true;
+          if (found) {
+            break;
+          }
+        }
+      }
+      if (found) {
+        break;
+      }
+    }
+    if (verbose) {
+      System.out.println("element found at " + Arrays.toString(coordinates));
+    }
+    return coordinates;
+  }
+
+  /**
+   * Finds the x and y coordinates for the first instance of the specified value in a 2D array.
+   * 
+   * @param array the array to search
+   * @param obj the element to search for
+   * @return the elements' coordinates
+   */
+  public static int[] getPosition(double[][] array, double obj) {
+    if (!contains(array, obj)) {
+      throw new IllegalArgumentException("obj specified must be in the array");
+    }
+    int[] coordinates = new int[2];
+    boolean found = false;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (obj == array[i][j]) {
+          coordinates[0] = i;
+          coordinates[1] = j;
+          found = true;
+          if (found) {
+            break;
+          }
+        }
+      }
+      if (found) {
+        break;
+      }
+    }
+    if (verbose) {
+      System.out.println("element found at " + Arrays.toString(coordinates));
+    }
+    return coordinates;
+  }
+
+  /**
+   * Finds the x and y coordinates for the first instance of the specified value in a 2D array.
+   * 
+   * @param array the array to search
+   * @param obj the element to search for
+   * @return the elements' coordinates
+   */
+  public static int[] getPosition(boolean[][] array, boolean obj) {
+    if (!contains(array, obj)) {
+      throw new IllegalArgumentException("obj specified must be in the array");
+    }
+    int[] coordinates = new int[2];
+    boolean found = false;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (obj == array[i][j]) {
+          coordinates[0] = i;
+          coordinates[1] = j;
+          found = true;
+          if (found) {
+            break;
+          }
+        }
+      }
+      if (found) {
+        break;
+      }
+    }
+    if (verbose) {
+      System.out.println("element found at " + Arrays.toString(coordinates));
+    }
+    return coordinates;
+  }
+
+  /**
+   * Finds the x and y coordinates for the first instance of the specified value in a 2D array.
+   * 
+   * @param array the array to search
+   * @param obj the element to search for
+   * @return the elements' coordinates
+   */
+  public static int[] getPosition(char[][] array, char obj) {
+    if (!contains(array, obj)) {
+      throw new IllegalArgumentException("obj specified must be in the array");
+    }
+    int[] coordinates = new int[2];
+    boolean found = false;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (obj == array[i][j]) {
+          coordinates[0] = i;
+          coordinates[1] = j;
+          found = true;
+          if (found) {
+            break;
+          }
+        }
+      }
+      if (found) {
+        break;
+      }
+    }
+    if (verbose) {
+      System.out.println("element found at " + Arrays.toString(coordinates));
+    }
+    return coordinates;
+  }
+
+  /**
+   * Creates a 2D array from a one dimensional array.
+   * 
+   * @param ints the array to use
+   * @return the 2D array
+   */
+  public static int[][] to2DArray(int[] ints) {
+    if (ints.length < 4) {
+      throw new IllegalArgumentException("array length must be greater than 3");
+    }
+    if (ints.length % 2 != 0 && ints.length % 3 != 0) {
+      throw new IllegalArgumentException("array length is prime, cannot convert to 2D array\ntry "
+          + "using to2DArray(int rows, int cols, int[] ints)");
+    }
+    int[][] array = null;
+    boolean found = false;
+    for (int i = 2; i < 100; i++) {
+      for (int j = 2; j < 100; j++) {
+        if (i * j == ints.length) {
+          array = new int[i][j];
+          found = true;
+          break;
+        }
+      }
+      if (found) {
+        break;
+      }
+
+    }
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        array[i][j] = ints[(i * array[i].length) + j];
+      }
+    }
+    if (verbose) {
+      pa(array);
+    }
+    return array;
+  }
+
+  /**
+   * Creates a 2D array from a one dimensional array.
+   * 
+   * @param array the array to use
+   * @return the 2D array
+   */
+  public static Object[][] to2DArray(Object[] array) {
+    if (array.length < 4) {
+      throw new IllegalArgumentException("array length must be greater than 3");
+    }
+    if (array.length % 2 != 0 && array.length % 3 != 0) {
+      throw new IllegalArgumentException("array length is prime, cannot convert to 2D array\ntry "
+          + "using to2DArray(int rows, int cols, int[] ints)");
+    }
+    Object[][] arr = null;
+    boolean found = false;
+    for (int i = 2; i < 100; i++) {
+      for (int j = 2; j < 100; j++) {
+        if (i * j == array.length) {
+          arr = new Object[i][j];
+          found = true;
+          break;
+        }
+      }
+      if (found) {
+        break;
+      }
+
+    }
+    for (int i = 0; i < arr.length; i++) {
+      for (int j = 0; j < arr[i].length; j++) {
+        arr[i][j] = array[(i * arr[i].length) + j];
+      }
+    }
+    if (verbose) {
+      pa(arr);
+    }
+    return arr;
+  }
+
+  /**
+   * Creates a 2D array from a one dimensional array.
+   * 
+   * @param array the array to use
+   * @return the 2D array
+   */
+  public static boolean[][] to2DArray(boolean[] array) {
+    if (array.length < 4) {
+      throw new IllegalArgumentException("array length must be greater than 3");
+    }
+    if (array.length % 2 != 0 && array.length % 3 != 0) {
+      throw new IllegalArgumentException("array length is prime, cannot convert to 2D array\ntry "
+          + "using to2DArray(int rows, int cols, int[] ints)");
+    }
+    boolean[][] arr = null;
+    boolean found = false;
+    for (int i = 2; i < 100; i++) {
+      for (int j = 2; j < 100; j++) {
+        if (i * j == array.length) {
+          arr = new boolean[i][j];
+          found = true;
+          break;
+        }
+      }
+      if (found) {
+        break;
+      }
+
+    }
+    for (int i = 0; i < arr.length; i++) {
+      for (int j = 0; j < arr[i].length; j++) {
+        arr[i][j] = array[(i * arr[i].length) + j];
+      }
+    }
+    if (verbose) {
+      pa(arr);
+    }
+    return arr;
+  }
+
+  /**
+   * Creates a 2D array from a one dimensional array.
+   * 
+   * @param array the array to use
+   * @return the 2D array
+   */
+  public static double[][] to2DArray(double[] array) {
+    if (array.length < 4) {
+      throw new IllegalArgumentException("array length must be greater than 3");
+    }
+    if (array.length % 2 != 0 && array.length % 3 != 0) {
+      throw new IllegalArgumentException("array length is prime, cannot convert to 2D array\ntry "
+          + "using to2DArray(int rows, int cols, int[] ints)");
+    }
+    double[][] arr = null;
+    boolean found = false;
+    for (int i = 2; i < 100; i++) {
+      for (int j = 2; j < 100; j++) {
+        if (i * j == array.length) {
+          arr = new double[i][j];
+          found = true;
+          break;
+        }
+      }
+      if (found) {
+        break;
+      }
+
+    }
+    for (int i = 0; i < arr.length; i++) {
+      for (int j = 0; j < arr[i].length; j++) {
+        arr[i][j] = array[(i * arr[i].length) + j];
+      }
+    }
+    if (verbose) {
+      pa(arr);
+    }
+    return arr;
+  }
+
+  /**
+   * Creates a 2D array from a one dimensional array.
+   * 
+   * @param array the array to use
+   * @return the 2D array
+   */
+  public static char[][] to2DArray(char[] array) {
+    if (array.length < 4) {
+      throw new IllegalArgumentException("array length must be greater than 3");
+    }
+    if (array.length % 2 != 0 && array.length % 3 != 0) {
+      throw new IllegalArgumentException("array length is prime, cannot convert to 2D array\ntry "
+          + "using to2DArray(int rows, int cols, int[] ints)");
+    }
+    char[][] arr = null;
+    boolean found = false;
+    for (int i = 2; i < 100; i++) {
+      for (int j = 2; j < 100; j++) {
+        if (i * j == array.length) {
+          arr = new char[i][j];
+          found = true;
+          break;
+        }
+      }
+      if (found) {
+        break;
+      }
+
+    }
+    for (int i = 0; i < arr.length; i++) {
+      for (int j = 0; j < arr[i].length; j++) {
+        arr[i][j] = array[(i * arr[i].length) + j];
+      }
+    }
+    if (verbose) {
+      pa(arr);
+    }
+    return arr;
+  }
+
+  /**
+   * Creates a 2D array from a one dimensional array.
+   * 
+   * @param rows amount of rows in the 2D array
+   * @param cols amount of cols in the 2D array
+   * @param obj the array to use
+   * @return the 2D array
+   */
+  public static Object[][] to2DArray(int rows, int cols, Object[] obj) {
+
+    if (rows * cols != obj.length) {
+      throw new IllegalArgumentException("rows * cols must equals ints.length");
+    }
+
+    Object[][] integers = new Object[rows][cols];
+
+    for (int i = 0; i < integers.length; i++) {
+      for (int j = 0; j < integers[i].length; j++) {
+        integers[i][j] = obj[(i * cols) + j];
+      }
+    }
+    if (verbose) {
+      pa(integers);
+    }
+    return integers;
+  }
+
+  /**
+   * Creates a 2D array from a one dimensional array.
+   * 
+   * @param rows amount of rows in the 2D array
+   * @param cols amount of cols in the 2D array
+   * @param ints the array of integers
+   * @return the 2D array
+   */
+  public static int[][] to2DArray(int rows, int cols, int[] ints) {
+
+    if (rows * cols != ints.length) {
+      throw new IllegalArgumentException("rows * cols must equals ints.length");
+    }
+
+    int[][] integers = new int[rows][cols];
+
+    for (int i = 0; i < integers.length; i++) {
+      for (int j = 0; j < integers[i].length; j++) {
+        integers[i][j] = ints[(i * cols) + j];
+      }
+    }
+    if (verbose) {
+      pa(integers);
+    }
+    return integers;
+  }
+
+  /**
+   * Creates a 2D array from a one dimensional array.
+   * 
+   * @param rows amount of rows in the 2D array
+   * @param cols amount of cols in the 2D array
+   * @param array the array to use
+   * @return the 2D array
+   */
+  public static double[][] to2DArray(int rows, int cols, double[] array) {
+    if (rows * cols != array.length) {
+      throw new IllegalArgumentException("rows * cols must equals ints.length");
+    }
+    double[][] integers = new double[rows][cols];
+    for (int i = 0; i < integers.length; i++) {
+      for (int j = 0; j < integers[i].length; j++) {
+        integers[i][j] = array[(i * cols) + j];
+      }
+    }
+    if (verbose) {
+      pa(integers);
+    }
+    return integers;
+  }
+
+  /**
+   * Creates a 2D array from a one dimensional array.
+   * 
+   * @param rows amount of rows in the 2D array
+   * @param cols amount of cols in the 2D array
+   * @param obj the array to use
+   * @return the 2D array
+   */
+  public static boolean[][] to2DArray(int rows, int cols, boolean[] obj) {
+
+    if (rows * cols != obj.length) {
+      throw new IllegalArgumentException("rows * cols must equals ints.length");
+    }
+
+    boolean[][] integers = new boolean[rows][cols];
+
+    for (int i = 0; i < integers.length; i++) {
+      for (int j = 0; j < integers[i].length; j++) {
+        integers[i][j] = obj[(i * cols) + j];
+      }
+    }
+    if (verbose) {
+      pa(integers);
+    }
+    return integers;
+  }
+
+  /**
+   * Creates a 2D array from a one dimensional array.
+   * 
+   * @param rows amount of rows in the 2D array
+   * @param cols amount of cols in the 2D array
+   * @param chars the array of integers
+   * @return the 2D array
+   */
+  public static char[][] to2DArray(int rows, int cols, char[] chars) {
+
+    if (rows * cols != chars.length) {
+      throw new IllegalArgumentException("rows * cols must equals ints.length");
+    }
+
+    char[][] integers = new char[rows][cols];
+
+    for (int i = 0; i < integers.length; i++) {
+      for (int j = 0; j < integers[i].length; j++) {
+        integers[i][j] = chars[(i * cols) + j];
+      }
+    }
+    if (verbose) {
+      pa(integers);
+    }
+    return integers;
+  }
+
+  /**
+   * Creates a 1D array from a 2D array.
+   * 
+   * ex. {{5, 4, 7}, {3, 9, 5}} would become: {5, 4, 7, 3, 9, 5}
+   * 
+   * @param array the array to use
+   * @return the 1D array
+   */
+  public static Object[] to1DArray(Object[][] array) {
+    int leng = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        leng++;
+      }
+    }
+    Object[] oneD = new Object[leng];
+
+    int index = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        oneD[index] = array[i][j];
+        index++;
+      }
+    }
+    if (verbose) {
+      System.out.println(Arrays.toString(oneD));
+    }
+    return oneD;
+  }
+
+  /**
+   * Creates a 1D array from a 2D array.
+   * 
+   * ex. {{5, 4, 7}, {3, 9, 5}} would become: {5, 4, 7, 3, 9, 5}
+   * 
+   * @param array the array to use
+   * @return the 1D array
+   */
+  public static String[] to1DArray(String[][] array) {
+    int leng = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        leng++;
+      }
+    }
+    String[] oneD = new String[leng];
+
+    int index = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        oneD[index] = array[i][j];
+        index++;
+      }
+    }
+    if (verbose) {
+      System.out.println(Arrays.toString(oneD));
+    }
+    return oneD;
+  }
+
+  /**
+   * Creates a 1D array from a 2D array.
+   * 
+   * ex. {{5, 4, 7}, {3, 9, 5}} would become: {5, 4, 7, 3, 9, 5}
+   * 
+   * @param array the array to use
+   * @return the 1D array
+   */
+  public static int[] to1DArray(int[][] array) {
+    int leng = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        leng++;
+      }
+    }
+    int[] oneD = new int[leng];
+
+    int index = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        oneD[index] = array[i][j];
+        index++;
+      }
+    }
+    if (verbose) {
+      System.out.println(Arrays.toString(oneD));
+    }
+    return oneD;
+  }
+
+  /**
+   * Creates a 1D array from a 2D array.
+   * 
+   * ex. {{5, 4, 7}, {3, 9, 5}} would become: {5, 4, 7, 3, 9, 5}
+   * 
+   * @param array the array to use
+   * @return the 1D array
+   */
+  public static double[] to1DArray(double[][] array) {
+    int leng = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        leng++;
+      }
+    }
+    double[] oneD = new double[leng];
+    int index = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        oneD[index] = array[i][j];
+        index++;
+      }
+    }
+    if (verbose)
+      System.out.println(Arrays.toString(oneD));
+    return oneD;
+  }
+
+  /**
+   * Creates a 1D array from a 2D array.
+   * 
+   * ex. {{5, 4, 7}, {3, 9, 5}} would become: {5, 4, 7, 3, 9, 5}
+   * 
+   * @param array the array to use
+   * @return the 1D array
+   */
+  public static boolean[] to1DArray(boolean[][] array) {
+    int leng = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        leng++;
+      }
+    }
+    boolean[] oneD = new boolean[leng];
+
+    int index = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        oneD[index] = array[i][j];
+        index++;
+      }
+    }
+    if (verbose) {
+      System.out.println(Arrays.toString(oneD));
+    }
+    return oneD;
+  }
+
+  /**
+   * Creates a 1D array from a 2D array.
+   * 
+   * ex. {{5, 4, 7}, {3, 9, 5}} would become: {5, 4, 7, 3, 9, 5}
+   * 
+   * @param array the array to use
+   * @return the 1D array
+   */
+  public static char[] to1DArray(char[][] array) {
+    int leng = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        leng++;
+      }
+    }
+    char[] oneD = new char[leng];
+
+    int index = 0;
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        oneD[index] = array[i][j];
+        index++;
+      }
+    }
+    if (verbose) {
+      System.out.println(Arrays.toString(oneD));
+    }
+    return oneD;
+  }
+
+  /**
+   * Gets the frequency of every element in the array.
+   * 
+   * @param array the array to search
+   * @return the frequency map
+   */
+  public static HashMap<Object, Integer> freqMap(Object[] array) {
+    HashMap<Object, Integer> map = new HashMap<>();
+    for (Object i : array)
+      map.put(i, countFreq(array, i));
+    return map;
+  }
+
+  /**
+   * Gets the frequency of every element in the array.
+   * 
+   * @param array the array to search
+   * @return the frequency map
+   */
+  public static HashMap<Integer, Integer> freqMap(int[] array) {
+    HashMap<Integer, Integer> map = new HashMap<>();
+    for (int i : array)
+      map.put(i, countFreq(array, i));
+    return map;
+  }
+
+  /**
+   * Gets the frequency of every element in the array.
+   * 
+   * @param array the array to search
+   * @return the frequency map
+   */
+  public static HashMap<Double, Integer> freqMap(double[] array) {
+    HashMap<Double, Integer> map = new HashMap<>();
+    for (double i : array)
+      map.put(i, countFreq(array, i));
+    return map;
+  }
+
+  /**
+   * Gets the frequency of every element in the array.
+   * 
+   * @param array the array to search
+   * @return the frequency map
+   */
+  public static HashMap<Character, Integer> freqMap(char[] array) {
+    HashMap<Character, Integer> map = new HashMap<>();
+    for (char i : array)
+      map.put(i, countFreq(array, i));
+    return map;
+  }
+
+  /**
+   * Gets the frequency of every element in the array.
+   * 
+   * @param array the array to search
+   * @return the frequency map
+   */
+  public static HashMap<Boolean, Integer> freqMap(boolean[] array) {
+    HashMap<Boolean, Integer> map = new HashMap<>();
+    for (boolean i : array)
+      map.put(i, countFreq(array, i));
+    return map;
+  }
+
+  /**
+   * Gets the frequency of every element in the array.
+   * 
+   * @param array the array to search
+   * @return the frequency map
+   */
+  public static HashMap<Object, Integer> freqMap(Object[][] array) {
+    HashMap<Object, Integer> map = new HashMap<>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        map.put(array[i][j], countFreq(array, array[i][j]));
+      }
+    }
+    return map;
+  }
+
+  /**
+   * Gets the frequency of every element in the array.
+   * 
+   * @param array the array to search
+   * @return the frequency map
+   */
+  public static HashMap<Integer, Integer> freqMap(int[][] array) {
+    HashMap<Integer, Integer> map = new HashMap<>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        map.put(array[i][j], countFreq(array, array[i][j]));
+      }
+    }
+    return map;
+  }
+
+  /**
+   * Gets the frequency of every element in the array.
+   * 
+   * @param array the array to search
+   * @return the frequency map
+   */
+  public static HashMap<Double, Integer> freqMap(double[][] array) {
+    HashMap<Double, Integer> map = new HashMap<>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        map.put(array[i][j], countFreq(array, array[i][j]));
+      }
+    }
+    return map;
+  }
+
+  /**
+   * Gets the frequency of every element in the array.
+   * 
+   * @param array the array to search
+   * @return the frequency map
+   */
+  public static HashMap<Character, Integer> freqMap(char[][] array) {
+    HashMap<Character, Integer> map = new HashMap<>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        map.put(array[i][j], countFreq(array, array[i][j]));
+      }
+    }
+    return map;
+  }
+
+  /**
+   * Gets the frequency of every element in the array.
+   * 
+   * @param array the array to search
+   * @return the frequency map
+   */
+  public static HashMap<Boolean, Integer> freqMap(boolean[][] array) {
+    HashMap<Boolean, Integer> map = new HashMap<>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        map.put(array[i][j], countFreq(array, array[i][j]));
+      }
+    }
+    return map;
+  }
+
+  // -------------------------SET OPERATIONS----------------------------------
+
+  /**
+   * Checks if the given array has duplicates.
+   * 
+   * @param array the array to use
+   * @return whether 'array' contains duplicate values
+   */
+  public static boolean containsDups(Object[] array) {
+    for (Object obj : array) {
+      if (countFreq(array, obj) > 1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given array has duplicates.
+   * 
+   * @param array the array to use
+   * @return whether 'array' contains duplicate values
+   */
+  public static boolean containsDups(int[] array) {
+    for (int obj : array) {
+      if (countFreq(array, obj) > 1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given array has duplicates.
+   * 
+   * @param array the array to use
+   * @return whether 'array' contains duplicate values
+   */
+  public static boolean containsDups(double[] array) {
+    for (double obj : array) {
+      if (countFreq(array, obj) > 1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given array has duplicates.
+   * 
+   * @param array the array to use
+   * @return whether 'array' contains duplicate values
+   */
+  public static boolean containsDups(boolean[] array) {
+    for (boolean obj : array) {
+      if (countFreq(array, obj) > 1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given array has duplicates.
+   * 
+   * @param array the array to use
+   * @return whether 'array' contains duplicate values
+   */
+  public static boolean containsDups(char[] array) {
+    for (char obj : array) {
+      if (countFreq(array, obj) > 1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Finds duplicate values in an array and returns them as another array.
+   * 
+   * @param array the array to check for duplicates
+   * @return a new array of duplicates within the array specified
+   */
+  public static Object[] getDups(Object[] array) {
+    ArrayList<Object> noDups = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array.length; j++) {
+        if (i != j && !contains(noDups.toArray(), array[i]) && array[i].equals(array[j])) {
+          noDups.add(array[j]);
+        }
+      }
+    }
+    if (verbose) {
+      System.out.println("found " + noDups.size() + " dups: " + Arrays.toString(noDups.toArray()));
+    }
+    return noDups.toArray();
+  }
+
+  /**
+   * Finds duplicate values in an array and returns them as another array.
+   * 
+   * @param array the array to check for duplicates
+   * @return a new array of duplicates within the array specified
+   */
+  public static Object[] getDups(int[] array) {
+    ArrayList<Integer> noDups = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array.length; j++) {
+        if (i != j && !contains(noDups.toArray(), array[i]) && array[i] == array[j]) {
+          noDups.add(array[j]);
+        }
+      }
+    }
+    if (verbose) {
+      System.out.println("found " + noDups.size() + " dups: " + Arrays.toString(noDups.toArray()));
+    }
+    return noDups.toArray();
+  }
+
+  /**
+   * Finds duplicate values in an array and returns them as another array.
+   * 
+   * @param array the array to check for duplicates
+   * @return a new array of duplicates within the array specified
+   */
+  public static Object[] getDups(double[] array) {
+    ArrayList<Double> noDups = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array.length; j++) {
+        if (i != j && !contains(noDups.toArray(), array[i]) && array[i] == array[j]) {
+          noDups.add(array[j]);
+        }
+      }
+    }
+    if (verbose) {
+      System.out.println("found " + noDups.size() + " dups: " + Arrays.toString(noDups.toArray()));
+    }
+    return noDups.toArray();
+  }
+
+  /**
+   * Finds duplicate values in an array and returns them as another array.
+   * 
+   * @param array the array to check for duplicates
+   * @return a new array of duplicates within the array specified
+   */
+  public static Object[] getDups(char[] array) {
+    ArrayList<Character> noDups = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array.length; j++) {
+        if (i != j && !contains(noDups.toArray(), array[i]) && array[i] == array[j]) {
+          noDups.add(array[j]);
+        }
+      }
+    }
+    if (verbose) {
+      System.out.println("found " + noDups.size() + " dups: " + Arrays.toString(noDups.toArray()));
+    }
+    return noDups.toArray();
+  }
+
+  /**
+   * Removes all duplicates in the array given.
+   * 
+   * @param array the array to use
+   * @return
+   */
+  public static Object[] removeDups(Object[] array) {
+    ArrayList<Object> list = new ArrayList<>(Arrays.asList(array));
+    Set<Object> set = new HashSet<>(list);
+    if (verbose) {
+      System.out.println("arr with dups removed: " + Arrays.toString(set.toArray()));
+    }
+    return set.toArray();
+  }
+
+  /**
+   * Removes all duplicates in the array given.
+   * 
+   * @param array the array to use
+   * @return
+   */
+  public static int[] removeDups(int[] list) {
+    HashSet<Integer> set = new HashSet<>();
+    for (int i : list) {
+      set.add(i);
+    }
+    return toInt(set.toArray());
+  }
+
+  /**
+   * Removes all duplicates in the array given.
+   * 
+   * @param array the array to use
+   * @return
+   */
+  public static double[] removeDups(double[] list) {
+    HashSet<Double> set = new HashSet<>();
+    for (double i : list) {
+      set.add(i);
+    }
+    return toDouble(set.toArray());
+  }
+
+  /**
+   * Removes all duplicates in the array given.
+   * 
+   * @param array the array to use
+   * @return
+   */
+  public static char[] removeDups(char[] list) {
+    HashSet<Character> set = new HashSet<>();
+    for (char i : list) {
+      set.add(i);
+    }
+    return toChar(set.toArray());
+  }
+
+  /**
+   * Gets the Entry from a TreeMap at a certain index.
+   * 
+   * @param <K>
+   * @param <V>
+   * 
+   * @param map the map to search
+   * @return the Entry at the index
+   */
+  public static <K, V> Map.Entry<K, V> getAt(int index, TreeMap<K, V> map) {
+    int count = 0;
+    for (Map.Entry<K, V> entry : map.entrySet()) {
+      if (count == index) {
+        return entry;
+      }
+      count++;
+    }
+    return null;
+  }
+
+  /**
+   * Returns the union of two arrays (concatenation) with the choice of containing duplicates.
+   * 
+   * @param array the first array
+   * @param array2 the second array
+   * @param removeDups remove duplicates
+   * @return the union of the two
+   */
+  public static Object[] union(Object[] array, Object[] array2, boolean removeDups) {
+    if (removeDups) {
+      ArrayList<Object> unionized = new ArrayList<>();
+      for (int i = 0; i < array.length; i++) {
+        unionized.add(array[i]);
+      }
+      for (int i = 0; i < array2.length; i++) {
+        unionized.add(array2[i]);
+      }
+      return removeDups(unionized.toArray());
+    }
+    ArrayList<Object> elements = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      elements.add(array[i]);
+    }
+    for (int i = 0; i < array2.length; i++) {
+      elements.add(array2[i]);
+    }
+    return elements.toArray();
+  }
+
+  /**
+   * Returns the union of two arrays (concatenation) with the choice of containing duplicates.
+   * 
+   * @param array the first array
+   * @param array2 the second array
+   * @param removeDups remove duplicates
+   * @return the union of the two
+   */
+  public static Object[] union(int[] array, int[] array2, boolean removeDups) {
+    if (removeDups) {
+      ArrayList<Integer> unionized = new ArrayList<>();
+      for (int i = 0; i < array.length; i++) {
+        unionized.add(array[i]);
+      }
+      for (int i = 0; i < array2.length; i++) {
+        unionized.add(array2[i]);
+      }
+      return removeDups(unionized.toArray());
+    }
+    ArrayList<Object> elements = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      elements.add(array[i]);
+    }
+    for (int i = 0; i < array2.length; i++) {
+      elements.add(array2[i]);
+    }
+    return elements.toArray();
+  }
+
+  /**
+   * Returns the union of two arrays (concatenation) with the choice of containing duplicates.
+   * 
+   * @param array the first array
+   * @param array2 the second array
+   * @param removeDups remove duplicates
+   * @return the union of the two
+   */
+  public static Object[] union(double[] array, double[] array2, boolean removeDups) {
+    if (removeDups) {
+      ArrayList<Double> unionized = new ArrayList<>();
+      for (int i = 0; i < array.length; i++) {
+        unionized.add(array[i]);
+      }
+      for (int i = 0; i < array2.length; i++) {
+        unionized.add(array2[i]);
+      }
+      return removeDups(unionized.toArray());
+    }
+    ArrayList<Object> elements = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      elements.add(array[i]);
+    }
+    for (int i = 0; i < array2.length; i++) {
+      elements.add(array2[i]);
+    }
+    return elements.toArray();
+  }
+
+  /**
+   * Returns the union of two arrays (concatenation) with the choice of containing duplicates.
+   * 
+   * @param array the first array
+   * @param array2 the second array
+   * @param removeDups remove duplicates
+   * @return the union of the two
+   */
+  public static Object[] union(char[] array, char[] array2, boolean removeDups) {
+    if (removeDups) {
+      ArrayList<Character> unionized = new ArrayList<>();
+      for (int i = 0; i < array.length; i++) {
+        unionized.add(array[i]);
+      }
+      for (int i = 0; i < array2.length; i++) {
+        unionized.add(array2[i]);
+      }
+      return removeDups(unionized.toArray());
+    }
+    ArrayList<Object> elements = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      elements.add(array[i]);
+    }
+    for (int i = 0; i < array2.length; i++) {
+      elements.add(array2[i]);
+    }
+    return elements.toArray();
+  }
+
+  /**
+   * Finds the similarities between two arrays, note that this method uses HashSets, so the order of
+   * the array will be scrambled.
+   * 
+   * @param array the first array
+   * @param array2 the second array
+   * @return the similarities between 'array' and 'array2'
+   */
+  public static Object[] intersect(Object[] array, Object[] array2) {
+    Set<Object> set = new HashSet<>(Arrays.asList(array));
+    Set<Object> set2 = new HashSet<>(Arrays.asList(array2));
+    set.retainAll(set2);
+    return set.toArray();
+  }
+
+  /**
+   * Finds the similarities between two arrays, note that this method uses HashSets, so the order of
+   * the array will be scrambled.
+   * 
+   * @param array the first array
+   * @param array2 the second array
+   * @return the similarities between 'array' and 'array2'
+   */
+  public static Object[] intersect(int[] array, int[] array2) {
+    ArrayList<Integer> list = new ArrayList<Integer>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array2.length; j++) {
+        if (array[i] == array2[j]) {
+          list.add(array[i]);
+        }
+      }
+    }
+    if (verbose) {
+      System.out.println("intersect yielded " + Arrays.toString(list.toArray()));
+    }
+    return list.toArray();
+  }
+
+  /**
+   * Finds the similarities between two arrays, note that this method uses HashSets, so the order of
+   * the array will be scrambled.
+   * 
+   * @param array the first array
+   * @param array2 the second array
+   * @return the similarities between 'array' and 'array2'
+   */
+  public static Object[] intersect(double[] array, double[] array2) {
+    ArrayList<Double> list = new ArrayList<Double>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array2.length; j++) {
+        if (array[i] == array2[j]) {
+          list.add(array[i]);
+        }
+      }
+    }
+    if (verbose) {
+      System.out.println("intersect yielded " + Arrays.toString(list.toArray()));
+    }
+    return list.toArray();
+  }
+
+  /**
+   * Finds the similarities between two arrays, note that this method uses HashSets, so the order of
+   * the array will be scrambled.
+   * 
+   * @param array the first array
+   * @param array2 the second array
+   * @return the similarities between 'array' and 'array2'
+   */
+  public static Object[] intersect(char[] array, char[] array2) {
+    ArrayList<Character> list = new ArrayList<Character>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array2.length; j++) {
+        if (array[i] == array2[j]) {
+          list.add(array[i]);
+        }
+      }
+    }
+    if (verbose) {
+      System.out.println("intersect yielded " + Arrays.toString(list.toArray()));
+    }
+    return list.toArray();
+  }
+
+  /**
+   * (WIP) Reorders an array to the format specified, very useful when undoing the scrambling of a
+   * HashSet.
+   * 
+   * ex. when the format is {4, 7, 3, 5, 8, 6, 4} and the toReorder is {5, 7, 4, 8} would return {4,
+   * 7, 5, 8}
+   * 
+   * @param format the format to use
+   * @param toReorder the array to reorder
+   * @return the reordered array
+   */
+  public static Object[] reorder(Object[] format, Object[] toReorder) {
+    ArrayList<Integer> indexes = new ArrayList<>();
+    ArrayList<Object> reordered = new ArrayList<>();
+    for (int i = 0; i < toReorder.length; i++) {
+      indexes.add(getPosition(format, toReorder[i]));
+    }
+    for (int i = 0; i < indexes.size(); i++) {
+      reordered.add(format[indexes.get(i)]);
+    }
+    if (verbose) {
+      System.out.println("reordered to " + Arrays.toString(reordered.toArray()));
+    }
+    return reordered.toArray();
+  }
+
+  // ---------------------------FORMATTING------------------------------------
+
+  /**
+   * Reformats the given array to the specified dimensions.
+   * 
+   * @param array the array to format
+   * @param height the i (y) value
+   * @param width the j (x) value
+   * @return the newly formatted array
+   */
+  public static Object[][] reformat(Object[][] array, int height, int width) {
+    Object[] objArray = to1DArray(array);
+    if (verbose) {
+      System.out.println("reformatted array to " + height + "x" + width);
+    }
+    return to2DArray(height, width, objArray);
+  }
+
+  /**
+   * Reformats the given array to the specified dimensions.
+   * 
+   * @param array the array to format
+   * @param height the i (y) value
+   * @param width the j (x) value
+   * @return the newly formatted array
+   */
+  public static int[][] reformat(int[][] array, int height, int width) {
+    int[] objArray = to1DArray(array);
+    if (verbose) {
+      System.out.println("reformatted array to " + height + "x" + width);
+    }
+    return to2DArray(height, width, objArray);
+  }
+
+  /**
+   * Reformats the given array to the specified dimensions.
+   * 
+   * @param array the array to format
+   * @param height the i (y) value
+   * @param width the j (x) value
+   * @return the newly formatted array
+   */
+  public static double[][] reformat(double[][] array, int height, int width) {
+    double[] objArray = to1DArray(array);
+    if (verbose) {
+      System.out.println("reformatted array to " + height + "x" + width);
+    }
+    return to2DArray(height, width, objArray);
+  }
+
+  /**
+   * Reformats the given array to the specified dimensions.
+   * 
+   * @param array the array to format
+   * @param height the i (y) value
+   * @param width the j (x) value
+   * @return the newly formatted array
+   */
+  public static boolean[][] reformat(boolean[][] array, int height, int width) {
+    boolean[] objArray = to1DArray(array);
+    if (verbose) {
+      System.out.println("reformatted array to " + height + "x" + width);
+    }
+    return to2DArray(height, width, objArray);
+  }
+
+  /**
+   * Reformats the given array to the specified dimensions.
+   * 
+   * @param array the array to format
+   * @param height the i (y) value
+   * @param width the j (x) value
+   * @return the newly formatted array
+   */
+  public static char[][] reformat(char[][] array, int height, int width) {
+    char[] objArray = to1DArray(array);
+    if (verbose) {
+      System.out.println("reformatted array to " + height + "x" + width);
+    }
+    return to2DArray(height, width, objArray);
+  }
+
+  /**
+   * Converts a primitive array into its respective Object array.
+   * 
+   * @param array the array to convert
+   * @return the Object array
+   */
+  public static Integer[] box(int[] array) {
+    Integer[] arr = new Integer[array.length];
+    for (int i = 0; i < arr.length; i++) {
+      arr[i] = array[i];
+    }
+    return arr;
+  }
+
+  /**
+   * Converts a primitive array into its respective Object array.
+   * 
+   * @param array the array to convert
+   * @return the Object array
+   */
+  public static Double[] box(double[] array) {
+    Double[] arr = new Double[array.length];
+    for (int i = 0; i < arr.length; i++) {
+      arr[i] = array[i];
+    }
+    return arr;
+  }
+
+  /**
+   * Converts a primitive array into its respective Object array.
+   * 
+   * @param array the array to convert
+   * @return the Object array
+   */
+  public static Boolean[] box(boolean[] array) {
+    Boolean[] arr = new Boolean[array.length];
+    for (int i = 0; i < arr.length; i++) {
+      arr[i] = array[i];
+    }
+    return arr;
+  }
+
+  /**
+   * Converts a primitive array into its respective Object array.
+   * 
+   * @param array the array to convert
+   * @return the Object array
+   */
+  public static Character[] box(char[] array) {
+    Character[] arr = new Character[array.length];
+    for (int i = 0; i < arr.length; i++) {
+      arr[i] = array[i];
+    }
+    return arr;
+  }
+
+  /**
+   * Converts an Object array into its respective primitive array.
+   * 
+   * @param array the array to convert
+   * @return the converted array
+   */
+  public static int[] unbox(Integer[] array) {
+    int[] arr = new int[array.length];
+    for (int i = 0; i < arr.length; i++) {
+      arr[i] = array[i];
+    }
+    return arr;
+  }
+
+  /**
+   * Converts an Object array into its respective primitive array.
+   * 
+   * @param array the array to convert
+   * @return the converted array
+   */
+  public static double[] unbox(Double[] array) {
+    double[] arr = new double[array.length];
+    for (int i = 0; i < arr.length; i++) {
+      arr[i] = array[i];
+    }
+    return arr;
+  }
+
+  /**
+   * Converts an Object array into its respective primitive array.
+   * 
+   * @param array the array to convert
+   * @return the converted array
+   */
+  public static boolean[] unbox(Boolean[] array) {
+    boolean[] arr = new boolean[array.length];
+    for (int i = 0; i < arr.length; i++) {
+      arr[i] = array[i];
+    }
+    return arr;
+  }
+
+  /**
+   * Converts an Object array into its respective primitive array.
+   * 
+   * @param array the array to convert
+   * @return the converted array
+   */
+  public static char[] unbox(Character[] array) {
+    char[] arr = new char[array.length];
+    for (int i = 0; i < arr.length; i++) {
+      arr[i] = array[i];
+    }
+    return arr;
+  }
+
+  /**
+   * Converts an Object array to the specified primitive array.
+   * 
+   * @param array the array to use
+   * @return the fixed array
+   */
+  public static int[] toInt(Object[] array) {
+    int[] fixed = new int[array.length];
+    for (int i = 0; i < fixed.length; i++) {
+      fixed[i] = (int) array[i];
+    }
+    return fixed;
+  }
+
+  /**
+   * Converts an Object array to the specified primitive array.
+   * 
+   * @param array the array to use
+   * @return the fixed array
+   */
+  public static double[] toDouble(Object[] array) {
+    double[] fixed = new double[array.length];
+    for (int i = 0; i < fixed.length; i++) {
+      fixed[i] = (double) array[i];
+    }
+    return fixed;
+  }
+
+  /**
+   * Converts an Object array to the specified primitive array.
+   * 
+   * @param array the array to use
+   * @return the fixed array
+   */
+  public static char[] toChar(Object[] array) {
+    char[] fixed = new char[array.length];
+    for (int i = 0; i < fixed.length; i++) {
+      fixed[i] = (char) array[i];
+    }
+    return fixed;
+  }
+
+  /**
+   * Converts an Object array to the specified primitive array.
+   * 
+   * @param array the array to use
+   * @return the fixed array
+   */
+  public static boolean[] toBoolean(Object[] array) {
+    boolean[] fixed = new boolean[array.length];
+    for (int i = 0; i < fixed.length; i++) {
+      fixed[i] = (boolean) array[i];
+    }
+    return fixed;
+  }
+
+  /**
+   * Converts an Object array to the specified primitive array.
+   * 
+   * @param array the array to use
+   * @return the fixed array
+   */
+  public static int[][] toInt(Object[][] array) {
+    int[][] destination = new int[array.length][];
+    for (int i = 0; i < destination.length; ++i) {
+      destination[i] = new int[array[i].length];
+      for (int j = 0; j < destination[i].length; ++j) {
+        destination[i][j] = (int) array[i][j];
+      }
+    }
+    return destination;
+  }
+
+  /**
+   * Converts an Object array to the specified primitive array.
+   * 
+   * @param array the array to use
+   * @return the fixed array
+   */
+  public static double[][] toDouble(Object[][] array) {
+    double[][] destination = new double[array.length][];
+    for (int i = 0; i < destination.length; ++i) {
+      destination[i] = new double[array[i].length];
+      for (int j = 0; j < destination[i].length; ++j) {
+        destination[i][j] = (double) array[i][j];
+      }
+    }
+    return destination;
+  }
+
+  /**
+   * Converts an Object array to the specified primitive array.
+   * 
+   * @param array the array to use
+   * @return the fixed array
+   */
+  public static char[][] toChar(Object[][] array) {
+    char[][] destination = new char[array.length][];
+    for (int i = 0; i < destination.length; ++i) {
+      destination[i] = new char[array[i].length];
+      for (int j = 0; j < destination[i].length; ++j) {
+        destination[i][j] = (char) array[i][j];
+      }
+    }
+    return destination;
+  }
+
+  /**
+   * Converts an Object array to the specified primitive array.
+   * 
+   * @param array the array to use
+   * @return the fixed array
+   */
+  public static boolean[][] toBoolean(Object[][] array) {
+    boolean[][] destination = new boolean[array.length][];
+    for (int i = 0; i < destination.length; ++i) {
+      destination[i] = new boolean[array[i].length];
+      for (int j = 0; j < destination[i].length; ++j) {
+        destination[i][j] = (boolean) array[i][j];
+      }
+    }
+    return destination;
+  }
+
+  /**
+   * Formats a double to the specified amount of decimal places.
+   * 
+   * @param toFormat the number to format
+   * @param decPlaces the number of decimal places to format to
+   * @return the formatted double with proper decimal places
+   */
+  public static double decFormat(double toFormat, int decPlaces) {
+    return Double.valueOf(String.format("%." + String.valueOf(decPlaces) + "f", toFormat));
+  }
+
+  /**
+   * Formats a number with commas and two decimal places.
+   * 
+   * @param toFormat the number to format
+   * @return the formatted number as a String
+   */
+  public static String formatNumber(double toFormat) {
+    return String.format("%,.2f", toFormat);
+  }
+
+  /**
+   * Formats a number with commas and 2 decimal places. Also adds a $ in front of the number,
+   * however if the number is negative it is formatted as -$.
+   * 
+   * EX: -52342.6236 would be formatted as -$52,342.62 EX: 68734.66092 would be formatted as
+   * $68,734.66
+   * 
+   * @param toFormat the number to format
+   * @return the formatted number in String form
+   */
+  public static String moneyFormat(double toFormat) {
+    String pre = String.format("%,.2f", toFormat).replace("-", "");
+    StringBuilder sb = new StringBuilder(pre);
+    if (toFormat < 0) {
+      sb.insert(0, "-$");
+      return sb.toString();
+    }
+    return "$" + sb.toString();
+  }
+
+  // ---------------------------------GUI-------------------------------------
+
+  /**
+   * Draws a centered String within the bounds specified.
+   * 
+   * @param page the Graphics2D object
+   * @param s the String to draw
+   * @param x the x
+   * @param y the y
+   * @param width the width
+   * @param height the height
+   */
+  public static void drawCenteredString(Graphics2D page, String s, int x, int y, int width,
+      int height) {
+    java.awt.FontMetrics fm = page.getFontMetrics(page.getFont());
+    java.awt.geom.Rectangle2D rect = fm.getStringBounds(s, page);
+    int textHeight = (int) (rect.getHeight());
+    int textWidth = (int) (rect.getWidth());
+    int textX = x + (width - textWidth) / 2;
+    int textY = y + (height - textHeight) / 2 + fm.getAscent();
+    page.drawString(s, textX, textY);
+  }
+
+  /**
+   * Safely converts an Image to a BufferedImage.
+   * 
+   * @param image the image to convert
+   * @return a new BufferedImage
+   */
+  public static BufferedImage toBuffered(Image image) {
+    BufferedImage newImage =
+        new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g = newImage.createGraphics();
+    g.drawImage(image, 0, 0, null);
+    g.dispose();
+    return newImage;
+  }
+
+  /**
+   * Copies a BufferedImage.
+   * 
+   * @param toCopy the BufferedImage to copy
+   * @return the fresh BufferedImage copy
+   */
+  public static BufferedImage copyOf(BufferedImage toCopy) {
+    ColorModel cm = toCopy.getColorModel();
+    boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
+    WritableRaster raster = toCopy.copyData(null);
+    return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
+  }
+
+  /**
+   * Gets the dimensions of the current screen
+   * 
+   * @return the dimensions of this screen
+   */
+  public static Dimension getScreenSize() {
+    return Toolkit.getDefaultToolkit().getScreenSize();
+  }
+
+  // ------------------------2D ARRAY DIRECTIONAL-----------------------------
+
+  /**
+   * Checks whether the passed coordinates have an element above it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element above it
+   */
+  public static boolean hasAbove(Object[][] array, int[] coord) {
+    try {
+      Object above = array[coord[0] - 1][coord[1]];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element above it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element above it
+   */
+  public static boolean hasAbove(int[][] array, int[] coord) {
+    try {
+      int above = array[coord[0] - 1][coord[1]];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element above it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element above it
+   */
+  public static boolean hasAbove(double[][] array, int[] coord) {
+    try {
+      double above = array[coord[0] - 1][coord[1]];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element above it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element above it
+   */
+  public static boolean hasAbove(boolean[][] array, int[] coord) {
+    try {
+      boolean above = array[coord[0] - 1][coord[1]];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element above it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element above it
+   */
+  public static boolean hasAbove(char[][] array, int[] coord) {
+    try {
+      char above = array[coord[0] - 1][coord[1]];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element below it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element below it
+   */
+  public static boolean hasBelow(Object[][] array, int[] coord) {
+    try {
+      Object below = array[coord[0] + 1][coord[1]];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element below it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element below it
+   */
+  public static boolean hasBelow(int[][] array, int[] coord) {
+    try {
+      int below = array[coord[0] + 1][coord[1]];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element below it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element below it
+   */
+  public static boolean hasBelow(double[][] array, int[] coord) {
+    try {
+      double below = array[coord[0] + 1][coord[1]];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element below it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element below it
+   */
+  public static boolean hasBelow(boolean[][] array, int[] coord) {
+    try {
+      boolean below = array[coord[0] + 1][coord[1]];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element below it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element below it
+   */
+  public static boolean hasBelow(char[][] array, int[] coord) {
+    try {
+      char below = array[coord[0] + 1][coord[1]];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element to the right of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element to the right of it
+   */
+  public static boolean hasRight(Object[][] array, int[] coord) {
+    if (!contains(array, array[coord[0]][coord[1]])) {
+      throw new IllegalArgumentException("element specified must be in the array");
+    }
+    try {
+      Object below = array[coord[0]][coord[1] + 1];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element to the right of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element to the right of it
+   */
+  public static boolean hasRight(int[][] array, int[] coord) {
+    try {
+      int below = array[coord[0]][coord[1] + 1];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element to the right of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element to the right of it
+   */
+  public static boolean hasRight(double[][] array, int[] coord) {
+    try {
+      double below = array[coord[0]][coord[1] + 1];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element to the right of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element to the right of it
+   */
+  public static boolean hasRight(boolean[][] array, int[] coord) {
+    try {
+      boolean below = array[coord[0]][coord[1] + 1];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element to the right of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element to the right of it
+   */
+  public static boolean hasRight(char[][] array, int[] coord) {
+    try {
+      char below = array[coord[0]][coord[1] + 1];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element to the left of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element to the left of it
+   */
+  public static boolean hasLeft(Object[][] array, int[] coord) {
+    try {
+      Object below = array[coord[0]][coord[1] - 1];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element to the left of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element to the left of it
+   */
+  public static boolean hasLeft(int[][] array, int[] coord) {
+    try {
+      int below = array[coord[0]][coord[1] - 1];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element to the left of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element to the left of it
+   */
+  public static boolean hasLeft(double[][] array, int[] coord) {
+    try {
+      double below = array[coord[0]][coord[1] - 1];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element to the left of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element to the left of it
+   */
+  public static boolean hasLeft(boolean[][] array, int[] coord) {
+    if (!contains(array, array[coord[0]][coord[1]])) {
+      throw new IllegalArgumentException("element specified must be in the array");
+    }
+    try {
+      boolean below = array[coord[0]][coord[1] - 1];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element to the left of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element to the left of it
+   */
+  public static boolean hasLeft(char[][] array, int[] coord) {
+    try {
+      char below = array[coord[0]][coord[1] - 1];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element northwest of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element northwest of it
+   */
+  public static boolean hasNw(Object[][] array, int[] coord) {
+    if (hasLeft(array, coord)) {
+      try {
+        Object nw = array[coord[0] - 1][coord[1] - 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element northwest of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element northwest of it
+   */
+  public static boolean hasNw(int[][] array, int[] coord) {
+    if (hasLeft(array, coord)) {
+      try {
+        Object nw = array[coord[0] - 1][coord[1] - 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element northwest of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element northwest of it
+   */
+  public static boolean hasNw(double[][] array, int[] coord) {
+    if (hasLeft(array, coord)) {
+      try {
+        Object nw = array[coord[0] - 1][coord[1] - 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element northwest of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element northwest of it
+   */
+  public static boolean hasNw(boolean[][] array, int[] coord) {
+    if (hasLeft(array, coord)) {
+      try {
+        Object nw = array[coord[0] - 1][coord[1] - 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element northwest of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element northwest of it
+   */
+  public static boolean hasNw(char[][] array, int[] coord) {
+    if (hasLeft(array, coord)) {
+      try {
+        Object nw = array[coord[0] - 1][coord[1] - 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element northwest of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element northwest of it
+   */
+  public static boolean hasNe(Object[][] array, int[] coord) {
+    if (hasRight(array, coord)) {
+      try {
+        Object nw = array[coord[0] - 1][coord[1] + 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element northwest of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element northwest of it
+   */
+  public static boolean hasNe(int[][] array, int[] coord) {
+    if (hasRight(array, coord)) {
+      try {
+        Object nw = array[coord[0] - 1][coord[1] + 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element northwest of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element northwest of it
+   */
+  public static boolean hasNe(double[][] array, int[] coord) {
+    if (hasRight(array, coord)) {
+      try {
+        Object nw = array[coord[0] - 1][coord[1] + 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element northwest of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element northwest of it
+   */
+  public static boolean hasNe(boolean[][] array, int[] coord) {
+    if (hasRight(array, coord)) {
+      try {
+        Object nw = array[coord[0] - 1][coord[1] + 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element northwest of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element northwest of it
+   */
+  public static boolean hasNe(char[][] array, int[] coord) {
+    if (hasRight(array, coord)) {
+      try {
+        Object nw = array[coord[0] - 1][coord[1] + 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element southeast of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element southeast of it
+   */
+  public static boolean hasSe(Object[][] array, int[] coord) {
+    if (hasRight(array, coord)) {
+      try {
+        Object nw = array[coord[0] + 1][coord[1] + 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element southeast of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element southeast of it
+   */
+  public static boolean hasSe(int[][] array, int[] coord) {
+    if (hasRight(array, coord)) {
+      try {
+        Object nw = array[coord[0] + 1][coord[1] + 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element southeast of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element southeast of it
+   */
+  public static boolean hasSe(double[][] array, int[] coord) {
+    if (hasRight(array, coord)) {
+      try {
+        Object nw = array[coord[0] + 1][coord[1] + 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element southeast of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element southeast of it
+   */
+  public static boolean hasSe(boolean[][] array, int[] coord) {
+    if (hasRight(array, coord)) {
+      try {
+        Object nw = array[coord[0] + 1][coord[1] + 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element southeast of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element southeast of it
+   */
+  public static boolean hasSe(char[][] array, int[] coord) {
+    if (hasRight(array, coord)) {
+      try {
+        Object nw = array[coord[0] + 1][coord[1] + 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element southwest of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element southwest of it
+   */
+  public static boolean hasSw(Object[][] array, int[] coord) {
+    if (hasLeft(array, coord)) {
+      try {
+        Object nw = array[coord[0] + 1][coord[1] - 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element southwest of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element southwest of it
+   */
+  public static boolean hasSw(int[][] array, int[] coord) {
+    if (hasLeft(array, coord)) {
+      try {
+        Object nw = array[coord[0] + 1][coord[1] - 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element southwest of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element southwest of it
+   */
+  public static boolean hasSw(double[][] array, int[] coord) {
+    if (hasLeft(array, coord)) {
+      try {
+        Object nw = array[coord[0] + 1][coord[1] - 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element southwest of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element southwest of it
+   */
+  public static boolean hasSw(boolean[][] array, int[] coord) {
+    if (hasLeft(array, coord)) {
+      try {
+        Object nw = array[coord[0] + 1][coord[1] - 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the passed coordinates have an element southwest of it in the 2D array.
+   * 
+   * coord[0] = i (y) : coord[1] = j (x)
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return whether the element at the specified coordinates has an element southwest of it
+   */
+  public static boolean hasSw(char[][] array, int[] coord) {
+    if (hasLeft(array, coord)) {
+      try {
+        Object nw = array[coord[0] + 1][coord[1] - 1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Returns the element immediately above the coordinates specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element above the given coordinates
+   */
+  public static Object above(Object[][] array, int[] coord) {
+    if (!hasAbove(array, coord)) {
+      return null;
+    }
+    if (verbose) {
+      System.out.println(array[coord[0] - 1][coord[1]] + " is above " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0] - 1][coord[1]];
+  }
+
+  /**
+   * Returns the element immediately above the coordinates specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element above the given coordinates
+   */
+  public static int above(int[][] array, int[] coord) {
+    if (!hasAbove(array, coord)) {
+      return Integer.MAX_VALUE;
+    }
+    if (verbose) {
+      System.out.println(array[coord[0] - 1][coord[1]] + " is above " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0] - 1][coord[1]];
+  }
+
+  /**
+   * Returns the element immediately above the coordinates specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element above the given coordinates
+   */
+  public static double above(double[][] array, int[] coord) {
+    if (!hasAbove(array, coord)) {
+      return Double.MAX_VALUE;
+    }
+    if (verbose) {
+      System.out.println(array[coord[0] - 1][coord[1]] + " is above " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0] - 1][coord[1]];
+  }
+
+  /**
+   * Returns the element immediately above the coordinates specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element above the given coordinates
+   */
+  public static boolean above(boolean[][] array, int[] coord) {
+    if (!hasAbove(array, coord)) {
+      throw new IllegalArgumentException("boolean coordinates do not have an element above");
+    }
+    if (verbose) {
+      System.out.println(array[coord[0] - 1][coord[1]] + " is above " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0] - 1][coord[1]];
+  }
+
+  /**
+   * Returns the element immediately above the coordinates specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element above the given coordinates
+   */
+  public static char above(char[][] array, int[] coord) {
+    if (!hasAbove(array, coord)) {
+      return Character.MAX_VALUE;
+    }
+    if (verbose) {
+      System.out.println(array[coord[0] - 1][coord[1]] + " is above " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0] - 1][coord[1]];
+  }
+
+  /**
+   * Returns the element immediately below the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element below the specified coordinates
+   */
+  public static Object below(Object[][] array, int[] coord) {
+    if (!hasBelow(array, coord)) {
+      return null;
+    }
+    if (verbose) {
+      System.out.println(array[coord[0] + 1][coord[1]] + " is above " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0] + 1][coord[1]];
+  }
+
+  /**
+   * Returns the element immediately below the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element below the specified coordinates
+   */
+  public static int below(int[][] array, int[] coord) {
+    if (!hasBelow(array, coord)) {
+      return Integer.MAX_VALUE;
+    }
+    if (verbose) {
+      System.out.println(array[coord[0] + 1][coord[1]] + " is above " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0] + 1][coord[1]];
+  }
+
+  /**
+   * Returns the element immediately below the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element below the specified coordinates
+   */
+  public static double below(double[][] array, int[] coord) {
+    if (!hasBelow(array, coord)) {
+      return Double.MAX_VALUE;
+    }
+    if (verbose) {
+      System.out.println(array[coord[0] + 1][coord[1]] + " is above " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0] + 1][coord[1]];
+  }
+
+  /**
+   * Returns the element immediately below the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element below the specified coordinates
+   */
+  public static boolean below(boolean[][] array, int[] coord) {
+    if (!hasBelow(array, coord)) {
+      throw new IllegalArgumentException("boolean coordinates do not have an element below");
+    }
+    if (verbose) {
+      System.out.println(array[coord[0] + 1][coord[1]] + " is above " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0] + 1][coord[1]];
+  }
+
+  /**
+   * Returns the element immediately below the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element below the specified coordinates
+   */
+  public static char below(char[][] array, int[] coord) {
+    if (!hasBelow(array, coord)) {
+      return Character.MAX_VALUE;
+    }
+    if (verbose) {
+      System.out.println(array[coord[0] + 1][coord[1]] + " is above " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0] + 1][coord[1]];
+  }
+
+  /**
+   * Returns the element immediately to the right of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element to the right of the coordinates
+   */
+  public static Object rightOf(Object[][] array, int[] coord) {
+    if (!hasRight(array, coord)) {
+      return null;
+    }
+    if (verbose) {
+      System.out.println(
+          array[coord[0]][coord[1] + 1] + " is to the right of " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0]][coord[1] + 1];
+  }
+
+  /**
+   * Returns the element immediately to the right of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element to the right of the coordinates
+   */
+  public static int rightOf(int[][] array, int[] coord) {
+    if (!hasRight(array, coord)) {
+      return Integer.MAX_VALUE;
+    }
+    if (verbose) {
+      System.out.println(
+          array[coord[0]][coord[1] + 1] + " is to the right of " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0]][coord[1] + 1];
+  }
+
+  /**
+   * Returns the element immediately to the right of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element to the right of the coordinates
+   */
+  public static double rightOf(double[][] array, int[] coord) {
+    if (!hasRight(array, coord)) {
+      return Double.MAX_VALUE;
+    }
+    if (verbose) {
+      System.out.println(
+          array[coord[0]][coord[1] + 1] + " is to the right of " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0]][coord[1] + 1];
+  }
+
+  /**
+   * Returns the element immediately to the right of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element to the right of the coordinates
+   */
+  public static boolean rightOf(boolean[][] array, int[] coord) {
+    if (!hasRight(array, coord)) {
+      throw new IllegalArgumentException(
+          "boolean coordinates do not have an element right of them");
+    }
+    if (verbose) {
+      System.out.println(
+          array[coord[0]][coord[1] + 1] + " is to the right of " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0]][coord[1] + 1];
+  }
+
+  /**
+   * Returns the element immediately to the right of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element to the right of the coordinates
+   */
+  public static char rightOf(char[][] array, int[] coord) {
+    if (!hasRight(array, coord)) {
+      return Character.MAX_VALUE;
+    }
+    if (verbose) {
+      System.out.println(
+          array[coord[0]][coord[1] + 1] + " is to the right of " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0]][coord[1] + 1];
+  }
+
+  /**
+   * Returns the element immediately to the left of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element to the left of the coordinates
+   */
+  public static Object leftOf(Object[][] array, int[] coord) {
+    if (!hasLeft(array, coord)) {
+      return null;
+    }
+    if (verbose) {
+      System.out.println(
+          array[coord[0]][coord[1] - 1] + " is to the right of " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0]][coord[1] - 1];
+  }
+
+  /**
+   * Returns the element immediately to the left of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element to the left of the coordinates
+   */
+  public static int leftOf(int[][] array, int[] coord) {
+    if (!hasLeft(array, coord)) {
+      return Integer.MAX_VALUE;
+    }
+    if (verbose) {
+      System.out.println(
+          array[coord[0]][coord[1] - 1] + " is to the right of " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0]][coord[1] - 1];
+  }
+
+  /**
+   * Returns the element immediately to the left of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element to the left of the coordinates
+   */
+  public static double leftOf(double[][] array, int[] coord) {
+    if (!hasLeft(array, coord)) {
+      return Double.MAX_VALUE;
+    }
+    if (verbose) {
+      System.out.println(
+          array[coord[0]][coord[1] - 1] + " is to the right of " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0]][coord[1] - 1];
+  }
+
+  /**
+   * Returns the element immediately to the left of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element to the left of the coordinates
+   */
+  public static boolean leftOf(boolean[][] array, int[] coord) {
+    if (!hasLeft(array, coord)) {
+      throw new IllegalArgumentException("boolean coordinates do not have an element to the left");
+    }
+    if (verbose) {
+      System.out.println(
+          array[coord[0]][coord[1] - 1] + " is to the right of " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0]][coord[1] - 1];
+  }
+
+  /**
+   * Returns the element immediately to the left of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element to the left of the coordinates
+   */
+  public static char leftOf(char[][] array, int[] coord) {
+    if (!hasLeft(array, coord)) {
+      return Character.MAX_VALUE;
+    }
+    if (verbose) {
+      System.out.println(
+          array[coord[0]][coord[1] - 1] + " is to the right of " + array[coord[0]][coord[1]]);
+    }
+    return array[coord[0]][coord[1] - 1];
+  }
+
+  /**
+   * Returns the element immediately northwest of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element northwest of the coordinates
+   */
+  public static Object nwOf(Object[][] array, int[] coord) {
+    if (!hasNw(array, coord))
+      return null;
+    return array[coord[0] - 1][coord[1] - 1];
+  }
+
+  /**
+   * Returns the element immediately northwest of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element northwest of the coordinates
+   */
+  public static int nwOf(int[][] array, int[] coord) {
+    if (!hasNw(array, coord))
+      return Integer.MAX_VALUE;
+    return array[coord[0] - 1][coord[1] - 1];
+  }
+
+  /**
+   * Returns the element immediately northwest of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element northwest of the coordinates
+   */
+  public static double nwOf(double[][] array, int[] coord) {
+    if (!hasNw(array, coord))
+      return Double.MAX_VALUE;
+    return array[coord[0] - 1][coord[1] - 1];
+  }
+
+  /**
+   * Returns the element immediately northwest of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element northwest of the coordinates
+   */
+  public static boolean nwOf(boolean[][] array, int[] coord) {
+    if (!hasNw(array, coord))
+      throw new IllegalArgumentException("boolean coordinates do not have an element below");
+    return array[coord[0] - 1][coord[1] - 1];
+  }
+
+  /**
+   * Returns the element immediately northwest of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element northwest of the coordinates
+   */
+  public static char nwOf(char[][] array, int[] coord) {
+    if (!hasNw(array, coord))
+      return Character.MAX_VALUE;
+    return array[coord[0] - 1][coord[1] - 1];
+  }
+
+  /**
+   * Returns the element immediately northwest of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element northwest of the coordinates
+   */
+  public static Object neOf(Object[][] array, int[] coord) {
+    if (!hasNe(array, coord))
+      return null;
+    return array[coord[0] - 1][coord[1] + 1];
+  }
+
+  /**
+   * Returns the element immediately northwest of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element northwest of the coordinates
+   */
+  public static int neOf(int[][] array, int[] coord) {
+    if (!hasNe(array, coord))
+      return Integer.MAX_VALUE;
+    return array[coord[0] - 1][coord[1] + 1];
+  }
+
+  /**
+   * Returns the element immediately northwest of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element northwest of the coordinates
+   */
+  public static double neOf(double[][] array, int[] coord) {
+    if (!hasNe(array, coord))
+      return Double.MAX_VALUE;
+    return array[coord[0] - 1][coord[1] + 1];
+  }
+
+  /**
+   * Returns the element immediately northwest of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element northwest of the coordinates
+   */
+  public static boolean neOf(boolean[][] array, int[] coord) {
+    if (!hasNe(array, coord))
+      throw new IllegalArgumentException("boolean coordinates do not have an element below");
+    return array[coord[0] - 1][coord[1] + 1];
+  }
+
+  /**
+   * Returns the element immediately northwest of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element northwest of the coordinates
+   */
+  public static char neOf(char[][] array, int[] coord) {
+    if (!hasNe(array, coord))
+      return Character.MAX_VALUE;
+    return array[coord[0] - 1][coord[1] + 1];
+  }
+
+  /**
+   * Returns the element immediately southeast of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element southeast of the coordinates
+   */
+  public static Object seOf(Object[][] array, int[] coord) {
+    if (!hasSe(array, coord))
+      return null;
+    return array[coord[0] + 1][coord[1] + 1];
+  }
+
+  /**
+   * Returns the element immediately southeast of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element southeast of the coordinates
+   */
+  public static int seOf(int[][] array, int[] coord) {
+    if (!hasSe(array, coord))
+      return Integer.MAX_VALUE;
+    return array[coord[0] + 1][coord[1] + 1];
+  }
+
+  /**
+   * Returns the element immediately southeast of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element southeast of the coordinates
+   */
+  public static double seOf(double[][] array, int[] coord) {
+    if (!hasSe(array, coord))
+      return Double.MAX_VALUE;
+    return array[coord[0] + 1][coord[1] + 1];
+  }
+
+  /**
+   * Returns the element immediately southeast of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element southeast of the coordinates
+   */
+  public static boolean seOf(boolean[][] array, int[] coord) {
+    if (!hasSe(array, coord))
+      throw new IllegalArgumentException("boolean coordinates do not have an element below");
+    return array[coord[0] + 1][coord[1] + 1];
+  }
+
+  /**
+   * Returns the element immediately southeast of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element southeast of the coordinates
+   */
+  public static char seOf(char[][] array, int[] coord) {
+    if (!hasSe(array, coord))
+      return Character.MAX_VALUE;
+    return array[coord[0] + 1][coord[1] + 1];
+  }
+
+  /**
+   * Returns the element immediately southwest of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element southwest of the coordinates
+   */
+  public static Object swOf(Object[][] array, int[] coord) {
+    if (!hasSw(array, coord))
+      return null;
+    return array[coord[0] + 1][coord[1] - 1];
+  }
+
+  /**
+   * Returns the element immediately southwest of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element southwest of the coordinates
+   */
+  public static int swOf(int[][] array, int[] coord) {
+    if (!hasSw(array, coord))
+      return Integer.MAX_VALUE;
+    return array[coord[0] + 1][coord[1] - 1];
+  }
+
+  /**
+   * Returns the element immediately southwest of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element southwest of the coordinates
+   */
+  public static double swOf(double[][] array, int[] coord) {
+    if (!hasSw(array, coord))
+      return Double.MAX_VALUE;
+    return array[coord[0] + 1][coord[1] - 1];
+  }
+
+  /**
+   * Returns the element immediately southwest of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element southwest of the coordinates
+   */
+  public static boolean swOf(boolean[][] array, int[] coord) {
+    if (!hasSw(array, coord))
+      throw new IllegalArgumentException("boolean coordinates do not have an element below");
+    return array[coord[0] + 1][coord[1] - 1];
+  }
+
+  /**
+   * Returns the element immediately southwest of the one specified in a 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates to use
+   * @return the element southwest of the coordinates
+   */
+  public static char swOf(char[][] array, int[] coord) {
+    if (!hasSw(array, coord))
+      return Character.MAX_VALUE;
+    return array[coord[0] + 1][coord[1] - 1];
+  }
+
+  /**
+   * Returns an array of elements surrounding the specified coordinates in a 2D array.
+   * 
+   * @return the adjacent elements
+   */
+  public static Object[] adjacent(Object[][] array, int[] coord) {
+    Object[] immediate = new Object[8];
+    immediate[0] = nwOf(array, coord);
+    immediate[1] = above(array, coord);
+    immediate[2] = neOf(array, coord);
+    immediate[3] = rightOf(array, coord);
+    immediate[4] = seOf(array, coord);
+    immediate[5] = below(array, coord);
+    immediate[6] = swOf(array, coord);
+    immediate[7] = leftOf(array, coord);
+    ArrayList<Object> adj = new ArrayList<>();
+    for (Object obj : immediate) {
+      if (obj != null) {
+        adj.add(obj);
+      }
+    }
+    return adj.toArray();
+  }
+
+  /**
+   * Returns an array of elements surrounding the specified coordinates in a 2D array.
+   * 
+   * @return the adjacent elements
+   */
+  public static int[] adjacent(int[][] array, int[] coord) {
+    int[] immediate = new int[8];
+    immediate[0] = nwOf(array, coord);
+    immediate[1] = above(array, coord);
+    immediate[2] = neOf(array, coord);
+    immediate[3] = rightOf(array, coord);
+    immediate[4] = seOf(array, coord);
+    immediate[5] = below(array, coord);
+    immediate[6] = swOf(array, coord);
+    immediate[7] = leftOf(array, coord);
+    ArrayList<Integer> adj = new ArrayList<>();
+    for (int obj : immediate) {
+      if (!isConstant(obj)) {
+        adj.add(obj);
+      }
+    }
+    return toInt(adj.toArray());
+  }
+
+  /**
+   * Returns an array of elements surrounding the specified coordinates in a 2D array.
+   * 
+   * @return the adjacent elements
+   */
+  public static double[] adjacent(double[][] array, int[] coord) {
+    double[] immediate = new double[8];
+    immediate[0] = nwOf(array, coord);
+    immediate[1] = above(array, coord);
+    immediate[2] = neOf(array, coord);
+    immediate[3] = rightOf(array, coord);
+    immediate[4] = seOf(array, coord);
+    immediate[5] = below(array, coord);
+    immediate[6] = swOf(array, coord);
+    immediate[7] = leftOf(array, coord);
+    ArrayList<Double> adj = new ArrayList<>();
+    for (double obj : immediate) {
+      if (!isConstant(obj)) {
+        adj.add(obj);
+      }
+    }
+    return toDouble(adj.toArray());
+  }
+
+  /**
+   * Returns an array of elements surrounding the specified coordinates in a 2D array.
+   * 
+   * @return the adjacent elements
+   */
+  public static boolean[] adjacent(boolean[][] array, int[] coord) {
+    ArrayList<Boolean> immediate = new ArrayList<>();
+    try {
+      immediate.add(nwOf(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    try {
+      immediate.add(above(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    try {
+      immediate.add(neOf(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    try {
+      immediate.add(rightOf(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    try {
+      immediate.add(seOf(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    try {
+      immediate.add(below(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    try {
+      immediate.add(swOf(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    try {
+      immediate.add(leftOf(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    ArrayList<Boolean> adj = new ArrayList<>();
+    for (boolean obj : immediate) {
+      adj.add(obj);
+    }
+    return toBoolean(adj.toArray());
+  }
+
+  /**
+   * Returns an array of elements surrounding the specified coordinates in a 2D array.
+   * 
+   * @return the adjacent elements
+   */
+  public static char[] adjacent(char[][] array, int[] coord) {
+    char[] immediate = new char[8];
+    immediate[0] = nwOf(array, coord);
+    immediate[1] = above(array, coord);
+    immediate[2] = neOf(array, coord);
+    immediate[3] = rightOf(array, coord);
+    immediate[4] = seOf(array, coord);
+    immediate[5] = below(array, coord);
+    immediate[6] = swOf(array, coord);
+    immediate[7] = leftOf(array, coord);
+    ArrayList<Character> adj = new ArrayList<>();
+    for (char obj : immediate) {
+      if (!isConstant(obj)) {
+        adj.add(obj);
+      }
+    }
+    return toChar(adj.toArray());
+  }
+
+  /**
+   * Gets the elements in each immediate cardinal direction in the 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates
+   * @return the cardinal elements
+   */
+  public static Object[] cardinal(Object[][] array, int[] coord) {
+    Object[] immediate = new Object[4];
+    immediate[0] = above(array, coord);
+    immediate[1] = rightOf(array, coord);
+    immediate[2] = below(array, coord);
+    immediate[3] = leftOf(array, coord);
+    ArrayList<Object> adj = new ArrayList<>();
+    for (Object obj : immediate) {
+      if (obj != null) {
+        adj.add(obj);
+      }
+    }
+    return adj.toArray();
+  }
+
+  /**
+   * Gets the elements in each immediate cardinal direction in the 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates
+   * @return the cardinal elements
+   */
+  public static int[] cardinal(int[][] array, int[] coord) {
+    int[] immediate = new int[4];
+    immediate[0] = above(array, coord);
+    immediate[1] = rightOf(array, coord);
+    immediate[2] = below(array, coord);
+    immediate[3] = leftOf(array, coord);
+    ArrayList<Integer> adj = new ArrayList<>();
+    for (int obj : immediate) {
+      if (!isConstant(obj)) {
+        adj.add(obj);
+      }
+    }
+    return toInt(adj.toArray());
+  }
+
+  /**
+   * Gets the elements in each immediate cardinal direction in the 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates
+   * @return the cardinal elements
+   */
+  public static double[] cardinal(double[][] array, int[] coord) {
+    double[] immediate = new double[4];
+    immediate[0] = above(array, coord);
+    immediate[1] = rightOf(array, coord);
+    immediate[2] = below(array, coord);
+    immediate[3] = leftOf(array, coord);
+    ArrayList<Double> adj = new ArrayList<>();
+    for (double obj : immediate) {
+      if (!isConstant(obj)) {
+        adj.add(obj);
+      }
+    }
+    return toDouble(adj.toArray());
+  }
+
+  /**
+   * Gets the elements in each immediate cardinal direction in the 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates
+   * @return the cardinal elements
+   */
+  public static boolean[] cardinal(boolean[][] array, int[] coord) {
+    ArrayList<Boolean> immediate = new ArrayList<>();
+    try {
+      immediate.add(above(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    try {
+      immediate.add(rightOf(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    try {
+      immediate.add(below(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    try {
+      immediate.add(leftOf(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    ArrayList<Boolean> adj = new ArrayList<>();
+    for (boolean obj : immediate) {
+      adj.add(obj);
+    }
+    return toBoolean(adj.toArray());
+  }
+
+  /**
+   * Gets the elements in each immediate cardinal direction in the 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates
+   * @return the cardinal elements
+   */
+  public static char[] cardinal(char[][] array, int[] coord) {
+    char[] immediate = new char[4];
+    immediate[0] = above(array, coord);
+    immediate[1] = rightOf(array, coord);
+    immediate[2] = below(array, coord);
+    immediate[3] = leftOf(array, coord);
+    ArrayList<Character> adj = new ArrayList<>();
+    for (char obj : immediate) {
+      if (!isConstant(obj)) {
+        adj.add(obj);
+      }
+    }
+    return toChar(adj.toArray());
+  }
+
+  /**
+   * Gets the elements in each immediate diagonal direction in the 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates
+   * @return the diagonal elements
+   */
+  public static Object[] diagonal(Object[][] array, int[] coord) {
+    Object[] immediate = new Object[8];
+    immediate[0] = nwOf(array, coord);
+    immediate[1] = neOf(array, coord);
+    immediate[2] = seOf(array, coord);
+    immediate[3] = swOf(array, coord);
+    ArrayList<Object> adj = new ArrayList<>();
+    for (Object obj : immediate) {
+      if (obj != null) {
+        adj.add(obj);
+      }
+    }
+    return adj.toArray();
+  }
+
+  /**
+   * Gets the elements in each immediate diagonal direction in the 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates
+   * @return the diagonal elements
+   */
+  public static int[] diagonal(int[][] array, int[] coord) {
+    int[] immediate = new int[8];
+    immediate[0] = nwOf(array, coord);
+    immediate[1] = neOf(array, coord);
+    immediate[2] = seOf(array, coord);
+    immediate[3] = swOf(array, coord);
+    ArrayList<Integer> adj = new ArrayList<>();
+    for (int obj : immediate) {
+      if (!isConstant(obj)) {
+        adj.add(obj);
+      }
+    }
+    return toInt(adj.toArray());
+  }
+
+  /**
+   * Gets the elements in each immediate diagonal direction in the 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates
+   * @return the diagonal elements
+   */
+  public static double[] diagonal(double[][] array, int[] coord) {
+    double[] immediate = new double[8];
+    immediate[0] = nwOf(array, coord);
+    immediate[1] = neOf(array, coord);
+    immediate[2] = seOf(array, coord);
+    immediate[3] = swOf(array, coord);
+    ArrayList<Double> adj = new ArrayList<>();
+    for (double obj : immediate) {
+      if (!isConstant(obj)) {
+        adj.add(obj);
+      }
+    }
+    return toDouble(adj.toArray());
+  }
+
+  /**
+   * Gets the elements in each immediate diagonal direction in the 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates
+   * @return the diagonal elements
+   */
+  public static boolean[] diagonal(boolean[][] array, int[] coord) {
+    ArrayList<Boolean> immediate = new ArrayList<>();
+    try {
+      immediate.add(nwOf(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    try {
+      immediate.add(neOf(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    try {
+      immediate.add(seOf(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    try {
+      immediate.add(swOf(array, coord));
+    } catch (IllegalArgumentException e) {
+    }
+    ArrayList<Boolean> adj = new ArrayList<>();
+    for (boolean obj : immediate) {
+      adj.add(obj);
+    }
+    return toBoolean(adj.toArray());
+  }
+
+  /**
+   * Gets the elements in each immediate diagonal direction in the 2D array.
+   * 
+   * @param array the array to use
+   * @param coord the coordinates
+   * @return the diagonal elements
+   */
+  public char[] diagonal(char[][] array, int[] coord) {
+    char[] immediate = new char[8];
+    immediate[0] = nwOf(array, coord);
+    immediate[1] = neOf(array, coord);
+    immediate[2] = seOf(array, coord);
+    immediate[3] = swOf(array, coord);
+    ArrayList<Character> adj = new ArrayList<>();
+    for (char obj : immediate) {
+      if (!isConstant(obj)) {
+        adj.add(obj);
+      }
+    }
+    return toChar(adj.toArray());
+  }
+
+  /**
+   * Generates a distance table for the coordinates provided.
+   * 
+   * @param <E>
+   * 
+   * @param array the array to reference
+   * @param from the from coordinates
+   * @return
+   */
+  public static double[][] generateDistanceInvTable(Object[][] array, int[] from) {
+    Object[][] copy = arraycopy(array);
+    double[][] dcopy = create2DDoubleArrayFromObj(array);
+    for (int i = 0; i < dcopy.length; i++) {
+      for (int j = 0; j < dcopy[i].length; j++) {
+        dcopy[i][j] = distanceInv(dcopy, from, new int[] {i, j});
+      }
+    }
+    return dcopy;
+  }
+
+  /**
+   * Creates a map with distances from a specific coordinate in the array specified.
+   * 
+   * @param dt the premade distance table
+   * @param array the array
+   * @param center the center
+   * @return a distance map
+   */
+  public static embMsnMultimap<Double, Point> distanceMap(double[][] dt, Object[][] array,
+      int[] center) {
+    embMsnMultimap<Double, Point> map = new embMsnMultimap<>();
+    for (int i = 0; i < dt.length; i++) {
+      for (int j = 0; j < dt[i].length; j++)
+        map.put(dt[i][j], new Point(i, j));
+    }
+    return map;
+  }
+
+  /**
+   * Creates a map with distances from a specific coordinate in the array specified.
+   * 
+   * @param array the array
+   * @param center the center
+   * @return a distance map
+   */
+  public static embMsnMultimap<Double, Point> distanceMap(Object[][] array, int[] center) {
+    double[][] dt = generateDistanceInvTable(array, center);
+    embMsnMultimap<Double, Point> map = new embMsnMultimap<>();
+    for (int i = 0; i < dt.length; i++) {
+      for (int j = 0; j < dt[i].length; j++)
+        map.put(dt[i][j], new Point(i, j));
+    }
+    return map;
+  }
+
+  /**
+   * Obtains the elements that form a circle with the radius specified.
+   * 
+   * @param radius the radius of the circle
+   * @param array the array
+   * @param center the coordinates of the center of the circle
+   * @return the elements forming a circle
+   */
+  public static ArrayList<Object> circular(Object[][] array, int radius, int[] center) {
+    ArrayList<Object> circle = new ArrayList<>();
+    double[][] dt = generateDistanceInvTable(array, center);
+    embMsnMultimap<Double, Point> distanceMap = distanceMap(dt, array, center);
+    double startdistance = directionalMulti(dt, center, "north", radius, true);
+    while (isConstant(startdistance)) {
+      startdistance = directionalMulti(dt, center, "south", radius, true);
+      if (!isConstant(startdistance)) {
+        break;
+      }
+      startdistance = directionalMulti(dt, center, "east", radius, true);
+      if (!isConstant(startdistance)) {
+        break;
+      }
+      startdistance = directionalMulti(dt, center, "west", radius, true);
+      if (!isConstant(startdistance)) {
+        break;
+      }
+    }
+
+    double currdist = startdistance;
+    ArrayList<Point> points = distanceMap.get(currdist);
+    for (Point p : points) {
+      circle.add(array[(int) p.getX()][(int) p.getY()]);
+    }
+    while (circle.size() < Math.ceil(2 * Math.PI * radius)) {
+      ArrayList<Double> adjdistance = new ArrayList<>();
+      for (Point init : points) {
+        adjdistance = new ArrayList<>(
+            Arrays.asList(box(adjacent(dt, new int[] {(int) init.getX(), (int) init.getY()}))));
+      }
+      double[] adj = toDouble(adjdistance.toArray());
+      currdist = closestTo(currdist, adj);
+      points = distanceMap.get(currdist);
+      for (Point p : points) {
+        circle.add(array[(int) p.getX()][(int) p.getY()]);
+      }
+    }
+    return circle;
+  }
+
+  /**
+   * Determines whether an element is a member of directionalConstants.
+   * 
+   * @param i the obj to check
+   */
+  public static boolean isConstant(int i) {
+    return i == intDirectionalConstant;
+  }
+
+  /**
+   * Determines whether an element is a member of directionalConstants.
+   * 
+   * @param i the obj to check
+   */
+  public static boolean isConstant(double d) {
+    return d == doubleDirectionalConstant;
+  }
+
+  /**
+   * Determines whether an element is a member of directionalConstants.
+   * 
+   * @param i the obj to check
+   */
+  public static boolean isConstant(char c) {
+    return c == charDirectionalConstant;
+  }
+
+  /**
+   * Gets an element of the array a certain amount of blocks away.
+   * 
+   * @param array the array to use
+   * @param from the initial coordinates
+   * @param direction the direction {"north", "south", "east", "west", "nw", "ne", "sw", "se}
+   * @param distance the distance (not to be confused with distance() methods)
+   * @param includeEdges whether to return an edge if the distance is out of bounds
+   * @return the Object
+   */
+  public static Object directionalMulti(Object[][] array, int[] from, String direction,
+      int distance, boolean includeEdges) {
+    Object obj = null;
+    String[] allowed = {"north", "south", "east", "west", "nw", "ne", "sw", "se"};
+    if (contains(allowed, direction)) {
+      if (direction.equals("north")) {
+        try {
+          obj = array[from[0] - distance][from[1]];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1]})) {
+              iterator--;
+            }
+            obj = array[from[0] - iterator][from[1]];
+          }
+        }
+      } else if (direction.equals("south")) {
+        try {
+          obj = array[from[0] + distance][from[1]];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1]})) {
+              iterator--;
+            }
+            obj = array[from[0] + iterator][from[1]];
+          }
+        }
+      } else if (direction.equals("east")) {
+        try {
+          obj = array[from[0]][from[1] + distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0], from[1] + iterator})) {
+              iterator--;
+            }
+            obj = array[from[0]][from[1] + iterator];
+          }
+        }
+      } else if (direction.equals("west")) {
+        try {
+          obj = array[from[0]][from[1] - distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0], from[1] - iterator})) {
+              iterator--;
+            }
+            obj = array[from[0]][from[1] - iterator];
+          }
+        }
+      } else if (direction.equals("nw")) {
+        try {
+          obj = array[from[0] - distance][from[1] - distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1] - iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] - iterator][from[1] - iterator];
+          }
+        }
+      } else if (direction.equals("ne")) {
+        try {
+          obj = array[from[0] - distance][from[1] + distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1] + iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] - iterator][from[1] + iterator];
+          }
+        }
+      } else if (direction.equals("sw")) {
+        try {
+          obj = array[from[0] + distance][from[1] - distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1] - iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] + iterator][from[1] - iterator];
+          }
+        }
+      } else if (direction.equals("se")) {
+        try {
+          obj = array[from[0] + distance][from[1] + distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1] + iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] + iterator][from[1] + iterator];
+          }
+        }
+      }
+    }
+    return obj;
+  }
+
+  /**
+   * Gets an element of the array a certain amount of blocks away.
+   * 
+   * @param array the array to use
+   * @param from the initial coordinates
+   * @param direction the direction {"north", "south", "east", "west", "nw", "ne", "sw", "se}
+   * @param distance the distance (not to be confused with distance() methods)
+   * @param includeEdges whether to return an edge if the distance is out of bounds
+   * @return the Object
+   */
+  public static int directionalMulti(int[][] array, int[] from, String direction, int distance,
+      boolean includeEdges) {
+    int obj = Integer.MAX_VALUE;
+    String[] allowed = {"north", "south", "east", "west", "nw", "ne", "sw", "se"};
+    if (contains(allowed, direction)) {
+      if (direction.equals("north")) {
+        try {
+          obj = array[from[0] - distance][from[1]];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1]})) {
+              iterator--;
+            }
+            obj = array[from[0] - iterator][from[1]];
+          }
+        }
+      } else if (direction.equals("south")) {
+        try {
+          obj = array[from[0] + distance][from[1]];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1]})) {
+              iterator--;
+            }
+            obj = array[from[0] + iterator][from[1]];
+          }
+        }
+      } else if (direction.equals("east")) {
+        try {
+          obj = array[from[0]][from[1] + distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0], from[1] + iterator})) {
+              iterator--;
+            }
+            obj = array[from[0]][from[1] + iterator];
+          }
+        }
+      } else if (direction.equals("west")) {
+        try {
+          obj = array[from[0]][from[1] - distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0], from[1] - iterator})) {
+              iterator--;
+            }
+            obj = array[from[0]][from[1] - iterator];
+          }
+        }
+      } else if (direction.equals("nw")) {
+        try {
+          obj = array[from[0] - distance][from[1] - distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1] - iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] - iterator][from[1] - iterator];
+          }
+        }
+      } else if (direction.equals("ne")) {
+        try {
+          obj = array[from[0] - distance][from[1] + distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1] + iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] - iterator][from[1] + iterator];
+          }
+        }
+      } else if (direction.equals("sw")) {
+        try {
+          obj = array[from[0] + distance][from[1] - distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1] - iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] + iterator][from[1] - iterator];
+          }
+        }
+      } else if (direction.equals("se")) {
+        try {
+          obj = array[from[0] + distance][from[1] + distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1] + iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] + iterator][from[1] + iterator];
+          }
+        }
+      }
+    }
+    return obj;
+  }
+
+  /**
+   * Gets an element of the array a certain amount of blocks away.
+   * 
+   * @param array the array to use
+   * @param from the initial coordinates
+   * @param direction the direction {"north", "south", "east", "west", "nw", "ne", "sw", "se}
+   * @param distance the distance (not to be confused with distance() methods)
+   * @param includeEdges whether to return an edge if the distance is out of bounds
+   * @return the Object
+   */
+  public static double directionalMulti(double[][] array, int[] from, String direction,
+      int distance, boolean includeEdges) {
+    double obj = Double.MAX_VALUE;
+    String[] allowed = {"north", "south", "east", "west", "nw", "ne", "sw", "se"};
+    if (contains(allowed, direction)) {
+      if (direction.equals("north")) {
+        try {
+          obj = array[from[0] - distance][from[1]];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1]})) {
+              iterator--;
+            }
+            obj = array[from[0] - iterator][from[1]];
+          }
+        }
+      } else if (direction.equals("south")) {
+        try {
+          obj = array[from[0] + distance][from[1]];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1]})) {
+              iterator--;
+            }
+            obj = array[from[0] + iterator][from[1]];
+          }
+        }
+      } else if (direction.equals("east")) {
+        try {
+          obj = array[from[0]][from[1] + distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0], from[1] + iterator})) {
+              iterator--;
+            }
+            obj = array[from[0]][from[1] + iterator];
+          }
+        }
+      } else if (direction.equals("west")) {
+        try {
+          obj = array[from[0]][from[1] - distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0], from[1] - iterator})) {
+              iterator--;
+            }
+            obj = array[from[0]][from[1] - iterator];
+          }
+        }
+      } else if (direction.equals("nw")) {
+        try {
+          obj = array[from[0] - distance][from[1] - distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1] - iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] - iterator][from[1] - iterator];
+          }
+        }
+      } else if (direction.equals("ne")) {
+        try {
+          obj = array[from[0] - distance][from[1] + distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1] + iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] - iterator][from[1] + iterator];
+          }
+        }
+      } else if (direction.equals("sw")) {
+        try {
+          obj = array[from[0] + distance][from[1] - distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1] - iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] + iterator][from[1] - iterator];
+          }
+        }
+      } else if (direction.equals("se")) {
+        try {
+          obj = array[from[0] + distance][from[1] + distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1] + iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] + iterator][from[1] + iterator];
+          }
+        }
+      }
+    }
+    return obj;
+  }
+
+  // ---------------------------INFORMATION-----------------------------------
+
+  /**
+   * Prints a brief summary of the passed array.
+   * 
+   * @param array the array to summarize
+   * @since 0.1.0.0.0
+   */
+  public static void summary(Object[] array) {
+    System.out.println(Arrays.toString(array) + "\ntype: Object[]\nelements: " + array.length);
+  }
+
+  /**
+   * Prints a brief summary of the passed array.
+   * 
+   * @param array the array to summarize
+   * @since 0.1.0.0.0
+   */
+  public static void summary(int[] array) {
+
+    double sum = 0;
+    for (int i = 0; i < array.length; i++) {
+      sum += array[i];
+    }
+
+    System.out.println(Arrays.toString(array) + "\ntype: int[]\nelements: " + array.length
+        + "\nmean: " + String.format("%.2f", sum / array.length));
+  }
+
+  /**
+   * Prints a brief summary of the passed array.
+   * 
+   * @param array the array to summarize
+   * @since 0.1.0.0.0
+   */
+  public static void summary(double[] array) {
+    double sum = 0;
+    for (int i = 0; i < array.length; i++) {
+      sum += array[i];
+    }
+
+    System.out.println(Arrays.toString(array) + "\ntype: double[]\nelements: " + array.length
+        + "\nmean: " + String.format("%.2f", sum / array.length));
+  }
+
+  /**
+   * Prints a brief summary of the passed array.
+   * 
+   * @param array the array to summarize
+   * @since 0.1.0.0.0
+   */
+  public static void summary(boolean[] array) {
+    int trueCount = 0;
+    int falseCount = 0;
+
+    for (int i = 0; i < array.length; i++) {
+      if (array[i]) {
+        trueCount++;
+      } else if (!array[i]) {
+        falseCount++;
+      } else {
+        throw new IllegalArgumentException("array contains null values");
+      }
+    }
+    if (trueCount > falseCount) {
+      System.out.println(Arrays.toString(array) + "\ntype: boolean[]\nelements: " + array.length
+          + "\nmode: true(" + trueCount + ")");
+    } else if (falseCount > trueCount) {
+      System.out.println(Arrays.toString(array) + "\ntype: boolean[]\nelements: " + array.length
+          + "\nmode: false(" + falseCount + ")");
+    } else {
+      System.out.println(Arrays.toString(array) + "\ntype: boolean[]\nelements: " + array.length);
+    }
+
+  }
+
+  /**
+   * Prints a brief summary of the passed array.
+   * 
+   * @param array the array to summarize
+   * @since 0.1.0.0.0
+   */
+  public static void summary(char[] array) {
+    StringBuilder alph = new StringBuilder("abcdefghijklmnopqrstuvwxyz");
+    System.out.println(Arrays.toString(array) + "\ntype: char[]\nelements: " + array.length);
+    if (verbose) {
+      for (int i = 0; i < array.length; i++) {
+        if (alph.toString().contains(Character.toString(array[i]))) {
+          alph.deleteCharAt(i);
+        }
+      }
+      System.out.println("% alphabet used: "
+          + String.format("%.2f", Math.abs(((alph.length() - 26.0) / 26) * 100)));
+    }
+
+  }
+
+  /**
+   * Prints a brief summary of the passed array.
+   * 
+   * @param array the array to summarize
+   * @since 0.1.0.0.0
+   */
+  public static void summary(Object[][] array) {
+    pa(array);
+    System.out
+        .println("type: Object[][]\nelements: " + eCount(array) + "\nisRagged: " + isRagged(array));
+  }
+
+  /**
+   * Prints a brief summary of the passed array.
+   * 
+   * @param array the array to summarize
+   * @since 0.1.0.0.0
+   */
+  public static void summary(int[][] array) {
+
+    double sum = 0;
+
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        sum += array[i][j];
+      }
+    }
+
+    pa(array);
+    System.out.println("type: int[][]\nelements: " + eCount(array) + "\nmean: "
+        + String.format("%.2f", sum / eCount(array)));
+  }
+
+  /**
+   * Prints a brief summary of the passed array.
+   * 
+   * @param array the array to summarize
+   * @since 0.1.0.0.0
+   */
+  public static void summary(double[][] array) {
+    double sum = 0;
+
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        sum += array[i][j];
+      }
+    }
+
+    pa(array);
+    System.out.println("type: double[][]\nelements: " + eCount(array) + "\nmean: "
+        + String.format("%.2f", sum / eCount(array)));
+  }
+
+  /**
+   * Prints a brief summary of the passed array.
+   * 
+   * @param array the array to summarize
+   * @since 0.1.0.0.0
+   */
+  public static void summary(boolean[][] array) {
+    int trueCount = 0;
+    int falseCount = 0;
+
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        if (array[i][j]) {
+          trueCount++;
+        } else if (!array[i][j]) {
+          falseCount++;
+        } else {
+          throw new IllegalArgumentException("array contains null values");
+        }
+      }
+    }
+    if (trueCount > falseCount) {
+      pa(array);
+      System.out.println(
+          "type: boolean[][]\nelements: " + array.length + "\nmode: true(" + trueCount + ")");
+    } else if (falseCount > trueCount) {
+      pa(array);
+      System.out.println(
+          "type: boolean[][]\nelements: " + array.length + "\nmode: false(" + falseCount + ")");
+    } else {
+      pa(array);
+      System.out.println("type: boolean[][]\nelements: " + array.length);
+    }
+
+  }
+
+  /**
+   * Prints a brief summary of the passed array.
+   * 
+   * @param array the array to summarize
+   * @since 0.1.0.0.0
+   */
+  public static void summary(char[][] array) {
+    StringBuilder alph = new StringBuilder("abcdefghijklmnopqrstuvwxyz");
+    pa(array);
+    System.out.println("type: char[][]\nelements: " + eCount(array));
+    if (verbose) {
+      for (int i = 0; i < array.length; i++) {
+        for (int j = 0; j < array[i].length; j++) {
+          if (alph.toString().contains(Character.toString(array[i][j]))) {
+            alph.deleteCharAt(alph.toString().indexOf(array[i][j]));
+          }
+        }
+      }
+      System.out
+          .println("% alphabet used: " + String.format("%.2f", 100 - 100 * (alph.length() / 26.0)));
+    }
+
+  }
+
+  // -------------------------------STREAMS-----------------------------------
+
+  /**
+   * Generates a Stream from the String specified.
+   * 
+   * @param s the String
+   * @return the Stream
+   * @since 0.1.5.2.5
+   */
+  public static Stream<Character> toStream(String s) {
+    if (verbose)
+      println("[*] converting to Stream");
+    return s.chars().mapToObj(c -> (char) c);
+  }
+  
+  /**
+   * Converts the array to a Stream.
+   * 
+   * @param array the array
+   * @returns a new Stream
+   * @since 0.1.5.2.5
+   */
+  public static Stream<Object> toStream(Object[] array) {
+    if (verbose)
+      println("[*] converting to Stream");
+    return Arrays.asList(array).stream();
+  }
+  
+  /**
+   * Converts the array to a Stream.
+   * 
+   * @param array the array
+   * @returns a new Stream
+   * @since 0.1.5.2.5
+   */
+  public static Stream<Integer> toStream(int[] array) {
+    if (verbose)
+      println("[*] converting to Stream");
+    return Arrays.asList(box(array)).stream();
+  }
+  
+  /**
+   * Converts the array to a Stream.
+   * 
+   * @param array the array
+   * @returns a new Stream
+   * @since 0.1.5.2.5
+   */
+  public static Stream<Double> toStream(double[] array) {
+    if (verbose)
+      println("[*] converting to Stream");
+    return Arrays.asList(box(array)).stream();
+  }
+  
+  /**
+   * Converts the array to a Stream.
+   * 
+   * @param array the array
+   * @returns a new Stream
+   * @since 0.1.5.2.5
+   */
+  public static Stream<Boolean> toStream(boolean[] array) {
+    if (verbose)
+      println("[*] converting to Stream");
+    return Arrays.asList(box(array)).stream();
+  }
+  
+  /**
+   * Converts the array to a Stream.
+   * 
+   * @param array the array
+   * @returns a new Stream
+   * @since 0.1.5.2.5
+   */
+  public static Stream<Character> toStream(char[] array) {
+    if (verbose)
+      println("[*] converting to Stream");
+    return Arrays.asList(box(array)).stream();
+  }
+  
+  // --------------------------------MATH-------------------------------------
+
+  /**
+   * Checks whether the given number is even.
+   * 
+   * @param number the number to check
+   * @return whether the number is even or not
+   * @since 0.1.1.7.2
+   */
+  public static boolean isEven(int number) {
+    return number % 2 == 0;
+  }
+
+  /**
+   * Properly rounds a number.
+   * 
+   * @param number the number to round
+   * @return the rounded number
+   * @since 0.1.1.7.2
+   */
+  public static int round(double number) {
+    int upper = (int) Math.ceil(number);
+    int lower = (int) Math.floor(number);
+    double upperdistance = upper - number;
+    double lowerdistance = number - lower;
+    if (upperdistance == lowerdistance) {
+      return upper;
+    } else if (upperdistance > lowerdistance) {
+      return lower;
+    } else {
+      return upper;
+    }
+  }
+
+  /**
+   * Calculates the average of a given array.
+   * 
+   * @param arr the array to use
+   * @return the average of all entries of the array
+   * @since 0.1.0.1.3
+   */
+  public static double avg(double[] arr) {
+    return sum(arr) / arr.length;
+  }
+
+  /**
+   * Calculates the average of a given array.
+   * 
+   * @param arr the array to use
+   * @return the average of all entries of the array
+   * @since 0.1.0.1.3
+   */
+  public static double avg(int[] arr) {
+    return sum(arr) / arr.length;
+  }
+
+  /**
+   * Checks whether a number divides another (|).
+   * 
+   * @param num1 the first number
+   * @param num2 the second number
+   * @return whether num1 divides num2
+   * @since 0.1.0.1.3
+   */
+  public static boolean divides(double num1, double num2) {
+    if (Math.floor(num2 / num1) == num2 / num1) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Calculates summation (SIGMA).
+   * 
+   * @param start the beginning index
+   * @param end the end index
+   * @return the summation
+   * @since 0.1.0.1.3
+   */
+  public static double sigma(int start, int end) {
+    double x = 0;
+    for (int i = start; i <= end; i++) {
+      x += 0; // type expression after the 'x +=', where i is the current
+      // index.
+    }
+    return x;
+  }
+
+  /**
+   * Returns the sum of every value in an array.
+   * 
+   * @param array the array to use
+   * @return the sum
+   * @since 0.1.0.1.3
+   */
+  public static int sum(int[] array) {
+    int sum = 0;
+    for (int i = 0; i < array.length; i++) {
+      sum += array[i];
+    }
+    return sum;
+  }
+
+  /**
+   * Returns the sum of every value in an array.
+   * 
+   * @param array the array to use
+   * @return the sum
+   * @since 0.1.0.1.3
+   */
+  public static double sum(double[] array) {
+    double sum = 0;
+    for (int i = 0; i < array.length; i++) {
+      sum += array[i];
+    }
+    return sum;
+  }
+
+  /**
+   * Returns the greatest common divisor of the two integers passed.
+   * 
+   * @param num1 the first number
+   * @param num2 the second number
+   * @return the gcd
+   * @since 0.1.0.1.3
+   */
+  public static int gcd(int num1, int num2) {
+    while (num1 != num2) {
+      if (num1 > num2) {
+        num1 = num1 - num2;
+      } else {
+        num2 = num2 - num1;
+      }
+    }
+    if (verbose) {
+      System.out.printf("GCD of given numbers is: %d", num2);
+    }
+    return num2;
+  }
+
+  /**
+   * Returns the greatest common divisor of the two integers passed.
+   * 
+   * @param num1 the first number
+   * @param num2 the second number
+   * @return the gcd
+   * @since 0.1.0.1.3
+   */
+  public static double gcd(double num1, double num2) {
+    while (num1 != num2) {
+      if (num1 > num2) {
+        num1 = num1 - num2;
+      } else {
+        num2 = num2 - num1;
+      }
+    }
+    if (verbose) {
+      System.out.println("GCD of given numbers is: " + num2);
+    }
+    return num2;
+  }
+
+  /**
+   * Returns the least common multiple of the two integers passed.
+   * 
+   * @param d the first number
+   * @param e the second number
+   * @return the lcm
+   * @since 0.1.0.1.3
+   */
+  public static double lcm(double d, double e) {
+    if (d == 0 || e == 0) {
+      return 0;
+    }
+    double absNumber1 = Math.abs(d);
+    double absNumber2 = Math.abs(e);
+    double absHigherNumber = Math.max(absNumber1, absNumber2);
+    double absLowerNumber = Math.min(absNumber1, absNumber2);
+    double lcm = absHigherNumber;
+    while (lcm % absLowerNumber != 0) {
+      lcm += absHigherNumber;
+    }
+    if (verbose) {
+      System.out.println("lcm of " + d + " and " + e + " is " + lcm);
+    }
+    return lcm;
+  }
+
+  /**
+   * Returns the least common multiple of the two integers passed.
+   * 
+   * @param num1 the first number
+   * @param num2 the second number
+   * @return the lcm
+   * @since 0.1.0.1.3
+   */
+  public static long lcm(long num1, long num2) {
+    if (num1 == 0 || num2 == 0) {
+      return 0;
+    }
+    long absNumber1 = Math.abs(num1);
+    long absNumber2 = Math.abs(num2);
+    long absHigherNumber = Math.max(absNumber1, absNumber2);
+    long absLowerNumber = Math.min(absNumber1, absNumber2);
+    long lcm = absHigherNumber;
+    while (lcm % absLowerNumber != 0) {
+      lcm += absHigherNumber;
+    }
+    if (verbose) {
+      System.out.println("lcm of " + num1 + " and " + num2 + " is " + lcm);
+    }
+    return lcm;
+  }
+
+  /**
+   * Finds the largest number that exists in the passed array.
+   * 
+   * @param array the array to use
+   * @return the largest number in the array
+   * @since 0.1.0.1.3
+   */
+  public static int max(int[] array) {
+    int max = array[0];
+    for (int i = 1; i < array.length; i++) {
+      if (array[i] > max) {
+        max = array[i];
+      }
+    }
+    if (verbose) {
+      System.out.println("max is " + max);
+    }
+    return max;
+  }
+
+  /**
+   * Finds the largest number that exists in the passed array.
+   * 
+   * @param array the array to use
+   * @return the largest number in the array
+   * @since 0.1.0.1.3
+   */
+  public static int max(int[][] array) {
+    int[] longarray = to1DArray(array);
+    return max(longarray);
+  }
+
+  /**
+   * Finds the largest number that exists in the passed array.
+   * 
+   * @param array the array to use
+   * @return the largest number in the array
+   */
+  public static double max(double[] array) {
+    double max = array[0];
+    for (int i = 1; i < array.length; i++) {
+      if (array[i] > max) {
+        max = array[i];
+      }
+    }
+    if (verbose) {
+      System.out.println("max is " + max);
+    }
+    return max;
+  }
+
+  /**
+   * Finds the largest number that exists in the passed array.
+   * 
+   * @param array the array to use
+   * @return the largest number in the array
+   */
+  public static double max(double[][] array) {
+    double[] longarray = to1DArray(array);
+    return max(longarray);
+  }
+
+  /**
+   * Finds the smallest number that exists in the passed array.
+   * 
+   * @param array the array to use
+   * @return the smallest number in the array
+   */
+  public static int min(int[] array) {
+    int minValue = array[0];
+    for (int i = 1; i < array.length; i++) {
+      if (array[i] < minValue) {
+        minValue = array[i];
+      }
+    }
+    if (verbose) {
+      System.out.println("min is " + minValue);
+    }
+    return minValue;
+  }
+
+  /**
+   * Finds the smallest number that exists in the passed array.
+   * 
+   * @param array the array to use
+   * @return the smallest number in the array
+   */
+  public static int min(int[][] array) {
+    int[] longarray = to1DArray(array);
+    int minValue = longarray[0];
+    for (int i = 1; i < longarray.length; i++) {
+      if (longarray[i] < minValue) {
+        minValue = longarray[i];
+      }
+    }
+    if (verbose) {
+      System.out.println("min is " + minValue);
+    }
+    return minValue;
+  }
+
+  /**
+   * Finds the smallest number that exists in the passed array.
+   * 
+   * @param array the array to use
+   * @return the smallest number in the array
+   */
+  public static double min(double[] array) {
+    double minValue = array[0];
+    for (int i = 1; i < array.length; i++) {
+      if (array[i] < minValue) {
+        minValue = array[i];
+      }
+    }
+    if (verbose) {
+      System.out.println("min is " + minValue);
+    }
+    return minValue;
+  }
+
+  /**
+   * Finds the smallest number that exists in the passed array.
+   * 
+   * @param array the array to use
+   * @return the smallest number in the array
+   */
+  public static double min(double[][] array) {
+    double[] longarray = to1DArray(array);
+    double minValue = longarray[0];
+    for (int i = 1; i < longarray.length; i++) {
+      if (longarray[i] < minValue) {
+        minValue = longarray[i];
+      }
+    }
+    if (verbose) {
+      System.out.println("min is " + minValue);
+    }
+    return minValue;
+  }
+
+  /**
+   * Finds the median of the passed array.
+   * 
+   * @param array the array to use
+   * @return the median
+   */
+  public static double median(int[] array) {
+    if (array.length % 2 == 0) {
+      int leftindex = (int) Math.floor(array.length * 1.0 / 2);
+      int leftelement = array[leftindex];
+      int rightelement = array[leftindex - 1];
+      return (leftelement + rightelement) / 2.0;
+    } else {
+      return array[array.length / 2];
+    }
+  }
+
+  /**
+   * Calculates the distance between two coordinates in a 2D array.
+   * 
+   * @param array the array to use
+   * @param from the first set of coordinates
+   * @param to the second set of coordinates
+   * @return the distance between the two
+   */
+  public static double distance(Object[][] array, int[] from, int[] to) {
+    return pyth(Math.max(Math.abs(from[0]), to[0]) - Math.min(from[0], to[0]),
+        Math.max(Math.abs(from[1]), to[1]) - Math.min(from[1], to[1]));
+  }
+
+  /**
+   * Calculates the distance between two coordinates in a 2D array.
+   * 
+   * @param array the array to use
+   * @param from the first set of coordinates
+   * @param to the second set of coordinates
+   * @return the distance between the two
+   */
+  public static double distance(int[][] array, int[] from, int[] to) {
+    return pyth(Math.max(Math.abs(from[0]), to[0]) - Math.min(from[0], to[0]),
+        Math.max(Math.abs(from[1]), to[1]) - Math.min(from[1], to[1]));
+  }
+
+  /**
+   * Calculates the distance between two coordinates in a 2D array.
+   * 
+   * @param array the array to use
+   * @param from the first set of coordinates
+   * @param to the second set of coordinates
+   * @return the distance between the two
+   */
+  public static double distance(double[][] array, int[] from, int[] to) {
+    return pyth(Math.max(Math.abs(from[0]), to[0]) - Math.min(from[0], to[0]),
+        Math.max(Math.abs(from[1]), to[1]) - Math.min(from[1], to[1]));
+  }
+
+  /**
+   * Calculates the distance between two coordinates in a 2D array.
+   * 
+   * @param array the array to use
+   * @param from the first set of coordinates
+   * @param to the second set of coordinates
+   * @return the distance between the two
+   */
+  public static double distance(boolean[][] array, int[] from, int[] to) {
+    return pyth(Math.max(Math.abs(from[0]), to[0]) - Math.min(from[0], to[0]),
+        Math.max(Math.abs(from[1]), to[1]) - Math.min(from[1], to[1]));
+  }
+
+  /**
+   * Calculates the distance between two coordinates in a 2D array.
+   * 
+   * @param array the array to use
+   * @param from the first set of coordinates
+   * @param to the second set of coordinates
+   * @return the distance between the two
+   */
+  public static double distance(char[][] array, int[] from, int[] to) {
+    return pyth(Math.max(Math.abs(from[0]), to[0]) - Math.min(from[0], to[0]),
+        Math.max(Math.abs(from[1]), to[1]) - Math.min(from[1], to[1]));
+  }
+
+  /**
+   * Calculates the inverted distance between two coordinates in a 2D array.
+   * 
+   * @param array the array to use
+   * @param from the first set of coordinates
+   * @param to the second set of coordinates
+   * @return the distance between the two
+   * @since 0.1.5.2.3
+   */
+  public static double distanceInv(Object[][] array, int[] from, int[] to) {
+    return array.length - pyth(Math.max(Math.abs(from[0]), to[0]) - Math.min(from[0], to[0]),
+        Math.max(Math.abs(from[1]), to[1]) - Math.min(from[1], to[1]));
+  }
+
+  /**
+   * Calculates the inverted distance between two coordinates in a 2D array.
+   * 
+   * @param array the array to use
+   * @param from the first set of coordinates
+   * @param to the second set of coordinates
+   * @return the distance between the two
+   * @since 0.1.5.2.3
+   */
+  public static double distanceInv(int[][] array, int[] from, int[] to) {
+    return array.length - pyth(Math.max(Math.abs(from[0]), to[0]) - Math.min(from[0], to[0]),
+        Math.max(Math.abs(from[1]), to[1]) - Math.min(from[1], to[1]));
+  }
+
+  /**
+   * Calculates the inverted distance between two coordinates in a 2D array.
+   * 
+   * @param array the array to use
+   * @param from the first set of coordinates
+   * @param to the second set of coordinates
+   * @return the distance between the two
+   * @since 0.1.5.2.3
+   */
+  public static double distanceInv(double[][] array, int[] from, int[] to) {
+    return array.length - pyth(Math.max(Math.abs(from[0]), to[0]) - Math.min(from[0], to[0]),
+        Math.max(Math.abs(from[1]), to[1]) - Math.min(from[1], to[1]));
+  }
+
+  /**
+   * Calculates the inverted distance between two coordinates in a 2D array.
+   * 
+   * @param array the array to use
+   * @param from the first set of coordinates
+   * @param to the second set of coordinates
+   * @return the distance between the two
+   * @since 0.1.5.2.3
+   */
+  public static double distanceInv(boolean[][] array, int[] from, int[] to) {
+    return array.length - pyth(Math.max(Math.abs(from[0]), to[0]) - Math.min(from[0], to[0]),
+        Math.max(Math.abs(from[1]), to[1]) - Math.min(from[1], to[1]));
+  }
+
+  /**
+   * Calculates the inverted distance between two coordinates in a 2D array.
+   * 
+   * @param array the array to use
+   * @param from the first set of coordinates
+   * @param to the second set of coordinates
+   * @return the distance between the two
+   * @since 0.1.5.2.3
+   */
+  public static double distanceInv(char[][] array, int[] from, int[] to) {
+    return array.length - pyth(Math.max(Math.abs(from[0]), to[0]) - Math.min(from[0], to[0]),
+        Math.max(Math.abs(from[1]), to[1]) - Math.min(from[1], to[1]));
+  }
+
+  /**
+   * Finds the number in the options array closest to i.
+   * 
+   * @param i the integer
+   * @param options numbers to compare
+   * @return the int that i is closest to
+   * @since 0.1.5.2.2
+   */
+  public static int closestTo(int i, int[] options) {
+    int closest = options[0];
+    for (int integer : options) {
+      if (Math.abs(integer - i) < Math.abs(closest - i)) 
+        closest = integer;
+    }
+    if (verbose)
+      println("[+] closest number found: " + closest);
+    return closest;
+  }
+
+  /**
+   * Finds the number in the options array closest to i.
+   * 
+   * @param i the integer
+   * @param options numbers to compare
+   * @return the int that i is closest to
+   * @since 0.1.5.2.2
+   */
+  public static double closestTo(double i, double[] options) {
+    double closest = options[0];
+    for (double integer : options) {
+      if (Math.abs(integer - i) < Math.abs(closest - i)) {
+        closest = integer;
+      }
+    }
+    if (verbose)
+      println("[+] closest number found: " + closest);
+    return closest;
+  }
+
+  /**
+   * Performs the Sigmoid operation on the number provided.
+   * 
+   * @param d the number
+   * @return the number after applying the sigmoid function
+   */
+  public static double sigmoid(double d) {
+    return 1 / (1 + Math.exp(-d));
+  }
+  
+  /**
+   * Finds the longer side of a right triangle.
+   * 
+   * @param a a
+   * @param b b
+   * @return c c
+   * @since 0.1.1.2.4
+   */
+  public static double pyth(double a, double b) {
+    if (verbose)
+      println("[*] calculating pyth of " + a + " and " + b);
+    return Math.sqrt(a * a + b * b);
+  }
+
+  // ------------------------------RANDOM-------------------------------------
+
+  /**
+   * Randomly returns either true or false.
+   * 
+   * @return true or false
+   * @since 0.1.5.1.1
+   */
+  public static boolean coinflip() {
+    return Msn.randomInt(0, 2) == 0;
+  }
+
+  /**
+   * Generates a random number within the range specified.
+   * 
+   * @param min the minimum
+   * @param max the maximum
+   * @return a random number between min and max
+   */
+  public static double random(int min, int max) {
+    Random random = new Random();
+    double range = max - min;
+    double scaled = random.nextDouble() * range;
+    double shifted = scaled + min;
+    return shifted;
+  }
+
+  /**
+   * Generates a random number within the range specified.
+   * 
+   * @param min the minimum
+   * @param max the maximum
+   * @return a random number between min and max
+   */
+  public static int randomInt(int min, int max) {
+    if (min < max)
+      return min + new Random().nextInt(Math.abs(max - min));
+    return min - new Random().nextInt(Math.abs(max - min));
+  }
+
+  /**
+   * Gets a random element in the array passed.
+   * 
+   * @param array the array to search
+   * @return a random element
+   */
+  public static Object randomElement(Object[] array) {
+    int rnd = new Random().nextInt(array.length);
+    return array[rnd];
+  }
+
+  /**
+   * Gets a random element in the array passed.
+   * 
+   * @param array the array to search
+   * @return a random element
+   */
+  public static int randomElement(int[] array) {
+    int rnd = new Random().nextInt(array.length);
+    return array[rnd];
+  }
+
+  /**
+   * Gets a random element in the array passed.
+   * 
+   * @param array the array to search
+   * @return a random element
+   */
+  public static double randomElement(double[] array) {
+    int rnd = new Random().nextInt(array.length);
+    return array[rnd];
+  }
+
+  /**
+   * Gets a random element in the array passed.
+   * 
+   * @param array the array to search
+   * @return a random element
+   */
+  public static char randomElement(char[] array) {
+    int rnd = new Random().nextInt(array.length);
+    return array[rnd];
+  }
+
+  /**
+   * Gets a random element in the array passed.
+   * 
+   * @param array the array to search
+   * @return a random element
+   */
+  public static Object randomElement(Object[][] array) {
+    ArrayList<Object> list = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        list.add(array[i][j]);
+      }
+    }
+    Collections.shuffle(list);
+    return list.get(0);
+  }
+
+  /**
+   * Gets a random element in the array passed.
+   * 
+   * @param array the array to search
+   * @return a random element
+   */
+  public static int randomElement(int[][] array) {
+    ArrayList<Integer> list = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        list.add(array[i][j]);
+      }
+    }
+    Collections.shuffle(list);
+    return list.get(0);
+  }
+
+  /**
+   * Gets a random element in the array passed.
+   * 
+   * @param array the array to search
+   * @return a random element
+   */
+  public static double randomElement(double[][] array) {
+    ArrayList<Double> list = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        list.add(array[i][j]);
+      }
+    }
+    Collections.shuffle(list);
+    return list.get(0);
+  }
+
+  /**
+   * Gets a random element in the array passed.
+   * 
+   * @param array the array to search
+   * @return a random element
+   */
+  public static char randomElement(char[][] array) {
+    ArrayList<Character> list = new ArrayList<>();
+    for (int i = 0; i < array.length; i++) {
+      for (int j = 0; j < array[i].length; j++) {
+        list.add(array[i][j]);
+      }
+    }
+    Collections.shuffle(list);
+    return list.get(0);
+  }
+
+  /**
+   * Gets a random letter from the English alphabet.
+   * 
+   * @return a random letter
+   */
+  public static char randomLetter() {
+    return randomElement(alphabetArray());
+  }
+
+  /**
+   * Generates a random String using the letters from the English alphabet.
+   * 
+   * @param length the preferred length of the String
+   * @return the randomized String
+   */
+  public static String randomString(int length) {
+    String s = "";
+    for (int i = 0; i < length; i++)
+      s += Msn.randomLetter();
+    return s;
+  }
+
+  /**
+   * Shuffles the given array.
+   * 
+   * @param array the array to shuffle
+   * @since 0.1.5.2.6
+   */
+  public static void shuffle(Object[] array) {
+    ArrayList<Object> list = new ArrayList<>(Arrays.asList(array));
+    Collections.shuffle(list);
+    for (int i = 0; i < array.length; i++) {
+      array[i] = list.get(i);
+    }
+  }
+  
+  /**
+   * Shuffles the given array.
+   * 
+   * @param array the array to shuffle
+   * @since 0.1.5.2.6
+   */
+  public static void shuffle(int[] array) {
+    ArrayList<Integer> list = new ArrayList<>(Arrays.asList(box(array)));
+    Collections.shuffle(list);
+    for (int i = 0; i < array.length; i++) {
+      array[i] = list.get(i);
+    }
+  }
+  
+  /**
+   * Shuffles the given array.
+   * 
+   * @param array the array to shuffle
+   * @since 0.1.5.2.6
+   */
+  public static void shuffle(double[] array) {
+    ArrayList<Double> list = new ArrayList<>(Arrays.asList(box(array)));
+    Collections.shuffle(list);
+    for (int i = 0; i < array.length; i++) {
+      array[i] = list.get(i);
+    }
+  }
+  
+  /**
+   * Shuffles the given array.
+   * 
+   * @param array the array to shuffle
+   * @since 0.1.5.2.6
+   */
+  public static void shuffle(boolean[] array) {
+    ArrayList<Boolean> list = new ArrayList<>(Arrays.asList(box(array)));
+    Collections.shuffle(list);
+    for (int i = 0; i < array.length; i++) {
+      array[i] = list.get(i);
+    }
+  }
+  
+  /**
+   * Shuffles the given array.
+   * 
+   * @param array the array to shuffle
+   * @since 0.1.5.2.6
+   */
+  public static void shuffle(char[] array) {
+    ArrayList<Character> list = new ArrayList<>(Arrays.asList(box(array)));
+    Collections.shuffle(list);
+    for (int i = 0; i < array.length; i++) {
+      array[i] = list.get(i);
+    }
+  }
+  
+  // ----------------------------ERROR HANDLING-------------------------------
+
+  /**
+   * Handles errors.
+   * 
+   * @param errorMessage the message to throw
+   * @throws Exception the error
+   */
+  public static void toss(String errorMessage) throws Exception {
+    throw new Exception(errorMessage);
+  }
+
+  // ----------------------------MISC-----------------------------------------
+
+  /**
+   * Plays a beep sound
+   * 
+   * @since 0.1.5.1.3
+   */
+  public static void beep() {
+    Toolkit.getDefaultToolkit().beep();
+    if (verbose)
+      println("[+] beep sound played");
+  }
+
+  /**
+   * Generates a random world containing two ores and three compositions.
+   * 
+   * @since 0.1.0.0.5
+   */
+  public static void worldLauncher() {
+    // Generation factors
+    int height = 20;
+    int minheight = 5;
+    double r = .50;
+    // Water
+    char water = '~';
+    int waterLevel = 15;
+    // Ores
+    char diamond = '^';
+    double diamondChance = 0.06;
+    boolean containsDiamonds = false;
+    char coal = 'c';
+    double coalChances = 0.20;
+    boolean containsCoal = false;
+    // The three compositions
+    char dirt = 'd';
+    double dirtPercent = 0.20;
+    char stone = 's';
+    double stonePercent = 0.70;
+    char bedrock = 'b';
+    double bedrockPercent = 0.10;
+    // Chances of the next block being a one or two block jump;
+    double oneBlock = 0.80;
+    double twoBlock = 0.20;
+    boolean isOneJump = false;
+    boolean isTwoJump = false;
+    String column;
+    // Beginning screen
+    Scanner kb = new Scanner(System.in);
+    int leng;
+
+    System.out.println("d = dirt");
+    System.out.println("s = stone");
+    System.out.println("c = coal");
+    System.out.println("b = bedrock");
+    System.out.println("^ = diamond");
+    System.out.println();
+    System.out.print("Type a generation length: ");
+    leng = kb.nextInt();
+    System.out.println("-------------------------");
+    System.out.println();
+
+    // Generation of each block on the y axis of the console (or x axis in
+    // game)
+    for (int i = 0; i < leng; i++) {
+
+      column = "";
+      isOneJump = false;
+      isTwoJump = false;
+      containsDiamonds = false;
+
+      double updown = Math.random();
+      double variant = Math.random();
+      double diamondVariant = Math.random();
+      double coalVariant = Math.random();
+
+      // Deciding whether to go +- x blocks
+      if (variant <= twoBlock) {
+        isTwoJump = true;
+      } else {
+        isOneJump = true;
+      }
+
+      if (updown <= r) {
+        if (isOneJump) {
+          height--;
+        }
+        if (isTwoJump) {
+          height -= 2;
+        }
+      } else {
+        if (isOneJump) {
+          height++;
+        }
+        if (isTwoJump) {
+          height += 2;
+        }
+      }
+
+      if (height < minheight) {
+        if (isOneJump) {
+          height++;
+        }
+        if (isTwoJump) {
+          height += 2;
+        }
+      }
+
+      // Decides whether the column contains diamonds
+      if (diamondVariant <= diamondChance) {
+        containsDiamonds = true;
+      }
+
+      if (coalVariant <= coalChances) {
+        containsCoal = true;
+      }
+
+      // Generation of column;
+      for (int k = 0; k < height * bedrockPercent; k++) {
+        column += bedrock;
+      }
+
+      for (int k = 0; k < height * stonePercent; k++) {
+        column += stone;
+        double waitD = Math.random();
+        if (waitD <= 0.66) {
+          if (containsDiamonds) {
+            column += diamond;
+            containsDiamonds = false;
+          }
+        }
+        double waitC = Math.random();
+        if (waitC <= .20) {
+
+          if (containsCoal) {
+            for (int l = 0; l < height * coalChances - 3; l++) {
+              column += coal;
+              for (int m = 0; m < 3; m++) {
+                column.replace("s", "");
+              }
+            }
+            containsCoal = false;
+          }
+        }
+      }
+
+      for (int k = 0; k < height * dirtPercent; k++) {
+        column += dirt;
+
+      }
+
+      if (height < waterLevel) {
+        while (height != waterLevel) {
+          column += water;
+        }
+      }
+
+      System.out.println(column);
+
+    }
+
+  }
+
+  /**
+   * Runs a small physics simulation.
+   * 
+   * @param length the amount of full loops the simulation should run
+   * @throws InterruptedException
+   * @since 0.1.0.0.5
+   */
+  public static void physicsLauncher(int length, int msBetweenUpdates) throws InterruptedException {
+    if (length == 0) {
+      throw new IllegalArgumentException("runtime length cannot be 0");
+    }
+    if (msBetweenUpdates < 50) {
+      throw new IllegalArgumentException("time between updates must be greater than 50");
+    }
+    int[][] map = new int[5][5];
+    Arrays.fill(map, 0);
+
+    for (int i = 0; i < length; i++) {
+      map[1][1] = 1;
+      System.out.println();
+      pa(map);
+      getPosition(map, 1);
+      System.out.println();
+      wait(msBetweenUpdates, "ms");
+      Arrays.fill(map, 0);
+
+      map[0][2] = 1;
+      System.out.println();
+      pa(map);
+      getPosition(map, 1);
+      System.out.println();
+      wait(msBetweenUpdates, "ms");
+      Arrays.fill(map, 0);
+
+      map[1][3] = 1;
+      System.out.println();
+      pa(map);
+      getPosition(map, 1);
+      System.out.println();
+      wait(msBetweenUpdates, "ms");
+      Arrays.fill(map, 0);
+
+      map[2][4] = 1;
+      System.out.println();
+      pa(map);
+      getPosition(map, 1);
+      System.out.println();
+      wait(msBetweenUpdates, "ms");
+      Arrays.fill(map, 0);
+
+      map[3][3] = 1;
+      System.out.println();
+      pa(map);
+      getPosition(map, 1);
+      System.out.println();
+      wait(msBetweenUpdates, "ms");
+      Arrays.fill(map, 0);
+
+      map[4][2] = 1;
+      System.out.println();
+      pa(map);
+      getPosition(map, 1);
+      System.out.println();
+      wait(msBetweenUpdates, "ms");
+      Arrays.fill(map, 0);
+
+      map[3][1] = 1;
+      System.out.println();
+      pa(map);
+      getPosition(map, 1);
+      System.out.println();
+      wait(msBetweenUpdates, "ms");
+      Arrays.fill(map, 0);
+
+      map[2][0] = 1;
+      System.out.println();
+      pa(map);
+      getPosition(map, 1);
+      System.out.println();
+      wait(msBetweenUpdates, "ms");
+      Arrays.fill(map, 0);
+    }
+  }
+
+  /**
+   * Runs a small guessing game and returns the amount of tries it takes for the use to win against.
+   * 
+   * The goal is for the player to make less guesses than the AI.
+   * 
+   * @param min the minimum random number to generate
+   * @param max the maximum random number to generate
+   * @return the amount of tries it takes for the user to guess the correct number
+   * @throws InterruptedException
+   * @since 0.1.0.0.5
+   */
+  public static int guessingGame(int min, int max) throws InterruptedException {
+
+    verbose = false;
+    int random = randomInt(min, max);
+    int tries = 1;
+    int answer = 0;
+    Scanner kb = new Scanner(System.in);
+    System.out.println("Welcome to the guessing game v 1.0!");
+    System.out.println("-----------------------------------");
+    System.out.print("guess a random number between " + min + " and " + max + ": ");
+    while (kb.hasNextInt()) {
+
+      answer = kb.nextInt();
+      if (answer == 99999) {
+        System.out.println("random was " + random);
+        break;
+      }
+      if (answer == random) {
+        break;
+      }
+      if (answer < random) {
+        System.out.println("too low, try again");
+      }
+      if (answer > random) {
+
+        System.out.println("too high, try again");
+      }
+      tries++;
+      System.out.print("guess a random number between " + min + " and " + max + ": ");
+    }
+    if (tries < 2) {
+      System.out.println("you win! only took you " + tries + " try lmao");
+    } else {
+      System.out.println("you win! only took you " + tries + " tries lmao");
+    }
+    return tries;
+  }
+
+  /**
+   * Generates every possible combination of letters from those given.
+   * 
+   * @param s the string to use
+   * @return every combination, each on a different line
+   * @since 0.1.0.0.5
+   */
+  public static String everyCombo(String s) {
+    int maxChars = 6;
+
+    Scanner kb = new Scanner(System.in);
+    String st;
+    int leng;
+
+    System.out.print("Type the string of chars to use: ");
+    st = kb.nextLine();
+    System.out.println();
+
+    if (st.length() > maxChars) {
+      return "ERROR: maxChars: " + maxChars;
+    }
+
+    String text = "";
+    String returnText = "Unknown Error";
+    char[] chars = st.toCharArray();
+
+    Arrays.sort(chars);
+
+    // Length 1
+    for (int i = 0; i < chars.length; i++) {
+      text += chars[i] + "\n";
+    }
+
+    if (chars.length == 1) {
+      returnText = text;
+    }
+
+    // Length 2
+    for (int i = 0; i < chars.length; i++) {
+      for (int j = 0; j < chars.length; j++) {
+        text += chars[i] + (chars[j] + "\n");
+      }
+    }
+
+    if (chars.length == 2) {
+      returnText = text;
+    }
+
+    // Length 3
+    for (int i = 0; i < chars.length; i++) {
+      for (int j = 0; j < chars.length; j++) {
+        for (int k = 0; k < chars.length; k++) {
+          text += chars[i] + (chars[j] + (chars[k] + "\n"));
+        }
+      }
+    }
+
+    if (chars.length == 3) {
+      returnText = text;
+    }
+
+    // Length 4
+    for (int i = 0; i < chars.length; i++) {
+      for (int j = 0; j < chars.length; j++) {
+        for (int k = 0; k < chars.length; k++) {
+          for (int l = 0; l < chars.length; l++) {
+            text += chars[i] + (chars[j] + (chars[k] + (chars[l] + "\n")));
+          }
+        }
+      }
+    }
+
+    if (chars.length == 4) {
+      returnText = text;
+    }
+
+    // Length 5
+    for (int i = 0; i < chars.length; i++) {
+      for (int j = 0; j < chars.length; j++) {
+        for (int k = 0; k < chars.length; k++) {
+          for (int l = 0; l < chars.length; l++) {
+            for (int m = 0; m < chars.length; m++) {
+              text += chars[i] + (chars[j] + (chars[k] + (chars[l] + (chars[m] + "\n"))));
+            }
+          }
+        }
+      }
+    }
+
+    if (chars.length == 5) {
+      returnText = text;
+    }
+
+    // Length 5
+    for (int i = 0; i < chars.length; i++) {
+      for (int j = 0; j < chars.length; j++) {
+        for (int k = 0; k < chars.length; k++) {
+          for (int l = 0; l < chars.length; l++) {
+            for (int m = 0; m < chars.length; m++) {
+              for (int n = 0; n < chars.length; n++) {
+                text += chars[i]
+                    + (chars[j] + (chars[k] + (chars[l] + (chars[m] + (chars[n] + "\n")))));
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (chars.length == 6) {
+      returnText = text;
+    }
+    System.out.println(returnText);
+    return returnText;
+
+  }
+
+  /**
+   * Translates any String of English chars into MSN code.
+   * 
+   * @param s the String to translate
+   * @return the translated String
+   * @since 0.1.0.0.5
+   */
+  public static String toMSNCode(String s) {
+
+    String conversion = "";
+
+    for (int i = 0; i < s.length(); i++) {
+      if (Character.toUpperCase(s.charAt(i)) == 'A') {
+        conversion += "lll";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'B') {
+        conversion += "l3";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'C') {
+        conversion += "u";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'D') {
+        conversion += "lu";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'E') {
+        conversion += "llll";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'F') {
+        conversion += "2lll";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'G') {
+        conversion += "6";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'H') {
+        conversion += "3lll";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'I') {
+        conversion += "4lll";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'J') {
+        conversion += "2lu";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'K') {
+        conversion += "5lll";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'L') {
+        conversion += "ll";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'M') {
+        conversion += "2llll";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'N') {
+        conversion += "6lll";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'O') {
+        conversion += "uu";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'P') {
+        conversion += "3lu";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'Q') {
+        conversion += "ol";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'R') {
+        conversion += "llu";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'S') {
+        conversion += "2uu";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'T') {
+        conversion += "2ll";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'U') {
+        conversion += "2llu";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'V') {
+        conversion += "3ll";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'W') {
+        conversion += "3llll";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'X') {
+        conversion += "4ll";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'Y') {
+        conversion += "7lll";
+      }
+      if (Character.toUpperCase(s.charAt(i)) == 'Z') {
+        conversion += "8lll";
+      }
+      if (i != s.length() - 1) {
+        conversion += ".";
+      }
+    }
+    StringBuilder sb = new StringBuilder(conversion);
+    int index = 0;
+    while (true) {
+      try {
+        index += 45;
+        sb.insert(index, "\n");
+      } catch (StringIndexOutOfBoundsException e) {
+        break;
+      }
+    }
+    if (verbose) {
+      System.out.println("translated to \n" + sb.toString());
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Deciphers MSN code.
+   * 
+   * @param msncode the code to decipher
+   * @return the English representation
+   * @since 0.1.0.0.5
+   */
+  public static String toEnglish(String msncode) {
+    String eng = "";
+    StringBuilder sb = new StringBuilder(msncode);
+    for (int i = 0; i < sb.length(); i++) {
+      if (sb.charAt(i) == '.') {
+        sb.replace(i, i + 1, " ");
+      }
+    }
+    String[] words = sb.toString().split("  ");
+    Scanner kb;
+    boolean check = false;
+    for (int i = 0; i < words.length; i++) {
+      kb = new Scanner(words[i]);
+      while (kb.hasNext()) {
+        String piece = kb.next();
+        if (piece.equals("lll")) {
+          eng += "a";
+        }
+        if (piece.equals("l3")) {
+          eng += "b";
+        }
+        if (piece.equals("u")) {
+          eng += "c";
+        }
+        if (piece.equals("lu")) {
+          eng += "d";
+
+        }
+        if (piece.equals("llll")) {
+          eng += "e";
+
+        }
+        if (piece.equals("2lll")) {
+          eng += "f";
+
+        }
+        if (piece.equals("6")) {
+          eng += "g";
+
+        }
+        if (piece.equals("3lll")) {
+          eng += "h";
+
+        }
+        if (piece.equals("4lll")) {
+          eng += "i";
+
+        }
+        if (piece.equals("2lu")) {
+          eng += "j";
+
+        }
+        if (piece.equals("5lll")) {
+          eng += "k";
+
+        }
+        if (piece.equals("ll")) {
+          eng += "l";
+
+        }
+        if (piece.equals("2llll")) {
+          eng += "m";
+
+        }
+        if (piece.equals("6lll")) {
+          eng += "n";
+
+        }
+        if (piece.equals("uu")) {
+          eng += "o";
+
+        }
+        if (piece.equals("3lu")) {
+          eng += "p";
+
+        }
+        if (piece.equals("ol")) {
+          eng += "q";
+
+        }
+        if (piece.equals("llu")) {
+          eng += "r";
+
+        }
+        if (piece.equals("2uu")) {
+          eng += "s";
+
+        }
+        if (piece.equals("2ll")) {
+          eng += "t";
+
+        }
+        if (piece.equals("2llu")) {
+          eng += "u";
+
+        }
+        if (piece.equals("3ll")) {
+          eng += "v";
+
+        }
+        if (piece.equals("3llll")) {
+          eng += "w";
+
+        }
+        if (piece.equals("4ll")) {
+          eng += "x";
+
+        }
+        if (piece.equals("7lll")) {
+          eng += "y";
+
+        }
+        if (piece.equals("8lll")) {
+          eng += "z";
+
+        }
+      }
+      eng += " ";
+    }
+
+    if (verbose) {
+      System.out.println("deciphered to " + eng);
+    }
+    return eng;
+  }
+
+  /**
+   * Prints the key for MSN code.
+   * 
+   * @since 0.1.0.0.5
+   */
+  public static void printMSNKey() {
+    System.out.println("A: lll");
+    System.out.println("B: l3");
+    System.out.println("C: u");
+    System.out.println("D: lu");
+    System.out.println("E: llll");
+    System.out.println("F: 2lll");
+    System.out.println("G: 6");
+    System.out.println("H: 3lll");
+    System.out.println("I: 4lll");
+    System.out.println("J: 2lu");
+    System.out.println("K: 5lll");
+    System.out.println("L: ll");
+    System.out.println("M: 2llll");
+    System.out.println("N: 6lll");
+    System.out.println("O: uu");
+    System.out.println("P: 3lu");
+    System.out.println("Q: ol");
+    System.out.println("R: llu");
+    System.out.println("S: 2uu");
+    System.out.println("T: 2ll");
+    System.out.println("U: 2llu");
+    System.out.println("V: 3ll");
+    System.out.println("W: 3llll");
+    System.out.println("X: 4ll");
+    System.out.println("Y: 7lll");
+    System.out.println("Z: 8lll");
+    System.out.println("whitespace: ..");
+    System.out.println("separation of letters: .");
+  }
+
+  // ---------------------------SUB CLASSES-------------------------------------
+
+  /**
+   * Class for Multimap capabilities. This is a full duplication of the MsnMultimap. Duplication was
+   * made to avoid having to move two classes to allow Msn to compile.
+   * 
+   * @author Mason Marker
+   * @version 1.0 - 05/03/2021
+   * @since 0.1.5.2.5
+   */
+  public static class embMsnMultimap<K, V> implements Iterable<Map.Entry<K, V>> {
+
+    private HashMap<K, ArrayList<V>> map;
+
+    /**
+     * Multimap constructor.
+     */
+    public embMsnMultimap() {
+      map = new HashMap<>();
+    }
+
+    /**
+     * Method for distributing elements.
+     * 
+     * @param k k
+     * @param v v
+     */
+    public void put(K k, V v) {
+      ArrayList<V> curr = map.get(k);
+      if (curr == null) {
+        ArrayList<V> list = new ArrayList<>();
+        list.add(v);
+        map.put(k, list);
+      } else {
+        curr.add(v);
+      }
+    }
+
+    /**
+     * Gets the set of values for the specified key.
+     * 
+     * @param key the key
+     * @return the list of values that correspond to the key
+     */
+    public ArrayList<V> get(K key) {
+      return map.get(key);
+    }
+
+    /**
+     * Checks if this map contains the key specified.
+     * 
+     * @param key the key to search for
+     * @return whether the key was found or not
+     */
+    public boolean containsKey(K key) {
+      return map.containsKey(key);
+    }
+
+    /**
+     * Checks if this map contains the value specified.
+     * 
+     * @param value the value to search for
+     * @return whether the value was found or not
+     */
+    public boolean containsValue(V value) {
+      Iterator<Entry<K, V>> i = iterator();
+      while (i.hasNext()) {
+        if (i.next().getValue().equals(value))
+          return true;
+      }
+      return false;
+    }
+
+    public boolean containsEntry(K key, V value) {
+      for (Map.Entry<K, V> entry : entryList()) {
+        if (entry.getKey().equals(key) && entry.getValue().equals(value))
+          return true;
+      }
+      return false;
+    }
+
+    public List<Entry<K, V>> entryList() {
+      ArrayList<Entry<K, V>> list = new ArrayList<>();
+      Iterator<Entry<K, V>> i = iterator();
+      while (i.hasNext())
+        list.add(i.next());
+      return list;
+    }
+
+    public String toString() {
+      return map.toString();
+    }
+
+    /**
+     * Iterates through entries.
+     */
+    @Override
+    public Iterator<Entry<K, V>> iterator() {
+      return new Iterator<Map.Entry<K, V>>() {
+
+        private Iterator<Map.Entry<K, ArrayList<V>>> iterator = map.entrySet().iterator();
+        private Map.Entry<K, ArrayList<V>> currententry = iterator.next();
+        private Iterator<V> narrowit = currententry.getValue().iterator();
+
+        @Override
+        public boolean hasNext() {
+          return narrowit.hasNext() || iterator.hasNext();
+        }
+
+        @Override
+        public Entry<K, V> next() {
+          if (narrowit.hasNext())
+            return Map.entry(currententry.getKey(), narrowit.next());
+          currententry = iterator.next();
+          narrowit = currententry.getValue().iterator();
+          return Map.entry(currententry.getKey(), narrowit.next());
+        }
+      };
+    }
+
+  }
+
+}
