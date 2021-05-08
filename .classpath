@@ -9,5 +9,6 @@
 	<classpathentry kind="src" path="Classes"/>
 	<classpathentry kind="src" path="Testing"/>
 	<classpathentry kind="src" path="NeuralNetwork"/>
+	<classpathentry kind="src" path="FunShit"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
