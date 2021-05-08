@@ -8,8 +8,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="Classes"/>
 	<classpathentry kind="src" path="Testing"/>
-	<classpathentry kind="src" path="Painting"/>
-	<classpathentry kind="src" path="NoiseGenerator"/>
 	<classpathentry kind="src" path="NeuralNetwork"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
