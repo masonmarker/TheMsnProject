@@ -251,7 +251,7 @@ public class Driver extends JFrame implements MouseListener {
 
   public int above() {
     JPanel p = (JPanel) Msn.above(cells, ai.position());
-    if (Msn.equals(p.getBackground(), Color.red)) {
+    if (p.getBackground().equals(Color.red)) {
       return 1;
     }
     return 0;
@@ -259,7 +259,7 @@ public class Driver extends JFrame implements MouseListener {
   
   public int below() {
     JPanel p = (JPanel) Msn.below(cells, ai.position());
-    if (Msn.equals(p.getBackground(), Color.red)) {
+    if (p.getBackground().equals(Color.red)) {
       return 1;
     }
     return 0;
@@ -267,7 +267,7 @@ public class Driver extends JFrame implements MouseListener {
   
   public int left() {
     JPanel p = (JPanel) Msn.leftOf(cells, ai.position());
-    if (Msn.equals(p.getBackground(), Color.red)) {
+    if (p.getBackground().equals(Color.red)) {
       return 1;
     }
     return 0;
@@ -275,7 +275,7 @@ public class Driver extends JFrame implements MouseListener {
   
   public int right() {
     JPanel p = (JPanel) Msn.rightOf(cells, ai.position());
-    if (Msn.equals(p.getBackground(), Color.red)) {
+    if (p.getBackground().equals(Color.red)) {
       return 1;
     }
     return 0;
@@ -283,7 +283,7 @@ public class Driver extends JFrame implements MouseListener {
 
   public boolean moveUp() {
     JPanel above = (JPanel) Msn.above(cells, ai.position());
-    if (Msn.equals(above.getBackground(), Color.red))
+    if (above.getBackground().equals(Color.red))
       return false;
     cells[ai.getI()][ai.getJ()].setBackground(Color.black);
     above.setBackground(Color.green);
@@ -293,7 +293,7 @@ public class Driver extends JFrame implements MouseListener {
 
   public boolean moveLeft() {
     JPanel left = (JPanel) Msn.leftOf(cells, ai.position());
-    if (Msn.equals(left.getBackground(), Color.red))
+    if (left.getBackground().equals(Color.red))
       return false;
     cells[ai.getI()][ai.getJ()].setBackground(Color.black);
     left.setBackground(Color.green);
@@ -303,7 +303,7 @@ public class Driver extends JFrame implements MouseListener {
 
   public boolean moveRight() {
     JPanel right = (JPanel) Msn.rightOf(cells, ai.position());
-    if (Msn.equals(right.getBackground(), Color.red))
+    if (right.getBackground().equals(Color.red))
       return false;
     cells[ai.getI()][ai.getJ()].setBackground(Color.black);
     right.setBackground(Color.green);
@@ -313,7 +313,7 @@ public class Driver extends JFrame implements MouseListener {
 
   public boolean moveDown() {
     JPanel below = (JPanel) Msn.below(cells, ai.position());
-    if (Msn.equals(below.getBackground(), Color.red))
+    if (below.getBackground().equals(Color.red))
       return false;
     cells[ai.getI()][ai.getJ()].setBackground(Color.black);
     below.setBackground(Color.green);

@@ -18,7 +18,7 @@ public class GrowDriver extends JFrame implements MouseListener {
   private JPanel contentPane;
   private static JPanel[][] cells;
   static int time;
-  
+
   /**
    * Launch the application.
    */
@@ -52,9 +52,9 @@ public class GrowDriver extends JFrame implements MouseListener {
    * Create the frame.
    */
   public GrowDriver() {
-    
+
     time = 500;
-    
+
     setUndecorated(true);
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setBounds(100, 100, 553, 498);
@@ -62,7 +62,7 @@ public class GrowDriver extends JFrame implements MouseListener {
     contentPane.setBackground(Color.BLACK);
     contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
     setContentPane(contentPane);
-    
+
     JPanel panel = new JPanel();
     panel.setBackground(Color.BLACK);
     GroupLayout groupLayout = new GroupLayout(getContentPane());
@@ -91,23 +91,23 @@ public class GrowDriver extends JFrame implements MouseListener {
   }
 
   public static void update() {
-    for (Point p : whitepoints()) {
-      ((JPanel) Msn.randomElement(Msn.adjacent(cells, new int[] {(int) p.getX(), (int) p.getY()})))
-          .setBackground(Color.white);
-    }
+    whitepoints().forEach(p -> ((JPanel) Msn
+        .randomElement(Msn.adjacent(cells, new int[] {(int) p.getX(), (int) p.getY()})))
+            .setBackground(Color.white));
   }
 
   public static HashSet<Point> whitepoints() {
     HashSet<Point> panels = new HashSet<>();
     for (int i = 0; i < cells.length; i++)
       for (int j = 0; j < cells[i].length; j++)
-        if (Msn.equals(cells[i][j].getBackground(), Color.white))
+        if (cells[i][j].getBackground().equals(Color.white))
           panels.add(new Point(i, j));
     return panels;
   }
 
   @Override
   public void mouseClicked(MouseEvent e) {}
+
   @Override
   public void mousePressed(MouseEvent e) {
     JPanel p = (JPanel) e.getSource();

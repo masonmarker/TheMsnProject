@@ -85,7 +85,7 @@ public class Noise extends JFrame implements MouseListener {
   public int countBlack(Color[] colors) {
     int count = 0;
     for (Color c : colors) {
-      if (Msn.equals(Color.black, c))
+      if (Color.black.equals(c))
         count++;
     }
     return count;
@@ -94,7 +94,7 @@ public class Noise extends JFrame implements MouseListener {
   public boolean containsNotWhiteNorBlack(Color[] colors) {
     Color[] colors1 = collectColors();
     for (Color color : colors1) {
-      if (!Msn.equals(color, Color.white) && !Msn.equals(color, Color.black)) {
+      if (!color.equals(Color.white) && !color.equals(Color.black)) {
         return true;
       }
     }

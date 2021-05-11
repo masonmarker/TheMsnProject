@@ -38,10 +38,10 @@ import java.util.stream.Stream;
  * Method descriptions containing "(WIP)" indicates that specific method is still in experimental
  * stages, using them could cause errors.
  * 
- * TODO aboveAll() belowAll() leftAll() rightAll() neAll() nwAll() seAll() swAll()
+ * TODO neAll() nwAll() seAll() swAll()
  * 
  * @author Mason Marker
- * @version 0.1.5.2.7 - 05/06/2021
+ * @version 0.1.5.2.8 - 05/08/2021
  */
 public class Msn {
 
@@ -75,6 +75,7 @@ public class Msn {
    * Returns the String representation of the English alphabet.
    * 
    * @return the alphabet
+   * @since 0.1.4.0.0
    */
   public static String alphabet() {
     if (verbose)
@@ -86,6 +87,7 @@ public class Msn {
    * Returns the array representation of the English alphabet.
    * 
    * @return the alphabet
+   * @since 0.1.4.0.0
    */
   public static char[] alphabetArray() {
     if (verbose)
@@ -98,6 +100,7 @@ public class Msn {
    * Gets all vowels in the English alphabet.
    * 
    * @return vowels
+   * @since 0.1.4.0.0
    */
   public static char[] vowels() {
     if (verbose)
@@ -109,6 +112,7 @@ public class Msn {
    * Gets the consonants that exist in the English alphabet.
    * 
    * @return the consonants
+   * @since 0.1.4.0.0
    */
   public static char[] consonants() {
     if (verbose)
@@ -123,20 +127,10 @@ public class Msn {
    * Prints a String
    * 
    * @param s the String to print
+   * @since 0.1.0.0.0
    */
   public static void println(String s) {
     System.out.println(s);
-  }
-
-  /**
-   * Clears the console.
-   * 
-   * @throws IOException
-   */
-  public static void clear(int lines) {
-    for (int i = 0; i < lines; i++) {
-      System.out.println();
-    }
   }
 
   /**
@@ -144,19 +138,19 @@ public class Msn {
    * 
    * @param waitTime the time to wait
    * @throws InterruptedException
+   * @since 0.1.0.0.0
    */
   public static void wait(int waitTime, String timeunit) throws InterruptedException {
-    if (timeunit.equals("ms")) {
+    if (timeunit.equals("ms"))
       TimeUnit.MILLISECONDS.sleep(waitTime);
-    } else if (timeunit.equals("s")) {
+    else if (timeunit.equals("s"))
       TimeUnit.SECONDS.sleep(waitTime);
-    } else if (timeunit.equals("m")) {
+    else if (timeunit.equals("m"))
       TimeUnit.MINUTES.sleep(waitTime);
-    } else if (timeunit.equals("ns")) {
+    else if (timeunit.equals("ns"))
       TimeUnit.NANOSECONDS.sleep(waitTime);
-    } else {
+    else
       TimeUnit.MILLISECONDS.sleep(waitTime);
-    }
   }
 
   // ----------------------------BINARY---------------------------------------
@@ -166,6 +160,7 @@ public class Msn {
    * 
    * @param num the number to use
    * @return binary representation of 'num'
+   * @since 0.1.0.1.4
    */
   public static String binary(int num) {
     if (verbose)
@@ -178,7 +173,8 @@ public class Msn {
    * 
    * @param num the number to use
    * @param base the base expantion to use
-   * @return bin
+   * @return bin the String representation
+   * @since 0.1.0.1.4
    */
   public static String binary(int num, int base) {
     String bin = "";
@@ -205,11 +201,9 @@ public class Msn {
    * @since 0.1.0.0.0
    */
   public static boolean contains(Object[] array, Object check) {
-    for (int i = 0; i < array.length; i++) {
-      if (check.equals(array[i])) {
+    for (int i = 0; i < array.length; i++)
+      if (check.equals(array[i]))
         return true;
-      }
-    }
     return false;
   }
 
@@ -222,11 +216,9 @@ public class Msn {
    * @since 0.1.0.0.0
    */
   public static boolean contains(int[] array, int check) {
-    for (int i = 0; i < array.length; i++) {
-      if (check == array[i]) {
+    for (int i = 0; i < array.length; i++)
+      if (check == array[i])
         return true;
-      }
-    }
     return false;
   }
 
@@ -239,11 +231,9 @@ public class Msn {
    * @since 0.1.0.0.0
    */
   public static boolean contains(double[] array, double check) {
-    for (int i = 0; i < array.length; i++) {
-      if (check == array[i]) {
+    for (int i = 0; i < array.length; i++)
+      if (check == array[i])
         return true;
-      }
-    }
     return false;
   }
 
@@ -256,11 +246,9 @@ public class Msn {
    * @since 0.1.0.0.0
    */
   public static boolean contains(boolean[] array, boolean check) {
-    for (int i = 0; i < array.length; i++) {
-      if (check == array[i]) {
+    for (int i = 0; i < array.length; i++)
+      if (check == array[i])
         return true;
-      }
-    }
     return false;
   }
 
@@ -273,11 +261,9 @@ public class Msn {
    * @since 0.1.0.0.0
    */
   public static boolean contains(char[] array, char check) {
-    for (int i = 0; i < array.length; i++) {
-      if (check == array[i]) {
+    for (int i = 0; i < array.length; i++)
+      if (check == array[i])
         return true;
-      }
-    }
     return false;
   }
 
@@ -290,13 +276,10 @@ public class Msn {
    * @since 0.1.0.0.0
    */
   public static boolean contains(Object[][] array, Object check) {
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (array[i][j].equals(check)) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j].equals(check))
           return true;
-        }
-      }
-    }
     return false;
   }
 
@@ -309,13 +292,10 @@ public class Msn {
    * @since 0.1.0.0.0
    */
   public static boolean contains(int[][] array, int check) {
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (array[i][j] == check) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j] == check)
           return true;
-        }
-      }
-    }
     return false;
   }
 
@@ -327,13 +307,10 @@ public class Msn {
    * @return whether the element is contained in the array
    */
   public static boolean contains(double[][] array, double check) {
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (array[i][j] == check) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j] == check)
           return true;
-        }
-      }
-    }
     return false;
   }
 
@@ -346,13 +323,10 @@ public class Msn {
    * @since 0.1.0.0.0
    */
   public static boolean contains(boolean[][] array, boolean check) {
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (array[i][j] == check) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j] == check)
           return true;
-        }
-      }
-    }
     return false;
   }
 
@@ -365,13 +339,10 @@ public class Msn {
    * @since 0.1.0.0.0
    */
   public static boolean contains(char[][] array, char check) {
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (array[i][j] == check) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j] == check)
           return true;
-        }
-      }
-    }
     return false;
   }
 
@@ -413,11 +384,9 @@ public class Msn {
    */
   public static boolean containsIgnoreCase(String[] array, String check) {
 
-    for (int i = 0; i < array.length; i++) {
-      if (array[i].toLowerCase().equals(check.toLowerCase())) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i].toLowerCase().equals(check.toLowerCase()))
         return true;
-      }
-    }
     return false;
   }
 
@@ -430,14 +399,10 @@ public class Msn {
    * @since 0.1.0.0.0
    */
   public static boolean containsIgnoreCase(String[][] array, String check) {
-
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (array[i][j].toLowerCase().equals(check.toLowerCase())) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j].toLowerCase().equals(check.toLowerCase()))
           return true;
-        }
-      }
-    }
     return false;
   }
 
@@ -453,18 +418,16 @@ public class Msn {
   public static int countInts(String input) {
     int ints = 0;
     boolean prev = false;
-    for (int i = 0; i < input.length(); i++) {
+    for (int i = 0; i < input.length(); i++)
       if (Character.isDigit(input.charAt(i))) {
         if (!prev) {
           ints++;
           prev = true;
         }
-      } else {
+      } else
         prev = false;
-      }
-    }
     if (verbose)
-      println(ints + " ints found");
+      println("[+] " + ints + " ints found");
     return ints;
   }
 
@@ -478,7 +441,7 @@ public class Msn {
   public static int countWords(String input) {
     int count = input.split(" ").length;
     if (verbose)
-      println(count + " words found");
+      println("[+] " + count + " words found");
     return count;
   }
 
@@ -492,13 +455,11 @@ public class Msn {
    */
   public static int countChars(String input, char c) {
     int count = 0;
-    for (int i = 0; i < input.length(); i++) {
-      if (input.charAt(i) == c) {
+    for (int i = 0; i < input.length(); i++)
+      if (input.charAt(i) == c)
         count++;
-      }
-    }
     if (verbose)
-      System.out.println(c + " appears in String " + count + " times");
+      println("[+] " + c + " appears in String " + count + " times");
     return count;
   }
 
@@ -518,7 +479,7 @@ public class Msn {
       kb.nextLine();
     }
     if (verbose)
-      System.out.println(count + " lines found");
+      System.out.println("[+] " + count + " lines found");
     return count;
   }
 
@@ -530,7 +491,7 @@ public class Msn {
    * @since 0.1.1.0.0
    */
   public static int countWidth(String input) {
-    return getLine(input, 0).split(" ").length;
+    return countWords(getLine(input, 0));
   }
 
   /**
@@ -538,14 +499,14 @@ public class Msn {
    * 
    * @param array the array to use
    * @return the amount of elements that exist in the entire array
+   * @since 0.1.0.0.0
    */
   public static int eCount(Object[][] array) {
     int sum = 0;
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       sum += array[i].length;
-    }
     if (verbose)
-      System.out.println(sum + " elements found in array");
+      println("[+] " + sum + " elements found in array");
     return sum;
   }
 
@@ -554,16 +515,15 @@ public class Msn {
    * 
    * @param array the array to use
    * @return the amount of elements that exist in the entire array
+   * @since 0.1.0.0.0
    */
   public static int eCount(int[][] array) {
     int count = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         count++;
-      }
-    }
     if (verbose)
-      System.out.println(count + " elements found in array");
+      println("[+] " + count + " elements found in array");
     return count;
   }
 
@@ -572,16 +532,15 @@ public class Msn {
    * 
    * @param array the array to use
    * @return the amount of elements that exist in the entire array
+   * @since 0.1.0.0.0
    */
   public static int eCount(double[][] array) {
     int count = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         count++;
-      }
-    }
     if (verbose)
-      System.out.println(count + " elements found in array");
+      println("[+] " + count + " elements found in array");
     return count;
   }
 
@@ -590,16 +549,15 @@ public class Msn {
    * 
    * @param array the array to use
    * @return the amount of elements that exist in the entire array
+   * @since 0.1.0.0.0
    */
   public static int eCount(boolean[][] array) {
     int count = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         count++;
-      }
-    }
     if (verbose)
-      System.out.println(count + " elements found in array");
+      println("[+] " + count + " elements found in array");
     return count;
   }
 
@@ -608,16 +566,15 @@ public class Msn {
    * 
    * @param array the array to use
    * @return the amount of elements that exist in the entire array
+   * @since 0.1.0.0.0
    */
   public static int eCount(char[][] array) {
     int count = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         count++;
-      }
-    }
     if (verbose)
-      System.out.println(count + " elements found in array");
+      println("[+] " + count + " elements found in array");
     return count;
   }
 
@@ -627,17 +584,15 @@ public class Msn {
    * @param array the array to use
    * @param obj the element to search for
    * @return the amount of times 'obj' occurs in 'array'
+   * @since 0.1.0.0.0
    */
   public static int countFreq(Object[] array, Object obj) {
     int count = 0;
-    for (int i = 0; i < array.length; i++) {
-      if (array[i].equals(obj)) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i].equals(obj))
         count++;
-      }
-    }
-    if (verbose) {
-      System.out.println(count + "x " + obj + " found in array");
-    }
+    if (verbose)
+      println("[+] " + count + "x " + obj + " found in array");
     return count;
   }
 
@@ -647,18 +602,15 @@ public class Msn {
    * @param array the array to use
    * @param obj the element to search for
    * @return the amount of times 'obj' occurs in 'array'
+   * @since 0.1.0.0.0
    */
   public static int countFreq(int[] array, int obj) {
-
     int count = 0;
-    for (int i = 0; i < array.length; i++) {
-      if (array[i] == obj) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i] == obj)
         count++;
-      }
-    }
-    if (verbose) {
-      System.out.println(count + "x " + obj + " found in array");
-    }
+    if (verbose)
+      println("[+] " + count + "x " + obj + " found in array");
     return count;
   }
 
@@ -668,17 +620,15 @@ public class Msn {
    * @param array the array to use
    * @param obj the element to search for
    * @return the amount of times 'obj' occurs in 'array'
+   * @since 0.1.0.0.0
    */
   public static int countFreq(double[] array, double obj) {
     int count = 0;
-    for (int i = 0; i < array.length; i++) {
-      if (array[i] == obj) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i] == obj)
         count++;
-      }
-    }
-    if (verbose) {
-      System.out.println(count + "x " + obj + " found in array");
-    }
+    if (verbose)
+      println("[+] " + count + "x " + obj + " found in array");
     return count;
   }
 
@@ -688,17 +638,15 @@ public class Msn {
    * @param array the array to use
    * @param obj the element to search for
    * @return the amount of times 'obj' occurs in 'array'
+   * @since 0.1.0.0.0
    */
   public static int countFreq(boolean[] array, boolean obj) {
     int count = 0;
-    for (int i = 0; i < array.length; i++) {
-      if (array[i] == obj) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i] == obj)
         count++;
-      }
-    }
-    if (verbose) {
-      System.out.println(count + "x " + obj + " found in array");
-    }
+    if (verbose)
+      println("[+] " + count + "x " + obj + " found in array");
     return count;
   }
 
@@ -708,17 +656,15 @@ public class Msn {
    * @param array the array to use
    * @param obj the element to search for
    * @return the amount of times 'obj' occurs in 'array'
+   * @since 0.1.0.0.0
    */
   public static int countFreq(char[] array, char obj) {
     int count = 0;
-    for (int i = 0; i < array.length; i++) {
-      if (array[i] == obj) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i] == obj)
         count++;
-      }
-    }
-    if (verbose) {
-      System.out.println(count + "x " + obj + " found in array");
-    }
+    if (verbose)
+      println("[+] " + count + "x " + obj + " found in array");
     return count;
   }
 
@@ -728,19 +674,16 @@ public class Msn {
    * @param array the array to use
    * @param obj the element to search for
    * @return the amount of times 'obj' occurs in 'array'
+   * @since 0.1.0.0.0
    */
   public static int countFreq(Object[][] array, Object obj) {
     int count = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (array[i][j].equals(obj)) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j].equals(obj))
           count++;
-        }
-      }
-    }
-    if (verbose) {
-      System.out.println(count + "x " + obj + " found in array");
-    }
+    if (verbose)
+      println("[+] " + count + "x " + obj + " found in array");
     return count;
   }
 
@@ -750,19 +693,16 @@ public class Msn {
    * @param array the array to use
    * @param obj the element to search for
    * @return the amount of times 'obj' occurs in 'array'
+   * @since 0.1.0.0.0
    */
   public static int countFreq(int[][] array, int obj) {
     int count = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (array[i][j] == obj) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j] == obj)
           count++;
-        }
-      }
-    }
-    if (verbose) {
-      System.out.println(count + "x " + obj + " found in array");
-    }
+    if (verbose)
+      println("[+]" + count + "x " + obj + " found in array");
     return count;
   }
 
@@ -772,19 +712,16 @@ public class Msn {
    * @param array the array to use
    * @param obj the element to search for
    * @return the amount of times 'obj' occurs in 'array'
+   * @since 0.1.0.0.0
    */
   public static int countFreq(double[][] array, double obj) {
     int count = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (array[i][j] == obj) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j] == obj)
           count++;
-        }
-      }
-    }
-    if (verbose) {
-      System.out.println(count + "x " + obj + " found in array");
-    }
+    if (verbose)
+      println("[+] " + count + "x " + obj + " found in array");
     return count;
   }
 
@@ -794,19 +731,16 @@ public class Msn {
    * @param array the array to use
    * @param obj the element to search for
    * @return the amount of times 'obj' occurs in 'array'
+   * @since 0.1.0.0.0
    */
   public static int countFreq(boolean[][] array, boolean obj) {
     int count = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (array[i][j] == obj) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j] == obj)
           count++;
-        }
-      }
-    }
-    if (verbose) {
-      System.out.println(count + "x " + obj + " found in array");
-    }
+    if (verbose)
+      System.out.println("[+] " + count + "x " + obj + " found in array");
     return count;
   }
 
@@ -816,18 +750,16 @@ public class Msn {
    * @param array the array to use
    * @param obj the element to search for
    * @return the amount of times 'obj' occurs in 'array'
+   * @since 0.1.0.0.0
    */
   public static int countFreq(char[][] array, char obj) {
     int count = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (array[i][j] == obj) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j] == obj)
           count++;
-        }
-      }
-    }
     if (verbose)
-      System.out.println(count + "x " + obj + " found in array");
+      println("[+] " + count + "x " + obj + " found in array");
     return count;
   }
 
@@ -836,6 +768,7 @@ public class Msn {
    * 
    * @param s the String to use
    * @return the HashMap of Character frequencies
+   * @since 0.1.3.2.2
    */
   public static HashMap<Character, Integer> charFreqMap(String s) {
     HashMap<Character, Integer> freqs = new HashMap<>();
@@ -852,6 +785,7 @@ public class Msn {
    * 
    * @param s the String to use
    * @return the String frequency map
+   * @since 0.1.3.2.2
    */
   public static HashMap<String, Integer> stringFreqMap(String s) {
     HashMap<String, Integer> map = new HashMap<>();
@@ -871,38 +805,38 @@ public class Msn {
    * 
    * @param color the color to search for
    * @return the Color object
+   * @since 0.1.5.0.0
    */
   public static Color getColor(String color) {
     Color c = null;
-    if (containsIgnoreCase(color, "black")) {
+    if (containsIgnoreCase(color, "black"))
       c = Color.BLACK;
-    } else if (containsIgnoreCase(color, "blue")) {
+    else if (containsIgnoreCase(color, "blue"))
       c = Color.BLUE;
-    } else if (containsIgnoreCase(color, "cyan")) {
+    else if (containsIgnoreCase(color, "cyan"))
       c = Color.CYAN;
-    } else if (containsIgnoreCase(color, "dark gray") || containsIgnoreCase(color, "darkgray")) {
+    else if (containsIgnoreCase(color, "dark gray") || containsIgnoreCase(color, "darkgray"))
       c = Color.DARK_GRAY;
-    } else if (containsIgnoreCase(color, "gray")) {
+    else if (containsIgnoreCase(color, "gray"))
       c = Color.GRAY;
-    } else if (containsIgnoreCase(color, "green")) {
+    else if (containsIgnoreCase(color, "green"))
       c = Color.GREEN;
-    } else if (containsIgnoreCase(color, "light gray") || containsIgnoreCase(color, "lightgray")) {
+    else if (containsIgnoreCase(color, "light gray") || containsIgnoreCase(color, "lightgray"))
       c = Color.LIGHT_GRAY;
-    } else if (containsIgnoreCase(color, "magenta")) {
+    else if (containsIgnoreCase(color, "magenta"))
       c = Color.MAGENTA;
-    } else if (containsIgnoreCase(color, "orange")) {
+    else if (containsIgnoreCase(color, "orange"))
       c = Color.ORANGE;
-    } else if (containsIgnoreCase(color, "pink")) {
+    else if (containsIgnoreCase(color, "pink"))
       c = Color.PINK;
-    } else if (containsIgnoreCase(color, "red")) {
+    else if (containsIgnoreCase(color, "red"))
       c = Color.RED;
-    } else if (containsIgnoreCase(color, "white")) {
+    else if (containsIgnoreCase(color, "white"))
       c = Color.WHITE;
-    } else if (containsIgnoreCase(color, "yellow")) {
+    else if (containsIgnoreCase(color, "yellow"))
       c = Color.YELLOW;
-    }
     if (verbose)
-      println("converted " + color + " to " + c);
+      println("[+] converted " + color + " to " + c);
     return c;
   }
 
@@ -911,12 +845,12 @@ public class Msn {
    * 
    * @param times the amount of times to darken the Color
    * @return the new Color
+   * @since 0.1.5.0.0
    */
   public static Color multiDarken(Color color, int times) {
     Color fixed = color;
-    for (int i = 0; i < times; i++) {
+    for (int i = 0; i < times; i++)
       fixed = fixed.darker();
-    }
     return fixed;
   }
 
@@ -925,12 +859,12 @@ public class Msn {
    * 
    * @param times the amount of times to brighten the Color
    * @return the new Color
+   * @since 0.1.5.0.0
    */
   public static Color multiBrighten(Color color, int times) {
     Color fixed = color;
-    for (int i = 0; i < times; i++) {
+    for (int i = 0; i < times; i++)
       fixed = fixed.brighter();
-    }
     return fixed;
   }
 
@@ -939,6 +873,7 @@ public class Msn {
    * 
    * @param colors the colors to use
    * @return an average Color
+   * @since 0.1.5.0.0
    */
   public static Color avgColor(Color[] colors) {
     int[] reds = new int[colors.length];
@@ -953,33 +888,11 @@ public class Msn {
   }
 
   /**
-   * Checks whether the two colors contain the same rgb values.
-   * 
-   * @param color the first color
-   * @param color2 the second color
-   * @return whether the colors are equal or not
-   */
-  public static boolean equals(Color color, Color color2) {
-    return color.getRed() == color2.getRed() && color.getGreen() == color2.getGreen()
-        && color.getBlue() == color2.getBlue();
-  }
-
-  /**
-   * Checks whether one color is brighter than another.
-   * 
-   * @param isBrighterThan the first Color
-   * @param thisColor the second Color
-   * @return whether the first Color is brighter than the second
-   */
-  public static boolean isBrighterThan(Color isBrighterThan, Color thisColor) {
-    return brightness(isBrighterThan) > brightness(thisColor);
-  }
-
-  /**
    * Uses the W3C algorithm to determine the brightness value for a Color.
    * 
    * @param the Color to check
    * @return the brightness value
+   * @since 0.1.5.0.0
    */
   public static double brightness(Color color) {
     return Math.sqrt(0.299 * Math.pow(color.getRed(), 2) + 0.587 * Math.pow(color.getGreen(), 2)
@@ -997,9 +910,8 @@ public class Msn {
    */
   public static String[] createStringArray(int length) {
     String[] array = new String[length];
-    for (int i = 0; i < array.length; i++) {
-      array[i] = randomString(5);
-    }
+    for (int i = 0; i < array.length; i++)
+      array[i] = randomWord();
     return array;
   }
 
@@ -1012,9 +924,8 @@ public class Msn {
    */
   public static int[] createIntArray(int length) {
     int[] array = new int[length];
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       array[i] = randomInt(0, 10);
-    }
     return array;
   }
 
@@ -1027,9 +938,8 @@ public class Msn {
    */
   public static double[] createDoubleArray(int length) {
     double[] array = new double[length];
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       array[i] = Msn.decFormat(Msn.random(0, 10), 2);
-    }
     return array;
   }
 
@@ -1042,9 +952,8 @@ public class Msn {
    */
   public static char[] createCharArray(int length) {
     char[] array = new char[length];
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       array[i] = randomLetter();
-    }
     return array;
   }
 
@@ -1057,9 +966,8 @@ public class Msn {
    */
   public static boolean[] createBoolArray(int length) {
     boolean[] array = new boolean[length];
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       array[i] = coinflip();
-    }
     return array;
   }
 
@@ -1072,11 +980,9 @@ public class Msn {
    */
   public static String[][] create2DStringArray(int rows, int cols) {
     String[][] array = new String[rows][cols];
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        array[i][j] = Msn.randomString(5);
-      }
-    }
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        array[i][j] = Msn.randomWord();
     return array;
   }
 
@@ -1089,11 +995,9 @@ public class Msn {
    */
   public static int[][] create2DIntArray(int rows, int cols) {
     int[][] array = new int[rows][cols];
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         array[i][j] = randomInt(0, 10);
-      }
-    }
     return array;
   }
 
@@ -1106,11 +1010,9 @@ public class Msn {
    */
   public static double[][] create2DDoubleArray(int rows, int cols) {
     double[][] array = new double[rows][cols];
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         array[i][j] = Msn.decFormat(Msn.random(0, 10), 2);
-      }
-    }
     return array;
   }
 
@@ -1123,11 +1025,9 @@ public class Msn {
    */
   public static char[][] create2DCharArray(int rows, int cols) {
     char[][] array = new char[rows][cols];
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         array[i][j] = randomLetter();
-      }
-    }
     return array;
   }
 
@@ -1140,11 +1040,9 @@ public class Msn {
    */
   public static boolean[][] create2DBoolArray(int rows, int cols) {
     boolean[][] array = new boolean[rows][cols];
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         array[i][j] = coinflip();
-      }
-    }
     return array;
   }
 
@@ -1157,11 +1055,10 @@ public class Msn {
    */
   public static int[][] create2DIntArrayFromObj(Object[][] array) {
     int[][] destination = new int[array.length][];
-    for (int i = 0; i < destination.length; ++i) {
+    for (int i = 0; i < destination.length; i++) {
       destination[i] = new int[array[i].length];
-      for (int j = 0; j < destination[i].length; ++j) {
+      for (int j = 0; j < destination[i].length; j++)
         destination[i][j] = 0;
-      }
     }
     return destination;
   }
@@ -1175,11 +1072,10 @@ public class Msn {
    */
   public static double[][] create2DDoubleArrayFromObj(Object[][] array) {
     double[][] destination = new double[array.length][];
-    for (int i = 0; i < destination.length; ++i) {
+    for (int i = 0; i < destination.length; i++) {
       destination[i] = new double[array[i].length];
-      for (int j = 0; j < destination[i].length; ++j) {
+      for (int j = 0; j < destination[i].length; j++)
         destination[i][j] = 0;
-      }
     }
     return destination;
   }
@@ -1244,10 +1140,9 @@ public class Msn {
    * @since 0.1.0.0.3
    */
   public static boolean isEnglish(String s) {
-    for (int i = 0; i < s.length(); i++) {
+    for (int i = 0; i < s.length(); i++)
       if (!contains(alphabetArray(), s.charAt(i)))
         return false;
-    }
     return true;
   }
 
@@ -1259,10 +1154,9 @@ public class Msn {
    * @since 0.1.2.2.5
    */
   public static String reverse(String s) {
-    String reverse = new StringBuilder(s).reverse().toString();
     if (verbose)
-      System.out.println("String reversed to " + reverse);
-    return reverse;
+      println("[*] reversing String");
+    return new StringBuilder(s).reverse().toString();
   }
 
   /**
@@ -1275,11 +1169,9 @@ public class Msn {
    */
   public static String removeChar(String s, char toRemove) {
     String fixed = "";
-    for (int i = 0; i < s.length(); i++) {
-      if (s.charAt(i) != toRemove) {
+    for (int i = 0; i < s.length(); i++)
+      if (s.charAt(i) != toRemove)
         fixed += s.charAt(i);
-      }
-    }
     return fixed;
   }
 
@@ -1350,11 +1242,9 @@ public class Msn {
    */
   public static int lineIndexOf(String text, String toFind) {
     String[] lineArray = toLineArray(text);
-    for (int i = 0; i < lineArray.length; i++) {
-      if (lineArray[i].contains(toFind)) {
+    for (int i = 0; i < lineArray.length; i++)
+      if (lineArray[i].contains(toFind))
         return i;
-      }
-    }
     return -1;
   }
 
@@ -1496,47 +1386,16 @@ public class Msn {
   }
 
   /**
-   * Rebuilds a String based on data types. (String > Integer > Double > Misc).
+   * Rebuilds a String based on data types.
    * 
    * @param s the String to use
-   * @param removeDups whether duplicate chars should be removed or not
    * @return the sorted String
+   * @since 0.1.2.0.5
    */
-  public static String sortString(String s, boolean removeDups) {
-    ArrayList<Integer> nums = new ArrayList<>();
-    ArrayList<Character> letters = new ArrayList<>();
-    ArrayList<Character> misc = new ArrayList<>();
-    for (int i = 0; i < s.length(); i++) {
-      if (Character.isLetter(s.charAt(i))) {
-        letters.add(s.charAt(i));
-      } else if (Character.isDigit(s.charAt(i))) {
-        nums.add(Integer.parseInt(String.valueOf((s.charAt(i)))));
-      } else {
-        misc.add(s.charAt(i));
-      }
-    }
-    Object[] alph = letters.toArray();
-    Object[] numbers = nums.toArray();
-    Object[] misce = misc.toArray();
-    Arrays.sort(alph);
-    Arrays.sort(numbers);
-    Arrays.sort(misce);
-    String n = "";
-    for (int i = 0; i < alph.length; i++) {
-      n += alph[i];
-    }
-    for (int i = 0; i < numbers.length; i++) {
-      n += numbers[i];
-    }
-    for (int i = 0; i < misce.length; i++) {
-      n += misce[i];
-    }
-    if (!removeDups) {
-      return n;
-    }
-    if (verbose)
-      System.out.println("String successfully sorted");
-    return toSequence(removeDups(n.toCharArray()));
+  public static String sortString(String s) {
+    char[] chars = s.toCharArray();
+    Arrays.sort(chars);
+    return String.valueOf(chars);
   }
 
   /**
@@ -1554,7 +1413,7 @@ public class Msn {
       System.out.println("String array created");
     return s;
   }
-
+   
   /**
    * Takes a char array and turns it into a String array.
    * 
@@ -1583,14 +1442,9 @@ public class Msn {
    * @return the String array of words
    */
   public static String[] toStringArray(String s) {
-    Scanner kb = new Scanner(s);
-    String[] strings = new String[countWords(s)];
-    for (int i = 0; i < strings.length; i++) {
-      strings[i] = kb.next();
-    }
     if (verbose)
-      System.out.println("String array created");
-    return strings;
+      println("[*] creating String array");
+    return s.split(" ");
   }
 
   /**
@@ -6782,7 +6636,7 @@ public class Msn {
    * @param coord the coordinates
    * @return the diagonal elements
    */
-  public char[] diagonal(char[][] array, int[] coord) {
+  public static char[] diagonal(char[][] array, int[] coord) {
     char[] immediate = new char[8];
     immediate[0] = nwOf(array, coord);
     immediate[1] = neOf(array, coord);
@@ -6795,6 +6649,306 @@ public class Msn {
       }
     }
     return toChar(adj.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static Object[] aboveAll(Object[][] array, int[] coord) {
+    ArrayList<Object> list = new ArrayList<>();
+    for (int i = 1; i < coord[0] + 1; i++)
+      list.add(directionalMulti(array, coord, "north", i, true));
+    return list.toArray();
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static int[] aboveAll(int[][] array, int[] coord) {
+    ArrayList<Integer> list = new ArrayList<>();
+    for (int i = 1; i < coord[0] + 1; i++)
+      list.add(directionalMulti(array, coord, "north", i, true));
+    return toInt(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static double[] aboveAll(double[][] array, int[] coord) {
+    ArrayList<Double> list = new ArrayList<>();
+    for (int i = 1; i < coord[0] + 1; i++)
+      list.add(directionalMulti(array, coord, "north", i, true));
+    return toDouble(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static boolean[] aboveAll(boolean[][] array, int[] coord) {
+    ArrayList<Boolean> list = new ArrayList<>();
+    for (int i = 1; i < coord[0] + 1; i++)
+      list.add(directionalMulti(array, coord, "north", i, true));
+    return toBoolean(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static char[] aboveAll(char[][] array, int[] coord) {
+    ArrayList<Character> list = new ArrayList<>();
+    for (int i = 1; i < coord[0] + 1; i++)
+      list.add(directionalMulti(array, coord, "north", i, true));
+    return toChar(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static Object[] belowAll(Object[][] array, int[] coord) {
+    ArrayList<Object> list = new ArrayList<>();
+    for (int i = 1; i < array.length - coord[0]; i++)
+      list.add(directionalMulti(array, coord, "south", i, true));
+    return list.toArray();
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static int[] belowAll(int[][] array, int[] coord) {
+    ArrayList<Integer> list = new ArrayList<>();
+    for (int i = 1; i < array.length - coord[0]; i++)
+      list.add(directionalMulti(array, coord, "south", i, true));
+    return toInt(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static double[] belowAll(double[][] array, int[] coord) {
+    ArrayList<Double> list = new ArrayList<>();
+    for (int i = 1; i < array.length - coord[0]; i++)
+      list.add(directionalMulti(array, coord, "south", i, true));
+    return toDouble(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static boolean[] belowAll(boolean[][] array, int[] coord) {
+    ArrayList<Boolean> list = new ArrayList<>();
+    for (int i = 1; i < array.length - coord[0]; i++)
+      list.add(directionalMulti(array, coord, "south", i, true));
+    return toBoolean(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static char[] belowAll(char[][] array, int[] coord) {
+    ArrayList<Character> list = new ArrayList<>();
+    for (int i = 1; i < array.length - coord[0]; i++)
+      list.add(directionalMulti(array, coord, "south", i, true));
+    return toChar(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static Object[] rightAll(Object[][] array, int[] coord) {
+    ArrayList<Object> list = new ArrayList<>();
+    for (int i = 1; i < array[coord[0]].length - coord[1]; i++)
+      list.add(directionalMulti(array, coord, "east", i, true));
+    return list.toArray();
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static int[] rightAll(int[][] array, int[] coord) {
+    ArrayList<Integer> list = new ArrayList<>();
+    for (int i = 1; i < array[coord[0]].length - coord[1]; i++)
+      list.add(directionalMulti(array, coord, "east", i, true));
+    return toInt(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static double[] rightAll(double[][] array, int[] coord) {
+    ArrayList<Double> list = new ArrayList<>();
+    for (int i = 1; i < array[coord[0]].length - coord[1]; i++)
+      list.add(directionalMulti(array, coord, "east", i, true));
+    return toDouble(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static boolean[] rightAll(boolean[][] array, int[] coord) {
+    ArrayList<Boolean> list = new ArrayList<>();
+    for (int i = 1; i < array[coord[0]].length - coord[1]; i++)
+      list.add(directionalMulti(array, coord, "east", i, true));
+    return toBoolean(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static char[] rightAll(char[][] array, int[] coord) {
+    ArrayList<Character> list = new ArrayList<>();
+    for (int i = 1; i < array[coord[0]].length - coord[1]; i++)
+      list.add(directionalMulti(array, coord, "east", i, true));
+    return toChar(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static Object[] leftAll(Object[][] array, int[] coord) {
+    ArrayList<Object> list = new ArrayList<>();
+    for (int i = 1; i < coord[1] + 1; i++)
+      list.add(directionalMulti(array, coord, "west", i, true));
+    return list.toArray();
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static int[] leftAll(int[][] array, int[] coord) {
+    ArrayList<Integer> list = new ArrayList<>();
+    for (int i = 1; i < coord[1] + 1; i++)
+      list.add(directionalMulti(array, coord, "west", i, true));
+    return toInt(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static double[] leftAll(double[][] array, int[] coord) {
+    ArrayList<Double> list = new ArrayList<>();
+    for (int i = 1; i < coord[1] + 1; i++)
+      list.add(directionalMulti(array, coord, "west", i, true));
+    return toDouble(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static boolean[] leftAll(boolean[][] array, int[] coord) {
+    ArrayList<Boolean> list = new ArrayList<>();
+    for (int i = 1; i < coord[1] + 1; i++)
+      list.add(directionalMulti(array, coord, "west", i, true));
+    return toBoolean(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly above the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly above coord
+   * @since 0.1.5.2.8
+   */
+  public static char[] leftAll(char[][] array, int[] coord) {
+    ArrayList<Character> list = new ArrayList<>();
+    for (int i = 1; i < coord[1] + 1; i++)
+      list.add(directionalMulti(array, coord, "west", i, true));
+    return toChar(list.toArray());
   }
 
   /**
@@ -7173,6 +7327,238 @@ public class Msn {
   public static double directionalMulti(double[][] array, int[] from, String direction,
       int distance, boolean includeEdges) {
     double obj = Double.MAX_VALUE;
+    String[] allowed = {"north", "south", "east", "west", "nw", "ne", "sw", "se"};
+    if (contains(allowed, direction)) {
+      if (direction.equals("north")) {
+        try {
+          obj = array[from[0] - distance][from[1]];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1]})) {
+              iterator--;
+            }
+            obj = array[from[0] - iterator][from[1]];
+          }
+        }
+      } else if (direction.equals("south")) {
+        try {
+          obj = array[from[0] + distance][from[1]];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1]})) {
+              iterator--;
+            }
+            obj = array[from[0] + iterator][from[1]];
+          }
+        }
+      } else if (direction.equals("east")) {
+        try {
+          obj = array[from[0]][from[1] + distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0], from[1] + iterator})) {
+              iterator--;
+            }
+            obj = array[from[0]][from[1] + iterator];
+          }
+        }
+      } else if (direction.equals("west")) {
+        try {
+          obj = array[from[0]][from[1] - distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0], from[1] - iterator})) {
+              iterator--;
+            }
+            obj = array[from[0]][from[1] - iterator];
+          }
+        }
+      } else if (direction.equals("nw")) {
+        try {
+          obj = array[from[0] - distance][from[1] - distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1] - iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] - iterator][from[1] - iterator];
+          }
+        }
+      } else if (direction.equals("ne")) {
+        try {
+          obj = array[from[0] - distance][from[1] + distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1] + iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] - iterator][from[1] + iterator];
+          }
+        }
+      } else if (direction.equals("sw")) {
+        try {
+          obj = array[from[0] + distance][from[1] - distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1] - iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] + iterator][from[1] - iterator];
+          }
+        }
+      } else if (direction.equals("se")) {
+        try {
+          obj = array[from[0] + distance][from[1] + distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1] + iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] + iterator][from[1] + iterator];
+          }
+        }
+      }
+    }
+    return obj;
+  }
+
+  /**
+   * Gets an element of the array a certain amount of blocks away.
+   * 
+   * @param array the array to use
+   * @param from the initial coordinates
+   * @param direction the direction {"north", "south", "east", "west", "nw", "ne", "sw", "se"}
+   * @param distance the distance (not to be confused with distance() methods)
+   * @param includeEdges whether to return an edge if the distance is out of bounds
+   * @return the Object
+   */
+  public static boolean directionalMulti(boolean[][] array, int[] from, String direction,
+      int distance, boolean includeEdges) {
+    Boolean obj = null;
+    String[] allowed = {"north", "south", "east", "west", "nw", "ne", "sw", "se"};
+    if (contains(allowed, direction)) {
+      if (direction.equals("north")) {
+        try {
+          obj = array[from[0] - distance][from[1]];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1]})) {
+              iterator--;
+            }
+            obj = array[from[0] - iterator][from[1]];
+          }
+        }
+      } else if (direction.equals("south")) {
+        try {
+          obj = array[from[0] + distance][from[1]];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1]})) {
+              iterator--;
+            }
+            obj = array[from[0] + iterator][from[1]];
+          }
+        }
+      } else if (direction.equals("east")) {
+        try {
+          obj = array[from[0]][from[1] + distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0], from[1] + iterator})) {
+              iterator--;
+            }
+            obj = array[from[0]][from[1] + iterator];
+          }
+        }
+      } else if (direction.equals("west")) {
+        try {
+          obj = array[from[0]][from[1] - distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0], from[1] - iterator})) {
+              iterator--;
+            }
+            obj = array[from[0]][from[1] - iterator];
+          }
+        }
+      } else if (direction.equals("nw")) {
+        try {
+          obj = array[from[0] - distance][from[1] - distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1] - iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] - iterator][from[1] - iterator];
+          }
+        }
+      } else if (direction.equals("ne")) {
+        try {
+          obj = array[from[0] - distance][from[1] + distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1] + iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] - iterator][from[1] + iterator];
+          }
+        }
+      } else if (direction.equals("sw")) {
+        try {
+          obj = array[from[0] + distance][from[1] - distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1] - iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] + iterator][from[1] - iterator];
+          }
+        }
+      } else if (direction.equals("se")) {
+        try {
+          obj = array[from[0] + distance][from[1] + distance];
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1] + iterator})) {
+              iterator--;
+            }
+            obj = array[from[0] + iterator][from[1] + iterator];
+          }
+        }
+      }
+    }
+    return obj;
+  }
+
+  /**
+   * Gets an element of the array a certain amount of blocks away.
+   * 
+   * @param array the array to use
+   * @param from the initial coordinates
+   * @param direction the direction {"north", "south", "east", "west", "nw", "ne", "sw", "se"}
+   * @param distance the distance (not to be confused with distance() methods)
+   * @param includeEdges whether to return an edge if the distance is out of bounds
+   * @return the Object
+   */
+  public static char directionalMulti(char[][] array, int[] from, String direction, int distance,
+      boolean includeEdges) {
+    char obj = Character.MAX_VALUE;
     String[] allowed = {"north", "south", "east", "west", "nw", "ne", "sw", "se"};
     if (contains(allowed, direction)) {
       if (direction.equals("north")) {
@@ -7974,6 +8360,33 @@ public class Msn {
   }
 
   /**
+   * Calculates an initial weight value for a neural network.
+   * 
+   * @return an initial weight value
+   * @since 0.1.5.2.8
+   */
+  public static double weight() {
+    return .5 - Math.random();
+  }
+
+  /**
+   * Calculates the dot product of the given weights and outputs, and appends the bias to the
+   * calculation.
+   * 
+   * @param weights the weights
+   * @param outputs the outputs
+   * @param bias the bias
+   * @return the weighted sum
+   * @since 0.1.5.2.8
+   */
+  public static double weightedSum(double[] weights, double[] outputs, double bias) {
+    double sum = 0;
+    for (int i = 0; i < weights.length; i++)
+      sum += weights[i] * outputs[i];
+    return sum + bias;
+  }
+
+  /**
    * Finds the longer side of a right triangle.
    * 
    * @param a a
@@ -8239,6 +8652,18 @@ public class Msn {
     for (int i = 0; i < length; i++)
       s += Msn.randomLetter();
     return s;
+  }
+
+  /**
+   * Generates a word that can be pronounced.
+   * 
+   * @return a String
+   * @since 0.1.5.2.8
+   */
+  public static String randomWord() {
+    return String.valueOf(randomElement(consonants())) + String.valueOf(randomElement(vowels()))
+        + String.valueOf(randomElement(consonants())) + String.valueOf(randomElement(vowels()))
+        + String.valueOf(randomElement(consonants()));
   }
 
   /**

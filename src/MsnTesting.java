@@ -1,10 +1,7 @@
 public class MsnTesting {
 
   public static void main(String[] args) {
-    
-    for (int i = 0; i < 10; i++) {
-      System.out.println(Msn.weight(4, 4));
-    }
-    
+
+    System.out.println(Msn.sortString("this is a String mason 489042*$#@"));
   }
 }
