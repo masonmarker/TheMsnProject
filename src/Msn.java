@@ -1183,33 +1183,10 @@ public class Msn {
    * @since 0.1.1.0.4
    */
   public static char mostCommonChar(String s) {
-    ArrayList<Character> chars = new ArrayList<Character>();
-    for (int i = 0; i < s.length(); i++) {
-      if (s.charAt(i) != ' ' && !contains(chars.toArray(), s.charAt(i))) {
-        chars.add(s.charAt(i));
-      }
-    }
-    int[] freqs = new int[chars.size()];
-    for (int i = 0; i < chars.size(); i++) {
-      freqs[i] = countChars(s, chars.get(i));
-    }
-    int max = max(freqs);
-    int indexAt = -1;
-    boolean is = countFreq(freqs, max) == 1;
-    for (int i = 0; i < chars.size(); i++) {
-      if (is && freqs[i] == max) {
-        indexAt = i;
-      }
-    }
-    try {
-      if (verbose) {
-        System.out.println("most common char is " + chars.get(indexAt));
-      }
-      return (char) chars.get(indexAt);
-    } catch (ArrayIndexOutOfBoundsException e) {
-      System.out.println("error: most common char does not exist, returning '?'");
-    }
-    return '?';
+    TreeMap<Integer, Character> freq = new TreeMap<>();
+    for (int i = 0; i < s.length(); i++)
+      freq.put(countChars(s, s.charAt(i)), s.charAt(i));
+    return freq.lastEntry().getValue();
   }
 
   /**
@@ -1221,14 +1198,12 @@ public class Msn {
    * @since 0.1.1.5.0
    */
   public static String getLine(String s, int index) {
-    if (index > countLines(s)) {
+    if (index > countLines(s))
       throw new IllegalArgumentException(
           "index " + index + " out of bounds for line count " + countLines(s));
-    }
     Scanner kb = new Scanner(s);
-    for (int i = 0; i < index; i++) {
+    for (int i = 0; i < index; i++)
       kb.nextLine();
-    }
     return kb.nextLine();
   }
 
@@ -1259,15 +1234,13 @@ public class Msn {
     Scanner kb = new Scanner(s);
     String[] lineArray = new String[countLines(s)];
     for (int i = 0; i < lineArray.length; i++) {
-      if (kb.hasNextLine()) {
+      if (kb.hasNextLine())
         lineArray[i] = kb.nextLine();
-      } else {
+      else
         lineArray[i] = "";
-      }
     }
-    if (verbose) {
-      System.out.println("line array created");
-    }
+    if (verbose)
+      println("[+] line array created");
     return lineArray;
   }
 
@@ -1289,7 +1262,7 @@ public class Msn {
       }
     }
     if (verbose)
-      System.out.println("lines removed");
+      println("[+] lines removed");
     return fixed;
   }
 
@@ -1305,13 +1278,11 @@ public class Msn {
   public static String getLines(String s, int startLine, int finishLine) {
     String fixed = "";
     String[] lines = toLineArray(s);
-    for (int i = 0; i < lines.length; i++) {
-      if (i >= startLine && i <= finishLine) {
+    for (int i = 0; i < lines.length; i++)
+      if (i >= startLine && i <= finishLine)
         fixed += lines[i] + "\n";
-      }
-    }
     if (verbose)
-      System.out.println("lines " + startLine + " through " + finishLine + " found");
+      println("[+] lines " + startLine + " through " + finishLine + " found");
     return fixed;
   }
 
@@ -1406,14 +1377,13 @@ public class Msn {
    */
   public static String[] toStringArray(char[] array) {
     String[] s = new String[array.length];
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       s[i] = Character.toString(array[i]);
-    }
     if (verbose)
-      System.out.println("String array created");
+      println("[+] String array created");
     return s;
   }
-   
+
   /**
    * Takes a char array and turns it into a String array.
    * 
@@ -1421,17 +1391,14 @@ public class Msn {
    * @return the String array
    */
   public static String[][] toStringArray(char[][] array) {
-    if (isRagged(array)) {
+    if (isRagged(array))
       throw new IllegalArgumentException("Char 2D array must not be ragged");
-    }
     String[][] s = new String[array.length][array[0].length];
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         s[i][j] = Character.toString(array[i][j]);
-      }
-    }
     if (verbose)
-      System.out.println("String array created");
+      println("[+] String array created");
     return s;
   }
 
@@ -1461,7 +1428,7 @@ public class Msn {
         s += " ";
     }
     if (verbose)
-      System.out.println("Sequence created: " + s);
+      println("[+] Sequence created: " + s);
     return s;
   }
 
@@ -1479,7 +1446,7 @@ public class Msn {
         s += " ";
     }
     if (verbose)
-      System.out.println("Sequence created: " + s);
+      println("[+] Sequence created: " + s);
     return s;
   }
 
@@ -1497,7 +1464,7 @@ public class Msn {
         s += " ";
     }
     if (verbose)
-      System.out.println("Sequence created: " + s);
+      println("[+] Sequence created: " + s);
     return s;
   }
 
@@ -1515,7 +1482,7 @@ public class Msn {
         s += " ";
     }
     if (verbose)
-      System.out.println("Sequence created: " + s);
+      println("[+] Sequence created: " + s);
     return s;
   }
 
@@ -1533,7 +1500,7 @@ public class Msn {
         s += " ";
     }
     if (verbose)
-      System.out.println("Sequence created: " + s);
+      println("[+] Sequence created: " + s);
     return s;
   }
 
@@ -1549,7 +1516,7 @@ public class Msn {
       array2[i] = String.valueOf(array[i]);
     }
     if (verbose)
-      System.out.println("Object[] successfully casted to String[]");
+      println("[+] Object[] successfully cast to String[]");
     return array2;
   }
 
@@ -1561,13 +1528,11 @@ public class Msn {
    */
   public static String toSequence(String[][] array) {
     String s = "";
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         s += array[i][j];
-      }
-    }
     if (verbose)
-      System.out.println("Sequence created");
+      println("[+] Sequence created: " + s);
     return s;
   }
 
@@ -1579,13 +1544,11 @@ public class Msn {
    */
   public static String toSequence(int[][] array) {
     String s = "";
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         s += array[i][j];
-      }
-    }
     if (verbose)
-      System.out.println("Sequence created");
+      println("[+] Sequence created: " + s);
     return s;
   }
 
@@ -1597,13 +1560,11 @@ public class Msn {
    */
   public static String toSequence(double[][] array) {
     String s = "";
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         s += array[i][j] + " ";
-      }
-    }
     if (verbose)
-      System.out.println("Sequence created");
+      println("[+] Sequence created: " + s);
     return s;
   }
 
@@ -1615,13 +1576,11 @@ public class Msn {
    */
   public static String toSequence(boolean[][] array) {
     String s = "";
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         s += array[i][j] + " ";
-      }
-    }
     if (verbose)
-      System.out.println("Sequence created");
+      println("[+] Sequence created: " + s);
     return s;
   }
 
@@ -1633,13 +1592,11 @@ public class Msn {
    */
   public static String toSequence(char[][] array) {
     String s = "";
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         s += array[i][j];
-      }
-    }
     if (verbose)
-      System.out.println("Sequence created");
+      println("[+] Sequence created: " + s);
     return s;
   }
 
@@ -1653,22 +1610,19 @@ public class Msn {
     s = s.replaceAll(" . ", " ");
     StringBuilder sb = new StringBuilder(s);
     for (int i = 0; i < sb.length(); i++) {
-      if (!Character.isDigit(sb.charAt(i)) && sb.charAt(i) != '.') {
+      if (!Character.isDigit(sb.charAt(i)) && sb.charAt(i) != '.')
         sb.replace(i, i + 1, " ");
-      }
       try {
-        if (sb.charAt(i) == ' ' && sb.charAt(i + 1) == '.') {
+        if (sb.charAt(i) == ' ' && sb.charAt(i + 1) == '.')
           sb.replace(i, i + 2, " 0.");
-        }
-        if (sb.charAt(i + 1) == ' ' && sb.charAt(i) == '.') {
+        if (sb.charAt(i + 1) == ' ' && sb.charAt(i) == '.')
           sb.replace(i, i + 1, ".0");
-        }
       } catch (StringIndexOutOfBoundsException e) {
         System.out.print("");
       }
     }
     if (verbose)
-      System.out.println("Numbers extracted: " + sb.toString());
+      println("[+] Numbers extracted: " + sb.toString());
     return sb.toString();
   }
 
@@ -1683,7 +1637,6 @@ public class Msn {
    */
   public static int[] extractInts(String s) {
     String[] intArray = toStringArray(extractNums(s));
-    String[] types = toString(existingTypes(s, false));
     ArrayList<Integer> ints = new ArrayList<>();
     for (int i = 0; i < intArray.length; i++) {
       try {
@@ -1693,7 +1646,7 @@ public class Msn {
       }
     }
     if (verbose)
-      System.out.println("extracted ints: " + Arrays.toString(ints.toArray()));
+      println("[+] extracted ints: " + Arrays.toString(ints.toArray()));
     return toInt(ints.toArray());
   }
 
@@ -1707,7 +1660,6 @@ public class Msn {
    */
   public static double[] extractDoubles(String s) {
     String[] doub = toStringArray(extractNums(s));
-    String[] types = toString(existingTypes(s, false));
     ArrayList<Double> doubles = new ArrayList<>();
     for (int i = 0; i < doub.length; i++) {
       if (doub[i].contains(".")) {
@@ -1715,7 +1667,7 @@ public class Msn {
       }
     }
     if (verbose)
-      System.out.println("extracted doubles: " + Arrays.toString(doubles.toArray()));
+      println("[+] extracted doubles: " + Arrays.toString(doubles.toArray()));
     return toDouble(doubles.toArray());
   }
 
@@ -1728,7 +1680,6 @@ public class Msn {
   public static Object[] existingTypes(String s, boolean removeDups) {
     ArrayList<String> types = new ArrayList<>();
     String[] stringArray = toStringArray(s);
-
     for (int i = 0; i < stringArray.length; i++) {
       boolean found = false;
       try {
@@ -1766,10 +1717,9 @@ public class Msn {
       }
     }
     if (verbose)
-      System.out.println("existing types extracted");
-    if (!removeDups) {
+      println("[+] existing types extracted");
+    if (!removeDups)
       return types.toArray();
-    }
     return removeDups(types.toArray());
   }
 
@@ -1783,7 +1733,6 @@ public class Msn {
    * @return types array
    */
   public static String typesMap(String s) {
-
     ArrayList<String> strings = new ArrayList<>();
     ArrayList<Integer> integers = new ArrayList<>();
     ArrayList<Double> doubles = new ArrayList<>();
@@ -1791,29 +1740,24 @@ public class Msn {
     String[] stringArray = toStringArray(s);
     String[] types = toString(existingTypes(s, false));
     for (int i = 0; i < types.length; i++) {
-      if (types[i].equals("Boolean")) {
+      if (types[i].equals("Boolean"))
         booleans.add(Boolean.valueOf(stringArray[i]));
-      } else if (types[i].equals("String")) {
+      else if (types[i].equals("String"))
         strings.add(String.valueOf(stringArray[i]));
-      } else if (types[i].equals("Integer")) {
+      else if (types[i].equals("Integer"))
         integers.add(Integer.valueOf(stringArray[i]));
-      } else if (types[i].equals("Double")) {
+      else if (types[i].equals("Double"))
         doubles.add(Double.valueOf(stringArray[i]));
-      }
     }
     String ss = "";
-    if (!strings.isEmpty()) {
+    if (!strings.isEmpty())
       ss += Arrays.toString(strings.toArray()) + "\n";
-    }
-    if (!integers.isEmpty()) {
+    if (!integers.isEmpty())
       ss += Arrays.toString(integers.toArray()) + "\n";
-    }
-    if (!doubles.isEmpty()) {
+    if (!doubles.isEmpty())
       ss += Arrays.toString(doubles.toArray()) + "\n";
-    }
-    if (!booleans.isEmpty()) {
+    if (!booleans.isEmpty())
       ss += Arrays.toString(booleans.toArray()) + "\n";
-    }
     return ss.replaceAll("\\[", "").replaceAll("\\]", "").replaceAll(",", "");
   }
 
@@ -1843,12 +1787,10 @@ public class Msn {
   public static String removeAllStrings(String s) {
     String[] strings = findAllStrings(s);
     String noStrings = s;
-    for (int i = 0; i < strings.length; i++) {
+    for (int i = 0; i < strings.length; i++)
       noStrings = noStrings.replaceFirst(strings[i], "");
-    }
-    if (verbose) {
-      System.out.println("removed all strings: " + noStrings);
-    }
+    if (verbose)
+      println("[+] removed all strings: " + noStrings);
     return noStrings;
   }
 
@@ -1864,9 +1806,8 @@ public class Msn {
    */
   public static int intWithoutTypo(String s) {
     try {
-      if (s.contains("-")) {
+      if (s.contains("-"))
         return -extractInts(s)[0];
-      }
       return extractInts(s)[0];
     } catch (ArrayIndexOutOfBoundsException e) {
       System.out.println("no ints exist, returning -1");
@@ -1888,20 +1829,18 @@ public class Msn {
   public static double dubWithoutTypo(String s) {
     double ret = -1;
     try {
-      if (s.contains("-")) {
+      if (s.contains("-"))
         ret = extractDoubles(s)[0];
-      } else {
+      else
         ret = extractDoubles(s)[0];
-      }
     } catch (ArrayIndexOutOfBoundsException e) {
       try {
-        if (s.contains("-")) {
+        if (s.contains("-"))
           ret = -Double.valueOf(extractInts(s)[0]);
-        } else {
+        else
           ret = Double.valueOf(extractInts(s)[0]);
-        }
       } catch (ArrayIndexOutOfBoundsException r) {
-        System.out.println("no numbers found, returning -1.0");
+        println("no numbers found, returning -1.0");
       }
     }
     return ret;
@@ -1953,7 +1892,6 @@ public class Msn {
       STREAM.forEach(s -> contentBuilder.append(s).append("\n"));
     } catch (IOException e) {
       System.out.print("file not found");
-
     }
     return contentBuilder.toString().replaceAll("(?m)^\\s", "");
   }
@@ -1967,9 +1905,8 @@ public class Msn {
    */
   public static Scanner prepare(String path) {
     Scanner s = new Scanner(contentsOfNoEmptyLines(path));
-    if (verbose) {
-      System.out.println("scanner prepared");
-    }
+    if (verbose)
+      println("[+] scanner prepared");
     return s;
   }
 
@@ -1982,10 +1919,8 @@ public class Msn {
    * @since 0.1.2.1.0
    */
   public static String toSSV(String path) {
-    String contents = contentsOf(path).toLowerCase();
-    char mostcommon = mostCommonChar(contents);
-    String replaced = contents.replaceAll(String.valueOf(mostcommon), " ");
-    return replaced;
+    return contentsOf(path).toLowerCase()
+        .replaceAll(String.valueOf(mostCommonChar(contentsOf(path).toLowerCase())), " ");
   }
 
   /**
@@ -1997,11 +1932,9 @@ public class Msn {
    */
   public static String nuke(String s) {
     StringBuilder sb = new StringBuilder(s);
-    for (int i = 0; i < sb.length(); i++) {
-      if (!Character.isLetter(sb.charAt(i)) && !Character.isDigit(sb.charAt(i))) {
+    for (int i = 0; i < sb.length(); i++)
+      if (!Character.isLetter(sb.charAt(i)) && !Character.isDigit(sb.charAt(i)))
         sb.replace(i, i + 1, " ");
-      }
-    }
     return sb.toString();
   }
 
@@ -2014,9 +1947,9 @@ public class Msn {
    * @since 0.1.2.1.0
    */
   public static void writeTo(String path, String text) throws FileNotFoundException {
-    File f = new File(path);
-    PrintWriter pw = new PrintWriter(f);
+    PrintWriter pw = new PrintWriter(new File(path));
     pw.write(text);
+    pw.close();
   }
 
   // ------------------------------PARSING------------------------------------
@@ -2033,17 +1966,13 @@ public class Msn {
    * @since 0.1.0.1.0
    */
   public static Object[] parseVertArray(Object[][] array, int index) {
-    if (isRagged(array)) {
+    if (isRagged(array))
       throw new IllegalArgumentException("array cannot be ragged");
-    }
     Object[] vert = new Object[array[0].length];
-
-    for (int i = 0; i < vert.length; i++) {
+    for (int i = 0; i < vert.length; i++)
       vert[i] = array[i][index];
-    }
-    if (verbose) {
-      System.out.println("parsed " + Arrays.toString(vert));
-    }
+    if (verbose)
+      println("[+] parsed " + Arrays.toString(vert));
     return vert;
   }
 
@@ -2059,17 +1988,13 @@ public class Msn {
    * @since 0.1.0.1.0
    */
   public static int[] parseVertArray(int[][] array, int index) {
-    if (isRagged(array)) {
+    if (isRagged(array))
       throw new IllegalArgumentException("array cannot be ragged");
-    }
     int[] vert = new int[array[0].length];
-
-    for (int i = 0; i < vert.length; i++) {
+    for (int i = 0; i < vert.length; i++)
       vert[i] = array[i][index];
-    }
-    if (verbose) {
-      System.out.println("parsed " + Arrays.toString(vert));
-    }
+    if (verbose)
+      println("[+] parsed " + Arrays.toString(vert));
     return vert;
   }
 
@@ -2085,17 +2010,13 @@ public class Msn {
    * @since 0.1.0.1.0
    */
   public static double[] parseVertArray(double[][] array, int index) {
-    if (isRagged(array)) {
+    if (isRagged(array))
       throw new IllegalArgumentException("array cannot be ragged");
-    }
     double[] vert = new double[array[0].length];
-
-    for (int i = 0; i < vert.length; i++) {
+    for (int i = 0; i < vert.length; i++)
       vert[i] = array[i][index];
-    }
-    if (verbose) {
+    if (verbose)
       System.out.println("parsed " + Arrays.toString(vert));
-    }
     return vert;
   }
 
@@ -2111,17 +2032,13 @@ public class Msn {
    * @since 0.1.0.1.0
    */
   public static boolean[] parseVertArray(boolean[][] array, int index) {
-    if (isRagged(array)) {
+    if (isRagged(array))
       throw new IllegalArgumentException("array cannot be ragged");
-    }
     boolean[] vert = new boolean[array[0].length];
-
-    for (int i = 0; i < vert.length; i++) {
+    for (int i = 0; i < vert.length; i++)
       vert[i] = array[i][index];
-    }
-    if (verbose) {
-      System.out.println("parsed " + Arrays.toString(vert));
-    }
+    if (verbose)
+      println("[+] parsed " + Arrays.toString(vert));
     return vert;
   }
 
@@ -2137,17 +2054,13 @@ public class Msn {
    * @since 0.1.0.1.0
    */
   public static char[] parseVertArray(char[][] array, int index) {
-    if (isRagged(array)) {
+    if (isRagged(array))
       throw new IllegalArgumentException("array cannot be ragged");
-    }
     char[] vert = new char[array[0].length];
-
-    for (int i = 0; i < vert.length; i++) {
+    for (int i = 0; i < vert.length; i++)
       vert[i] = array[i][index];
-    }
-    if (verbose) {
-      System.out.println("parsed " + Arrays.toString(vert));
-    }
+    if (verbose)
+      println("[+] parsed " + Arrays.toString(vert));
     return vert;
   }
 
@@ -2160,17 +2073,13 @@ public class Msn {
    * @since 0.1.0.1.0
    */
   public static Object[] parseHorizArray(Object[][] array, int index) {
-    if (isRagged(array)) {
+    if (isRagged(array))
       throw new IllegalArgumentException("array cannot be ragged");
-    }
     Object[] vert = new Object[array.length];
-
-    for (int i = 0; i < vert.length; i++) {
+    for (int i = 0; i < vert.length; i++)
       vert[i] = array[index][i];
-    }
-    if (verbose) {
-      System.out.println("parsed " + Arrays.toString(vert));
-    }
+    if (verbose)
+      println("[+] parsed " + Arrays.toString(vert));
     return vert;
   }
 
@@ -2183,17 +2092,13 @@ public class Msn {
    * @since 0.1.0.1.0
    */
   public static int[] parseHorizArray(int[][] array, int index) {
-    if (isRagged(array)) {
+    if (isRagged(array))
       throw new IllegalArgumentException("array cannot be ragged");
-    }
     int[] vert = new int[array.length];
-
-    for (int i = 0; i < vert.length; i++) {
+    for (int i = 0; i < vert.length; i++)
       vert[i] = array[index][i];
-    }
-    if (verbose) {
-      System.out.println("parsed " + Arrays.toString(vert));
-    }
+    if (verbose)
+      println("[+] parsed " + Arrays.toString(vert));
     return vert;
   }
 
@@ -2206,17 +2111,13 @@ public class Msn {
    * @since 0.1.0.1.0
    */
   public static double[] parseHorizArray(double[][] array, int index) {
-    if (isRagged(array)) {
+    if (isRagged(array))
       throw new IllegalArgumentException("array cannot be ragged");
-    }
     double[] vert = new double[array.length];
-
-    for (int i = 0; i < vert.length; i++) {
+    for (int i = 0; i < vert.length; i++)
       vert[i] = array[index][i];
-    }
-    if (verbose) {
-      System.out.println("parsed " + Arrays.toString(vert));
-    }
+    if (verbose)
+      println("[+] parsed " + Arrays.toString(vert));
     return vert;
   }
 
@@ -2229,17 +2130,13 @@ public class Msn {
    * @since 0.1.0.1.0
    */
   public static boolean[] parseHorizArray(boolean[][] array, int index) {
-    if (isRagged(array)) {
+    if (isRagged(array))
       throw new IllegalArgumentException("array cannot be ragged");
-    }
     boolean[] vert = new boolean[array.length];
-
-    for (int i = 0; i < vert.length; i++) {
+    for (int i = 0; i < vert.length; i++)
       vert[i] = array[index][i];
-    }
-    if (verbose) {
-      System.out.println("parsed " + Arrays.toString(vert));
-    }
+    if (verbose)
+      println("[+] parsed " + Arrays.toString(vert));
     return vert;
   }
 
@@ -2252,17 +2149,13 @@ public class Msn {
    * @since 0.1.0.1.0
    */
   public static char[] parseHorizArray(char[][] array, int index) {
-    if (isRagged(array)) {
+    if (isRagged(array))
       throw new IllegalArgumentException("array cannot be ragged");
-    }
     char[] vert = new char[array.length];
-
-    for (int i = 0; i < vert.length; i++) {
+    for (int i = 0; i < vert.length; i++)
       vert[i] = array[index][i];
-    }
-    if (verbose) {
-      System.out.println("parsed " + Arrays.toString(vert));
-    }
+    if (verbose)
+      println("[+] parsed " + Arrays.toString(vert));
     return vert;
   }
 
@@ -2393,12 +2286,10 @@ public class Msn {
   public static void reverse(Object[] array) {
     Object[] copy = Arrays.copyOf(array, array.length);
     ArrayList<Object> newArray = new ArrayList<>();
-    for (int i = copy.length - 1; i >= 0; i--) {
+    for (int i = copy.length - 1; i >= 0; i--)
       newArray.add(copy[i]);
-    }
-    for (int i = 0; i < newArray.size(); i++) {
+    for (int i = 0; i < newArray.size(); i++)
       array[i] = newArray.get(i);
-    }
   }
 
   /**
@@ -2410,12 +2301,10 @@ public class Msn {
   public static void reverse(int[] array) {
     int[] copy = Arrays.copyOf(array, array.length);
     ArrayList<Object> newArray = new ArrayList<>();
-    for (int i = copy.length - 1; i >= 0; i--) {
+    for (int i = copy.length - 1; i >= 0; i--)
       newArray.add(copy[i]);
-    }
-    for (int i = 0; i < newArray.size(); i++) {
+    for (int i = 0; i < newArray.size(); i++)
       array[i] = (int) newArray.get(i);
-    }
   }
 
   /**
@@ -2427,12 +2316,10 @@ public class Msn {
   public static void reverse(double[] array) {
     double[] copy = Arrays.copyOf(array, array.length);
     ArrayList<Object> newArray = new ArrayList<>();
-    for (int i = copy.length - 1; i >= 0; i--) {
+    for (int i = copy.length - 1; i >= 0; i--)
       newArray.add(copy[i]);
-    }
-    for (int i = 0; i < newArray.size(); i++) {
+    for (int i = 0; i < newArray.size(); i++)
       array[i] = (double) newArray.get(i);
-    }
   }
 
   /**
@@ -2444,12 +2331,10 @@ public class Msn {
   public static void reverse(char[] array) {
     char[] copy = Arrays.copyOf(array, array.length);
     ArrayList<Object> newArray = new ArrayList<>();
-    for (int i = copy.length - 1; i >= 0; i--) {
+    for (int i = copy.length - 1; i >= 0; i--)
       newArray.add(copy[i]);
-    }
-    for (int i = 0; i < newArray.size(); i++) {
+    for (int i = 0; i < newArray.size(); i++)
       array[i] = (char) newArray.get(i);
-    }
   }
 
   /**
@@ -7919,15 +7804,13 @@ public class Msn {
    */
   public static int gcd(int num1, int num2) {
     while (num1 != num2) {
-      if (num1 > num2) {
+      if (num1 > num2)
         num1 = num1 - num2;
-      } else {
+      else
         num2 = num2 - num1;
-      }
     }
-    if (verbose) {
+    if (verbose) 
       System.out.printf("GCD of given numbers is: %d", num2);
-    }
     return num2;
   }
 
@@ -8337,56 +8220,6 @@ public class Msn {
   }
 
   /**
-   * Performs the Sigmoid operation on the number provided.
-   * 
-   * @param d the number
-   * @return the number after applying the sigmoid function
-   * @since 0.1.5.2.7
-   */
-  public static double sigmoid(double d) {
-    return 1 / (1 + Math.exp(-d));
-  }
-
-  /**
-   * Calculates an initial weight value for a neural network.
-   * 
-   * @param inputs the number of input neurons
-   * @param outputs the number of output neurons
-   * @return an initial weight value
-   * @since 0.1.5.2.7
-   */
-  public static double weight(int inputs, int outputs) {
-    return new Random().nextGaussian() * (Math.sqrt(2.0 / (inputs + outputs)));
-  }
-
-  /**
-   * Calculates an initial weight value for a neural network.
-   * 
-   * @return an initial weight value
-   * @since 0.1.5.2.8
-   */
-  public static double weight() {
-    return .5 - Math.random();
-  }
-
-  /**
-   * Calculates the dot product of the given weights and outputs, and appends the bias to the
-   * calculation.
-   * 
-   * @param weights the weights
-   * @param outputs the outputs
-   * @param bias the bias
-   * @return the weighted sum
-   * @since 0.1.5.2.8
-   */
-  public static double weightedSum(double[] weights, double[] outputs, double bias) {
-    double sum = 0;
-    for (int i = 0; i < weights.length; i++)
-      sum += weights[i] * outputs[i];
-    return sum + bias;
-  }
-
-  /**
    * Finds the longer side of a right triangle.
    * 
    * @param a a
@@ -8489,7 +8322,7 @@ public class Msn {
    * @since 0.1.5.1.1
    */
   public static boolean coinflip() {
-    return Msn.randomInt(0, 2) == 0;
+    return new Random().nextBoolean();
   }
 
   /**
@@ -8675,9 +8508,8 @@ public class Msn {
   public static void shuffle(Object[] array) {
     ArrayList<Object> list = new ArrayList<>(Arrays.asList(array));
     Collections.shuffle(list);
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       array[i] = list.get(i);
-    }
   }
 
   /**
@@ -8689,9 +8521,8 @@ public class Msn {
   public static void shuffle(int[] array) {
     ArrayList<Integer> list = new ArrayList<>(Arrays.asList(box(array)));
     Collections.shuffle(list);
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       array[i] = list.get(i);
-    }
   }
 
   /**
@@ -8703,9 +8534,8 @@ public class Msn {
   public static void shuffle(double[] array) {
     ArrayList<Double> list = new ArrayList<>(Arrays.asList(box(array)));
     Collections.shuffle(list);
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       array[i] = list.get(i);
-    }
   }
 
   /**
@@ -8717,9 +8547,8 @@ public class Msn {
   public static void shuffle(boolean[] array) {
     ArrayList<Boolean> list = new ArrayList<>(Arrays.asList(box(array)));
     Collections.shuffle(list);
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       array[i] = list.get(i);
-    }
   }
 
   /**
@@ -8731,24 +8560,63 @@ public class Msn {
   public static void shuffle(char[] array) {
     ArrayList<Character> list = new ArrayList<>(Arrays.asList(box(array)));
     Collections.shuffle(list);
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       array[i] = list.get(i);
-    }
   }
 
-  // ----------------------------ERROR HANDLING-------------------------------
+  // --------------------------NEURAL NETWORKS--------------------------------
 
   /**
-   * Handles errors.
+   * Performs the Sigmoid operation on the number provided.
    * 
-   * @param errorMessage the message to throw
-   * @throws Exception the error
+   * @param d the number
+   * @return the number after applying the sigmoid function
+   * @since 0.1.5.2.7
    */
-  public static void toss(String errorMessage) throws Exception {
-    throw new Exception(errorMessage);
+  public static double sigmoid(double d) {
+    return 1 / (1 + Math.exp(-d));
   }
 
-  // ----------------------------MISC-----------------------------------------
+  /**
+   * Calculates an initial weight value for a neural network.
+   * 
+   * @param inputs the number of input neurons
+   * @param outputs the number of output neurons
+   * @return an initial weight value
+   * @since 0.1.5.2.7
+   */
+  public static double weight(int inputs, int outputs) {
+    return new Random().nextGaussian() * (Math.sqrt(2.0 / (inputs + outputs)));
+  }
+
+  /**
+   * Calculates an initial weight value for a neural network.
+   * 
+   * @return an initial weight value
+   * @since 0.1.5.2.8
+   */
+  public static double weight() {
+    return .5 - Math.random();
+  }
+
+  /**
+   * Calculates the dot product of the given weights and outputs, and appends the bias to the
+   * calculation.
+   * 
+   * @param weights the weights
+   * @param outputs the outputs
+   * @param bias the bias
+   * @return the weighted sum
+   * @since 0.1.5.2.8
+   */
+  public static double weightedSum(double[] weights, double[] outputs, double bias) {
+    double sum = 0;
+    for (int i = 0; i < weights.length; i++)
+      sum += weights[i] * outputs[i];
+    return sum + bias;
+  }
+
+  // --------------------------------MISC-------------------------------------
 
   /**
    * Plays a beep sound
