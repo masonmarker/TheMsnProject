@@ -31,7 +31,8 @@ public class Network {
     if (outputs != 1)
       throw new IllegalArgumentException("outputs must be 1 for this version of the Network");
     if (hiddenPerLayer == 1 || hiddenPerLayer > inputs)
-      throw new IllegalArgumentException("hiddenPerLayer must be: 1 < hiddenPerLayer < inputs");
+      throw new IllegalArgumentException(
+          "hiddenPerLayer must be: 1 < hiddenPerLayer <= inputs: " + hiddenPerLayer);
     ArrayList<Layer> Layers = new ArrayList<>();
     int index = 0;
     learningrate = 0.8;
@@ -251,6 +252,11 @@ public class Network {
    */
   public Layer getOutputLayer() {
     return outputLayer;
+  }
+
+  public String toString() {
+    return "Network: Inputs: " + inputs() + " Hidden Layers: " + hiddenLayers()
+        + " Neurons per hidden: " + neuronsPerHiddenLayer() + " Outputs: " + outputs();
   }
 
   /**
