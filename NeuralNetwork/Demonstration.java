@@ -47,13 +47,13 @@ public class Demonstration {
       System.out.println("Training Results");
       System.out.println("----------------");
       System.out.println(
-          "input: [2.0, 6.0, 1.0]: Target: 0.2      Network says: " + n.getAnswer(inputs[0]));
+          "input: [2.0, 6.0, 1.0]: Target: " + targets[0] + "      Network says: " + n.getAnswer(inputs[0]));
       System.out.println(
-          "input: [9.0, 0.0, 0.0]: Target: 0.9      Network says: " + n.getAnswer(inputs[1]));
+          "input: [9.0, 0.0, 0.0]: Target: " + targets[1] + "      Network says: " + n.getAnswer(inputs[1]));
       System.out.println(
-          "input: [3.0, 6.0, 5.0]: Target: 0.3      Network says: " + n.getAnswer(inputs[2]));
+          "input: [3.0, 6.0, 5.0]: Target: " + targets[2] + "      Network says: " + n.getAnswer(inputs[2]));
       System.out.println(
-          "input: [0.0, 0.0, 0.0]: Target: 0.0      Network says: " + n.getAnswer(inputs[3]));
+          "input: [0.0, 0.0, 0.0]: Target: " + targets[3] + "      Network says: " + n.getAnswer(inputs[3]));
     }
   }
 }
