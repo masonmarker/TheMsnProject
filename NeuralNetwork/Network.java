@@ -1,70 +1,402 @@
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.stream.IntStream;
 
+/**
+ * Class for Neural Network capabilities.
+ * 
+ * To train this Network, run the forward and backward methods in unison to create a decision making
+ * path for multiple inputs and desired outputs.
+ *
+ * CURRENTLY ONLY WORKS WITH ONE OUTPUT NEURON!
+ * 
+ * @author Mason Marker
+ * @version 1.0 - 05/13/2021
+ */
 public class Network {
 
   private double learningrate;
-  private int ipn;
-  private int hn;
-  private int opn;
-  private Neuron[] neurons;
+  private Layer inputLayer;
+  private Layer[] hiddenLayers;
+  private Layer outputLayer;
 
-  public Network(int inputs, int hidden, int outputs) {
-    learningrate = .8;
-    ipn = inputs;
-    hn = hidden;
-    opn = outputs;
-    neurons = new Neuron[inputs + hidden + outputs];
-    IntStream.range(0, ipn).forEach(i -> neurons[i] = new Neuron("ip", hn));
-    IntStream.range(ipn, ipn + hn).forEach(i -> neurons[i] = new Neuron("hn", hn));
-    IntStream.range(ipn + hn, ipn + hn + opn).forEach(i -> neurons[i] = new Neuron("op", hn));
+  /**
+   * Network constructor.
+   * 
+   * @param inputs the amount of input Neuron
+   * @param hiddenLayerCount the amount of hidden Layers
+   * @param hiddenPerLayer the amount of hidden Neuron per hidden Layer
+   * @param outputs the amount of output Neuron
+   */
+  public Network(int inputs, int hiddenLayerCount, int hiddenPerLayer, int outputs) {
+    if (outputs != 1)
+      throw new IllegalArgumentException("outputs must be 1 for this version of the Network");
+    if (hiddenPerLayer == 1 || hiddenPerLayer > inputs)
+      throw new IllegalArgumentException("hiddenPerLayer must be: 1 < hiddenPerLayer < inputs");
+    ArrayList<Layer> Layers = new ArrayList<>();
+    int index = 0;
+    learningrate = 0.8;
+    inputLayer = new Layer(new Neuron[inputs], index);
+    Layers.add(inputLayer);
+    index++;
+    for (int i = 0; i < inputLayer.getNeurons().length; i++)
+      inputLayer.getNeurons()[i] = new Neuron(hiddenPerLayer);
+    hiddenLayers = new Layer[hiddenLayerCount];
+    for (int i = 0; i < hiddenLayers.length; i++) {
+      hiddenLayers[i] = new Layer(new Neuron[hiddenPerLayer], index);
+      Layers.add(hiddenLayers[i]);
+      index++;
+      for (int j = 0; j < hiddenLayers[i].getNeurons().length; j++)
+        hiddenLayers[i].getNeurons()[j] = new Neuron(hiddenPerLayer);
+    }
+    outputLayer = new Layer(new Neuron[outputs], index);
+    Layers.add(outputLayer);
+    index++;
+    for (int i = 0; i < outputLayer.getNeurons().length; i++)
+      outputLayer.getNeurons()[i] = new Neuron(hiddenPerLayer);
+    Layer[] all = Layers.toArray(new Layer[Layers.size()]);
+    inputLayer.setLayers(all);
+    for (Layer l : hiddenLayers)
+      l.setLayers(all);
+    outputLayer.setLayers(all);
   }
 
-  public Neuron[] getNeurons() {
-    return neurons;
+  /**
+   * Forward propogation, attempts to calculate an answer for the given inputs while referencing
+   * previous inputs.
+   * 
+   * @param inputs the inputs
+   * @return this Network
+   */
+  public Network forward(double[] inputs) {
+    for (int i = 0; i < inputLayer.getNeurons().length; i++)
+      inputLayer.getNeurons()[i].setOutput(inputs[i]);
+    for (int i = 0; i < hiddenLayers.length; i++) {
+      for (int j = 0; j < hiddenLayers[i].getNeurons().length; j++) {
+        Neuron current = hiddenLayers[i].getNeurons()[j];
+        if (i == 0)
+          current.activate(
+              Msn.weightedSum(current.getWeights(), inputLayer.getOutputs(), current.getBias()));
+        else
+          current.activate(Msn.weightedSum(current.getWeights(), hiddenLayers[i - 1].getOutputs(),
+              current.getBias()));
+      }
+    }
+    for (int i = 0; i < outputLayer.getNeurons().length; i++) {
+      Neuron current = outputLayer.getNeurons()[i];
+      current.activate(Msn.weightedSum(current.getWeights(),
+          hiddenLayers[hiddenLayers.length - 1].getOutputs(), current.getBias()));
+    }
+    return this;
   }
 
-  public Network forward(double[] input) {
-    for (int i = 0; i < neurons.length; i++) {
-      Neuron n = neurons[i];
-      if (n.getLayer().equals("ip")) {
-        n.setOutput(input[i]);
-      } else if (n.getLayer().equals("hn")) {
-        n.activate(n.getBias() + n.getWeights()[0] * neurons[0].getOutput()
-            + n.getWeights()[1] * neurons[1].getOutput());
-      } else if (n.getLayer().equals("op")) {
-        n.activate(n.getBias() + n.getWeights()[0] * neurons[2].getOutput()
-            + n.getWeights()[1] * neurons[3].getOutput());
+  /**
+   * Backwards propogation, traverses backwards through the Network, changing weights and biases of
+   * each Neuron according to how "wrong" the Network's answer was using the means squared error
+   * function.
+   * 
+   * Use this method only after using forwards().
+   * 
+   * @param target the target for the current inputs
+   * @return this Network with corrected weights and biases
+   */
+  public Network backward(double target) {
+    for (int i = 0; i < outputLayer.getNeurons().length; i++) {
+      Neuron current = outputLayer.getNeurons()[i];
+      current.setError((target - current.getOutput()) * current.dx());
+      current.setBias(current.getBias() + learningrate * current.getError());
+      Layer before = outputLayer.before();
+      for (int j = 0; j < before.getNeurons().length; j++)
+        current.getWeights()[j] = current.getWeights()[j]
+            + learningrate * current.getError() * before.getNeurons()[j].getOutput();
+    }
+    Neuron op = outputLayer.getNeurons()[0];
+    for (int i = hiddenLayers.length - 1; i >= 0; i--) {
+      for (int j = 0; j < hiddenLayers[i].getNeurons().length; j++) {
+        Neuron current = hiddenLayers[i].getNeurons()[j];
+        current.setError((op.getWeights()[1] * op.getError()) * current.dx());
+        current.setBias(current.getBias() + learningrate * current.getError());
+        for (int k = 0; k < current.getWeights().length; k++) {
+          Layer before = hiddenLayers[i].before();
+          current.getWeights()[k] = current.getWeights()[k]
+              + learningrate * current.getError() * before.getNeurons()[k].getOutput();
+          current.getWeights()[k] = current.getWeights()[k]
+              + learningrate * current.getError() * before.getNeurons()[k].getOutput();
+        }
       }
     }
     return this;
   }
 
-  public Network backward(double target) {
-    
-    neurons[4].setError(target - neurons[4].getOutput() * neurons[4].dx());
-    neurons[4].setBias(neurons[4].getBias() + learningrate * neurons[4].getError());
-    neurons[4].getWeights()[0] = neurons[4].getWeights()[0] + learningrate * neurons[4].getError() * neurons[2].getOutput();
-    neurons[4].getWeights()[1] = neurons[4].getWeights()[1] + learningrate * neurons[4].getError() * neurons[3].getOutput();
-    
-    neurons[3].setError(neurons[4].getWeights()[1] * neurons[4].getError() * neurons[3].dx());
-    neurons[3].setBias(neurons[3].getBias() + learningrate * neurons[3].getError());
-    neurons[3].getWeights()[0] = neurons[3].getWeights()[0] + learningrate * neurons[3].getError() * neurons[0].getOutput();
-    neurons[3].getWeights()[1] = neurons[3].getWeights()[1] + learningrate * neurons[3].getError() * neurons[1].getOutput();
-    
-    neurons[2].setError(neurons[4].getWeights()[1] * neurons[4].getError() * neurons[2].dx());
-    neurons[2].setBias(neurons[2].getBias() + learningrate * neurons[2].getError());
-    neurons[2].getWeights()[0] = neurons[2].getWeights()[0] + learningrate * neurons[2].getError() * neurons[0].getOutput();
-    neurons[2].getWeights()[1] = neurons[2].getWeights()[1] + learningrate * neurons[2].getError() * neurons[1].getOutput();
-       
+  /**
+   * Gets the output for the specified inputs. This method must be ran after training for valid
+   * results.
+   * 
+   * @return the answer
+   */
+  public double getAnswer(double[] inputs) {
+    return forward(inputs).outputLayer.getNeurons()[0].getOutput();
+  }
+ 
+  /**
+   * Trains this Network with the given inputs and outputs.
+   * 
+   * @param inputs the inputs
+   * @param times the amount of training iterations
+   * @param targets the targets
+   * @return this Network
+   */
+  public Network bulkTrain(double[][] inputs, double[] targets, int times) {
+    for (int i = 0; i < times; i++)
+      for (int j = 0; j < inputs.length; j++)
+        forward(inputs[j]).backward(targets[j]);
     return this;
   }
 
-
-
-  public String toString() {
-    return Arrays.toString(neurons);
+  /**
+   * Gets the number of input Neurons.
+   * 
+   * @return the amount of inputs
+   */
+  public int inputs() {
+    return inputLayer.getNeurons().length;
   }
 
+  /**
+   * The amount of hidden layers
+   * 
+   * @return the hidden layers
+   */
+  public int hiddenLayers() {
+    return hiddenLayers.length;
+  }
 
+  /**
+   * The amount of Neurons per hidden Layer.
+   * 
+   * @return Neurons per hidden layer
+   */
+  public int neuronsPerHiddenLayer() {
+    return hiddenLayers[0].getNeurons().length;
+  }
+
+  /**
+   * The amount of output Neurons.
+   * 
+   * @return the amount of outputs
+   */
+  public int outputs() {
+    return outputLayer.getNeurons().length;
+  }
+
+  /**
+   * Gets the input Layer.
+   * 
+   * @return the input Layer
+   */
+  public Layer getInputLayer() {
+    return inputLayer;
+  }
+
+  /**
+   * Gets the hidden Layers.
+   * 
+   * @return the hidden Layers
+   */
+  public Layer[] getHiddenLayers() {
+    return hiddenLayers;
+  }
+
+  /**
+   * Gets the output Layer.
+   * 
+   * @return the output Layer
+   */
+  public Layer getOutputLayer() {
+    return outputLayer;
+  }
+
+  /**
+   * A single Layer of Neurons.
+   * 
+   * @author Mason Marker
+   * @version 1.0
+   */
+  class Layer {
+
+    private Neuron[] neurons;
+    private Layer[] Layers;
+    private int index;
+
+    /**
+     * Layer constructor.
+     * 
+     * @param neurons the Neurons to be added
+     * @param index the index of this Layer in the entire Network
+     */
+    public Layer(Neuron[] neurons, int index) {
+      this.neurons = neurons;
+      this.index = index;
+    }
+
+    /**
+     * Gets the outputs for every Neuron in this Layer.
+     * 
+     * @return the outputs
+     */
+    public double[] getOutputs() {
+      double[] d = new double[neurons.length];
+      for (int i = 0; i < d.length; i++)
+        d[i] = neurons[i].getOutput();
+      return d;
+    }
+
+    /**
+     * Stores all Layers, allows for proper Layer iteration when propogating.
+     * 
+     * @param Layers the Layers to add
+     */
+    public void setLayers(Layer[] Layers) {
+      this.Layers = Layers;
+    }
+
+    /**
+     * The Layer before this one in the Network.
+     * 
+     * @return the Layer before
+     */
+    public Layer before() {
+      return Layers[index - 1];
+    }
+
+    /**
+     * Gets all Neurons in this Layer
+     * 
+     * @return
+     */
+    public Neuron[] getNeurons() {
+      return neurons;
+    }
+  }
+
+  /**
+   * Neuron class, stores all data for weights and biases.
+   * 
+   * @author Mason Marker
+   * @version 1.0
+   */
+  class Neuron {
+
+    private double bias;
+    private double[] weights;
+    private double output;
+    private double error;
+
+    /**
+     * Neuron constructor.
+     * 
+     * @param weightcount the amount of weights to store in this Neuron.
+     */
+    public Neuron(int weightcount) {
+      bias = Msn.weight();
+      output = 0;
+      error = 0;
+      weights = new double[weightcount];
+      for (int i = 0; i < weights.length; i++)
+        weights[i] = Msn.weight();
+    }
+
+    /**
+     * Activates this Neuron using the Sigmoid -Logistic function.
+     * 
+     * @param weightsum the weighted sum calculation
+     */
+    public void activate(double weightsum) {
+      output = Msn.sigmoid(weightsum);
+    }
+
+    /**
+     * Calculates the derivative for the output of this Neuron.
+     * 
+     * @return thge derivative
+     */
+    public double dx() {
+      return output * (1 - output);
+    }
+
+    /**
+     * Gets the current bias stored in this Neuron.
+     * 
+     * @return the bias / threshold
+     */
+    public double getBias() {
+      return bias;
+    }
+
+    /**
+     * Sets the bias.
+     * 
+     * @param bias the bias
+     */
+    public void setBias(double bias) {
+      this.bias = bias;
+    }
+
+    /**
+     * Gets all weights for this Neuron.
+     * 
+     * @return the weights
+     */
+    public double[] getWeights() {
+      return weights;
+    }
+
+    /**
+     * Gets the output for this Neuron.
+     * 
+     * @return the output
+     */
+    public double getOutput() {
+      return output;
+    }
+
+    /**
+     * Sets the output for this Neuron.
+     * 
+     * @param output the output
+     */
+    public void setOutput(double output) {
+      this.output = output;
+    }
+
+    /**
+     * Gets the error for this Neuron.
+     * 
+     * @return the error
+     */
+    public double getError() {
+      return error;
+    }
+
+    /**
+     * Sets the error for this Neuron.
+     * 
+     * @param error the error
+     */
+    public void setError(double error) {
+      this.error = error;
+    }
+
+    /**
+     * String representation of this Neuron.
+     */
+    public String toString() {
+      String s = "";
+      s += "Neuron:\n";
+      s += "Bias / Threshold: " + bias + "\n";
+      s += "Weights: " + Arrays.toString(weights) + "\n";
+      s += "Output: " + output + "\n";
+      s += "Error: " + error + "\n";
+      return s;
+    }
+  }
 }
