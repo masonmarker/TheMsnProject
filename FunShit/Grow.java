@@ -13,7 +13,7 @@ import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 
 @SuppressWarnings("serial")
-public class GrowDriver extends JFrame implements MouseListener {
+public class Grow extends JFrame implements MouseListener {
 
   private JPanel contentPane;
   private static JPanel[][] cells;
@@ -26,7 +26,7 @@ public class GrowDriver extends JFrame implements MouseListener {
     EventQueue.invokeLater(new Runnable() {
       public void run() {
         try {
-          GrowDriver frame = new GrowDriver();
+          Grow frame = new Grow();
           frame.setVisible(true);
 
           SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
@@ -51,7 +51,7 @@ public class GrowDriver extends JFrame implements MouseListener {
   /**
    * Create the frame.
    */
-  public GrowDriver() {
+  public Grow() {
 
     time = 500;
 

@@ -7728,6 +7728,16 @@ public class Msn {
   }
 
   /**
+   * Rounds a double to the nearest tenth.
+   * 
+   * @param number the number to round
+   * @return the rounded number
+   */
+  public static double roundTenth(double number) {
+    return (double) Math.round(number * 10) / 10;
+  }
+  
+  /**
    * Calculates the average of a given array.
    * 
    * @param arr the array to use

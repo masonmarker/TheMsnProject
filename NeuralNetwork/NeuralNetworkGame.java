@@ -15,17 +15,22 @@ import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
+/**
+ * Watch an artificial intelligence agent learn to avoid walls!
+ * 
+ * @author Mason Marker
+ * @version 1.0 - 05/14/2021
+ */
 @SuppressWarnings("serial")
-public class Driver extends JFrame implements MouseListener {
+public class NeuralNetworkGame extends JFrame implements MouseListener {
 
   private JPanel contentPane;
 
-  private JPanel[][] cells;
+  private static JPanel[][] cells;
   private static JLabel scorelabel;
   private static JLabel genlabel;
-  
-  private Ai ai;
 
+  private static Ai ai;
   static int gen;
   static int score;
 
@@ -36,20 +41,19 @@ public class Driver extends JFrame implements MouseListener {
     EventQueue.invokeLater(new Runnable() {
       public void run() {
         try {
-          Driver frame = new Driver();
+          NeuralNetworkGame frame = new NeuralNetworkGame();
           frame.setVisible(true);
-          
+          Network network = new Network(4, 3, 3, 1);
           SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws Exception {
               while (true) {
-                makeMove();
-                Thread.sleep(300);
+                makeMove(network);
+                Thread.sleep(50);
               }
             }
           };
           worker.execute();
-
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -60,7 +64,7 @@ public class Driver extends JFrame implements MouseListener {
   /**
    * Create the frame.
    */
-  public Driver() {
+  public NeuralNetworkGame() {
 
     gen = 1;
     score = 0;
@@ -131,7 +135,6 @@ public class Driver extends JFrame implements MouseListener {
         }
       }
     }
-
     obstacleInit();
     pack();
     setLocationRelativeTo(null);
@@ -140,7 +143,54 @@ public class Driver extends JFrame implements MouseListener {
   /**
    * Makes a move based on the decision making of this neural network.
    */
-  public static void makeMove() {
+  public static void makeMove(Network n) {
+
+    double[] around = around();
+    double[] possible = {0, .3, .6, 1};
+    double answer = n.getAnswer(around);
+    double closest = Msn.closestTo(answer, possible);
+
+    if (closest == 0) {
+      if (moveUp())
+        n.train(around, 0, 50000);
+      else {
+        double rand = Msn.randomElement(possible);
+        while (rand == 0)
+          rand = Msn.randomElement(possible);
+        n.train(around, rand, 1000);
+        reset();
+      }
+    } else if (closest == .3) {
+      if (moveDown())
+        n.train(around, .3, 50000);
+      else {
+        double rand = Msn.randomElement(possible);
+        while (rand == .3)
+          rand = Msn.randomElement(possible);
+        n.train(around, rand, 1000);
+        reset();
+      }
+    } else if (closest == .6) {
+      if (moveLeft())
+        n.train(around, .6, 50000);
+      else {
+        double rand = Msn.randomElement(possible);
+        while (rand == .6)
+          rand = Msn.randomElement(possible);
+        n.train(around, rand, 1000);
+        reset();
+      }
+    } else if (closest == 1) {
+      if (moveRight())
+        n.train(around, 1, 50000);
+      else {
+        double rand = Msn.randomElement(possible);
+        while (rand == 1)
+          rand = Msn.randomElement(possible);
+        n.train(around, rand, 1000);
+        reset();
+      }
+    }
     increaseScore();
   }
 
@@ -149,7 +199,7 @@ public class Driver extends JFrame implements MouseListener {
     scorelabel.setText("Score: " + score);
   }
 
-  public void reset() {
+  public static void reset() {
     for (int i = 0; i < cells.length; i++) {
       for (int j = 0; j < cells[i].length; j++) {
         cells[i][j].setBackground(Color.black);
@@ -164,7 +214,7 @@ public class Driver extends JFrame implements MouseListener {
     ai.setPosition(25, 25);
   }
 
-  public void obstacleInit() {
+  public static void obstacleInit() {
     cells[20][15].setBackground(Color.red);
     cells[21][15].setBackground(Color.red);
     cells[22][15].setBackground(Color.red);
@@ -249,31 +299,40 @@ public class Driver extends JFrame implements MouseListener {
 
   }
 
-  public int above() {
+  public static double[] around() {
+    double[] d = new double[4];
+    d[0] = above();
+    d[1] = below();
+    d[2] = left();
+    d[3] = right();
+    return d;
+  }
+
+  public static int above() {
     JPanel p = (JPanel) Msn.above(cells, ai.position());
     if (p.getBackground().equals(Color.red)) {
       return 1;
     }
     return 0;
   }
-  
-  public int below() {
+
+  public static int below() {
     JPanel p = (JPanel) Msn.below(cells, ai.position());
     if (p.getBackground().equals(Color.red)) {
       return 1;
     }
     return 0;
   }
-  
-  public int left() {
+
+  public static int left() {
     JPanel p = (JPanel) Msn.leftOf(cells, ai.position());
     if (p.getBackground().equals(Color.red)) {
       return 1;
     }
     return 0;
   }
-  
-  public int right() {
+
+  public static int right() {
     JPanel p = (JPanel) Msn.rightOf(cells, ai.position());
     if (p.getBackground().equals(Color.red)) {
       return 1;
@@ -281,7 +340,7 @@ public class Driver extends JFrame implements MouseListener {
     return 0;
   }
 
-  public boolean moveUp() {
+  public static boolean moveUp() {
     JPanel above = (JPanel) Msn.above(cells, ai.position());
     if (above.getBackground().equals(Color.red))
       return false;
@@ -291,7 +350,7 @@ public class Driver extends JFrame implements MouseListener {
     return true;
   }
 
-  public boolean moveLeft() {
+  public static boolean moveLeft() {
     JPanel left = (JPanel) Msn.leftOf(cells, ai.position());
     if (left.getBackground().equals(Color.red))
       return false;
@@ -301,7 +360,7 @@ public class Driver extends JFrame implements MouseListener {
     return true;
   }
 
-  public boolean moveRight() {
+  public static boolean moveRight() {
     JPanel right = (JPanel) Msn.rightOf(cells, ai.position());
     if (right.getBackground().equals(Color.red))
       return false;
@@ -311,7 +370,7 @@ public class Driver extends JFrame implements MouseListener {
     return true;
   }
 
-  public boolean moveDown() {
+  public static boolean moveDown() {
     JPanel below = (JPanel) Msn.below(cells, ai.position());
     if (below.getBackground().equals(Color.red))
       return false;
@@ -320,4 +379,35 @@ public class Driver extends JFrame implements MouseListener {
     ai.setPosition(ai.getI() + 1, ai.getJ());
     return true;
   }
+
+  class Ai extends JPanel {
+
+    private int i;
+    private int j;
+
+    public Ai(int i, int j) {
+      setBackground(Color.GREEN);
+      this.i = i;
+      this.j = j;
+    }
+
+    public int[] position() {
+      return new int[] {i, j};
+    }
+
+    public void setPosition(int i, int j) {
+      this.i = i;
+      this.j = j;
+    }
+
+    public int getI() {
+      return i;
+    }
+
+    public int getJ() {
+      return j;
+    }
+
+  }
+
 }

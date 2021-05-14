@@ -136,7 +136,33 @@ public class Network {
   public double getAnswer(double[] inputs) {
     return forward(inputs).outputLayer.getNeurons()[0].getOutput();
   }
- 
+
+  /**
+   * Trains this Network for one iteration of inputs.
+   * 
+   * @param input the inputs
+   * @param target the target answer
+   * @return this Network after training
+   */
+  public Network train(double[] inputs, double target) {
+    forward(inputs).backward(target);
+    return this;
+  }
+
+  /**
+   * Trains this Network of a single set of inputs over a specified amount of iterations.
+   * 
+   * @param input the input values
+   * @param target the target value
+   * @param times the amount of iterations
+   * @return this Network after training
+   */
+  public Network train(double[] inputs, double target, int times) {
+    for (int i = 0; i < times; i++)
+      train(inputs, target);
+    return this;
+  }
+
   /**
    * Trains this Network with the given inputs and outputs.
    * 

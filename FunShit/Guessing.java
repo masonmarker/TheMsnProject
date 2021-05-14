@@ -31,6 +31,10 @@ public class Guessing extends JFrame {
   private JLabel aiguesseslabel;
   private ArrayList<Integer> aiguesses;
 
+  public static void main(String[] args) {
+    new Guessing(1, 100);
+  }
+  
   /**
    * Create the frame.
    */
