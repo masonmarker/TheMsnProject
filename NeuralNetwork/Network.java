@@ -183,6 +183,24 @@ public class Network {
   }
 
   /**
+   * Gets the learning rate of this Network.
+   * 
+   * @return the learning rate
+   */
+  public double getLearningRate() {
+    return learningrate;
+  }
+
+  /**
+   * Sets the learning rate of this Network.
+   * 
+   * @param learningrate the new learning rate
+   */
+  public void setLearningRate(double learningrate) {
+    this.learningrate = learningrate;
+  }
+
+  /**
    * Gets the total amount of neural layers in this Network.
    * 
    * @return the total layers
