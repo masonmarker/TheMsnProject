@@ -43,12 +43,13 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
         try {
           NeuralNetworkGame frame = new NeuralNetworkGame();
           frame.setVisible(true);
-          Network network = new Network(4, 3, 3, 1);
+          Network network = new Network(4, 2, 2, 1);
           SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws Exception {
               while (true) {
                 makeMove(network);
+                Msn.pa(ai.position());
                 Thread.sleep(50);
               }
             }
@@ -152,42 +153,42 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
 
     if (closest == 0) {
       if (moveUp())
-        n.train(around, 0, 50000);
+        n.train(around, 0, 100000);
       else {
         double rand = Msn.randomElement(possible);
         while (rand == 0)
           rand = Msn.randomElement(possible);
-        n.train(around, rand, 1000);
+        n.train(around, rand, 10000);
         reset();
       }
     } else if (closest == .3) {
       if (moveDown())
-        n.train(around, .3, 50000);
+        n.train(around, .3, 100000);
       else {
         double rand = Msn.randomElement(possible);
         while (rand == .3)
           rand = Msn.randomElement(possible);
-        n.train(around, rand, 1000);
+        n.train(around, rand, 10000);
         reset();
       }
     } else if (closest == .6) {
       if (moveLeft())
-        n.train(around, .6, 50000);
+        n.train(around, .6, 100000);
       else {
         double rand = Msn.randomElement(possible);
         while (rand == .6)
           rand = Msn.randomElement(possible);
-        n.train(around, rand, 1000);
+        n.train(around, rand, 10000);
         reset();
       }
     } else if (closest == 1) {
       if (moveRight())
-        n.train(around, 1, 50000);
+        n.train(around, 1, 100000);
       else {
         double rand = Msn.randomElement(possible);
         while (rand == 1)
           rand = Msn.randomElement(possible);
-        n.train(around, rand, 1000);
+        n.train(around, rand, 10000);
         reset();
       }
     }
@@ -200,11 +201,9 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
   }
 
   public static void reset() {
-    for (int i = 0; i < cells.length; i++) {
-      for (int j = 0; j < cells[i].length; j++) {
+    for (int i = 0; i < cells.length; i++)
+      for (int j = 0; j < cells[i].length; j++)
         cells[i][j].setBackground(Color.black);
-      }
-    }
     score = 0;
     scorelabel.setText("Score: " + score);
     gen++;
