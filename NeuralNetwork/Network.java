@@ -131,7 +131,7 @@ public class Network {
    * Gets the output for the specified inputs. This method must be ran after training for valid
    * results.
    * 
-   * @return the answer
+   * @return the estimate of this Network for the inputs given
    */
   public double getAnswer(double[] inputs) {
     return forward(inputs).outputLayer.getNeurons()[0].getOutput();
@@ -145,6 +145,9 @@ public class Network {
    * @return this Network after training
    */
   public Network train(double[] inputs, double target) {
+    if (inputs.length != inputs())
+      throw new IllegalArgumentException(
+          "inputs[] length must be equal to the number of inputs in this Network");
     forward(inputs).backward(target);
     return this;
   }
@@ -174,8 +177,17 @@ public class Network {
   public Network bulkTrain(double[][] inputs, double[] targets, int times) {
     for (int i = 0; i < times; i++)
       for (int j = 0; j < inputs.length; j++)
-        forward(inputs[j]).backward(targets[j]);
+        train(inputs[j], targets[j]);
     return this;
+  }
+
+  /**
+   * Gets the total amount of neural layers in this Network.
+   * 
+   * @return the total layers
+   */
+  public int layers() {
+    return 1 + hiddenLayers() + 1;
   }
 
   /**
