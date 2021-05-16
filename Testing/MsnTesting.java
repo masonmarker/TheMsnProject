@@ -2,12 +2,18 @@ public class MsnTesting {
 
   public static void main(String[] args) throws Exception {
 
-    double[][] inputs = Msn.create2DDoubleArray(5, 3);
-    double[] targets = {0, .1, .2, .3, .4, .5};
-
-    Msn.pa(inputs);
-
-    NetworkUtilities.findBest(inputs, targets, 2500000, true);
+    Network network = new Network(3, 2, 2, 1);
+    
+    double[][] data = {{3, 7, 4}, {2, 8, 9}};
+    double[] targets = {.1, .73};
+    
+    network.bulkTrain(data, targets, 100000);
+    
+    System.out.println(network.getAnswer(new double[] {2, 8, 9}));
+    
+    
+    
+    
 
   }
 }

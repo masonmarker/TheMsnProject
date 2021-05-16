@@ -7736,7 +7736,7 @@ public class Msn {
   public static double roundTenth(double number) {
     return (double) Math.round(number * 10) / 10;
   }
-  
+
   /**
    * Calculates the average of a given array.
    * 
@@ -7819,7 +7819,7 @@ public class Msn {
       else
         num2 = num2 - num1;
     }
-    if (verbose) 
+    if (verbose)
       System.out.printf("GCD of given numbers is: %d", num2);
     return num2;
   }
@@ -8219,11 +8219,9 @@ public class Msn {
    */
   public static double closestTo(double i, double[] options) {
     double closest = options[0];
-    for (double integer : options) {
-      if (Math.abs(integer - i) < Math.abs(closest - i)) {
+    for (double integer : options)
+      if (Math.abs(integer - i) < Math.abs(closest - i))
         closest = integer;
-      }
-    }
     if (verbose)
       println("[+] closest number found: " + closest);
     return closest;

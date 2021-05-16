@@ -43,7 +43,7 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
         try {
           NeuralNetworkGame frame = new NeuralNetworkGame();
           frame.setVisible(true);
-          Network network = new Network(4, 2, 2, 1);
+          Network network = new Network(4, 2, 4, 1);
           SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws Exception {
