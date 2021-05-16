@@ -343,7 +343,7 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
     JPanel above = (JPanel) Msn.above(cells, ai.position());
     if (above.getBackground().equals(Color.red))
       return false;
-    cells[ai.getI()][ai.getJ()].setBackground(Color.black);
+    cells[ai.getI()][ai.getJ()].setBackground(Color.red);
     above.setBackground(Color.green);
     ai.setPosition(ai.getI() - 1, ai.getJ());
     return true;
@@ -353,7 +353,7 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
     JPanel left = (JPanel) Msn.leftOf(cells, ai.position());
     if (left.getBackground().equals(Color.red))
       return false;
-    cells[ai.getI()][ai.getJ()].setBackground(Color.black);
+    cells[ai.getI()][ai.getJ()].setBackground(Color.red);
     left.setBackground(Color.green);
     ai.setPosition(ai.getI(), ai.getJ() - 1);
     return true;
@@ -363,7 +363,7 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
     JPanel right = (JPanel) Msn.rightOf(cells, ai.position());
     if (right.getBackground().equals(Color.red))
       return false;
-    cells[ai.getI()][ai.getJ()].setBackground(Color.black);
+    cells[ai.getI()][ai.getJ()].setBackground(Color.red);
     right.setBackground(Color.green);
     ai.setPosition(ai.getI(), ai.getJ() + 1);
     return true;
@@ -373,7 +373,7 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
     JPanel below = (JPanel) Msn.below(cells, ai.position());
     if (below.getBackground().equals(Color.red))
       return false;
-    cells[ai.getI()][ai.getJ()].setBackground(Color.black);
+    cells[ai.getI()][ai.getJ()].setBackground(Color.red);
     below.setBackground(Color.green);
     ai.setPosition(ai.getI() + 1, ai.getJ());
     return true;
