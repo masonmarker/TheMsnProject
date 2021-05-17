@@ -16,8 +16,9 @@ public class LearnToAdd {
   public static void main(String[] args) {
 
     System.out.println("Running initial iterations...");
-
-    Network network = new Network(2, 2, 2, 1);
+    System.out.println("(Average time to develop a successful Network: 500000 iterations)");
+    
+    Network network = new Network(2, 4, 2, 1);
 
     int iterations = 0;
 
@@ -69,15 +70,14 @@ public class LearnToAdd {
       System.out.println();
       System.out.println("Iterations: " + iterations);
       System.out.println("Trials: 400");
-      double score = ((400.0 - count) / 400) * 100;
+      double score = Msn.decFormat(((400.0 - count) / 400) * 100, 2);
       System.out.println("Network score: " + score + "%");
-      if (score > 98)
+      if (score == 100)
         break;
       System.out.println();
       System.out.println("Running 10000 more iterations...");
     }
-    System.out.println(
-        "Highest training score of 98.5% reached, a higher score\nis not attainable because of decimal rounding errors");
+    System.out.println("Network successfully trained to add two numbers from 0.00 - 0.20!");
   }
 
 }
