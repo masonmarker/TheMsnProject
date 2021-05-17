@@ -15,6 +15,8 @@ public class LearnToAdd {
    */
   public static void main(String[] args) {
 
+    System.out.println("Running initial iterations...");
+
     Network network = new Network(2, 2, 2, 1);
 
     int iterations = 0;
