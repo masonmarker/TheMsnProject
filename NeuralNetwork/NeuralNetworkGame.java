@@ -18,6 +18,9 @@ import javax.swing.border.LineBorder;
 /**
  * Watch an artificial intelligence agent learn to avoid walls!
  * 
+ * This is a Tron based game, whereas the AI must learn to avoid both the walls surrounding it, and
+ * the walls it creates while moving.
+ * 
  * @author Mason Marker
  * @version 1.0 - 05/14/2021
  */
