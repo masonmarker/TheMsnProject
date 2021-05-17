@@ -49,7 +49,7 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
             protected Void doInBackground() throws Exception {
               while (true) {
                 makeMove(network);
-                Thread.sleep(50);
+                Thread.sleep(30);
               }
             }
           };
@@ -151,14 +151,13 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
     double closest = Msn.closestTo(answer, possible);
 
     if (closest == 0)
-      System.out.println("Neural Network output: " + answer + " (up)");
+      System.out.println("Neural Network output: " + Msn.decFormat(answer, 2) + " (up)");
     else if (closest == .3)
-      System.out.println("Neural Network output: " + answer + " (down)");
+      System.out.println("Neural Network output: " + Msn.decFormat(answer, 2) + " (down)");
     else if (closest == .6)
-      System.out.println("Neural Network output: " + answer + " (left)");
+      System.out.println("Neural Network output: " + Msn.decFormat(answer, 2) + " (left)");
     else
-      System.out.println("Neural Network output: " + answer + " (right)");
-
+      System.out.println("Neural Network output: " + Msn.decFormat(answer, 2) + " (right)");
 
     if (closest == 0) {
       if (moveUp())
@@ -202,6 +201,11 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
       }
     }
     increaseScore();
+    if (score == 126) {
+      System.out.println("Neural Network successfully trained!");
+      System.out.println("Generations: " + gen);
+      System.exit(ABORT);
+    }
   }
 
   public static void increaseScore() {
