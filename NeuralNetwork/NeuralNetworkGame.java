@@ -49,7 +49,6 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
             protected Void doInBackground() throws Exception {
               while (true) {
                 makeMove(network);
-                Msn.pa(ai.position());
                 Thread.sleep(50);
               }
             }
@@ -151,44 +150,54 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
     double answer = n.getAnswer(around);
     double closest = Msn.closestTo(answer, possible);
 
+    if (closest == 0)
+      System.out.println("Neural Network output: " + answer + " (up)");
+    else if (closest == .3)
+      System.out.println("Neural Network output: " + answer + " (down)");
+    else if (closest == .6)
+      System.out.println("Neural Network output: " + answer + " (left)");
+    else
+      System.out.println("Neural Network output: " + answer + " (right)");
+
+
     if (closest == 0) {
       if (moveUp())
-        n.train(around, 0, 100000);
+        n.train(around, 0, 10000);
       else {
         double rand = Msn.randomElement(possible);
         while (rand == 0)
           rand = Msn.randomElement(possible);
-        n.train(around, rand, 10000);
+        n.train(around, rand, 1000);
         reset();
       }
     } else if (closest == .3) {
       if (moveDown())
-        n.train(around, .3, 100000);
+        n.train(around, .3, 10000);
       else {
         double rand = Msn.randomElement(possible);
         while (rand == .3)
           rand = Msn.randomElement(possible);
-        n.train(around, rand, 10000);
+        n.train(around, rand, 1000);
         reset();
       }
     } else if (closest == .6) {
       if (moveLeft())
-        n.train(around, .6, 100000);
+        n.train(around, .6, 10000);
       else {
         double rand = Msn.randomElement(possible);
         while (rand == .6)
           rand = Msn.randomElement(possible);
-        n.train(around, rand, 10000);
+        n.train(around, rand, 1000);
         reset();
       }
     } else if (closest == 1) {
       if (moveRight())
-        n.train(around, 1, 100000);
+        n.train(around, 1, 10000);
       else {
         double rand = Msn.randomElement(possible);
         while (rand == 1)
           rand = Msn.randomElement(possible);
-        n.train(around, rand, 10000);
+        n.train(around, rand, 1000);
         reset();
       }
     }

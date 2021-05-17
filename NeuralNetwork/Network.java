@@ -29,10 +29,8 @@ public class Network {
    */
   public Network(int inputs, int hiddenLayerCount, int hiddenPerLayer, int outputs) {
     if (outputs != 1)
-      throw new IllegalArgumentException("outputs must be 1 for this version of the Network");
-    if (hiddenPerLayer == 1 || hiddenPerLayer > inputs)
       throw new IllegalArgumentException(
-          "hiddenPerLayer must be: 1 < hiddenPerLayer <= inputs: " + hiddenPerLayer);
+          "The current version of this Network does not support more than 1 output Neuron");
     ArrayList<Layer> Layers = new ArrayList<>();
     int index = 0;
     learningrate = 0.8;
@@ -73,20 +71,20 @@ public class Network {
       inputLayer.getNeurons()[i].setOutput(inputs[i]);
     for (int i = 0; i < hiddenLayers.length; i++) {
       for (int j = 0; j < hiddenLayers[i].getNeurons().length; j++) {
-        Neuron current = hiddenLayers[i].getNeurons()[j];
         if (i == 0)
-          current.activate(
-              Msn.weightedSum(current.getWeights(), inputLayer.getOutputs(), current.getBias()));
+          hiddenLayers[i].getNeurons()[j]
+              .activate(Msn.weightedSum(hiddenLayers[i].getNeurons()[j].getWeights(),
+                  inputLayer.getOutputs(), hiddenLayers[i].getNeurons()[j].getBias()));
         else
-          current.activate(Msn.weightedSum(current.getWeights(), hiddenLayers[i - 1].getOutputs(),
-              current.getBias()));
+          hiddenLayers[i].getNeurons()[j]
+              .activate(Msn.weightedSum(hiddenLayers[i].getNeurons()[j].getWeights(),
+                  hiddenLayers[i - 1].getOutputs(), hiddenLayers[i].getNeurons()[j].getBias()));
       }
     }
-    for (int i = 0; i < outputLayer.getNeurons().length; i++) {
-      Neuron current = outputLayer.getNeurons()[i];
-      current.activate(Msn.weightedSum(current.getWeights(),
-          hiddenLayers[hiddenLayers.length - 1].getOutputs(), current.getBias()));
-    }
+    for (int i = 0; i < outputLayer.getNeurons().length; i++)
+      outputLayer.getNeurons()[i].activate(Msn.weightedSum(outputLayer.getNeurons()[i].getWeights(),
+          hiddenLayers[hiddenLayers.length - 1].getOutputs(),
+          outputLayer.getNeurons()[i].getBias()));
     return this;
   }
 
@@ -102,26 +100,30 @@ public class Network {
    */
   public Network backward(double target) {
     for (int i = 0; i < outputLayer.getNeurons().length; i++) {
-      Neuron current = outputLayer.getNeurons()[i];
-      current.setError((target - current.getOutput()) * current.dx());
-      current.setBias(current.getBias() + learningrate * current.getError());
-      Layer before = outputLayer.before();
-      for (int j = 0; j < before.getNeurons().length; j++)
-        current.getWeights()[j] = current.getWeights()[j]
-            + learningrate * current.getError() * before.getNeurons()[j].getOutput();
+      outputLayer.getNeurons()[i].setError(
+          (target - outputLayer.getNeurons()[i].getOutput()) * outputLayer.getNeurons()[i].dx());
+      outputLayer.getNeurons()[i].setBias(outputLayer.getNeurons()[i].getBias()
+          + learningrate * outputLayer.getNeurons()[i].getError());
+      for (int j = 0; j < outputLayer.before().getNeurons().length; j++)
+        outputLayer.getNeurons()[i].getWeights()[j] = outputLayer.getNeurons()[i].getWeights()[j]
+            + learningrate * outputLayer.getNeurons()[i].getError()
+                * outputLayer.before().getNeurons()[j].getOutput();
     }
-    Neuron op = outputLayer.getNeurons()[0];
     for (int i = hiddenLayers.length - 1; i >= 0; i--) {
       for (int j = 0; j < hiddenLayers[i].getNeurons().length; j++) {
-        Neuron current = hiddenLayers[i].getNeurons()[j];
-        current.setError((op.getWeights()[1] * op.getError()) * current.dx());
-        current.setBias(current.getBias() + learningrate * current.getError());
-        for (int k = 0; k < current.getWeights().length; k++) {
+        hiddenLayers[i].getNeurons()[j].setError(
+            (outputLayer.getNeurons()[0].getWeights()[1] * outputLayer.getNeurons()[0].getError())
+                * hiddenLayers[i].getNeurons()[j].dx());
+        hiddenLayers[i].getNeurons()[j].setBias(hiddenLayers[i].getNeurons()[j].getBias()
+            + learningrate * hiddenLayers[i].getNeurons()[j].getError());
+        for (int k = 0; k < hiddenLayers[i].getNeurons()[j].getWeights().length; k++) {
           Layer before = hiddenLayers[i].before();
-          current.getWeights()[k] = current.getWeights()[k]
-              + learningrate * current.getError() * before.getNeurons()[k].getOutput();
-          current.getWeights()[k] = current.getWeights()[k]
-              + learningrate * current.getError() * before.getNeurons()[k].getOutput();
+          hiddenLayers[i].getNeurons()[j].getWeights()[k] =
+              hiddenLayers[i].getNeurons()[j].getWeights()[k] + learningrate
+                  * hiddenLayers[i].getNeurons()[j].getError() * before.getNeurons()[k].getOutput();
+          hiddenLayers[i].getNeurons()[j].getWeights()[k] =
+              hiddenLayers[i].getNeurons()[j].getWeights()[k] + learningrate
+                  * hiddenLayers[i].getNeurons()[j].getError() * before.getNeurons()[k].getOutput();
         }
       }
     }
@@ -156,6 +158,9 @@ public class Network {
   /**
    * Trains this Network of a single set of inputs over a specified amount of iterations.
    * 
+   * WARNING: Using this method too often can skew data, use bulkTrain() for multiple sets of data
+   * at one time.
+   * 
    * @param input the input values
    * @param target the target value
    * @param times the amount of iterations
@@ -169,6 +174,9 @@ public class Network {
 
   /**
    * Trains this Network with the given inputs and outputs.
+   * 
+   * Works well with large quantities of data, as training data individually can result in skewed
+   * data.
    * 
    * @param inputs the inputs
    * @param times the amount of training iterations
