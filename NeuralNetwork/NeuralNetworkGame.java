@@ -22,7 +22,7 @@ import javax.swing.border.LineBorder;
  * @version 1.0 - 05/14/2021
  */
 @SuppressWarnings("serial")
-public class NeuralNetworkGame extends JFrame implements MouseListener {
+public class NeuralNetworkGame extends JFrame {
 
   private JPanel contentPane;
 
@@ -49,7 +49,7 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
             protected Void doInBackground() throws Exception {
               while (true) {
                 makeMove(network);
-                Thread.sleep(30);
+                Thread.sleep(1);
               }
             }
           };
@@ -129,7 +129,6 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
           panel_1.add(cells[i][j]);
         } else {
           cells[i][j] = new JPanel();
-          cells[i][j].addMouseListener(this);
           cells[i][j].setBackground(Color.black);
           panel_1.add(cells[i][j]);
         }
@@ -200,12 +199,16 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
         reset();
       }
     }
-    increaseScore();
-    if (score == 126) {
-      System.out.println("Neural Network successfully trained!");
+    if (score == 2303) {
+      System.out.println();
+      System.out.println("Network successfully trained!");
       System.out.println("Generations: " + gen);
+      System.out.println("Current Network Attributes:");
+      System.out.println("---------------------------");
+      System.out.println(n);
       System.exit(ABORT);
     }
+    increaseScore();
   }
 
   public static void increaseScore() {
@@ -227,88 +230,14 @@ public class NeuralNetworkGame extends JFrame implements MouseListener {
   }
 
   public static void obstacleInit() {
-    cells[20][15].setBackground(Color.red);
-    cells[21][15].setBackground(Color.red);
-    cells[22][15].setBackground(Color.red);
-    cells[23][15].setBackground(Color.red);
-    cells[24][15].setBackground(Color.red);
-    cells[25][15].setBackground(Color.red);
-    cells[26][15].setBackground(Color.red);
-    cells[27][15].setBackground(Color.red);
-    cells[28][15].setBackground(Color.red);
-    cells[29][15].setBackground(Color.red);
-    cells[30][15].setBackground(Color.red);
-
-    cells[20][16].setBackground(Color.red);
-    cells[20][17].setBackground(Color.red);
-    cells[20][18].setBackground(Color.red);
-    cells[20][19].setBackground(Color.red);
-    cells[20][20].setBackground(Color.red);
-    cells[20][21].setBackground(Color.red);
-    cells[20][22].setBackground(Color.red);
-    cells[20][23].setBackground(Color.red);
-    cells[20][24].setBackground(Color.red);
-    cells[20][25].setBackground(Color.red);
-    cells[20][26].setBackground(Color.red);
-    cells[20][27].setBackground(Color.red);
-    cells[20][28].setBackground(Color.red);
-    cells[20][29].setBackground(Color.red);
-    cells[20][30].setBackground(Color.red);
-
-    cells[20][30].setBackground(Color.red);
-    cells[21][30].setBackground(Color.red);
-    cells[22][30].setBackground(Color.red);
-    cells[23][30].setBackground(Color.red);
-    cells[24][30].setBackground(Color.red);
-    cells[25][30].setBackground(Color.red);
-    cells[26][30].setBackground(Color.red);
-    cells[27][30].setBackground(Color.red);
-    cells[28][30].setBackground(Color.red);
-    cells[29][30].setBackground(Color.red);
-    cells[30][30].setBackground(Color.red);
-
-    cells[30][16].setBackground(Color.red);
-    cells[30][17].setBackground(Color.red);
-    cells[30][18].setBackground(Color.red);
-    cells[30][19].setBackground(Color.red);
-    cells[30][20].setBackground(Color.red);
-    cells[30][21].setBackground(Color.red);
-    cells[30][22].setBackground(Color.red);
-    cells[30][23].setBackground(Color.red);
-    cells[30][24].setBackground(Color.red);
-    cells[30][25].setBackground(Color.red);
-    cells[30][26].setBackground(Color.red);
-    cells[30][27].setBackground(Color.red);
-    cells[30][28].setBackground(Color.red);
-    cells[30][29].setBackground(Color.red);
-    cells[30][30].setBackground(Color.red);
-  }
-
-  @Override
-  public void mouseClicked(MouseEvent e) {}
-
-  @Override
-  public void mousePressed(MouseEvent e) {
-    reset();
-  }
-
-  @Override
-  public void mouseReleased(MouseEvent e) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public void mouseEntered(MouseEvent e) {
-    JPanel p = (JPanel) e.getSource();
-    p.setBackground(Color.red);
-
-  }
-
-  @Override
-  public void mouseExited(MouseEvent e) {
-    // TODO Auto-generated method stub
-
+    for (int i = 0; i < cells.length; i++)
+      cells[0][i].setBackground(Color.red);
+    for (int i = 0; i < cells.length; i++)
+      cells[i][0].setBackground(Color.red);
+    for (int i = 0; i < cells.length; i++)
+      cells[cells.length - 1][i].setBackground(Color.red);
+    for (int i = 0; i < cells.length; i++)
+      cells[i][cells.length - 1].setBackground(Color.red);
   }
 
   public static double[] around() {
