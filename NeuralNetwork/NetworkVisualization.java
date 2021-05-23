@@ -5,12 +5,17 @@ import java.awt.GridLayout;
 import java.awt.SystemColor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingConstants;
@@ -25,9 +30,13 @@ public class NetworkVisualization extends JFrame {
   private JTextField targetfield;
 
   private Network network;
-  private double[] inputs = {1.0, 3.1, 7.4};
+  private double[] inputs = {0, 0, 0};
   private double target;
   private JLabel percenterror;
+  private ArrayList<Double[]> loggedinputs;
+  private ArrayList<Double> loggedtargets;
+  private ArrayList<Double> loggedpcerrors;
+
 
   private JLabel in1output;
   private JLabel in1error;
@@ -68,6 +77,10 @@ public class NetworkVisualization extends JFrame {
   private JLabel opoutput;
   private JLabel operror;
   private JLabel opbias;
+  private JTextField input1field;
+  private JTextField input2field;
+  private JTextField input3field;
+  private JTextField learningratefield;
 
   /**
    * Launch the application.
@@ -91,6 +104,11 @@ public class NetworkVisualization extends JFrame {
   public NetworkVisualization() {
 
     network = new Network(3, 2, 3, 1);
+
+    loggedinputs = new ArrayList<>();
+    loggedtargets = new ArrayList<>();
+    loggedpcerrors = new ArrayList<>();
+
 
     setTitle("Msn Neural Network Visualization 1.0");
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -124,55 +142,117 @@ public class NetworkVisualization extends JFrame {
     panel_1.add(panel_7);
 
     JLabel lblNewLabel_1 = new JLabel("~ Network Information ~");
+    lblNewLabel_1.setFont(new Font("Tahoma", Font.PLAIN, 11));
     lblNewLabel_1.setHorizontalAlignment(SwingConstants.CENTER);
     lblNewLabel_1.setForeground(Color.WHITE);
 
     JLabel lblNewLabel_1_1 = new JLabel("3 Input Neurons");
+    lblNewLabel_1_1.setFont(new Font("Tahoma", Font.PLAIN, 11));
     lblNewLabel_1_1.setHorizontalAlignment(SwingConstants.CENTER);
     lblNewLabel_1_1.setForeground(Color.WHITE);
 
     JLabel lblNewLabel_1_1_1 = new JLabel("2 Hidden Layers");
+    lblNewLabel_1_1_1.setFont(new Font("Tahoma", Font.PLAIN, 11));
     lblNewLabel_1_1_1.setHorizontalAlignment(SwingConstants.CENTER);
     lblNewLabel_1_1_1.setForeground(Color.WHITE);
 
     JLabel lblNewLabel_1_1_1_1 = new JLabel("6 Hidden Neurons");
+    lblNewLabel_1_1_1_1.setFont(new Font("Tahoma", Font.PLAIN, 11));
     lblNewLabel_1_1_1_1.setHorizontalAlignment(SwingConstants.CENTER);
     lblNewLabel_1_1_1_1.setForeground(Color.WHITE);
 
     JLabel lblNewLabel_1_1_1_1_1 = new JLabel("1 Output Neuron");
+    lblNewLabel_1_1_1_1_1.setFont(new Font("Tahoma", Font.PLAIN, 11));
     lblNewLabel_1_1_1_1_1.setHorizontalAlignment(SwingConstants.CENTER);
     lblNewLabel_1_1_1_1_1.setForeground(Color.WHITE);
+
+    input1field = new JTextField();
+    input1field.setColumns(10);
+    input1field.setText(String.valueOf(0));
+
+    input2field = new JTextField();
+    input2field.setColumns(10);
+    input2field.setText(String.valueOf(0));
+
+    input3field = new JTextField();
+    input3field.setColumns(10);
+    input3field.setText(String.valueOf(0));
+
+    JLabel lblNewLabel_1_2_3 = new JLabel("Input 1");
+    lblNewLabel_1_2_3.setHorizontalAlignment(SwingConstants.CENTER);
+    lblNewLabel_1_2_3.setForeground(Color.WHITE);
+
+    JLabel lblNewLabel_1_2_3_1 = new JLabel("Input 2");
+    lblNewLabel_1_2_3_1.setHorizontalAlignment(SwingConstants.CENTER);
+    lblNewLabel_1_2_3_1.setForeground(Color.WHITE);
+
+    JLabel lblNewLabel_1_2_3_2 = new JLabel("Input 3");
+    lblNewLabel_1_2_3_2.setHorizontalAlignment(SwingConstants.CENTER);
+    lblNewLabel_1_2_3_2.setForeground(Color.WHITE);
     GroupLayout gl_panel_7 = new GroupLayout(panel_7);
-    gl_panel_7.setHorizontalGroup(gl_panel_7.createParallelGroup(Alignment.LEADING)
-        .addGroup(gl_panel_7.createSequentialGroup().addGap(77)
-            .addGroup(gl_panel_7.createParallelGroup(Alignment.LEADING)
-                .addGroup(gl_panel_7.createSequentialGroup()
-                    .addComponent(lblNewLabel_1_1_1, GroupLayout.PREFERRED_SIZE, 56,
+    gl_panel_7.setHorizontalGroup(gl_panel_7.createParallelGroup(Alignment.LEADING).addGroup(
+        Alignment.TRAILING,
+        gl_panel_7.createSequentialGroup().addGap(44).addGroup(gl_panel_7
+            .createParallelGroup(Alignment.LEADING)
+            .addGroup(gl_panel_7.createSequentialGroup().addGap(33)
+                .addGroup(gl_panel_7.createParallelGroup(Alignment.LEADING)
+                    .addComponent(lblNewLabel_1_1_1, GroupLayout.PREFERRED_SIZE, 121,
                         Short.MAX_VALUE)
-                    .addGap(75))
-                .addGroup(gl_panel_7.createSequentialGroup()
-                    .addGroup(gl_panel_7.createParallelGroup(Alignment.LEADING)
-                        .addComponent(lblNewLabel_1_1, GroupLayout.PREFERRED_SIZE, 121,
-                            Short.MAX_VALUE)
-                        .addComponent(lblNewLabel_1, GroupLayout.DEFAULT_SIZE,
-                            GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGap(75))))
-        .addGroup(gl_panel_7.createSequentialGroup().addGap(44)
+                    .addComponent(lblNewLabel_1_1, GroupLayout.PREFERRED_SIZE, 121, Short.MAX_VALUE)
+                    .addComponent(lblNewLabel_1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+                        Short.MAX_VALUE))
+                .addGap(32))
             .addGroup(gl_panel_7.createParallelGroup(Alignment.LEADING)
                 .addComponent(lblNewLabel_1_1_1_1_1, GroupLayout.DEFAULT_SIZE, 186, Short.MAX_VALUE)
-                .addComponent(lblNewLabel_1_1_1_1, GroupLayout.DEFAULT_SIZE, 186, Short.MAX_VALUE))
-            .addGap(43)));
-    gl_panel_7.setVerticalGroup(gl_panel_7.createParallelGroup(Alignment.LEADING)
+                .addComponent(lblNewLabel_1_1_1_1, GroupLayout.DEFAULT_SIZE, 186, Short.MAX_VALUE)))
+            .addGap(43))
         .addGroup(gl_panel_7.createSequentialGroup().addContainerGap()
-            .addComponent(lblNewLabel_1, GroupLayout.DEFAULT_SIZE, 14, Short.MAX_VALUE)
-            .addPreferredGap(ComponentPlacement.RELATED)
-            .addComponent(lblNewLabel_1_1, GroupLayout.DEFAULT_SIZE, 14, Short.MAX_VALUE)
-            .addPreferredGap(ComponentPlacement.RELATED).addComponent(lblNewLabel_1_1_1)
-            .addPreferredGap(ComponentPlacement.RELATED)
-            .addComponent(lblNewLabel_1_1_1_1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-                Short.MAX_VALUE)
-            .addPreferredGap(ComponentPlacement.RELATED).addComponent(lblNewLabel_1_1_1_1_1)
-            .addGap(46)));
+            .addGroup(gl_panel_7.createParallelGroup(Alignment.TRAILING)
+                .addComponent(input1field, GroupLayout.DEFAULT_SIZE, 58, Short.MAX_VALUE)
+                .addComponent(lblNewLabel_1_2_3, GroupLayout.DEFAULT_SIZE, 55, Short.MAX_VALUE))
+            .addGap(40)
+            .addGroup(gl_panel_7.createParallelGroup(Alignment.LEADING)
+                .addGroup(Alignment.TRAILING,
+                    gl_panel_7.createSequentialGroup().addGap(3).addComponent(lblNewLabel_1_2_3_1,
+                        GroupLayout.DEFAULT_SIZE, 55, Short.MAX_VALUE))
+                .addComponent(input2field, GroupLayout.DEFAULT_SIZE, 58, Short.MAX_VALUE))
+            .addGroup(gl_panel_7.createParallelGroup(Alignment.LEADING)
+                .addGroup(gl_panel_7.createSequentialGroup().addGap(39).addComponent(input3field,
+                    GroupLayout.DEFAULT_SIZE, 58, Short.MAX_VALUE))
+                .addGroup(gl_panel_7.createSequentialGroup().addGap(42).addComponent(
+                    lblNewLabel_1_2_3_2, GroupLayout.DEFAULT_SIZE, 55, Short.MAX_VALUE)))
+            .addContainerGap()));
+    gl_panel_7
+        .setVerticalGroup(gl_panel_7.createParallelGroup(Alignment.LEADING)
+            .addGroup(Alignment.TRAILING, gl_panel_7.createSequentialGroup()
+                .addComponent(lblNewLabel_1, GroupLayout.DEFAULT_SIZE, 14, Short.MAX_VALUE)
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addComponent(lblNewLabel_1_1, GroupLayout.DEFAULT_SIZE, 14, Short.MAX_VALUE)
+                .addPreferredGap(ComponentPlacement.RELATED).addComponent(lblNewLabel_1_1_1)
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addComponent(lblNewLabel_1_1_1_1, GroupLayout.DEFAULT_SIZE,
+                    GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(ComponentPlacement.RELATED).addComponent(lblNewLabel_1_1_1_1_1)
+                .addPreferredGap(ComponentPlacement.UNRELATED)
+                .addGroup(gl_panel_7.createParallelGroup(Alignment.TRAILING)
+                    .addComponent(lblNewLabel_1_2_3_2)
+                    .addGroup(gl_panel_7.createParallelGroup(Alignment.BASELINE)
+                        .addComponent(lblNewLabel_1_2_3_1).addComponent(lblNewLabel_1_2_3)))
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addGroup(gl_panel_7.createParallelGroup(Alignment.LEADING)
+                    .addGroup(Alignment.TRAILING, gl_panel_7.createSequentialGroup().addGap(4)
+                        .addGroup(gl_panel_7.createParallelGroup(Alignment.BASELINE)
+                            .addComponent(input1field, GroupLayout.PREFERRED_SIZE,
+                                GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                            .addComponent(input3field, GroupLayout.PREFERRED_SIZE,
+                                GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                        .addGap(8))
+                    .addGroup(gl_panel_7.createSequentialGroup()
+                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE,
+                            Short.MAX_VALUE)
+                        .addComponent(input2field, GroupLayout.PREFERRED_SIZE,
+                            GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addGap(8)))));
     panel_7.setLayout(gl_panel_7);
 
     JPanel panel_8 = new JPanel();
@@ -186,6 +266,7 @@ public class NetworkVisualization extends JFrame {
 
     targetfield = new JTextField();
     targetfield.setColumns(10);
+    targetfield.setText(String.valueOf(0));
 
     JButton trainbutton = new JButton("Train");
     trainbutton.addActionListener(new ActionListener() {
@@ -193,10 +274,19 @@ public class NetworkVisualization extends JFrame {
       public void actionPerformed(ActionEvent e) {
         try {
           target = Double.valueOf(targetfield.getText());
+          if (target < 0 || target > 1)
+            throw new Exception();
+          inputs[0] = Double.valueOf(input1field.getText());
+          inputs[1] = Double.valueOf(input2field.getText());
+          inputs[2] = Double.valueOf(input3field.getText());
+          network.setLearningRate(Double.valueOf(learningratefield.getText()));
           network.train(inputs, target, 50);
+          loggedinputs.add(Msn.box(inputs));
+          loggedtargets.add(target);
           update();
+          pack();
         } catch (Exception e1) {
-          targetfield.setText("Invalid Target");
+          targetfield.setText("Invalid Fields");
         }
       }
     });
@@ -204,28 +294,53 @@ public class NetworkVisualization extends JFrame {
     JLabel lblNewLabel_1_2_2 = new JLabel("Trains the Network for 50 iterations");
     lblNewLabel_1_2_2.setHorizontalAlignment(SwingConstants.CENTER);
     lblNewLabel_1_2_2.setForeground(Color.WHITE);
+
+    learningratefield = new JTextField();
+    learningratefield.setColumns(10);
+    learningratefield.setText(String.valueOf(network.getLearningRate()));
+
+    JLabel lblNewLabel_1_2_4 = new JLabel("Learning Rate (0 - 1)");
+    lblNewLabel_1_2_4.setHorizontalAlignment(SwingConstants.CENTER);
+    lblNewLabel_1_2_4.setForeground(Color.WHITE);
     GroupLayout gl_panel_8 = new GroupLayout(panel_8);
-    gl_panel_8.setHorizontalGroup(gl_panel_8.createParallelGroup(Alignment.TRAILING)
-        .addGroup(Alignment.LEADING,
-            gl_panel_8.createSequentialGroup().addGap(94).addComponent(targetfield).addGap(93))
-        .addGroup(gl_panel_8.createSequentialGroup().addGap(93)
-            .addComponent(trainbutton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-                Short.MAX_VALUE)
-            .addGap(91))
-        .addGroup(Alignment.LEADING,
-            gl_panel_8.createSequentialGroup().addGap(77)
-                .addComponent(lblNewLabel_1_2, GroupLayout.DEFAULT_SIZE, 121, Short.MAX_VALUE)
-                .addGap(75))
-        .addGroup(gl_panel_8.createSequentialGroup().addGap(29)
-            .addComponent(lblNewLabel_1_2_2, GroupLayout.DEFAULT_SIZE, 216, Short.MAX_VALUE)
-            .addGap(28)));
+    gl_panel_8.setHorizontalGroup(gl_panel_8.createParallelGroup(Alignment.LEADING)
+        .addGroup(Alignment.TRAILING, gl_panel_8.createSequentialGroup().addGap(93)
+            .addComponent(trainbutton, GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE).addGap(91))
+        .addGroup(Alignment.TRAILING,
+            gl_panel_8.createSequentialGroup().addGap(30)
+                .addComponent(lblNewLabel_1_2_2, GroupLayout.DEFAULT_SIZE, 216, Short.MAX_VALUE)
+                .addGap(27))
+        .addGroup(
+            gl_panel_8.createSequentialGroup().addGap(113)
+                .addGroup(gl_panel_8.createParallelGroup(Alignment.LEADING)
+                    .addGroup(gl_panel_8.createSequentialGroup()
+                        .addComponent(learningratefield, GroupLayout.PREFERRED_SIZE, 0,
+                            Short.MAX_VALUE)
+                        .addGap(112))
+                    .addGroup(gl_panel_8.createSequentialGroup()
+                        .addComponent(targetfield, GroupLayout.DEFAULT_SIZE, 48, Short.MAX_VALUE)
+                        .addGap(112))))
+        .addGroup(gl_panel_8.createSequentialGroup().addGap(77)
+            .addGroup(gl_panel_8.createParallelGroup(Alignment.LEADING)
+                .addGroup(gl_panel_8.createSequentialGroup()
+                    .addComponent(lblNewLabel_1_2_4, GroupLayout.PREFERRED_SIZE, 56,
+                        Short.MAX_VALUE)
+                    .addGap(75))
+                .addGroup(gl_panel_8.createSequentialGroup()
+                    .addComponent(lblNewLabel_1_2, GroupLayout.DEFAULT_SIZE, 121, Short.MAX_VALUE)
+                    .addGap(75)))));
     gl_panel_8.setVerticalGroup(gl_panel_8.createParallelGroup(Alignment.LEADING)
         .addGroup(gl_panel_8.createSequentialGroup().addContainerGap().addComponent(lblNewLabel_1_2)
             .addPreferredGap(ComponentPlacement.RELATED)
             .addComponent(targetfield, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
                 GroupLayout.PREFERRED_SIZE)
-            .addGap(18).addComponent(lblNewLabel_1_2_2).addGap(4).addComponent(trainbutton)
-            .addContainerGap(41, Short.MAX_VALUE)));
+            .addPreferredGap(ComponentPlacement.RELATED).addComponent(lblNewLabel_1_2_4)
+            .addPreferredGap(ComponentPlacement.RELATED)
+            .addComponent(learningratefield, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                GroupLayout.PREFERRED_SIZE)
+            .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lblNewLabel_1_2_2).addPreferredGap(ComponentPlacement.RELATED)
+            .addComponent(trainbutton).addContainerGap()));
     panel_8.setLayout(gl_panel_8);
 
     JPanel panel_9 = new JPanel();
@@ -240,19 +355,43 @@ public class NetworkVisualization extends JFrame {
     percenterror = new JLabel("Percent Error: 0");
     percenterror.setHorizontalAlignment(SwingConstants.CENTER);
     percenterror.setForeground(Color.WHITE);
+
+    JButton previnputsbutton = new JButton("View Training Info");
+    previnputsbutton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        new PrevInputs();
+      }
+    });
+
+    JButton helpbutton = new JButton("Help");
+    helpbutton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        new Help();
+      }
+    });
+
     GroupLayout gl_panel_9 = new GroupLayout(panel_9);
+    gl_panel_9.setHorizontalGroup(gl_panel_9.createParallelGroup(Alignment.LEADING)
+        .addGroup(gl_panel_9.createSequentialGroup().addGap(77)
+            .addGroup(gl_panel_9.createParallelGroup(Alignment.TRAILING)
+                .addComponent(lblNewLabel_1_2_1, GroupLayout.DEFAULT_SIZE, 121, Short.MAX_VALUE)
+                .addComponent(percenterror, GroupLayout.DEFAULT_SIZE, 121, Short.MAX_VALUE))
+            .addGap(75))
+        .addGroup(gl_panel_9.createSequentialGroup().addContainerGap()
+            .addComponent(previnputsbutton, GroupLayout.DEFAULT_SIZE, 137, Short.MAX_VALUE)
+            .addGap(67).addComponent(helpbutton, GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
+            .addContainerGap()));
     gl_panel_9
-        .setHorizontalGroup(gl_panel_9.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_9
-            .createSequentialGroup().addGroup(gl_panel_9.createParallelGroup(Alignment.LEADING)
-                .addGroup(Alignment.TRAILING,
-                    gl_panel_9.createSequentialGroup().addGap(77).addComponent(lblNewLabel_1_2_1,
-                        GroupLayout.DEFAULT_SIZE, 121, Short.MAX_VALUE))
-                .addGroup(Alignment.TRAILING, gl_panel_9.createSequentialGroup().addGap(77)
-                    .addComponent(percenterror, GroupLayout.DEFAULT_SIZE, 121, Short.MAX_VALUE)))
-            .addGap(75)));
-    gl_panel_9.setVerticalGroup(gl_panel_9.createParallelGroup(Alignment.LEADING).addGroup(
-        gl_panel_9.createSequentialGroup().addContainerGap().addComponent(lblNewLabel_1_2_1)
-            .addGap(41).addComponent(percenterror).addContainerGap(71, Short.MAX_VALUE)));
+        .setVerticalGroup(
+            gl_panel_9.createParallelGroup(Alignment.LEADING)
+                .addGroup(gl_panel_9.createSequentialGroup().addContainerGap()
+                    .addComponent(lblNewLabel_1_2_1).addGap(41).addComponent(percenterror)
+                    .addPreferredGap(ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
+                    .addGroup(gl_panel_9.createParallelGroup(Alignment.BASELINE)
+                        .addComponent(previnputsbutton).addComponent(helpbutton))
+                    .addContainerGap()));
     panel_9.setLayout(gl_panel_9);
     panel.setLayout(new GridLayout(1, 4, 0, 0));
 
@@ -854,9 +993,138 @@ public class NetworkVisualization extends JFrame {
         .setText("Error: " + Msn.decFormat(network.getOutputLayer().getNeurons()[0].getError(), 3));
     opbias.setText("Bias: " + Msn.decFormat(network.getOutputLayer().getNeurons()[0].getBias(), 3));
 
-    percenterror.setText("Percent Error: "
-        + Msn.decFormat((target - network.getOutputLayer().getNeurons()[0].getOutput())
-            / network.getOutputLayer().getNeurons()[0].getOutput(), 3)
-        + "%");
+    if (target != 0) {
+      double pcerror = ((Math.abs(target - network.getOutputLayer().getNeurons()[0].getOutput()))
+          / network.getOutputLayer().getNeurons()[0].getOutput()) * 100;
+      percenterror.setText("Percent Error: " + Msn.decFormat(pcerror, 3) + "%");
+      loggedpcerrors.add(Msn.decFormat(pcerror, 3));
+    } else {
+      percenterror.setText("Percent Error: "
+          + Msn.decFormat(network.getOutputLayer().getNeurons()[0].getOutput(), 3) + "%");
+      loggedpcerrors.add(Msn.decFormat(network.getOutputLayer().getNeurons()[0].getOutput(), 3));
+    }
+
   }
+
+  class PrevInputs extends JFrame {
+
+    public PrevInputs() {
+      setTitle("Current Network Training Information");
+
+      setBounds(100, 100, 384, 364);
+      contentPane = new JPanel();
+      contentPane.setBackground(Color.GRAY);
+      contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+      setContentPane(contentPane);
+
+      JPanel panel = new JPanel();
+      panel.setBackground(Color.GRAY);
+      GroupLayout gl_contentPane = new GroupLayout(contentPane);
+      gl_contentPane.setHorizontalGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+          .addComponent(panel, GroupLayout.DEFAULT_SIZE, 426, Short.MAX_VALUE));
+      gl_contentPane.setVerticalGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+          .addComponent(panel, GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE));
+
+      JScrollPane scrollPane = new JScrollPane();
+
+      JLabel Inputslabel = new JLabel("Inputs");
+      Inputslabel.setHorizontalAlignment(SwingConstants.CENTER);
+      Inputslabel.setForeground(Color.WHITE);
+
+      JLabel lblTarget = new JLabel("Target");
+      lblTarget.setHorizontalAlignment(SwingConstants.CENTER);
+      lblTarget.setForeground(Color.WHITE);
+
+      JLabel lblPercentError = new JLabel("Percent Error");
+      lblPercentError.setHorizontalAlignment(SwingConstants.CENTER);
+      lblPercentError.setForeground(Color.WHITE);
+      GroupLayout gl_panel = new GroupLayout(panel);
+      gl_panel.setHorizontalGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+          .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 426, Short.MAX_VALUE)
+          .addGroup(gl_panel.createSequentialGroup().addContainerGap()
+              .addComponent(Inputslabel, GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE).addGap(69)
+              .addComponent(lblTarget, GroupLayout.DEFAULT_SIZE, 44, Short.MAX_VALUE).addGap(114)
+              .addComponent(lblPercentError, GroupLayout.DEFAULT_SIZE, 72, Short.MAX_VALUE)
+              .addGap(60)));
+      gl_panel.setVerticalGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
+          .addGroup(gl_panel.createSequentialGroup().addContainerGap(14, Short.MAX_VALUE)
+              .addGroup(gl_panel.createParallelGroup(Alignment.BASELINE).addComponent(Inputslabel)
+                  .addComponent(lblTarget).addComponent(lblPercentError))
+              .addPreferredGap(ComponentPlacement.RELATED).addComponent(scrollPane,
+                  GroupLayout.PREFERRED_SIZE, 349, GroupLayout.PREFERRED_SIZE)));
+
+      JPanel panel_1 = new JPanel();
+      panel_1.setBackground(Color.LIGHT_GRAY);
+      scrollPane.setViewportView(panel_1);
+      panel_1.setLayout(new BoxLayout(panel_1, BoxLayout.Y_AXIS));
+      panel.setLayout(gl_panel);
+      contentPane.setLayout(gl_contentPane);
+
+      for (int i = 0; i < loggedinputs.size(); i++) {
+        JLabel current;
+        if (loggedpcerrors.get(i) != 0)
+          current = new JLabel(
+              Arrays.toString(loggedinputs.get(i)) + "                      " + loggedtargets.get(i)
+                  + "                                             " + loggedpcerrors.get(i) + "%");
+        else
+          current = new JLabel(Arrays.toString(loggedinputs.get(i)) + "                      "
+              + loggedtargets.get(i) + "                                             "
+              + loggedpcerrors.get(i) + "% (done training)");
+        panel_1.add(current);
+      }
+
+      pack();
+      setLocationRelativeTo(null);
+      setVisible(true);
+    }
+
+  }
+
+  class Help extends JFrame {
+    public Help() {
+      setTitle("Network Help");
+
+      setBounds(100, 100, 384, 364);
+      contentPane = new JPanel();
+      contentPane.setBackground(Color.GRAY);
+      contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+      setContentPane(contentPane);
+
+      JPanel panel = new JPanel();
+      panel.setBackground(Color.GRAY);
+      GroupLayout gl_contentPane = new GroupLayout(contentPane);
+      gl_contentPane.setHorizontalGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+          .addComponent(panel, GroupLayout.DEFAULT_SIZE, 426, Short.MAX_VALUE));
+      gl_contentPane.setVerticalGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+          .addComponent(panel, GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE));
+
+      JTextArea asdfasdfasdf = new JTextArea();
+      asdfasdfasdf.setWrapStyleWord(true);
+      asdfasdfasdf.setForeground(Color.WHITE);
+      asdfasdfasdf.setBackground(Color.GRAY);
+      asdfasdfasdf.setEditable(false);
+      asdfasdfasdf.setFont(new Font("Tahoma", Font.PLAIN, 12));
+      asdfasdfasdf.setText(
+          "This application demonstrates the functionality of the Network object. In this scenario, a single Network object has been created and is able to discover patterns within the various inputs for the specified targets chosen by the user. This Network uses the gradient descent algorithm to discover the patterns between different sets of inputs. The Network object's logic can be applied to any given problem that may be solvable by a human, and is capable of finding all optimal solutions to a problem. The limits of the problem are boundless, meaning this singular object could learn to add numbers without any mathematical operations, fly a plane, drive a car, recognize images, or even discover unknown laws that govern the inner workings of space and time when given the correct data.");
+      asdfasdfasdf.setLineWrap(true);
+      GroupLayout gl_panel = new GroupLayout(panel);
+      gl_panel.setHorizontalGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+          .addGroup(gl_panel
+              .createSequentialGroup().addGap(93).addComponent(asdfasdfasdf,
+                  GroupLayout.PREFERRED_SIZE, 241, GroupLayout.PREFERRED_SIZE)
+              .addContainerGap(92, Short.MAX_VALUE)));
+      gl_panel.setVerticalGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+          .addGroup(gl_panel
+              .createSequentialGroup().addGap(39).addComponent(asdfasdfasdf,
+                  GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+              .addContainerGap(40, Short.MAX_VALUE)));
+      panel.setLayout(gl_panel);
+      contentPane.setLayout(gl_contentPane);
+
+      pack();
+      setLocationRelativeTo(null);
+      setVisible(true);
+    }
+  }
+
 }
