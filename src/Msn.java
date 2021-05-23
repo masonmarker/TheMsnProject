@@ -6170,11 +6170,9 @@ public class Msn {
     immediate[6] = swOf(array, coord);
     immediate[7] = leftOf(array, coord);
     ArrayList<Object> adj = new ArrayList<>();
-    for (Object obj : immediate) {
-      if (obj != null) {
+    for (Object obj : immediate)
+      if (obj != null)
         adj.add(obj);
-      }
-    }
     return adj.toArray();
   }
 

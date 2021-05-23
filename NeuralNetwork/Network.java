@@ -117,13 +117,14 @@ public class Network {
         hiddenLayers[i].getNeurons()[j].setBias(hiddenLayers[i].getNeurons()[j].getBias()
             + learningrate * hiddenLayers[i].getNeurons()[j].getError());
         for (int k = 0; k < hiddenLayers[i].getNeurons()[j].getWeights().length; k++) {
-          Layer before = hiddenLayers[i].before();
           hiddenLayers[i].getNeurons()[j].getWeights()[k] =
-              hiddenLayers[i].getNeurons()[j].getWeights()[k] + learningrate
-                  * hiddenLayers[i].getNeurons()[j].getError() * before.getNeurons()[k].getOutput();
+              hiddenLayers[i].getNeurons()[j].getWeights()[k]
+                  + learningrate * hiddenLayers[i].getNeurons()[j].getError()
+                      * hiddenLayers[i].before().getNeurons()[k].getOutput();
           hiddenLayers[i].getNeurons()[j].getWeights()[k] =
-              hiddenLayers[i].getNeurons()[j].getWeights()[k] + learningrate
-                  * hiddenLayers[i].getNeurons()[j].getError() * before.getNeurons()[k].getOutput();
+              hiddenLayers[i].getNeurons()[j].getWeights()[k]
+                  + learningrate * hiddenLayers[i].getNeurons()[j].getError()
+                      * hiddenLayers[i].before().getNeurons()[k].getOutput();
         }
       }
     }
