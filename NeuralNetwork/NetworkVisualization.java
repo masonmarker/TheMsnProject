@@ -36,7 +36,7 @@ public class NetworkVisualization extends JFrame {
   private ArrayList<Double[]> loggedinputs;
   private ArrayList<Double> loggedtargets;
   private ArrayList<Double> loggedpcerrors;
-
+  private JPanel panel_1;
 
   private JLabel in1output;
   private JLabel in1error;
@@ -283,8 +283,9 @@ public class NetworkVisualization extends JFrame {
           network.train(inputs, target, 50);
           loggedinputs.add(Msn.box(inputs));
           loggedtargets.add(target);
-          update();
+          update(false);
           pack();
+          setLocationRelativeTo(null);
         } catch (Exception e1) {
           targetfield.setText("Invalid Fields");
         }
@@ -372,6 +373,24 @@ public class NetworkVisualization extends JFrame {
       }
     });
 
+    JButton resetbutton = new JButton("Reset");
+    resetbutton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        network = new Network(3, 2, 3, 1);
+        percenterror.setText("Percent Error: 0");
+        input1field.setText("0");
+        input2field.setText("0");
+        input3field.setText("0");
+        targetfield.setText("0");
+        learningratefield.setText("0.8");
+        loggedinputs = new ArrayList<>();
+        loggedpcerrors = new ArrayList<>();
+        loggedtargets = new ArrayList<>();
+        update(true);
+      }
+    });
+
     GroupLayout gl_panel_9 = new GroupLayout(panel_9);
     gl_panel_9.setHorizontalGroup(gl_panel_9.createParallelGroup(Alignment.LEADING)
         .addGroup(gl_panel_9.createSequentialGroup().addGap(77)
@@ -379,16 +398,22 @@ public class NetworkVisualization extends JFrame {
                 .addComponent(lblNewLabel_1_2_1, GroupLayout.DEFAULT_SIZE, 121, Short.MAX_VALUE)
                 .addComponent(percenterror, GroupLayout.DEFAULT_SIZE, 121, Short.MAX_VALUE))
             .addGap(75))
-        .addGroup(gl_panel_9.createSequentialGroup().addContainerGap()
-            .addComponent(previnputsbutton, GroupLayout.DEFAULT_SIZE, 137, Short.MAX_VALUE)
-            .addGap(67).addComponent(helpbutton, GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
+        .addGroup(Alignment.TRAILING, gl_panel_9.createSequentialGroup().addContainerGap()
+            .addGroup(gl_panel_9.createParallelGroup(Alignment.TRAILING)
+                .addGroup(gl_panel_9.createSequentialGroup().addGap(192).addComponent(resetbutton,
+                    GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(gl_panel_9.createSequentialGroup()
+                    .addComponent(previnputsbutton, GroupLayout.DEFAULT_SIZE, 133, Short.MAX_VALUE)
+                    .addGap(67).addComponent(helpbutton, GroupLayout.DEFAULT_SIZE,
+                        GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
             .addContainerGap()));
     gl_panel_9
         .setVerticalGroup(
             gl_panel_9.createParallelGroup(Alignment.LEADING)
                 .addGroup(gl_panel_9.createSequentialGroup().addContainerGap()
                     .addComponent(lblNewLabel_1_2_1).addGap(41).addComponent(percenterror)
-                    .addPreferredGap(ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
+                    .addPreferredGap(ComponentPlacement.RELATED, 14, Short.MAX_VALUE)
+                    .addComponent(resetbutton).addPreferredGap(ComponentPlacement.RELATED)
                     .addGroup(gl_panel_9.createParallelGroup(Alignment.BASELINE)
                         .addComponent(previnputsbutton).addComponent(helpbutton))
                     .addContainerGap()));
@@ -924,7 +949,7 @@ public class NetworkVisualization extends JFrame {
 
   }
 
-  public void update() {
+  public void update(boolean reset) {
     in1output.setText(
         "Output: " + Msn.decFormat(network.getInputLayer().getNeurons()[0].getOutput(), 3));
     in1error
@@ -993,17 +1018,18 @@ public class NetworkVisualization extends JFrame {
         .setText("Error: " + Msn.decFormat(network.getOutputLayer().getNeurons()[0].getError(), 3));
     opbias.setText("Bias: " + Msn.decFormat(network.getOutputLayer().getNeurons()[0].getBias(), 3));
 
-    if (target != 0) {
-      double pcerror = ((Math.abs(target - network.getOutputLayer().getNeurons()[0].getOutput()))
-          / network.getOutputLayer().getNeurons()[0].getOutput()) * 100;
-      percenterror.setText("Percent Error: " + Msn.decFormat(pcerror, 3) + "%");
-      loggedpcerrors.add(Msn.decFormat(pcerror, 3));
-    } else {
-      percenterror.setText("Percent Error: "
-          + Msn.decFormat(network.getOutputLayer().getNeurons()[0].getOutput(), 3) + "%");
-      loggedpcerrors.add(Msn.decFormat(network.getOutputLayer().getNeurons()[0].getOutput(), 3));
+    if (!reset) {
+      if (target != 0) {
+        double pcerror = ((Math.abs(target - network.getOutputLayer().getNeurons()[0].getOutput()))
+            / network.getOutputLayer().getNeurons()[0].getOutput()) * 100;
+        percenterror.setText("Percent Error: " + Msn.decFormat(pcerror, 3) + "%");
+        loggedpcerrors.add(Msn.decFormat(pcerror, 3));
+      } else {
+        percenterror.setText("Percent Error: "
+            + Msn.decFormat(network.getOutputLayer().getNeurons()[0].getOutput(), 3) + "%");
+        loggedpcerrors.add(Msn.decFormat(network.getOutputLayer().getNeurons()[0].getOutput(), 3));
+      }
     }
-
   }
 
   class PrevInputs extends JFrame {
@@ -1053,7 +1079,7 @@ public class NetworkVisualization extends JFrame {
               .addPreferredGap(ComponentPlacement.RELATED).addComponent(scrollPane,
                   GroupLayout.PREFERRED_SIZE, 349, GroupLayout.PREFERRED_SIZE)));
 
-      JPanel panel_1 = new JPanel();
+      panel_1 = new JPanel();
       panel_1.setBackground(Color.LIGHT_GRAY);
       scrollPane.setViewportView(panel_1);
       panel_1.setLayout(new BoxLayout(panel_1, BoxLayout.Y_AXIS));
@@ -1126,5 +1152,4 @@ public class NetworkVisualization extends JFrame {
       setVisible(true);
     }
   }
-
 }

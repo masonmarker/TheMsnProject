@@ -31,6 +31,9 @@ public class Network {
     if (outputs != 1)
       throw new IllegalArgumentException(
           "The current version of this Network does not support more than 1 output Neuron");
+    if (hiddenPerLayer <= 1 || hiddenPerLayer > inputs)
+      throw new IllegalArgumentException(
+          "The current version of this Network only supports 1 < hiddenPerLayer <= inputs");
     ArrayList<Layer> Layers = new ArrayList<>();
     int index = 0;
     learningrate = 0.8;
@@ -73,18 +76,19 @@ public class Network {
       for (int j = 0; j < hiddenLayers[i].getNeurons().length; j++) {
         if (i == 0)
           hiddenLayers[i].getNeurons()[j]
-              .activate(Msn.weightedSum(hiddenLayers[i].getNeurons()[j].getWeights(),
+              .activate(NetworkUtilities.weightedSum(hiddenLayers[i].getNeurons()[j].getWeights(),
                   inputLayer.getOutputs(), hiddenLayers[i].getNeurons()[j].getBias()));
         else
           hiddenLayers[i].getNeurons()[j]
-              .activate(Msn.weightedSum(hiddenLayers[i].getNeurons()[j].getWeights(),
+              .activate(NetworkUtilities.weightedSum(hiddenLayers[i].getNeurons()[j].getWeights(),
                   hiddenLayers[i - 1].getOutputs(), hiddenLayers[i].getNeurons()[j].getBias()));
       }
     }
     for (int i = 0; i < outputLayer.getNeurons().length; i++)
-      outputLayer.getNeurons()[i].activate(Msn.weightedSum(outputLayer.getNeurons()[i].getWeights(),
-          hiddenLayers[hiddenLayers.length - 1].getOutputs(),
-          outputLayer.getNeurons()[i].getBias()));
+      outputLayer.getNeurons()[i]
+          .activate(NetworkUtilities.weightedSum(outputLayer.getNeurons()[i].getWeights(),
+              hiddenLayers[hiddenLayers.length - 1].getOutputs(),
+              outputLayer.getNeurons()[i].getBias()));
     return this;
   }
 
@@ -368,12 +372,12 @@ public class Network {
      * @param weightcount the amount of weights to store in this Neuron.
      */
     public Neuron(int weightcount) {
-      bias = Msn.weight();
+      bias = NetworkUtilities.weight();
       output = 0;
       error = 0;
       weights = new double[weightcount];
       for (int i = 0; i < weights.length; i++)
-        weights[i] = Msn.weight();
+        weights[i] = NetworkUtilities.weight();
     }
 
     /**
@@ -382,7 +386,7 @@ public class Network {
      * @param weightsum the weighted sum calculation
      */
     public void activate(double weightsum) {
-      output = Msn.sigmoid(weightsum);
+      output = NetworkUtilities.sigmoid(weightsum);
     }
 
     /**

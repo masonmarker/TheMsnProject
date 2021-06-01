@@ -1,3 +1,4 @@
+import java.util.Random;
 import java.util.TreeMap;
 
 /**
@@ -7,6 +8,78 @@ import java.util.TreeMap;
  * @version 1.0 - 05/14/2021
  */
 public class NetworkUtilities {
+
+  /**
+   * Performs a Sigmoid-Logistic operation on the number specified.
+   * 
+   * @param d the number
+   * @return the number after applying the sigmoid function
+   * @since 0.1.5.2.7
+   */
+  public static double sigmoid(double d) {
+    return 1 / (1 + Math.exp(-d));
+  }
+
+  /**
+   * Calculates an initial weight value for a neural network.
+   * 
+   * @param inputs the number of input neurons
+   * @param outputs the number of output neurons
+   * @return an initial weight value
+   * @since 0.1.5.2.7
+   */
+  public static double weight(int inputs, int outputs) {
+    return new Random().nextGaussian() * (Math.sqrt(2.0 / (inputs + outputs)));
+  }
+
+  /**
+   * Calculates an initial weight value for a neural network.
+   * 
+   * @return an initial weight value
+   * @since 0.1.5.2.8
+   */
+  public static double weight() {
+    return .5 - Math.random();
+  }
+
+  /**
+   * Calculates the dot product of the given weights and outputs, and appends the bias to the
+   * calculation.
+   * 
+   * @param weights the weights
+   * @param outputs the outputs
+   * @param bias the bias
+   * @return the weighted sum
+   * @since 0.1.5.2.8
+   */
+  public static double weightedSum(double[] weights, double[] outputs, double bias) {
+    double sum = 0;
+    for (int i = 0; i < weights.length; i++)
+      sum += weights[i] * outputs[i];
+    return sum + bias;
+  }
+
+  /**
+   * Interprets the output of an output Neuron of the Network class.
+   * 
+   * @param output the output
+   * @return the interpreted output
+   */
+  public static int interpret(double output, int decplaces) {
+    if (output == 1)
+      return 1;
+    else if (output == 0)
+      return 0;
+    else {
+      if (decplaces > 8)
+        decplaces = 8;
+      String s = String.valueOf(Msn.decFormat(output, decplaces));
+      String fix = "";
+      for (int i = 2; i < s.length(); i++)
+        fix += s.charAt(i);
+      return Integer.valueOf(fix);
+    }
+  }
 
   /**
    * Finds the most optimal amount of Layers and Neurons per Layer for the data given.

@@ -48,7 +48,6 @@ public class Login extends JFrame implements KeyListener {
       }
     }
     System.out.println("logged in");
-
   }
   
   /**
