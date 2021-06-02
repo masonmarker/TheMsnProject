@@ -1601,26 +1601,14 @@ public class Msn {
    * Parses through a String, removing all letters.
    * 
    * @param s the String to parse.
-   * @return
+   * @return the String without numbers
    */
   public static String extractNums(String s) {
-    s = s.replaceAll(" . ", " ");
-    StringBuilder sb = new StringBuilder(s);
-    for (int i = 0; i < sb.length(); i++) {
-      if (!Character.isDigit(sb.charAt(i)) && sb.charAt(i) != '.')
-        sb.replace(i, i + 1, " ");
-      try {
-        if (sb.charAt(i) == ' ' && sb.charAt(i + 1) == '.')
-          sb.replace(i, i + 2, " 0.");
-        if (sb.charAt(i + 1) == ' ' && sb.charAt(i) == '.')
-          sb.replace(i, i + 1, ".0");
-      } catch (StringIndexOutOfBoundsException e) {
-        System.out.print("");
-      }
-    }
-    if (verbose)
-      println("[+] Numbers extracted: " + sb.toString());
-    return sb.toString();
+    String fixed = "";
+    for (int i = 0; i < s.length(); i++)
+      if (Character.isDigit(s.charAt(i)))
+        fixed += s.charAt(i);
+    return fixed;
   }
 
   /**
@@ -1718,77 +1706,6 @@ public class Msn {
     if (!removeDups)
       return types.toArray();
     return removeDups(types.toArray());
-  }
-
-  /**
-   * Creates a String types map for usage of below methods in the following order.
-   * 
-   * Line 1: All existing Strings Line 2: All existing Integers Line 3: All existing Doubles Line 4:
-   * All existing Booleans
-   * 
-   * @param s the String to use
-   * @return types array
-   */
-  public static String typesMap(String s) {
-    ArrayList<String> strings = new ArrayList<>();
-    ArrayList<Integer> integers = new ArrayList<>();
-    ArrayList<Double> doubles = new ArrayList<>();
-    ArrayList<Boolean> booleans = new ArrayList<>();
-    String[] stringArray = toStringArray(s);
-    String[] types = toString(existingTypes(s, false));
-    for (int i = 0; i < types.length; i++) {
-      if (types[i].equals("Boolean"))
-        booleans.add(Boolean.valueOf(stringArray[i]));
-      else if (types[i].equals("String"))
-        strings.add(String.valueOf(stringArray[i]));
-      else if (types[i].equals("Integer"))
-        integers.add(Integer.valueOf(stringArray[i]));
-      else if (types[i].equals("Double"))
-        doubles.add(Double.valueOf(stringArray[i]));
-    }
-    String ss = "";
-    if (!strings.isEmpty())
-      ss += Arrays.toString(strings.toArray()) + "\n";
-    if (!integers.isEmpty())
-      ss += Arrays.toString(integers.toArray()) + "\n";
-    if (!doubles.isEmpty())
-      ss += Arrays.toString(doubles.toArray()) + "\n";
-    if (!booleans.isEmpty())
-      ss += Arrays.toString(booleans.toArray()) + "\n";
-    return ss.replaceAll("\\[", "").replaceAll("\\]", "").replaceAll(",", "");
-  }
-
-  /**
-   * Gets an array of every instance of a certain Object in the String.
-   * 
-   * @param s the String to use
-   * @return the Object array
-   */
-  public static String[] findAllStrings(String s) {
-    String typesMap = typesMap(s).replaceAll("\\[", "").replaceAll("\\]", "").replaceAll(",", "");
-    String[] incase = new String[0];
-    try {
-      return toStringArray(getLine(typesMap, 0));
-    } catch (IllegalArgumentException | NoSuchElementException e) {
-      System.out.println("No Strings exist, returning a blank String[]");
-      return incase;
-    }
-  }
-
-  /**
-   * Removes all Strings found in the given String.
-   * 
-   * @param s the String to use
-   * @return the cleaned String
-   */
-  public static String removeAllStrings(String s) {
-    String[] strings = findAllStrings(s);
-    String noStrings = s;
-    for (int i = 0; i < strings.length; i++)
-      noStrings = noStrings.replaceFirst(strings[i], "");
-    if (verbose)
-      println("[+] removed all strings: " + noStrings);
-    return noStrings;
   }
 
   /**
@@ -1918,21 +1835,6 @@ public class Msn {
   public static String toSSV(String path) {
     return contentsOf(path).toLowerCase()
         .replaceAll(String.valueOf(mostCommonChar(contentsOf(path).toLowerCase())), " ");
-  }
-
-  /**
-   * Replaces every non-Eng char or number with a whitespace.
-   * 
-   * @param s the String to parse
-   * @return the String with
-   * @since 0.1.2.1.0
-   */
-  public static String nuke(String s) {
-    StringBuilder sb = new StringBuilder(s);
-    for (int i = 0; i < sb.length(); i++)
-      if (!Character.isLetter(sb.charAt(i)) && !Character.isDigit(sb.charAt(i)))
-        sb.replace(i, i + 1, " ");
-    return sb.toString();
   }
 
   /**
@@ -8354,6 +8256,46 @@ public class Msn {
     if (min < max)
       return min + new Random().nextInt(Math.abs(max - min));
     return min - new Random().nextInt(Math.abs(max - min));
+  }
+
+  /**
+   * Gets a random index of the array specified.
+   * 
+   * @param array the array
+   * @return a random index
+   */
+  public static int randomIndex(Object[] array) {
+    return new Random().nextInt(array.length);
+  }
+
+  /**
+   * Gets a random index of the array specified.
+   * 
+   * @param array the array
+   * @return a random index
+   */
+  public static int randomIndex(int[] array) {
+    return new Random().nextInt(array.length);
+  }
+
+  /**
+   * Gets a random index of the array specified.
+   * 
+   * @param array the array
+   * @return a random index
+   */
+  public static int randomIndex(double[] array) {
+    return new Random().nextInt(array.length);
+  }
+
+  /**
+   * Gets a random index of the array specified.
+   * 
+   * @param array the array
+   * @return a random index
+   */
+  public static int randomIndex(char[] array) {
+    return new Random().nextInt(array.length);
   }
 
   /**

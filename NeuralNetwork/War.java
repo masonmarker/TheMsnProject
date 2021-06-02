@@ -83,11 +83,11 @@ public class War extends JFrame {
       }
     }
 
-    Ai ai1 = new Ai(15, 45, Color.green, 6);
+    Ai ai1 = new Ai(15, 45, Color.green, 8);
     ais.add(ai1);
     cells[15][45] = ai1;
 
-    Ai ai2 = new Ai(45, 15, Color.blue.brighter(), 7);
+    Ai ai2 = new Ai(45, 15, Color.blue.brighter(), 8);
     ais.add(ai2);
     cells[45][15] = ai2;
 
