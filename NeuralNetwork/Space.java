@@ -87,7 +87,7 @@ public class Space extends JFrame {
     obstacles = new ArrayList<>();
 
     setTitle("Space v1.0");
-    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     setBounds(100, 100, 650, 784);
     contentPane = new JPanel();
     contentPane.setBackground(Color.BLACK);

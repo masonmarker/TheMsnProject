@@ -111,7 +111,7 @@ public class NetworkVisualization extends JFrame {
 
 
     setTitle("Msn Neural Network Visualization 1.0");
-    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     setBounds(100, 100, 856, 743);
     contentPane = new JPanel();
     contentPane.setBackground(new Color(169, 169, 169));
