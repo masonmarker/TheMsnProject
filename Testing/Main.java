@@ -1,10 +1,12 @@
+import java.awt.Color;
+import javax.swing.JFrame;
+
 public class Main {
 
   public static void main(String[] args) {
 
-    Deck d = new Deck(true);
-    
-    System.out.println(d.toString());
+    JFrame frame = Msn.buildFrame(Color.black, Color.LIGHT_GRAY, 400, 400, true);
+    frame.setVisible(true);
 
   }
 
