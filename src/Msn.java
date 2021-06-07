@@ -31,17 +31,20 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+import javax.swing.GroupLayout;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.border.EmptyBorder;
 
 /**
- * Includes like 639487639486 methods Java should already have implemented.
+ * Includes like 639487639486 methods Java's library should already have.
  * 
  * Method descriptions containing "(WIP)" indicates that specific method is still in experimental
  * stages, using them could cause errors.
  * 
- * TODO neAll() nwAll() seAll() swAll()
- * 
  * @author Mason Marker
- * @version 0.1.5.2.9 - 05/31/2021
+ * @version 0.1.5.3.0 - 06/04/2021
  */
 public class Msn {
 
@@ -119,6 +122,28 @@ public class Msn {
       println("[+] retrieved vowels");
     return new char[] {'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's',
         't', 'v', 'w', 'x', 'z'};
+  }
+
+  /**
+   * Checks whether the specified char is a vowel.
+   * 
+   * @param c the char
+   * @return whether the char is a vowel or not
+   * @since 0.1.5.3.0
+   */
+  public static boolean isVowel(char c) {
+    return contains(vowels(), c);
+  }
+
+  /**
+   * Checks whether the specified char is a consonant.
+   * 
+   * @param c the char
+   * @return whether the char is a consonant or not
+   * @since 0.1.5.3.0
+   */
+  public static boolean isConsonant(char c) {
+    return contains(consonants(), c);
   }
 
   // ----------------------------CONSOLE--------------------------------------
@@ -1760,7 +1785,7 @@ public class Msn {
     return ret;
   }
 
-  // -----------------TEXT FILE OPERATIONS AND OTHER STUFF--------------------
+  // -------------------------TEXT FILE OPERATIONS--------------------------
 
   /**
    * Reads a file line-by-line. Can be used to remove empty lines with replaceAll("(?m)^\\s", "") or
@@ -4327,9 +4352,8 @@ public class Msn {
    */
   public static Integer[] box(int[] array) {
     Integer[] arr = new Integer[array.length];
-    for (int i = 0; i < arr.length; i++) {
+    for (int i = 0; i < arr.length; i++)
       arr[i] = array[i];
-    }
     return arr;
   }
 
@@ -4342,9 +4366,8 @@ public class Msn {
    */
   public static Double[] box(double[] array) {
     Double[] arr = new Double[array.length];
-    for (int i = 0; i < arr.length; i++) {
+    for (int i = 0; i < arr.length; i++) 
       arr[i] = array[i];
-    }
     return arr;
   }
 
@@ -4357,9 +4380,8 @@ public class Msn {
    */
   public static Boolean[] box(boolean[] array) {
     Boolean[] arr = new Boolean[array.length];
-    for (int i = 0; i < arr.length; i++) {
+    for (int i = 0; i < arr.length; i++)
       arr[i] = array[i];
-    }
     return arr;
   }
 
@@ -4372,9 +4394,8 @@ public class Msn {
    */
   public static Character[] box(char[] array) {
     Character[] arr = new Character[array.length];
-    for (int i = 0; i < arr.length; i++) {
+    for (int i = 0; i < arr.length; i++)
       arr[i] = array[i];
-    }
     return arr;
   }
 
@@ -4387,9 +4408,8 @@ public class Msn {
    */
   public static int[] unbox(Integer[] array) {
     int[] arr = new int[array.length];
-    for (int i = 0; i < arr.length; i++) {
+    for (int i = 0; i < arr.length; i++)
       arr[i] = array[i];
-    }
     return arr;
   }
 
@@ -4402,9 +4422,8 @@ public class Msn {
    */
   public static double[] unbox(Double[] array) {
     double[] arr = new double[array.length];
-    for (int i = 0; i < arr.length; i++) {
+    for (int i = 0; i < arr.length; i++)
       arr[i] = array[i];
-    }
     return arr;
   }
 
@@ -4417,9 +4436,8 @@ public class Msn {
    */
   public static boolean[] unbox(Boolean[] array) {
     boolean[] arr = new boolean[array.length];
-    for (int i = 0; i < arr.length; i++) {
+    for (int i = 0; i < arr.length; i++)
       arr[i] = array[i];
-    }
     return arr;
   }
 
@@ -4432,9 +4450,8 @@ public class Msn {
    */
   public static char[] unbox(Character[] array) {
     char[] arr = new char[array.length];
-    for (int i = 0; i < arr.length; i++) {
+    for (int i = 0; i < arr.length; i++)
       arr[i] = array[i];
-    }
     return arr;
   }
 
@@ -4447,9 +4464,8 @@ public class Msn {
    */
   public static int[] toInt(Object[] array) {
     int[] fixed = new int[array.length];
-    for (int i = 0; i < fixed.length; i++) {
+    for (int i = 0; i < fixed.length; i++)
       fixed[i] = (int) array[i];
-    }
     return fixed;
   }
 
@@ -4462,9 +4478,8 @@ public class Msn {
    */
   public static double[] toDouble(Object[] array) {
     double[] fixed = new double[array.length];
-    for (int i = 0; i < fixed.length; i++) {
+    for (int i = 0; i < fixed.length; i++)
       fixed[i] = (double) array[i];
-    }
     return fixed;
   }
 
@@ -4477,9 +4492,8 @@ public class Msn {
    */
   public static char[] toChar(Object[] array) {
     char[] fixed = new char[array.length];
-    for (int i = 0; i < fixed.length; i++) {
+    for (int i = 0; i < fixed.length; i++)
       fixed[i] = (char) array[i];
-    }
     return fixed;
   }
 
@@ -4492,9 +4506,8 @@ public class Msn {
    */
   public static boolean[] toBoolean(Object[] array) {
     boolean[] fixed = new boolean[array.length];
-    for (int i = 0; i < fixed.length; i++) {
+    for (int i = 0; i < fixed.length; i++)
       fixed[i] = (boolean) array[i];
-    }
     return fixed;
   }
 
@@ -4509,9 +4522,8 @@ public class Msn {
     int[][] destination = new int[array.length][];
     for (int i = 0; i < destination.length; ++i) {
       destination[i] = new int[array[i].length];
-      for (int j = 0; j < destination[i].length; ++j) {
+      for (int j = 0; j < destination[i].length; ++j)
         destination[i][j] = (int) array[i][j];
-      }
     }
     return destination;
   }
@@ -4527,9 +4539,8 @@ public class Msn {
     double[][] destination = new double[array.length][];
     for (int i = 0; i < destination.length; ++i) {
       destination[i] = new double[array[i].length];
-      for (int j = 0; j < destination[i].length; ++j) {
+      for (int j = 0; j < destination[i].length; ++j)
         destination[i][j] = (double) array[i][j];
-      }
     }
     return destination;
   }
@@ -4545,9 +4556,8 @@ public class Msn {
     char[][] destination = new char[array.length][];
     for (int i = 0; i < destination.length; ++i) {
       destination[i] = new char[array[i].length];
-      for (int j = 0; j < destination[i].length; ++j) {
+      for (int j = 0; j < destination[i].length; ++j)
         destination[i][j] = (char) array[i][j];
-      }
     }
     return destination;
   }
@@ -4563,14 +4573,49 @@ public class Msn {
     boolean[][] destination = new boolean[array.length][];
     for (int i = 0; i < destination.length; ++i) {
       destination[i] = new boolean[array[i].length];
-      for (int j = 0; j < destination[i].length; ++j) {
+      for (int j = 0; j < destination[i].length; ++j)
         destination[i][j] = (boolean) array[i][j];
-      }
     }
     return destination;
   }
 
   // ---------------------------------GUI-------------------------------------
+
+  /**
+   * Quick and customizable creation of a JFrame.
+   * 
+   * @param contentPaneBG the background color of the content pane
+   * @param mainPanelBG the background color of the main panel
+   * @param width the width of the frame
+   * @param height the height of the frame
+   * @param centerInWindow whether to center the frame in the middle of the screen or not
+   * @return the customized frame
+   * @since 0.1.5.3.0
+   */
+  public static JFrame buildFrame(Color contentPaneBG, Color mainPanelBG, int width, int height,
+      boolean centerInWindow) {
+    JFrame frame = new JFrame();
+    JPanel contentPane;
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.setBounds(100, 100, width, height);
+    contentPane = new JPanel();
+    contentPane.setBackground(contentPaneBG);
+    contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+    frame.setContentPane(contentPane);
+
+    JPanel panel = new JPanel();
+    panel.setBackground(mainPanelBG);
+    GroupLayout gl_contentPane = new GroupLayout(contentPane);
+    gl_contentPane.setHorizontalGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+        .addComponent(panel, GroupLayout.DEFAULT_SIZE, 474, Short.MAX_VALUE));
+    gl_contentPane.setVerticalGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+        .addComponent(panel, GroupLayout.DEFAULT_SIZE, 451, Short.MAX_VALUE));
+    contentPane.setLayout(gl_contentPane);
+    frame.pack();
+    if (centerInWindow)
+      frame.setLocationRelativeTo(null);
+    return frame;
+  }
 
   /**
    * Draws a centered String within the bounds specified.
@@ -4592,6 +4637,19 @@ public class Msn {
     int textX = x + (width - textWidth) / 2;
     int textY = y + (height - textHeight) / 2 + fm.getAscent();
     page.drawString(s, textX, textY);
+  }
+
+  /**
+   * Centers a Frame in the middle of the screen.
+   * 
+   * @param j the frame to center
+   * @param pack whether to pack the frame before centering
+   * @since 0.1.5.3.0
+   */
+  public static void centerFrame(JFrame j, boolean pack) {
+    if (pack)
+      j.pack();
+    j.setLocationRelativeTo(null);
   }
 
   /**
@@ -7469,7 +7527,7 @@ public class Msn {
   public static Stream<Object> toStream(Object[] array) {
     if (verbose)
       println("[*] converting to Stream");
-    return Arrays.asList(array).stream();
+    return Stream.of(array);
   }
 
   /**

@@ -14,6 +14,13 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 
+/**
+ * Guess a random number within a range in less tries than the AI!
+ * 
+ * @author Mason Marker
+ * @version 1.0 - 01/15/2021
+ */
+@SuppressWarnings("serial")
 public class Guessing extends JFrame {
 
   private JPanel contentPane;
@@ -32,9 +39,10 @@ public class Guessing extends JFrame {
   private ArrayList<Integer> aiguesses;
 
   public static void main(String[] args) {
+    // range
     new Guessing(1, 100);
   }
-  
+
   /**
    * Create the frame.
    */
