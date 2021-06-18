@@ -44,7 +44,7 @@ import javax.swing.border.EmptyBorder;
  * stages, using them could cause errors.
  * 
  * @author Mason Marker
- * @version 0.1.5.3.0 - 06/04/2021
+ * @version 0.1.5.3.1 - 06/08/2021
  */
 public class Msn {
 
@@ -189,7 +189,7 @@ public class Msn {
    */
   public static String binary(int num) {
     if (verbose)
-      println("binary rep of " + num + " is " + Integer.toBinaryString(num));
+      println("[+] binary rep of " + num + " is " + Integer.toBinaryString(num));
     return Integer.toBinaryString(num);
   }
 
@@ -208,10 +208,9 @@ public class Msn {
       bin += nextNum % base;
       nextNum = nextNum / base;
     }
-    StringBuilder sb = new StringBuilder(bin);
-    sb.reverse();
+    StringBuilder sb = new StringBuilder(bin).reverse();
     if (verbose)
-      println("binary rep of " + num + " base " + base + " is " + sb.toString());
+      println("[+] binary rep of " + num + " base " + base + " is " + sb.toString());
     return sb.toString();
   }
 
@@ -509,14 +508,33 @@ public class Msn {
   }
 
   /**
-   * Computes the inverse of the countLines() method, counts the number of words in the first line.
+   * Counts the vowels that exist in the given String.
    * 
-   * @param input the input to use
-   * @return the amount of words in the top line of the String.
-   * @since 0.1.1.0.0
+   * @param s the String
+   * @return the amount of vowels
+   * @since 0.1.5.3.1
    */
-  public static int countWidth(String input) {
-    return countWords(getLine(input, 0));
+  public static int countVowels(String s) {
+    int count = 0;
+    for (int i = 0; i < s.length(); i++)
+      if (isVowel(s.charAt(i)))
+        count++;
+    return count;
+  }
+
+  /**
+   * Counts the vowels that exist in the given String.
+   * 
+   * @param s the String
+   * @return the amount of vowels
+   * @since 0.1.5.3.1
+   */
+  public static int countConsonants(String s) {
+    int count = 0;
+    for (int i = 0; i < s.length(); i++)
+      if (isConsonant(s.charAt(i)))
+        count++;
+    return count;
   }
 
   /**
@@ -810,11 +828,10 @@ public class Msn {
    */
   public static HashMap<Character, Integer> charFreqMap(String s) {
     HashMap<Character, Integer> freqs = new HashMap<>();
-    for (int i = 0; i < s.length(); i++) {
+    for (int i = 0; i < s.length(); i++)
       freqs.put(s.charAt(i), countChars(s, s.charAt(i)));
-    }
     if (verbose)
-      System.out.println("char map built with " + freqs.size() + " entries");
+      println("char map built with " + freqs.size() + " entries");
     return freqs;
   }
 
@@ -828,15 +845,40 @@ public class Msn {
   public static HashMap<String, Integer> stringFreqMap(String s) {
     HashMap<String, Integer> map = new HashMap<>();
     String[] words = toStringArray(s);
-    for (int i = 0; i < words.length; i++) {
+    for (int i = 0; i < words.length; i++)
       map.put(words[i], countFreq(words, words[i]));
-    }
     if (verbose)
-      System.out.println("String map built with " + map.size() + " entries");
+      println("[+] String map built with " + map.size() + " entries");
     return map;
   }
 
   // -----------------------------COLORS--------------------------------------
+
+  /**
+   * Gets an array of the AWT Colors.
+   * 
+   * @return on array of Colors.
+   * @since 0.1.5.3.1
+   */
+  public static Color[] awtColorArray() {
+    Color[] c = new Color[13];
+    c[0] = Color.black;
+    c[1] = Color.blue;
+    c[2] = Color.cyan;
+    c[3] = Color.darkGray;
+    c[4] = Color.gray;
+    c[5] = Color.green;
+    c[6] = Color.lightGray;
+    c[7] = Color.magenta;
+    c[8] = Color.orange;
+    c[9] = Color.pink;
+    c[10] = Color.red;
+    c[11] = Color.white;
+    c[12] = Color.yellow;
+    if (verbose)
+      println("[+] AWT Color array created");
+    return c;
+  }
 
   /**
    * Returns the color representation of the String provided.
@@ -848,34 +890,74 @@ public class Msn {
   public static Color getColor(String color) {
     Color c = null;
     if (containsIgnoreCase(color, "black"))
-      c = Color.BLACK;
+      c = Color.black;
     else if (containsIgnoreCase(color, "blue"))
-      c = Color.BLUE;
+      c = Color.blue;
     else if (containsIgnoreCase(color, "cyan"))
-      c = Color.CYAN;
+      c = Color.cyan;
     else if (containsIgnoreCase(color, "dark gray") || containsIgnoreCase(color, "darkgray"))
-      c = Color.DARK_GRAY;
+      c = Color.darkGray;
     else if (containsIgnoreCase(color, "gray"))
-      c = Color.GRAY;
+      c = Color.gray;
     else if (containsIgnoreCase(color, "green"))
-      c = Color.GREEN;
+      c = Color.green;
     else if (containsIgnoreCase(color, "light gray") || containsIgnoreCase(color, "lightgray"))
-      c = Color.LIGHT_GRAY;
+      c = Color.lightGray;
     else if (containsIgnoreCase(color, "magenta"))
-      c = Color.MAGENTA;
+      c = Color.magenta;
     else if (containsIgnoreCase(color, "orange"))
-      c = Color.ORANGE;
+      c = Color.orange;
     else if (containsIgnoreCase(color, "pink"))
-      c = Color.PINK;
+      c = Color.pink;
     else if (containsIgnoreCase(color, "red"))
-      c = Color.RED;
+      c = Color.red;
     else if (containsIgnoreCase(color, "white"))
-      c = Color.WHITE;
+      c = Color.white;
     else if (containsIgnoreCase(color, "yellow"))
-      c = Color.YELLOW;
+      c = Color.yellow;
     if (verbose)
       println("[+] converted " + color + " to " + c);
     return c;
+  }
+
+  /**
+   * Converts a Color to its respective String name.
+   * 
+   * @param color the Color
+   * @return the name of the Color
+   * @since 0.1.5.3.1
+   */
+  public static String toString(Color color) {
+    String name = color.toString();
+    if (color.equals(Color.black))
+      name = "black";
+    else if (color.equals(Color.blue))
+      name = "blue";
+    else if (color.equals(Color.cyan))
+      name = "cyan";
+    else if (color.equals(Color.darkGray))
+      name = "dark gray";
+    else if (color.equals(Color.gray))
+      name = "gray";
+    else if (color.equals(Color.green))
+      name = "green";
+    else if (color.equals(Color.lightGray))
+      name = "light gray";
+    else if (color.equals(Color.magenta))
+      name = "magenta";
+    else if (color.equals(Color.orange))
+      name = "orange";
+    else if (color.equals(Color.pink))
+      name = "pink";
+    else if (color.equals(Color.red))
+      name = "red";
+    else if (color.equals(Color.white))
+      name = "white";
+    else if (color.equals(Color.yellow))
+      name = "yellow";
+    if (verbose)
+      println("[+] " + color + " converted to " + name);
+    return name;
   }
 
   /**
@@ -889,6 +971,8 @@ public class Msn {
     Color fixed = color;
     for (int i = 0; i < times; i++)
       fixed = fixed.darker();
+    if (verbose)
+      println("[+] darkened " + color + " to " + fixed);
     return fixed;
   }
 
@@ -903,6 +987,8 @@ public class Msn {
     Color fixed = color;
     for (int i = 0; i < times; i++)
       fixed = fixed.brighter();
+    if (verbose)
+      println("[+] brightened " + color + " to " + fixed);
     return fixed;
   }
 
@@ -913,7 +999,7 @@ public class Msn {
    * @return an average Color
    * @since 0.1.5.0.0
    */
-  public static Color avgColor(Color[] colors) {
+  public static Color mergeColors(Color... colors) {
     int[] reds = new int[colors.length];
     int[] greens = new int[colors.length];
     int[] blues = new int[colors.length];
@@ -922,6 +1008,8 @@ public class Msn {
       greens[i] = colors[i].getGreen();
       blues[i] = colors[i].getBlue();
     }
+    if (verbose)
+      println("[+] colors merged");
     return new Color((int) avg(reds), (int) avg(greens), (int) avg(blues));
   }
 
@@ -935,6 +1023,38 @@ public class Msn {
   public static double brightness(Color color) {
     return Math.sqrt(0.299 * Math.pow(color.getRed(), 2) + 0.587 * Math.pow(color.getGreen(), 2)
         + 0.114 * Math.pow(color.getBlue(), 2));
+  }
+
+  /**
+   * Finds the brightest Color out of the Colors passed.
+   * 
+   * @param colors the colors
+   * @return the brightest Color
+   * @since 0.1.5.3.1
+   */
+  public static Color brightest(Color... colors) {
+    TreeMap<Double, Color> map = new TreeMap<>();
+    for (int i = 0; i < colors.length; i++)
+      map.put(brightness(colors[i]), colors[i]);
+    if (verbose)
+      println("[+] brightest color is " + toString(map.lastEntry().getValue()));
+    return map.lastEntry().getValue();
+  }
+
+  /**
+   * Finds the brightest Color out of the Colors passed.
+   * 
+   * @param colors the colors
+   * @return the brightest Color
+   * @since 0.1.5.3.1
+   */
+  public static Color darkest(Color... colors) {
+    TreeMap<Double, Color> map = new TreeMap<>();
+    for (int i = 0; i < colors.length; i++)
+      map.put(brightness(colors[i]), colors[i]);
+    if (verbose)
+      println("[+] darkest color is " + toString(map.firstEntry().getValue()));
+    return map.firstEntry().getValue();
   }
 
   // ----------------------------CREATION-------------------------------------
@@ -1118,56 +1238,6 @@ public class Msn {
     return destination;
   }
 
-  // -----------------------------USER INPUT----------------------------------
-
-  /**
-   * Optimal for quick user input.
-   * 
-   * @param msg the message to display before input
-   * @param kb the already initialized Scanner
-   * @return the user's input
-   * @since 0.1.0.3.3
-   */
-  public static String nextLine(String msg, Scanner kb) {
-    System.out.print(msg);
-    String entry = kb.nextLine();
-    if (verbose)
-      System.out.println("entered " + entry);
-    return entry;
-  }
-
-  /**
-   * Optimal for quick user input, works in unison with the typo remover.
-   * 
-   * @param msg the message to display before input
-   * @param kb the already initialized Scanner
-   * @return the user's input
-   * @since 0.1.0.3.3
-   */
-  public static double nextDouble(String msg, Scanner kb) {
-    System.out.print(msg);
-    double entry = dubWithoutTypo(kb.nextLine());
-    if (verbose)
-      System.out.println("entered " + entry);
-    return entry;
-  }
-
-  /**
-   * Optimal for quick user input, works in unison with the typo remover.
-   * 
-   * @param msg the message to display before input
-   * @param kb the already initialized Scanner
-   * @return the user's input
-   * @since 0.1.0.3.3
-   */
-  public static int nextInt(String msg, Scanner kb) {
-    System.out.print(msg);
-    int entry = intWithoutTypo(kb.nextLine());
-    if (verbose)
-      System.out.println("entered " + entry);
-    return entry;
-  }
-
   // ----------------------------STRINGS--------------------------------------
 
   /**
@@ -1198,22 +1268,6 @@ public class Msn {
   }
 
   /**
-   * Removes all instances of the specified char from a String.
-   * 
-   * @param the String to fix
-   * @param toRemove the char to remove
-   * @return the fixed String
-   * @since 0.1.0.0.6
-   */
-  public static String removeChar(String s, char toRemove) {
-    String fixed = "";
-    for (int i = 0; i < s.length(); i++)
-      if (s.charAt(i) != toRemove)
-        fixed += s.charAt(i);
-    return fixed;
-  }
-
-  /**
    * Counts the most common character in the String.
    * 
    * @param s the String to use
@@ -1236,9 +1290,10 @@ public class Msn {
    * @since 0.1.1.5.0
    */
   public static String getLine(String s, int index) {
-    if (index > countLines(s))
+    int lines = countLines(s);
+    if (index > lines)
       throw new IllegalArgumentException(
-          "index " + index + " out of bounds for line count " + countLines(s));
+          "index " + index + " out of bounds for line count " + lines);
     Scanner kb = new Scanner(s);
     for (int i = 0; i < index; i++)
       kb.nextLine();
@@ -1255,12 +1310,11 @@ public class Msn {
   public static String[] toLineArray(String s) {
     Scanner kb = new Scanner(s);
     String[] lineArray = new String[countLines(s)];
-    for (int i = 0; i < lineArray.length; i++) {
+    for (int i = 0; i < lineArray.length; i++)
       if (kb.hasNextLine())
         lineArray[i] = kb.nextLine();
       else
         lineArray[i] = "";
-    }
     if (verbose)
       println("[+] line array created");
     return lineArray;
@@ -1278,11 +1332,9 @@ public class Msn {
   public static String removeLines(String s, int startLine, int finishLine) {
     String fixed = "";
     String[] lines = toLineArray(s);
-    for (int i = 0; i < lines.length; i++) {
-      if (i < startLine || i > finishLine) {
+    for (int i = 0; i < lines.length; i++)
+      if (i < startLine || i > finishLine)
         fixed += lines[i] + "\n";
-      }
-    }
     if (verbose)
       println("[+] lines removed");
     return fixed;
@@ -1369,8 +1421,7 @@ public class Msn {
    * @return the formatted number in String form 0.1.3.0.4
    */
   public static String moneyFormat(double toFormat) {
-    String pre = String.format("%,.2f", toFormat).replace("-", "");
-    StringBuilder sb = new StringBuilder(pre);
+    StringBuilder sb = new StringBuilder(String.format("%,.2f", toFormat).replace("-", ""));
     if (toFormat < 0) {
       sb.insert(0, "-$");
       return sb.toString();
@@ -1389,6 +1440,72 @@ public class Msn {
     char[] chars = s.toCharArray();
     Arrays.sort(chars);
     return String.valueOf(chars);
+  }
+
+  /**
+   * Parses through a String, removing all letters.
+   * 
+   * @param s the String to parse.
+   * @return the String without numbers
+   */
+  public static int[] extractNums(String s) {
+    ArrayList<Integer> ints = new ArrayList<>();
+    for (int i = 0; i < s.length(); i++)
+      if (Character.isDigit(s.charAt(i)))
+        ints.add(Integer.valueOf(s.charAt(i)));
+    return toInt(ints.toArray());
+  }
+
+  /**
+   * Performs toUpperCase() on every word in the array.
+   * 
+   * @param array the array to capitalize
+   * @return the fixed array
+   * @since 0.1.5.3.1
+   */
+  public static void toUpperCase(String[] array) {
+    for (int i = 0; i < array.length; i++)
+      array[i] = array[i].toUpperCase();
+  }
+
+  /**
+   * Performs toLowerCase() on every word in the array.
+   * 
+   * @param array the array to make lower case
+   * @return the fixed array
+   * @since 0.1.5.3.1
+   */
+  public static void toLowerCase(String[] array) {
+    for (int i = 0; i < array.length; i++)
+      array[i] = array[i].toLowerCase();
+  }
+
+  /**
+   * Capitalizes the first letter of the String passed.
+   * 
+   * @param s the String
+   * @return the fixed String
+   * @since 0.1.5.3.1
+   */
+  public static String capitalize(String s) {
+    String fixed = "";
+    for (int i = 0; i < s.length(); i++)
+      if (i == 0)
+        fixed += String.valueOf(s.charAt(i)).toUpperCase();
+      else
+        fixed += s.charAt(i);
+    return fixed;
+  }
+
+  /**
+   * Capitalizes every word in the array passed.
+   * 
+   * @param array the fixed array
+   * @since 0.1.5.3.1
+   */
+  public static void capitalize(String[] array) {
+    for (int i = 0; i < array.length; i++)
+      array[i] = capitalize(array[i]);
   }
 
   /**
@@ -1533,13 +1650,9 @@ public class Msn {
    * @return the String[]
    */
   public static String[] toString(Object[] array) {
-    String[] array2 = new String[array.length];
-    for (int i = 0; i < array.length; i++) {
-      array2[i] = String.valueOf(array[i]);
-    }
     if (verbose)
-      println("[+] Object[] successfully cast to String[]");
-    return array2;
+      println("[*] converting Object[] to String[]");
+    return Arrays.copyOf(array, array.length, String[].class);
   }
 
   /**
@@ -1622,169 +1735,6 @@ public class Msn {
     return s;
   }
 
-  /**
-   * Parses through a String, removing all letters.
-   * 
-   * @param s the String to parse.
-   * @return the String without numbers
-   */
-  public static String extractNums(String s) {
-    String fixed = "";
-    for (int i = 0; i < s.length(); i++)
-      if (Character.isDigit(s.charAt(i)))
-        fixed += s.charAt(i);
-    return fixed;
-  }
-
-  /**
-   * (WIP) Different from parseInt() and findAllInts(), this method searches every String for
-   * integers regardless of characters surrounding them.
-   * 
-   * EX: extractInts("45230fms34.7231aldf3405fj28fjgfm39") would yield {45230, 3405, 28, 39}
-   * 
-   * @param s the String to parse
-   * @return an integer array of the extracted ints
-   */
-  public static int[] extractInts(String s) {
-    String[] intArray = toStringArray(extractNums(s));
-    ArrayList<Integer> ints = new ArrayList<>();
-    for (int i = 0; i < intArray.length; i++) {
-      try {
-        ints.add(Integer.valueOf(intArray[i]));
-      } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-        System.out.print("");
-      }
-    }
-    if (verbose)
-      println("[+] extracted ints: " + Arrays.toString(ints.toArray()));
-    return toInt(ints.toArray());
-  }
-
-  /**
-   * (WIP) This method searches every String for doubles regardless of characters surrounding them.
-   * 
-   * EX: extractDoubles("45230fms34.7231aldf3405fj28fjgfm39") would yield {34.7231}
-   * 
-   * @param s the String to parse
-   * @return an integer array of the extracted ints
-   */
-  public static double[] extractDoubles(String s) {
-    String[] doub = toStringArray(extractNums(s));
-    ArrayList<Double> doubles = new ArrayList<>();
-    for (int i = 0; i < doub.length; i++) {
-      if (doub[i].contains(".")) {
-        doubles.add(-Double.valueOf(doub[i]));
-      }
-    }
-    if (verbose)
-      println("[+] extracted doubles: " + Arrays.toString(doubles.toArray()));
-    return toDouble(doubles.toArray());
-  }
-
-  /**
-   * Returns an array of existing types in a single String.
-   * 
-   * @param s the String to use
-   * @return an array of types as Strings (ex. Integer is "Integer")
-   */
-  public static Object[] existingTypes(String s, boolean removeDups) {
-    ArrayList<String> types = new ArrayList<>();
-    String[] stringArray = toStringArray(s);
-    for (int i = 0; i < stringArray.length; i++) {
-      boolean found = false;
-      try {
-        if (Integer.parseInt(stringArray[i]) < 999999
-            && Integer.valueOf(stringArray[i]) instanceof Integer) {
-          types.add("Integer");
-          found = true;
-        }
-      } catch (NumberFormatException e) {
-        System.out.print("");
-      }
-      try {
-        if (!found && Double.parseDouble(stringArray[i]) < 999999 && !found
-            && Double.valueOf(stringArray[i]) instanceof Double) {
-          types.add("Double");
-          found = true;
-        }
-      } catch (NumberFormatException e) {
-        System.out.print("");
-      }
-      try {
-        if (!found && Boolean.valueOf(stringArray[i]) && !found
-            && Boolean.valueOf(stringArray[i]) instanceof Boolean) {
-          types.add("Boolean");
-          found = true;
-        }
-      } catch (NumberFormatException e) {
-        System.out.print("");
-      }
-      if (!found && stringArray[i] instanceof String) {
-        types.add("String");
-        found = true;
-      } else {
-        System.out.print("");
-      }
-    }
-    if (verbose)
-      println("[+] existing types extracted");
-    if (!removeDups)
-      return types.toArray();
-    return removeDups(types.toArray());
-  }
-
-  /**
-   * Filters a int from a single char sequence. Useful when user input involves a typo.
-   * 
-   * This method is works the same way as extractInts(), however returns only the first int found.
-   * 
-   * EX: filterInt("nofw4infmaw4.623423fj932lf,.3") would yield 4
-   * 
-   * @param s the String to use
-   * @return the double found
-   */
-  public static int intWithoutTypo(String s) {
-    try {
-      if (s.contains("-"))
-        return -extractInts(s)[0];
-      return extractInts(s)[0];
-    } catch (ArrayIndexOutOfBoundsException e) {
-      System.out.println("no ints exist, returning -1");
-    }
-    return -1;
-  }
-
-  /**
-   * Filters a double from a single char sequence. Useful when user input involves a typo.
-   * 
-   * This method is works the same way as extractDoubles(), however returns only the first int
-   * found.
-   *
-   * EX: filterInt("nofw4infmaw4.623423fj932lf,.3") would yield 4.623423
-   * 
-   * @param s the String to use
-   * @return the filtered double
-   */
-  public static double dubWithoutTypo(String s) {
-    double ret = -1;
-    try {
-      if (s.contains("-"))
-        ret = extractDoubles(s)[0];
-      else
-        ret = extractDoubles(s)[0];
-    } catch (ArrayIndexOutOfBoundsException e) {
-      try {
-        if (s.contains("-"))
-          ret = -Double.valueOf(extractInts(s)[0]);
-        else
-          ret = Double.valueOf(extractInts(s)[0]);
-      } catch (ArrayIndexOutOfBoundsException r) {
-        println("no numbers found, returning -1.0");
-      }
-    }
-    return ret;
-  }
-
   // -------------------------TEXT FILE OPERATIONS--------------------------
 
   /**
@@ -1858,8 +1808,8 @@ public class Msn {
    * @since 0.1.2.1.0
    */
   public static String toSSV(String path) {
-    return contentsOf(path).toLowerCase()
-        .replaceAll(String.valueOf(mostCommonChar(contentsOf(path).toLowerCase())), " ");
+    String contents = contentsOf(path).toLowerCase();
+    return contents.replaceAll(String.valueOf(mostCommonChar(contents)), " ");
   }
 
   /**
@@ -1876,7 +1826,689 @@ public class Msn {
     pw.close();
   }
 
-  // ------------------------------PARSING------------------------------------
+  // ---------------------------ARRAY OPERATIONS------------------------------
+
+  /**
+   * Prints an array, useful when needing to print arrays quickly.
+   * 
+   * @param arr the array to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(Object[] arr) {
+    System.out.println(Arrays.toString(arr));
+  }
+
+  /**
+   * Prints an array, useful when needing to print arrays quickly.
+   * 
+   * @param arr the array to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(int[] arr) {
+    System.out.println(Arrays.toString(arr));
+  }
+
+  /**
+   * Prints an array, useful when needing to print arrays quickly.
+   * 
+   * @param arr the array to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(double[] arr) {
+    System.out.println(Arrays.toString(arr));
+  }
+
+  /**
+   * Prints an array, useful when needing to print arrays quickly.
+   * 
+   * @param arr the array to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(boolean[] arr) {
+    System.out.println(Arrays.toString(arr));
+  }
+
+  /**
+   * Prints an array, useful when needing to print arrays quickly.
+   * 
+   * @param arr the array to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(char[] arr) {
+    System.out.println(Arrays.toString(arr));
+  }
+
+  /**
+   * Prints a 2D array thats a little easier on the eyes.
+   * 
+   * @param matrix the 2D matrix to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(Object[][] matrix) {
+    println(
+        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
+  }
+
+  /**
+   * Prints a 2D array thats a little easier on the eyes.
+   * 
+   * @param matrix the 2D matrix to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(String[][] matrix) {
+    println(
+        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
+  }
+
+  /**
+   * Prints a 2D array thats a little easier on the eyes.
+   * 
+   * @param matrix the 2D matrix to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(int[][] matrix) {
+    println(
+        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
+  }
+
+  /**
+   * Prints a 2D array thats a little easier on the eyes.
+   * 
+   * @param matrix the 2D matrix to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(double[][] matrix) {
+    println(
+        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
+  }
+
+  /**
+   * Prints a 2D array thats a little easier on the eyes.
+   * 
+   * @param matrix the 2D matrix to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(boolean[][] matrix) {
+    println(
+        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
+  }
+
+  /**
+   * Prints a 2D array thats a little easier on the eyes.
+   * 
+   * @param matrix the 2D matrix to print
+   * @since 0.1.0.0.0
+   */
+  public static void pa(char[][] matrix) {
+    println(
+        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
+  }
+
+  /**
+   * Reverses the passed array.
+   * 
+   * @param array the array to reverse
+   * @since 0.1.1.0.0
+   */
+  public static void reverse(Object[] array) {
+    Object[] copy = Arrays.copyOf(array, array.length);
+    ArrayList<Object> newArray = new ArrayList<>();
+    for (int i = copy.length - 1; i >= 0; i--)
+      newArray.add(copy[i]);
+    for (int i = 0; i < newArray.size(); i++)
+      array[i] = newArray.get(i);
+    if (verbose)
+      println("[+] array reversed");
+  }
+
+  /**
+   * Reverses the passed array.
+   * 
+   * @param array the array to reverse
+   * @since 0.1.1.0.0
+   */
+  public static void reverse(int[] array) {
+    int[] copy = Arrays.copyOf(array, array.length);
+    ArrayList<Object> newArray = new ArrayList<>();
+    for (int i = copy.length - 1; i >= 0; i--)
+      newArray.add(copy[i]);
+    for (int i = 0; i < newArray.size(); i++)
+      array[i] = (int) newArray.get(i);
+    if (verbose)
+      println("[+] array reversed");
+  }
+
+  /**
+   * Reverses the passed array.
+   * 
+   * @param array the array to reverse
+   * @since 0.1.1.0.0
+   */
+  public static void reverse(double[] array) {
+    double[] copy = Arrays.copyOf(array, array.length);
+    ArrayList<Object> newArray = new ArrayList<>();
+    for (int i = copy.length - 1; i >= 0; i--)
+      newArray.add(copy[i]);
+    for (int i = 0; i < newArray.size(); i++)
+      array[i] = (double) newArray.get(i);
+    if (verbose)
+      println("[+] array reversed");
+  }
+
+  /**
+   * Reverses the passed array.
+   * 
+   * @param array the array to reverse
+   * @since 0.1.1.0.0
+   */
+  public static void reverse(char[] array) {
+    char[] copy = Arrays.copyOf(array, array.length);
+    ArrayList<Object> newArray = new ArrayList<>();
+    for (int i = copy.length - 1; i >= 0; i--)
+      newArray.add(copy[i]);
+    for (int i = 0; i < newArray.size(); i++)
+      array[i] = (char) newArray.get(i);
+    if (verbose)
+      println("[+] array reversed");
+  }
+
+  /**
+   * Checks whether the coordinates are valid.
+   * 
+   * @param <E> e
+   * @param array the array to check
+   * @param coord the coordinates
+   * @return whether the coordinates passed are valid
+   * @since 0.1.5.0.4
+   */
+  public static boolean validCoord(Object[][] array, int[] coord) {
+    try {
+      Object e = array[coord[0]][coord[1]];
+    } catch (IndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the coordinates are valid.
+   * 
+   * @param <E> e
+   * @param array the array to check
+   * @param coord the coordinates
+   * @return whether the coordinates passed are valid
+   * @since 0.1.5.0.4
+   */
+  public static boolean validCoord(int[][] array, int[] coord) {
+    try {
+      Object e = array[coord[0]][coord[1]];
+    } catch (IndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the coordinates are valid.
+   * 
+   * @param <E> e
+   * @param array the array to check
+   * @param coord the coordinates
+   * @return whether the coordinates passed are valid
+   * @since 0.1.5.0.4
+   */
+  public static boolean validCoord(double[][] array, int[] coord) {
+    try {
+      Object e = array[coord[0]][coord[1]];
+    } catch (IndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the coordinates are valid.
+   * 
+   * @param <E> e
+   * @param array the array to check
+   * @param coord the coordinates
+   * @return whether the coordinates passed are valid
+   * @since 0.1.5.0.4
+   */
+  public static boolean validCoord(boolean[][] array, int[] coord) {
+    try {
+      Object e = array[coord[0]][coord[1]];
+    } catch (IndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether the coordinates are valid.
+   * 
+   * @param <E> e
+   * @param array the array to check
+   * @param coord the coordinates
+   * @return whether the coordinates passed are valid
+   * @since 0.1.5.0.4
+   */
+  public static boolean validCoord(char[][] array, int[] coord) {
+    try {
+      Object e = array[coord[0]][coord[1]];
+    } catch (IndexOutOfBoundsException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Copies an array.
+   * 
+   * @param array the array to copy
+   * @return the new array
+   * @since 0.1.5.0.4
+   */
+  public static Object[] arraycopy(Object[] array) {
+    return Arrays.copyOf(array, array.length);
+  }
+  
+  /**
+   * Copies an array.
+   * 
+   * @param array the array to copy
+   * @return the new array
+   * @since 0.1.5.0.4
+   */
+  public static int[] arraycopy(int[] array) {
+    return Arrays.copyOf(array, array.length);
+  }
+  
+  /**
+   * Copies an array.
+   * 
+   * @param array the array to copy
+   * @return the new array
+   * @since 0.1.5.0.4
+   */
+  public static double[] arraycopy(double[] array) {
+    return Arrays.copyOf(array, array.length);
+  }
+  
+  /**
+   * Copies an array.
+   * 
+   * @param array the array to copy
+   * @return the new array
+   * @since 0.1.5.0.4
+   */
+  public static char[] arraycopy(char[] array) {
+    return Arrays.copyOf(array, array.length);
+  }
+  
+  /**
+   * Copies an array.
+   * 
+   * @param array the array to copy
+   * @return the new array
+   * @since 0.1.5.0.4
+   */
+  public static boolean[] arraycopy(boolean[] array) {
+    return Arrays.copyOf(array, array.length);
+  }
+  
+  /**
+   * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
+   * 
+   * @param <E> e
+   * @param array the array
+   * @return a new array
+   * @since 0.1.5.0.4
+   */
+  public static Object[][] arraycopy(Object[][] array) {
+    Object[][] newarr = new Object[array.length][];
+    for (int i = 0; i < array.length; i++) {
+      Object[] aMatrix = array[i];
+      newarr[i] = new Object[aMatrix.length];
+      System.arraycopy(aMatrix, 0, newarr[i], 0, aMatrix.length);
+    }
+    if (verbose)
+      println("[+] array copied");
+    return newarr;
+  }
+  
+  /**
+   * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
+   * 
+   * @param <E> e
+   * @param array the array
+   * @return a new array
+   * @since 0.1.5.0.4
+   */
+  public static int[][] arraycopy(int[][] array) {
+    int[][] newarr = new int[array.length][];
+    for (int i = 0; i < array.length; i++) {
+      int[] aMatrix = array[i];
+      newarr[i] = new int[aMatrix.length];
+      System.arraycopy(aMatrix, 0, newarr[i], 0, aMatrix.length);
+    }
+    if (verbose)
+      println("[+] array copied");
+    return newarr;
+  }
+
+  /**
+   * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
+   * 
+   * @param <E> e
+   * @param array the array
+   * @return a new array
+   * @since 0.1.5.0.4
+   */
+  public static double[][] arraycopy(double[][] array) {
+    double[][] newarr = new double[array.length][];
+    for (int i = 0; i < array.length; i++) {
+      double[] aMatrix = array[i];
+      newarr[i] = new double[aMatrix.length];
+      System.arraycopy(aMatrix, 0, newarr[i], 0, aMatrix.length);
+    }
+    if (verbose)
+      println("[+] array copied");
+    return newarr;
+  }
+
+  /**
+   * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
+   * 
+   * @param <E> e
+   * @param array the array
+   * @return a new array
+   * @since 0.1.5.0.4
+   */
+  public static boolean[][] arraycopy(boolean[][] array) {
+    boolean[][] newarr = new boolean[array.length][];
+    for (int i = 0; i < array.length; i++) {
+      boolean[] aMatrix = array[i];
+      newarr[i] = new boolean[aMatrix.length];
+      System.arraycopy(aMatrix, 0, newarr[i], 0, aMatrix.length);
+    }
+    if (verbose)
+      println("[+] array copied");
+    return newarr;
+  }
+
+  /**
+   * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
+   * 
+   * @param <E> e
+   * @param array the array
+   * @return a new array
+   * @since 0.1.5.0.4
+   */
+  public static char[][] arraycopy(char[][] array) {
+    char[][] newarr = new char[array.length][];
+    for (int i = 0; i < array.length; i++) {
+      char[] aMatrix = array[i];
+      newarr[i] = new char[aMatrix.length];
+      System.arraycopy(aMatrix, 0, newarr[i], 0, aMatrix.length);
+    }
+    if (verbose)
+      println("[+] array copied");
+    return newarr;
+  }
+
+  /**
+   * Imports all values from the array into the Collection specified.
+   * 
+   * @param from the from array
+   * @param to the collection to import the arrays values to
+   * @since 0.1.4.3.2
+   */
+  public static void importAll(Object[] from, Collection<Object> to) {
+    for (Object o : from)
+      to.add(o);
+    if (verbose)
+      println("[+] values from imported into Collection");
+  }
+
+  /**
+   * Imports all values from the array into the Collection specified.
+   * 
+   * @param from the from array
+   * @param to the collection to import the arrays values to
+   * @since 0.1.4.3.2
+   */
+  public static void importAll(int[] from, Collection<Integer> to) {
+    for (Integer o : from)
+      to.add((Integer) o);
+    if (verbose)
+      println("[+] values from imported into Collection");
+  }
+
+  /**
+   * Imports all values from the array into the Collection specified.
+   * 
+   * @param from the from array
+   * @param to the collection to import the arrays values to
+   * @since 0.1.4.3.2
+   */
+  public static void importAll(double[] from, Collection<Double> to) {
+    for (Double o : from)
+      to.add((Double) o);
+    if (verbose)
+      println("[+] values from imported into Collection");
+  }
+
+  /**
+   * Imports all values from the array into the Collection specified.
+   * 
+   * @param from the from array
+   * @param to the collection to import the arrays values to
+   * @since 0.1.4.3.2
+   */
+  public static void importAll(char[] from, Collection<Character> to) {
+    for (Character o : from)
+      to.add((Character) o);
+    if (verbose)
+      println("[+] values from imported into Collection");
+  }
+
+  /**
+   * Imports all values from the array into the Collection specified.
+   * 
+   * @param from the from array
+   * @param to the collection to import the arrays values to
+   * @since 0.1.4.3.2
+   */
+  public static void importAll(boolean[] from, Collection<Boolean> to) {
+    for (Boolean o : from)
+      to.add((Boolean) o);
+    if (verbose)
+      println("[+] values from imported into Collection");
+  }
+
+  /**
+   * Imports all values from the array into the Collection specified.
+   * 
+   * @param from the from array
+   * @param to the collection to import the arrays values to
+   * @since 0.1.4.3.2
+   */
+  public static void importAll(Object[][] from, Collection<Object> to) {
+    for (int i = 0; i < from.length; i++)
+      for (int j = 0; j < from[i].length; j++)
+        to.add(from[i][j]);
+  }
+
+  /**
+   * Imports all values from the array into the Collection specified.
+   * 
+   * @param from the from array
+   * @param to the collection to import the arrays values to
+   * @since 0.1.4.3.2
+   */
+  public static void importAll(int[][] from, Collection<Integer> to) {
+    for (int i = 0; i < from.length; i++)
+      for (int j = 0; j < from[i].length; j++)
+        to.add(from[i][j]);
+  }
+
+  /**
+   * Imports all values from the array into the Collection specified.
+   * 
+   * @param from the from array
+   * @param to the collection to import the arrays values to
+   * @since 0.1.4.3.2
+   */
+  public static void importAll(double[][] from, Collection<Double> to) {
+    for (int i = 0; i < from.length; i++)
+      for (int j = 0; j < from[i].length; j++)
+        to.add(from[i][j]);
+  }
+
+  /**
+   * Imports all values from the array into the Collection specified.
+   * 
+   * @param from the from array
+   * @param to the collection to import the arrays values to
+   * @since 0.1.4.3.2
+   */
+  public static void importAll(char[][] from, Collection<Character> to) {
+    for (int i = 0; i < from.length; i++)
+      for (int j = 0; j < from[i].length; j++)
+        to.add(from[i][j]);
+  }
+
+  /**
+   * Removes all instances of the specified element in an array.
+   * 
+   * @param array the array to use
+   * @param toRemove the element to remove
+   * @return the fixed array
+   * @since 0.1.4.3.2
+   */
+  public static Object[] removeAll(Object[] array, Object toRemove) {
+    ArrayList<Object> wo = new ArrayList<>(Arrays.asList(array));
+    while (wo.contains(toRemove))
+      wo.remove(toRemove);
+    if (verbose)
+      System.out.println("[+] removed " + toRemove + " from array");
+    return wo.toArray();
+  }
+
+  /**
+   * Removes all instances of the specified element in an array.
+   * 
+   * @param array the array to use
+   * @param toRemove the element to remove
+   * @return the fixed array
+   * @since 0.1.2.4.0
+   */
+  public static int[] removeAll(int[] array, int toRemove) {
+    ArrayList<Integer> fixed = new ArrayList<>();
+    for (int i = 0; i < array.length; i++)
+      if (array[i] != toRemove)
+        fixed.add(array[i]);
+    if (verbose)
+      println("[+] removed " + toRemove + " from array");
+    return toInt(fixed.toArray());
+  }
+
+  /**
+   * Removes all instances of the specified element in an array.
+   * 
+   * @param array the array to use
+   * @param toRemove the element to remove
+   * @return the fixed array
+   * @since 0.1.2.4.0
+   */
+  public static double[] removeAll(double[] array, double toRemove) {
+    ArrayList<Double> fixed = new ArrayList<>();
+    for (int i = 0; i < array.length; i++)
+      if (array[i] != toRemove)
+        fixed.add(array[i]);
+    if (verbose)
+      println("[+] removed " + toRemove + " from array");
+    return toDouble(fixed.toArray());
+  }
+
+  /**
+   * Removes all instances of the specified element in an array.
+   * 
+   * @param array the array to use
+   * @param toRemove the element to remove
+   * @return the fixed array
+   * @since 0.1.2.4.0
+   */
+  public static char[] removeAll(char[] array, char toRemove) {
+    ArrayList<Character> fixed = new ArrayList<>();
+    for (int i = 0; i < array.length; i++)
+      if (array[i] != toRemove)
+        fixed.add(array[i]);
+    if (verbose)
+      println("[+] removed " + toRemove + " from array");
+    return toChar(fixed.toArray());
+  }
+
+  /**
+   * Removes all of the given values in toRemove from array.
+   * 
+   * @param array the array to remove elements from
+   * @param toRemove the elements to remove from array
+   * @return the fixed array
+   * @since 0.1.2.4.0
+   */
+  public static Object[] removeAll(Object[] array, Object[] toRemove) {
+    Object[] a = array;
+    for (int i = 0; i < toRemove.length; i++)
+      a = removeAll(a, toRemove[i]);
+    return a;
+  }
+
+  /**
+   * Removes all of the given values in toRemove from array.
+   * 
+   * @param array the array to remove elements from
+   * @param toRemove the elements to remove from array
+   * @return the fixed array
+   * @since 0.1.2.4.0
+   */
+  public static int[] removeAll(int[] array, int[] toRemove) {
+    int[] a = array;
+    for (int i = 0; i < toRemove.length; i++)
+      a = removeAll(a, toRemove[i]);
+    return a;
+  }
+
+  /**
+   * Removes all of the given values in toRemove from array.
+   * 
+   * @param array the array to remove elements from
+   * @param toRemove the elements to remove from array
+   * @return the fixed array
+   * @since 0.1.2.4.0
+   */
+  public static double[] removeAll(double[] array, double[] toRemove) {
+    double[] a = array;
+    for (int i = 0; i < toRemove.length; i++)
+      a = removeAll(a, toRemove[i]);
+    return a;
+  }
+
+  /**
+   * Removes all of the given values in toRemove from array.
+   * 
+   * @param array the array to remove elements from
+   * @param toRemove the elements to remove from array
+   * @return the fixed array
+   * @since 0.1.2.4.0
+   */
+  public static char[] removeAll(char[] array, char[] toRemove) {
+    char[] a = array;
+    for (int i = 0; i < toRemove.length; i++)
+      a = removeAll(a, toRemove[i]);
+    return a;
+  }
 
   /**
    * Returns a vertical piece of the passed 2D array in the form of a 1D array.
@@ -1989,668 +2621,6 @@ public class Msn {
   }
 
   /**
-   * Opposite of parseVertArray
-   * 
-   * @param array the array to use
-   * @param index the index to use
-   * @return the horizontal array
-   * @since 0.1.0.1.0
-   */
-  public static Object[] parseHorizArray(Object[][] array, int index) {
-    if (isRagged(array))
-      throw new IllegalArgumentException("array cannot be ragged");
-    Object[] vert = new Object[array.length];
-    for (int i = 0; i < vert.length; i++)
-      vert[i] = array[index][i];
-    if (verbose)
-      println("[+] parsed " + Arrays.toString(vert));
-    return vert;
-  }
-
-  /**
-   * Opposite of parseVertArray
-   * 
-   * @param array the array to use
-   * @param index the index to use
-   * @return the horizontal array
-   * @since 0.1.0.1.0
-   */
-  public static int[] parseHorizArray(int[][] array, int index) {
-    if (isRagged(array))
-      throw new IllegalArgumentException("array cannot be ragged");
-    int[] vert = new int[array.length];
-    for (int i = 0; i < vert.length; i++)
-      vert[i] = array[index][i];
-    if (verbose)
-      println("[+] parsed " + Arrays.toString(vert));
-    return vert;
-  }
-
-  /**
-   * Opposite of parseVertArray
-   * 
-   * @param array the array to use
-   * @param index the index to use
-   * @return the horizontal array
-   * @since 0.1.0.1.0
-   */
-  public static double[] parseHorizArray(double[][] array, int index) {
-    if (isRagged(array))
-      throw new IllegalArgumentException("array cannot be ragged");
-    double[] vert = new double[array.length];
-    for (int i = 0; i < vert.length; i++)
-      vert[i] = array[index][i];
-    if (verbose)
-      println("[+] parsed " + Arrays.toString(vert));
-    return vert;
-  }
-
-  /**
-   * Opposite of parseVertArray
-   * 
-   * @param array the array to use
-   * @param index the index to use
-   * @return the horizontal array
-   * @since 0.1.0.1.0
-   */
-  public static boolean[] parseHorizArray(boolean[][] array, int index) {
-    if (isRagged(array))
-      throw new IllegalArgumentException("array cannot be ragged");
-    boolean[] vert = new boolean[array.length];
-    for (int i = 0; i < vert.length; i++)
-      vert[i] = array[index][i];
-    if (verbose)
-      println("[+] parsed " + Arrays.toString(vert));
-    return vert;
-  }
-
-  /**
-   * Opposite of parseVertArray
-   * 
-   * @param array the array to use
-   * @param index the index to use
-   * @return the horizontal array
-   * @since 0.1.0.1.0
-   */
-  public static char[] parseHorizArray(char[][] array, int index) {
-    if (isRagged(array))
-      throw new IllegalArgumentException("array cannot be ragged");
-    char[] vert = new char[array.length];
-    for (int i = 0; i < vert.length; i++)
-      vert[i] = array[index][i];
-    if (verbose)
-      println("[+] parsed " + Arrays.toString(vert));
-    return vert;
-  }
-
-  // ---------------------------ARRAY OPERATIONS------------------------------
-
-  /**
-   * Prints an array, useful when needing to print arrays quickly.
-   * 
-   * @param arr the array to print
-   * @since 0.1.0.0.0
-   */
-  public static void pa(Object[] arr) {
-    System.out.println(Arrays.toString(arr));
-  }
-
-  /**
-   * Prints an array, useful when needing to print arrays quickly.
-   * 
-   * @param arr the array to print
-   * @since 0.1.0.0.0
-   */
-  public static void pa(int[] arr) {
-    System.out.println(Arrays.toString(arr));
-  }
-
-  /**
-   * Prints an array, useful when needing to print arrays quickly.
-   * 
-   * @param arr the array to print
-   * @since 0.1.0.0.0
-   */
-  public static void pa(double[] arr) {
-    System.out.println(Arrays.toString(arr));
-  }
-
-  /**
-   * Prints an array, useful when needing to print arrays quickly.
-   * 
-   * @param arr the array to print
-   * @since 0.1.0.0.0
-   */
-  public static void pa(boolean[] arr) {
-    System.out.println(Arrays.toString(arr));
-  }
-
-  /**
-   * Prints an array, useful when needing to print arrays quickly.
-   * 
-   * @param arr the array to print
-   * @since 0.1.0.0.0
-   */
-  public static void pa(char[] arr) {
-    System.out.println(Arrays.toString(arr));
-  }
-
-  /**
-   * Prints a 2D array thats a little easier on the eyes.
-   * 
-   * @param matrix the 2D matrix to print
-   * @since 0.1.0.0.0
-   */
-  public static void pa(Object[][] matrix) {
-    System.out.println(
-        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
-  }
-
-  /**
-   * Prints a 2D array thats a little easier on the eyes.
-   * 
-   * @param matrix the 2D matrix to print
-   * @since 0.1.0.0.0
-   */
-  public static void pa(String[][] matrix) {
-    System.out.println(
-        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
-  }
-
-  /**
-   * Prints a 2D array thats a little easier on the eyes.
-   * 
-   * @param matrix the 2D matrix to print
-   * @since 0.1.0.0.0
-   */
-  public static void pa(int[][] matrix) {
-    System.out.println(
-        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
-  }
-
-  /**
-   * Prints a 2D array thats a little easier on the eyes.
-   * 
-   * @param matrix the 2D matrix to print
-   * @since 0.1.0.0.0
-   */
-  public static void pa(double[][] matrix) {
-    System.out.println(
-        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
-  }
-
-  /**
-   * Prints a 2D array thats a little easier on the eyes.
-   * 
-   * @param matrix the 2D matrix to print
-   * @since 0.1.0.0.0
-   */
-  public static void pa(boolean[][] matrix) {
-    System.out.println(
-        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
-  }
-
-  /**
-   * Prints a 2D array thats a little easier on the eyes.
-   * 
-   * @param matrix the 2D matrix to print
-   * @since 0.1.0.0.0
-   */
-  public static void pa(char[][] matrix) {
-    System.out.println(
-        Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
-  }
-
-  /**
-   * Reverses the passed array.
-   * 
-   * @param array the array to reverse
-   * @since 0.1.1.0.0
-   */
-  public static void reverse(Object[] array) {
-    Object[] copy = Arrays.copyOf(array, array.length);
-    ArrayList<Object> newArray = new ArrayList<>();
-    for (int i = copy.length - 1; i >= 0; i--)
-      newArray.add(copy[i]);
-    for (int i = 0; i < newArray.size(); i++)
-      array[i] = newArray.get(i);
-  }
-
-  /**
-   * Reverses the passed array.
-   * 
-   * @param array the array to reverse
-   * @since 0.1.1.0.0
-   */
-  public static void reverse(int[] array) {
-    int[] copy = Arrays.copyOf(array, array.length);
-    ArrayList<Object> newArray = new ArrayList<>();
-    for (int i = copy.length - 1; i >= 0; i--)
-      newArray.add(copy[i]);
-    for (int i = 0; i < newArray.size(); i++)
-      array[i] = (int) newArray.get(i);
-  }
-
-  /**
-   * Reverses the passed array.
-   * 
-   * @param array the array to reverse
-   * @since 0.1.1.0.0
-   */
-  public static void reverse(double[] array) {
-    double[] copy = Arrays.copyOf(array, array.length);
-    ArrayList<Object> newArray = new ArrayList<>();
-    for (int i = copy.length - 1; i >= 0; i--)
-      newArray.add(copy[i]);
-    for (int i = 0; i < newArray.size(); i++)
-      array[i] = (double) newArray.get(i);
-  }
-
-  /**
-   * Reverses the passed array.
-   * 
-   * @param array the array to reverse
-   * @since 0.1.1.0.0
-   */
-  public static void reverse(char[] array) {
-    char[] copy = Arrays.copyOf(array, array.length);
-    ArrayList<Object> newArray = new ArrayList<>();
-    for (int i = copy.length - 1; i >= 0; i--)
-      newArray.add(copy[i]);
-    for (int i = 0; i < newArray.size(); i++)
-      array[i] = (char) newArray.get(i);
-  }
-
-  /**
-   * Checks whether the coordinates are valid.
-   * 
-   * @param <E> e
-   * @param array the array to check
-   * @param coord the coordinates
-   * @return whether the coordinates passed are valid
-   * @since 0.1.5.0.4
-   */
-  public static boolean validCoord(Object[][] array, int[] coord) {
-    try {
-      Object e = array[coord[0]][coord[1]];
-    } catch (IndexOutOfBoundsException e) {
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Checks whether the coordinates are valid.
-   * 
-   * @param <E> e
-   * @param array the array to check
-   * @param coord the coordinates
-   * @return whether the coordinates passed are valid
-   * @since 0.1.5.0.4
-   */
-  public static boolean validCoord(int[][] array, int[] coord) {
-    try {
-      Object e = array[coord[0]][coord[1]];
-    } catch (IndexOutOfBoundsException e) {
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Checks whether the coordinates are valid.
-   * 
-   * @param <E> e
-   * @param array the array to check
-   * @param coord the coordinates
-   * @return whether the coordinates passed are valid
-   * @since 0.1.5.0.4
-   */
-  public static boolean validCoord(double[][] array, int[] coord) {
-    try {
-      Object e = array[coord[0]][coord[1]];
-    } catch (IndexOutOfBoundsException e) {
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Checks whether the coordinates are valid.
-   * 
-   * @param <E> e
-   * @param array the array to check
-   * @param coord the coordinates
-   * @return whether the coordinates passed are valid
-   * @since 0.1.5.0.4
-   */
-  public static boolean validCoord(boolean[][] array, int[] coord) {
-    try {
-      Object e = array[coord[0]][coord[1]];
-    } catch (IndexOutOfBoundsException e) {
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Checks whether the coordinates are valid.
-   * 
-   * @param <E> e
-   * @param array the array to check
-   * @param coord the coordinates
-   * @return whether the coordinates passed are valid
-   * @since 0.1.5.0.4
-   */
-  public static boolean validCoord(char[][] array, int[] coord) {
-    try {
-      Object e = array[coord[0]][coord[1]];
-    } catch (IndexOutOfBoundsException e) {
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
-   * 
-   * @param <E> e
-   * @param array the array
-   * @return a new array
-   * @since 0.1.5.0.4
-   */
-  public static Object[][] arraycopy(Object[][] array) {
-    Object[][] destination = new Object[array.length][];
-
-    for (int i = 0; i < destination.length; ++i) {
-      destination[i] = new Object[array[i].length];
-      for (int j = 0; j < destination[i].length; ++j) {
-        destination[i][j] = array[i][j];
-      }
-    }
-    return destination;
-  }
-
-  /**
-   * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
-   * 
-   * @param <E> e
-   * @param array the array
-   * @return a new array
-   * @since 0.1.5.0.4
-   */
-  public static int[][] arraycopy(int[][] array) {
-    int[][] destination = new int[array.length][];
-    for (int i = 0; i < destination.length; ++i) {
-      destination[i] = new int[array[i].length];
-      for (int j = 0; j < destination[i].length; ++j) {
-        destination[i][j] = array[i][j];
-      }
-    }
-    return destination;
-  }
-
-  /**
-   * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
-   * 
-   * @param <E> e
-   * @param array the array
-   * @return a new array
-   * @since 0.1.5.0.4
-   */
-  public static double[][] arraycopy(double[][] array) {
-    double[][] destination = new double[array.length][];
-    for (int i = 0; i < destination.length; ++i) {
-      destination[i] = new double[array[i].length];
-      for (int j = 0; j < destination[i].length; ++j) {
-        destination[i][j] = array[i][j];
-      }
-    }
-    return destination;
-  }
-
-  /**
-   * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
-   * 
-   * @param <E> e
-   * @param array the array
-   * @return a new array
-   * @since 0.1.5.0.4
-   */
-  public static boolean[][] arraycopy(boolean[][] array) {
-    boolean[][] destination = new boolean[array.length][];
-    for (int i = 0; i < destination.length; ++i) {
-      destination[i] = new boolean[array[i].length];
-      for (int j = 0; j < destination[i].length; ++j) {
-        destination[i][j] = array[i][j];
-      }
-    }
-    return destination;
-  }
-
-  /**
-   * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
-   * 
-   * @param <E> e
-   * @param array the array
-   * @return a new array
-   * @since 0.1.5.0.4
-   */
-  public static char[][] arraycopy(char[][] array) {
-    char[][] destination = new char[array.length][];
-    for (int i = 0; i < destination.length; ++i) {
-      destination[i] = new char[array[i].length];
-      for (int j = 0; j < destination[i].length; ++j) {
-        destination[i][j] = array[i][j];
-      }
-    }
-    return destination;
-  }
-
-  /**
-   * Imports all values from the array into the Collection specified.
-   * 
-   * @param from the from array
-   * @param to the collection to import the arrays values to
-   * @since 0.1.4.3.2
-   */
-  public static void importAll(Object[] from, Collection<Object> to) {
-    for (Object o : from) {
-      to.add(o);
-    }
-  }
-
-  /**
-   * Imports all values from the array into the Collection specified.
-   * 
-   * @param from the from array
-   * @param to the collection to import the arrays values to
-   * @since 0.1.4.3.2
-   */
-  public static void importAll(int[] from, Collection<Integer> to) {
-    for (Integer o : from) {
-      to.add((Integer) o);
-    }
-  }
-
-  /**
-   * Imports all values from the array into the Collection specified.
-   * 
-   * @param from the from array
-   * @param to the collection to import the arrays values to
-   * @since 0.1.4.3.2
-   */
-  public static void importAll(double[] from, Collection<Double> to) {
-    for (Double o : from) {
-      to.add((Double) o);
-    }
-  }
-
-  /**
-   * Imports all values from the array into the Collection specified.
-   * 
-   * @param from the from array
-   * @param to the collection to import the arrays values to
-   * @since 0.1.4.3.2
-   */
-  public static void importAll(char[] from, Collection<Character> to) {
-    for (Character o : from) {
-      to.add((Character) o);
-    }
-  }
-
-  /**
-   * Imports all values from the array into the Collection specified.
-   * 
-   * @param from the from array
-   * @param to the collection to import the arrays values to
-   * @since 0.1.4.3.2
-   */
-  public static void importAll(boolean[] from, Collection<Boolean> to) {
-    for (Boolean o : from) {
-      to.add((Boolean) o);
-    }
-  }
-
-  /**
-   * Removes all instances of the specified element in an array.
-   * 
-   * @param array the array to use
-   * @param toRemove the element to remove
-   * @return the fixed array
-   * @since 0.1.4.3.2
-   */
-  public static Object[] removeAll(Object[] array, Object toRemove) {
-    ArrayList<Object> wo = new ArrayList<>(Arrays.asList(array));
-    while (wo.contains(toRemove)) {
-      wo.remove(toRemove);
-    }
-    if (verbose)
-      System.out.println("removed " + toRemove + " from array");
-    return wo.toArray();
-  }
-
-  /**
-   * Removes all instances of the specified element in an array.
-   * 
-   * @param array the array to use
-   * @param toRemove the element to remove
-   * @return the fixed array
-   * @since 0.1.2.4.0
-   */
-  public static int[] removeAll(int[] array, int toRemove) {
-    ArrayList<Integer> fixed = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      if (array[i] != toRemove) {
-        fixed.add(array[i]);
-      }
-    }
-    if (verbose)
-      System.out.println("removed " + toRemove + " from array");
-    return toInt(fixed.toArray());
-  }
-
-  /**
-   * Removes all instances of the specified element in an array.
-   * 
-   * @param array the array to use
-   * @param toRemove the element to remove
-   * @return the fixed array
-   * @since 0.1.2.4.0
-   */
-  public static double[] removeAll(double[] array, double toRemove) {
-    ArrayList<Double> fixed = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      if (array[i] != toRemove) {
-        fixed.add(array[i]);
-      }
-    }
-    if (verbose)
-      System.out.println("removed " + toRemove + " from array");
-    return toDouble(fixed.toArray());
-  }
-
-  /**
-   * Removes all instances of the specified element in an array.
-   * 
-   * @param array the array to use
-   * @param toRemove the element to remove
-   * @return the fixed array
-   * @since 0.1.2.4.0
-   */
-  public static char[] removeAll(char[] array, char toRemove) {
-    ArrayList<Character> fixed = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      if (array[i] != toRemove) {
-        fixed.add(array[i]);
-      }
-    }
-    if (verbose)
-      System.out.println("removed " + toRemove + " from array");
-    return toChar(fixed.toArray());
-  }
-
-  /**
-   * Removes all of the given values in toRemove from array.
-   * 
-   * @param array the array to remove elements from
-   * @param toRemove the elements to remove from array
-   * @return the fixed array
-   * @since 0.1.2.4.0
-   */
-  public static Object[] removeAll(Object[] array, Object[] toRemove) {
-    ArrayList<Object> a = new ArrayList<>(Arrays.asList(array));
-    for (int i = 0; i < toRemove.length; i++)
-      a = new ArrayList<>(Arrays.asList(removeAll(a.toArray(), toRemove[i])));
-    return a.toArray();
-  }
-
-  /**
-   * Removes all of the given values in toRemove from array.
-   * 
-   * @param array the array to remove elements from
-   * @param toRemove the elements to remove from array
-   * @return the fixed array
-   * @since 0.1.2.4.0
-   */
-  public static int[] removeAll(int[] array, int[] toRemove) {
-    int[] a = array;
-    for (int i = 0; i < toRemove.length; i++)
-      a = removeAll(a, toRemove[i]);
-    return a;
-  }
-
-  /**
-   * Removes all of the given values in toRemove from array.
-   * 
-   * @param array the array to remove elements from
-   * @param toRemove the elements to remove from array
-   * @return the fixed array
-   * @since 0.1.2.4.0
-   */
-  public static double[] removeAll(double[] array, double[] toRemove) {
-    double[] a = array;
-    for (int i = 0; i < toRemove.length; i++)
-      a = removeAll(a, toRemove[i]);
-    return a;
-  }
-
-  /**
-   * Removes all of the given values in toRemove from array.
-   * 
-   * @param array the array to remove elements from
-   * @param toRemove the elements to remove from array
-   * @return the fixed array
-   * @since 0.1.2.4.0
-   */
-  public static char[] removeAll(char[] array, char[] toRemove) {
-    char[] a = array;
-    for (int i = 0; i < toRemove.length; i++)
-      a = removeAll(a, toRemove[i]);
-    return a;
-  }
-
-  /**
    * Gets the indices of every instance of the Object passed in the array passed.
    * 
    * @param array the array to search
@@ -2659,11 +2629,9 @@ public class Msn {
    */
   public static int[] indicesOf(Object[] array, Object obj) {
     ArrayList<Integer> indicies = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      if (array[i].equals(obj)) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i].equals(obj))
         indicies.add(i);
-      }
-    }
     return toInt(indicies.toArray());
   }
 
@@ -2676,11 +2644,9 @@ public class Msn {
    */
   public static int[] indicesOf(int[] array, int obj) {
     ArrayList<Integer> indicies = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      if (array[i] == obj) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i] == obj)
         indicies.add(i);
-      }
-    }
     return toInt(indicies.toArray());
   }
 
@@ -2693,11 +2659,9 @@ public class Msn {
    */
   public static int[] indicesOf(double[] array, double obj) {
     ArrayList<Integer> indicies = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      if (array[i] == obj) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i] == obj)
         indicies.add(i);
-      }
-    }
     return toInt(indicies.toArray());
   }
 
@@ -2710,11 +2674,9 @@ public class Msn {
    */
   public static int[] indicesOf(char[] array, char obj) {
     ArrayList<Integer> indicies = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      if (array[i] == obj) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i] == obj)
         indicies.add(i);
-      }
-    }
     return toInt(indicies.toArray());
   }
 
@@ -2727,11 +2689,9 @@ public class Msn {
    */
   public static int[] indicesOf(boolean[] array, boolean obj) {
     ArrayList<Integer> indicies = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      if (array[i] == obj) {
+    for (int i = 0; i < array.length; i++)
+      if (array[i] == obj)
         indicies.add(i);
-      }
-    }
     return toInt(indicies.toArray());
   }
 
@@ -2744,9 +2704,7 @@ public class Msn {
   public static int[] getDims(Object[][] array) {
     if (isRagged(array))
       throw new IllegalArgumentException("array must be a table (not ragged)");
-    int[] dims = new int[2];
-    dims[0] = array.length;
-    dims[1] = array[0].length;
+    int[] dims = new int[] {array.length, array[0].length};
     if (verbose)
       println("[+] found dimensions: " + dims[0] + "x" + dims[1]);
     return dims;
@@ -2761,9 +2719,7 @@ public class Msn {
   public static int[] getDims(int[][] array) {
     if (isRagged(array))
       throw new IllegalArgumentException("array must be a table (not ragged)");
-    int[] dims = new int[2];
-    dims[0] = array.length;
-    dims[1] = array[0].length;
+    int[] dims = new int[] {array.length, array[0].length};
     if (verbose)
       println("[+] found dimensions: " + dims[0] + "x" + dims[1]);
     return dims;
@@ -2778,9 +2734,7 @@ public class Msn {
   public static int[] getDims(double[][] array) {
     if (isRagged(array))
       throw new IllegalArgumentException("array must be a table (not ragged)");
-    int[] dims = new int[2];
-    dims[0] = array.length;
-    dims[1] = array[0].length;
+    int[] dims = new int[] {array.length, array[0].length};
     if (verbose)
       println("[+] found dimensions: " + dims[0] + "x" + dims[1]);
     return dims;
@@ -2795,9 +2749,7 @@ public class Msn {
   public static int[] getDims(boolean[][] array) {
     if (isRagged(array))
       throw new IllegalArgumentException("array must be a table (not ragged)");
-    int[] dims = new int[2];
-    dims[0] = array.length;
-    dims[1] = array[0].length;
+    int[] dims = new int[] {array.length, array[0].length};
     if (verbose)
       println("[+] found dimensions: " + dims[0] + "x" + dims[1]);
     return dims;
@@ -2812,9 +2764,7 @@ public class Msn {
   public static int[] getDims(char[][] array) {
     if (isRagged(array))
       throw new IllegalArgumentException("array must be a table (not ragged)");
-    int[] dims = new int[2];
-    dims[0] = array.length;
-    dims[1] = array[0].length;
+    int[] dims = new int[] {array.length, array[0].length};
     if (verbose)
       println("[+] found dimensions: " + dims[0] + "x" + dims[1]);
     return dims;
@@ -2828,15 +2778,13 @@ public class Msn {
    * 
    * @param matrix the matrix to parse
    * @return whether the matrix is ragged or not
+   * @since 0.1.0.0.0
    */
   public static boolean isRagged(Object[][] matrix) {
-    for (int i = 0; i < matrix.length; i++) {
-      for (int j = 0; j < matrix.length; j++) {
-        if (matrix[i].length != matrix[j].length) {
+    for (int i = 0; i < matrix.length; i++)
+      for (int j = 0; j < matrix.length; j++)
+        if (matrix[i].length != matrix[j].length)
           return true;
-        }
-      }
-    }
     return false;
   }
 
@@ -2848,15 +2796,13 @@ public class Msn {
    * 
    * @param matrix the matrix to parse
    * @return whether the matrix is ragged or not
+   * @since 0.1.0.0.0
    */
   public static boolean isRagged(int[][] matrix) {
-    for (int i = 0; i < matrix.length; i++) {
-      for (int j = 0; j < matrix.length; j++) {
-        if (matrix[i].length != matrix[j].length) {
+    for (int i = 0; i < matrix.length; i++)
+      for (int j = 0; j < matrix.length; j++)
+        if (matrix[i].length != matrix[j].length)
           return true;
-        }
-      }
-    }
     return false;
   }
 
@@ -2868,15 +2814,13 @@ public class Msn {
    * 
    * @param matrix the matrix to parse
    * @return whether the matrix is ragged or not
+   * @since 0.1.0.0.0
    */
   public static boolean isRagged(double[][] matrix) {
-    for (int i = 0; i < matrix.length; i++) {
-      for (int j = 0; j < matrix.length; j++) {
-        if (matrix[i].length != matrix[j].length) {
+    for (int i = 0; i < matrix.length; i++)
+      for (int j = 0; j < matrix.length; j++)
+        if (matrix[i].length != matrix[j].length)
           return true;
-        }
-      }
-    }
     return false;
   }
 
@@ -2888,6 +2832,7 @@ public class Msn {
    * 
    * @param matrix the matrix to parse
    * @return whether the matrix is ragged or not
+   * @since 0.1.0.0.0
    */
   public static boolean isRagged(boolean[][] matrix) {
     for (int i = 0; i < matrix.length; i++) {
@@ -2908,15 +2853,13 @@ public class Msn {
    * 
    * @param matrix the matrix to parse
    * @return whether the matrix is ragged or not
+   * @since 0.1.0.0.0
    */
   public static boolean isRagged(char[][] matrix) {
-    for (int i = 0; i < matrix.length; i++) {
-      for (int j = 0; j < matrix.length; j++) {
-        if (matrix[i].length != matrix[j].length) {
+    for (int i = 0; i < matrix.length; i++)
+      for (int j = 0; j < matrix.length; j++)
+        if (matrix[i].length != matrix[j].length)
           return true;
-        }
-      }
-    }
     return false;
   }
 
@@ -2998,31 +2941,16 @@ public class Msn {
    * @return the elements' coordinates
    */
   public static int[] getPosition(Object[][] array, Object obj) {
-    if (!contains(array, obj)) {
+    if (!contains(array, obj))
       throw new IllegalArgumentException("obj specified must be in the array");
-    }
-    int[] coordinates = new int[2];
-    boolean found = false;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (obj.equals(array[i][j])) {
-          coordinates[0] = i;
-          coordinates[1] = j;
-          found = true;
-          if (found) {
-            break;
-          }
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j].equals(obj)) {
+          if (verbose)
+            println(obj + " found at position [" + i + ", " + j + "]");
+          return new int[] {i, j};
         }
-
-      }
-      if (found) {
-        break;
-      }
-    }
-    if (verbose) {
-      System.out.println("element found at " + Arrays.toString(coordinates));
-    }
-    return coordinates;
+    return null;
   }
 
   /**
@@ -3033,30 +2961,16 @@ public class Msn {
    * @return the elements' coordinates
    */
   public static int[] getPosition(int[][] array, int obj) {
-    if (!contains(array, obj)) {
+    if (!contains(array, obj))
       throw new IllegalArgumentException("obj specified must be in the array");
-    }
-    int[] coordinates = new int[2];
-    boolean found = false;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (obj == array[i][j]) {
-          coordinates[0] = i;
-          coordinates[1] = j;
-          found = true;
-          if (found) {
-            break;
-          }
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j] == obj) {
+          if (verbose)
+            println(obj + " found at position [" + i + ", " + j + "]");
+          return new int[] {i, j};
         }
-      }
-      if (found) {
-        break;
-      }
-    }
-    if (verbose) {
-      System.out.println("element found at " + Arrays.toString(coordinates));
-    }
-    return coordinates;
+    return null;
   }
 
   /**
@@ -3067,30 +2981,16 @@ public class Msn {
    * @return the elements' coordinates
    */
   public static int[] getPosition(double[][] array, double obj) {
-    if (!contains(array, obj)) {
+    if (!contains(array, obj))
       throw new IllegalArgumentException("obj specified must be in the array");
-    }
-    int[] coordinates = new int[2];
-    boolean found = false;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (obj == array[i][j]) {
-          coordinates[0] = i;
-          coordinates[1] = j;
-          found = true;
-          if (found) {
-            break;
-          }
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j] == obj) {
+          if (verbose)
+            println(obj + " found at position [" + i + ", " + j + "]");
+          return new int[] {i, j};
         }
-      }
-      if (found) {
-        break;
-      }
-    }
-    if (verbose) {
-      System.out.println("element found at " + Arrays.toString(coordinates));
-    }
-    return coordinates;
+    return null;
   }
 
   /**
@@ -3101,30 +3001,16 @@ public class Msn {
    * @return the elements' coordinates
    */
   public static int[] getPosition(boolean[][] array, boolean obj) {
-    if (!contains(array, obj)) {
+    if (!contains(array, obj))
       throw new IllegalArgumentException("obj specified must be in the array");
-    }
-    int[] coordinates = new int[2];
-    boolean found = false;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (obj == array[i][j]) {
-          coordinates[0] = i;
-          coordinates[1] = j;
-          found = true;
-          if (found) {
-            break;
-          }
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j] == obj) {
+          if (verbose)
+            println(obj + " found at position [" + i + ", " + j + "]");
+          return new int[] {i, j};
         }
-      }
-      if (found) {
-        break;
-      }
-    }
-    if (verbose) {
-      System.out.println("element found at " + Arrays.toString(coordinates));
-    }
-    return coordinates;
+    return null;
   }
 
   /**
@@ -3135,30 +3021,16 @@ public class Msn {
    * @return the elements' coordinates
    */
   public static int[] getPosition(char[][] array, char obj) {
-    if (!contains(array, obj)) {
+    if (!contains(array, obj))
       throw new IllegalArgumentException("obj specified must be in the array");
-    }
-    int[] coordinates = new int[2];
-    boolean found = false;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        if (obj == array[i][j]) {
-          coordinates[0] = i;
-          coordinates[1] = j;
-          found = true;
-          if (found) {
-            break;
-          }
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
+        if (array[i][j] == obj) {
+          if (verbose)
+            println(obj + " found at position [" + i + ", " + j + "]");
+          return new int[] {i, j};
         }
-      }
-      if (found) {
-        break;
-      }
-    }
-    if (verbose) {
-      System.out.println("element found at " + Arrays.toString(coordinates));
-    }
-    return coordinates;
+    return null;
   }
 
   /**
@@ -3171,10 +3043,9 @@ public class Msn {
    * @since 0.1.2.3.7
    */
   public static Object[][] reformat(Object[][] array, int height, int width) {
-    Object[] objArray = to1DArray(array);
     if (verbose)
       println("[*] reformatting array to " + height + "x" + width);
-    return to2DArray(height, width, objArray);
+    return to2DArray(height, width, to1DArray(array));
   }
 
   /**
@@ -3187,10 +3058,9 @@ public class Msn {
    * @since 0.1.2.3.7
    */
   public static int[][] reformat(int[][] array, int height, int width) {
-    int[] objArray = to1DArray(array);
     if (verbose)
       println("[*] reformatting array to " + height + "x" + width);
-    return to2DArray(height, width, objArray);
+    return to2DArray(height, width, to1DArray(array));
   }
 
   /**
@@ -3203,10 +3073,9 @@ public class Msn {
    * @since 0.1.2.3.7
    */
   public static double[][] reformat(double[][] array, int height, int width) {
-    double[] objArray = to1DArray(array);
     if (verbose)
       println("[*] reformatting array to " + height + "x" + width);
-    return to2DArray(height, width, objArray);
+    return to2DArray(height, width, to1DArray(array));
   }
 
   /**
@@ -3219,10 +3088,9 @@ public class Msn {
    * @since 0.1.2.3.7
    */
   public static boolean[][] reformat(boolean[][] array, int height, int width) {
-    boolean[] objArray = to1DArray(array);
     if (verbose)
       println("[*] reformatting array to " + height + "x" + width);
-    return to2DArray(height, width, objArray);
+    return to2DArray(height, width, to1DArray(array));
   }
 
   /**
@@ -3235,10 +3103,9 @@ public class Msn {
    * @since 0.1.2.3.7
    */
   public static char[][] reformat(char[][] array, int height, int width) {
-    char[] objArray = to1DArray(array);
     if (verbose)
       println("[*] reformatting array to " + height + "x" + width);
-    return to2DArray(height, width, objArray);
+    return to2DArray(height, width, to1DArray(array));
   }
 
   /**
@@ -3266,11 +3133,9 @@ public class Msn {
       if (found)
         break;
     }
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         array[i][j] = ints[(i * array[i].length) + j];
-      }
-    }
     if (verbose)
       println("[+] converted array to 2D");
     return array;
@@ -3301,11 +3166,9 @@ public class Msn {
       if (found)
         break;
     }
-    for (int i = 0; i < arr.length; i++) {
-      for (int j = 0; j < arr[i].length; j++) {
+    for (int i = 0; i < arr.length; i++)
+      for (int j = 0; j < arr[i].length; j++)
         arr[i][j] = array[(i * arr[i].length) + j];
-      }
-    }
     if (verbose)
       println("[+] converted array to 2D");
     return arr;
@@ -3336,11 +3199,9 @@ public class Msn {
       if (found)
         break;
     }
-    for (int i = 0; i < arr.length; i++) {
-      for (int j = 0; j < arr[i].length; j++) {
+    for (int i = 0; i < arr.length; i++)
+      for (int j = 0; j < arr[i].length; j++)
         arr[i][j] = array[(i * arr[i].length) + j];
-      }
-    }
     if (verbose)
       println("[+] converted array to 2D");
     return arr;
@@ -3370,19 +3231,14 @@ public class Msn {
           break;
         }
       }
-      if (found) {
+      if (found)
         break;
-      }
-
     }
-    for (int i = 0; i < arr.length; i++) {
-      for (int j = 0; j < arr[i].length; j++) {
+    for (int i = 0; i < arr.length; i++)
+      for (int j = 0; j < arr[i].length; j++)
         arr[i][j] = array[(i * arr[i].length) + j];
-      }
-    }
-    if (verbose) {
-      pa(arr);
-    }
+    if (verbose)
+      println("[+] converted array to 2D");
     return arr;
   }
 
@@ -3410,19 +3266,14 @@ public class Msn {
           break;
         }
       }
-      if (found) {
+      if (found)
         break;
-      }
-
     }
-    for (int i = 0; i < arr.length; i++) {
-      for (int j = 0; j < arr[i].length; j++) {
+    for (int i = 0; i < arr.length; i++)
+      for (int j = 0; j < arr[i].length; j++)
         arr[i][j] = array[(i * arr[i].length) + j];
-      }
-    }
-    if (verbose) {
-      pa(arr);
-    }
+    if (verbose)
+      println("[+] converted array to 2D");
     return arr;
   }
 
@@ -3434,22 +3285,15 @@ public class Msn {
    * @param obj the array to use
    * @return the 2D array
    */
-  public static Object[][] to2DArray(int rows, int cols, Object[] obj) {
-
-    if (rows * cols != obj.length) {
+  public static Object[][] to2DArray(int rows, int cols, Object[] array) {
+    if (rows * cols != array.length)
       throw new IllegalArgumentException("rows * cols must equals ints.length");
-    }
-
     Object[][] integers = new Object[rows][cols];
-
-    for (int i = 0; i < integers.length; i++) {
-      for (int j = 0; j < integers[i].length; j++) {
-        integers[i][j] = obj[(i * cols) + j];
-      }
-    }
-    if (verbose) {
-      pa(integers);
-    }
+    for (int i = 0; i < integers.length; i++)
+      for (int j = 0; j < integers[i].length; j++)
+        integers[i][j] = array[(i * cols) + j];
+    if (verbose)
+      println("[+] converted array to a " + rows + " by " + cols);
     return integers;
   }
 
@@ -3461,22 +3305,15 @@ public class Msn {
    * @param ints the array of integers
    * @return the 2D array
    */
-  public static int[][] to2DArray(int rows, int cols, int[] ints) {
-
-    if (rows * cols != ints.length) {
+  public static int[][] to2DArray(int rows, int cols, int[] array) {
+    if (rows * cols != array.length)
       throw new IllegalArgumentException("rows * cols must equals ints.length");
-    }
-
     int[][] integers = new int[rows][cols];
-
-    for (int i = 0; i < integers.length; i++) {
-      for (int j = 0; j < integers[i].length; j++) {
-        integers[i][j] = ints[(i * cols) + j];
-      }
-    }
-    if (verbose) {
-      pa(integers);
-    }
+    for (int i = 0; i < integers.length; i++)
+      for (int j = 0; j < integers[i].length; j++)
+        integers[i][j] = array[(i * cols) + j];
+    if (verbose)
+      println("[+] converted array to a " + rows + " by " + cols);
     return integers;
   }
 
@@ -3489,18 +3326,14 @@ public class Msn {
    * @return the 2D array
    */
   public static double[][] to2DArray(int rows, int cols, double[] array) {
-    if (rows * cols != array.length) {
+    if (rows * cols != array.length)
       throw new IllegalArgumentException("rows * cols must equals ints.length");
-    }
     double[][] integers = new double[rows][cols];
-    for (int i = 0; i < integers.length; i++) {
-      for (int j = 0; j < integers[i].length; j++) {
+    for (int i = 0; i < integers.length; i++)
+      for (int j = 0; j < integers[i].length; j++)
         integers[i][j] = array[(i * cols) + j];
-      }
-    }
-    if (verbose) {
-      pa(integers);
-    }
+    if (verbose)
+      println("[+] converted array to a " + rows + " by " + cols);
     return integers;
   }
 
@@ -3512,22 +3345,15 @@ public class Msn {
    * @param obj the array to use
    * @return the 2D array
    */
-  public static boolean[][] to2DArray(int rows, int cols, boolean[] obj) {
-
-    if (rows * cols != obj.length) {
+  public static boolean[][] to2DArray(int rows, int cols, boolean[] array) {
+    if (rows * cols != array.length)
       throw new IllegalArgumentException("rows * cols must equals ints.length");
-    }
-
     boolean[][] integers = new boolean[rows][cols];
-
-    for (int i = 0; i < integers.length; i++) {
-      for (int j = 0; j < integers[i].length; j++) {
-        integers[i][j] = obj[(i * cols) + j];
-      }
-    }
-    if (verbose) {
-      pa(integers);
-    }
+    for (int i = 0; i < integers.length; i++)
+      for (int j = 0; j < integers[i].length; j++)
+        integers[i][j] = array[(i * cols) + j];
+    if (verbose)
+      println("[+] converted array to a " + rows + " by " + cols);
     return integers;
   }
 
@@ -3539,22 +3365,15 @@ public class Msn {
    * @param chars the array of integers
    * @return the 2D array
    */
-  public static char[][] to2DArray(int rows, int cols, char[] chars) {
-
-    if (rows * cols != chars.length) {
+  public static char[][] to2DArray(int rows, int cols, char[] array) {
+    if (rows * cols != array.length)
       throw new IllegalArgumentException("rows * cols must equals ints.length");
-    }
-
     char[][] integers = new char[rows][cols];
-
-    for (int i = 0; i < integers.length; i++) {
-      for (int j = 0; j < integers[i].length; j++) {
-        integers[i][j] = chars[(i * cols) + j];
-      }
-    }
-    if (verbose) {
-      pa(integers);
-    }
+    for (int i = 0; i < integers.length; i++)
+      for (int j = 0; j < integers[i].length; j++)
+        integers[i][j] = array[(i * cols) + j];
+    if (verbose)
+      println("[+] converted array to a " + rows + " by " + cols);
     return integers;
   }
 
@@ -3568,53 +3387,18 @@ public class Msn {
    */
   public static Object[] to1DArray(Object[][] array) {
     int leng = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         leng++;
-      }
-    }
     Object[] oneD = new Object[leng];
-
     int index = 0;
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       for (int j = 0; j < array[i].length; j++) {
         oneD[index] = array[i][j];
         index++;
       }
-    }
-    if (verbose) {
-      System.out.println(Arrays.toString(oneD));
-    }
-    return oneD;
-  }
-
-  /**
-   * Creates a 1D array from a 2D array.
-   * 
-   * ex. {{5, 4, 7}, {3, 9, 5}} would become: {5, 4, 7, 3, 9, 5}
-   * 
-   * @param array the array to use
-   * @return the 1D array
-   */
-  public static String[] to1DArray(String[][] array) {
-    int leng = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        leng++;
-      }
-    }
-    String[] oneD = new String[leng];
-
-    int index = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        oneD[index] = array[i][j];
-        index++;
-      }
-    }
-    if (verbose) {
-      System.out.println(Arrays.toString(oneD));
-    }
+    if (verbose)
+      println("[+] converted 2D array to 1D at length " + oneD.length);
     return oneD;
   }
 
@@ -3628,23 +3412,18 @@ public class Msn {
    */
   public static int[] to1DArray(int[][] array) {
     int leng = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         leng++;
-      }
-    }
     int[] oneD = new int[leng];
-
     int index = 0;
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       for (int j = 0; j < array[i].length; j++) {
         oneD[index] = array[i][j];
         index++;
       }
-    }
-    if (verbose) {
-      System.out.println(Arrays.toString(oneD));
-    }
+    if (verbose)
+      println("[+] converted 2D array to 1D at length " + oneD.length);
     return oneD;
   }
 
@@ -3658,21 +3437,18 @@ public class Msn {
    */
   public static double[] to1DArray(double[][] array) {
     int leng = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         leng++;
-      }
-    }
     double[] oneD = new double[leng];
     int index = 0;
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       for (int j = 0; j < array[i].length; j++) {
         oneD[index] = array[i][j];
         index++;
       }
-    }
     if (verbose)
-      System.out.println(Arrays.toString(oneD));
+      println("[+] converted 2D array to 1D at length " + oneD.length);
     return oneD;
   }
 
@@ -3686,23 +3462,18 @@ public class Msn {
    */
   public static boolean[] to1DArray(boolean[][] array) {
     int leng = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         leng++;
-      }
-    }
     boolean[] oneD = new boolean[leng];
-
     int index = 0;
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       for (int j = 0; j < array[i].length; j++) {
         oneD[index] = array[i][j];
         index++;
       }
-    }
-    if (verbose) {
-      System.out.println(Arrays.toString(oneD));
-    }
+    if (verbose)
+      println("[+] converted 2D array to 1D at length " + oneD.length);
     return oneD;
   }
 
@@ -3716,23 +3487,18 @@ public class Msn {
    */
   public static char[] to1DArray(char[][] array) {
     int leng = 0;
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array[i].length; j++)
         leng++;
-      }
-    }
     char[] oneD = new char[leng];
-
     int index = 0;
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       for (int j = 0; j < array[i].length; j++) {
         oneD[index] = array[i][j];
         index++;
       }
-    }
-    if (verbose) {
-      System.out.println(Arrays.toString(oneD));
-    }
+    if (verbose)
+      println("[+] converted 2D array to 1D at length " + oneD.length);
     return oneD;
   }
 
@@ -3881,237 +3647,6 @@ public class Msn {
     return map;
   }
 
-  // -------------------------SET OPERATIONS----------------------------------
-
-  /**
-   * Checks if the given array has duplicates.
-   * 
-   * @param array the array to use
-   * @return whether 'array' contains duplicate values
-   * @since 0.1.4.2.3
-   */
-  public static boolean containsDups(Object[] array) {
-    for (Object obj : array) {
-      if (countFreq(array, obj) > 1) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Checks if the given array has duplicates.
-   * 
-   * @param array the array to use
-   * @return whether 'array' contains duplicate values
-   * @since 0.1.4.2.3
-   */
-  public static boolean containsDups(int[] array) {
-    for (int obj : array) {
-      if (countFreq(array, obj) > 1) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Checks if the given array has duplicates.
-   * 
-   * @param array the array to use
-   * @return whether 'array' contains duplicate values
-   * @since 0.1.4.2.3
-   */
-  public static boolean containsDups(double[] array) {
-    for (double obj : array) {
-      if (countFreq(array, obj) > 1) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Checks if the given array has duplicates.
-   * 
-   * @param array the array to use
-   * @return whether 'array' contains duplicate values
-   * @since 0.1.4.2.3
-   */
-  public static boolean containsDups(boolean[] array) {
-    for (boolean obj : array) {
-      if (countFreq(array, obj) > 1) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Checks if the given array has duplicates.
-   * 
-   * @param array the array to use
-   * @return whether 'array' contains duplicate values
-   * @since 0.1.4.2.3
-   */
-  public static boolean containsDups(char[] array) {
-    for (char obj : array) {
-      if (countFreq(array, obj) > 1) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Finds duplicate values in an array and returns them as another array.
-   * 
-   * @param array the array to check for duplicates
-   * @return a new array of duplicates within the array specified
-   * @since 0.1.4.2.3
-   */
-  public static Object[] getDups(Object[] array) {
-    ArrayList<Object> noDups = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array.length; j++) {
-        if (i != j && !contains(noDups.toArray(), array[i]) && array[i].equals(array[j])) {
-          noDups.add(array[j]);
-        }
-      }
-    }
-    if (verbose) {
-      System.out.println("found " + noDups.size() + " dups: " + Arrays.toString(noDups.toArray()));
-    }
-    return noDups.toArray();
-  }
-
-  /**
-   * Finds duplicate values in an array and returns them as another array.
-   * 
-   * @param array the array to check for duplicates
-   * @return a new array of duplicates within the array specified
-   * @since 0.1.4.2.3
-   */
-  public static Object[] getDups(int[] array) {
-    ArrayList<Integer> noDups = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array.length; j++) {
-        if (i != j && !contains(noDups.toArray(), array[i]) && array[i] == array[j]) {
-          noDups.add(array[j]);
-        }
-      }
-    }
-    if (verbose) {
-      System.out.println("found " + noDups.size() + " dups: " + Arrays.toString(noDups.toArray()));
-    }
-    return noDups.toArray();
-  }
-
-  /**
-   * Finds duplicate values in an array and returns them as another array.
-   * 
-   * @param array the array to check for duplicates
-   * @return a new array of duplicates within the array specified
-   * @since 0.1.4.2.3
-   */
-  public static Object[] getDups(double[] array) {
-    ArrayList<Double> noDups = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array.length; j++) {
-        if (i != j && !contains(noDups.toArray(), array[i]) && array[i] == array[j]) {
-          noDups.add(array[j]);
-        }
-      }
-    }
-    if (verbose) {
-      System.out.println("found " + noDups.size() + " dups: " + Arrays.toString(noDups.toArray()));
-    }
-    return noDups.toArray();
-  }
-
-  /**
-   * Finds duplicate values in an array and returns them as another array.
-   * 
-   * @param array the array to check for duplicates
-   * @return a new array of duplicates within the array specified
-   * @since 0.1.4.2.3
-   */
-  public static Object[] getDups(char[] array) {
-    ArrayList<Character> noDups = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array.length; j++) {
-        if (i != j && !contains(noDups.toArray(), array[i]) && array[i] == array[j]) {
-          noDups.add(array[j]);
-        }
-      }
-    }
-    if (verbose) {
-      System.out.println("found " + noDups.size() + " dups: " + Arrays.toString(noDups.toArray()));
-    }
-    return noDups.toArray();
-  }
-
-  /**
-   * Removes all duplicates in the array given.
-   * 
-   * @param array the array to use
-   * @return the array with no duplicates
-   * @since 0.1.4.2.3
-   */
-  public static Object[] removeDups(Object[] array) {
-    ArrayList<Object> list = new ArrayList<>(Arrays.asList(array));
-    Set<Object> set = new HashSet<>(list);
-    if (verbose) {
-      System.out.println("arr with dups removed: " + Arrays.toString(set.toArray()));
-    }
-    return set.toArray();
-  }
-
-  /**
-   * Removes all duplicates in the array given.
-   * 
-   * @param array the array to use
-   * @return the array with no duplicates
-   * @since 0.1.4.2.3
-   */
-  public static int[] removeDups(int[] list) {
-    HashSet<Integer> set = new HashSet<>();
-    for (int i : list) {
-      set.add(i);
-    }
-    return toInt(set.toArray());
-  }
-
-  /**
-   * Removes all duplicates in the array given.
-   * 
-   * @param array the array to use
-   * @return the array with no duplicates
-   * @since 0.1.4.2.3
-   */
-  public static double[] removeDups(double[] list) {
-    HashSet<Double> set = new HashSet<>();
-    for (double i : list) {
-      set.add(i);
-    }
-    return toDouble(set.toArray());
-  }
-
-  /**
-   * Removes all duplicates in the array given.
-   * 
-   * @param array the array to use
-   * @return the array with no duplicates
-   * @since 0.1.4.2.3
-   */
-  public static char[] removeDups(char[] list) {
-    HashSet<Character> set = new HashSet<>();
-    for (char i : list) {
-      set.add(i);
-    }
-    return toChar(set.toArray());
-  }
-
   /**
    * Gets the Entry from a TreeMap at a certain index.
    * 
@@ -4125,220 +3660,446 @@ public class Msn {
   public static <K, V> Map.Entry<K, V> getAt(int index, TreeMap<K, V> map) {
     int count = 0;
     for (Map.Entry<K, V> entry : map.entrySet()) {
-      if (count == index) {
+      if (count == index)
         return entry;
-      }
       count++;
     }
     return null;
   }
 
   /**
-   * Returns the union of two arrays (concatenation) with the choice of containing duplicates.
+   * Gets a Set of all values in a Map.
    * 
-   * @param array the first array
-   * @param array2 the second array
-   * @param removeDups remove duplicates
-   * @return the union of the two
+   * @param <K> k
+   * @param <V> v
+   * @param map the map
+   * @return a set of values
+   * @since 0.1.5.3.1
+   */
+  public static <K, V> ArrayList<V> valueList(Map<K, V> map) {
+    ArrayList<V> list = new ArrayList<>();
+    map.entrySet().forEach(e -> list.add(e.getValue()));
+    return list;
+  }
+
+  // -------------------------SET OPERATIONS----------------------------------
+
+  /**
+   * Checks if the given array has duplicates.
+   * 
+   * @param array the array to use
+   * @return whether 'array' contains duplicate values
    * @since 0.1.4.2.3
    */
-  public static Object[] union(Object[] array, Object[] array2, boolean removeDups) {
-    if (removeDups) {
-      ArrayList<Object> unionized = new ArrayList<>();
-      for (int i = 0; i < array.length; i++) {
-        unionized.add(array[i]);
-      }
-      for (int i = 0; i < array2.length; i++) {
-        unionized.add(array2[i]);
-      }
-      return removeDups(unionized.toArray());
-    }
-    ArrayList<Object> elements = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      elements.add(array[i]);
-    }
-    for (int i = 0; i < array2.length; i++) {
-      elements.add(array2[i]);
-    }
-    return elements.toArray();
+  public static boolean containsDups(Object[] array) {
+    for (Object obj : array)
+      if (countFreq(array, obj) > 1)
+        return true;
+    return false;
   }
 
   /**
-   * Returns the union of two arrays (concatenation) with the choice of containing duplicates.
+   * Checks if the given array has duplicates.
    * 
-   * @param array the first array
-   * @param array2 the second array
-   * @param removeDups remove duplicates
-   * @return the union of the two
+   * @param array the array to use
+   * @return whether 'array' contains duplicate values
    * @since 0.1.4.2.3
    */
-  public static Object[] union(int[] array, int[] array2, boolean removeDups) {
-    if (removeDups) {
-      ArrayList<Integer> unionized = new ArrayList<>();
-      for (int i = 0; i < array.length; i++) {
-        unionized.add(array[i]);
-      }
-      for (int i = 0; i < array2.length; i++) {
-        unionized.add(array2[i]);
-      }
-      return removeDups(unionized.toArray());
-    }
-    ArrayList<Object> elements = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      elements.add(array[i]);
-    }
-    for (int i = 0; i < array2.length; i++) {
-      elements.add(array2[i]);
-    }
-    return elements.toArray();
+  public static boolean containsDups(int[] array) {
+    for (int obj : array)
+      if (countFreq(array, obj) > 1)
+        return true;
+    return false;
   }
 
   /**
-   * Returns the union of two arrays (concatenation) with the choice of containing duplicates.
+   * Checks if the given array has duplicates.
    * 
-   * @param array the first array
-   * @param array2 the second array
-   * @param removeDups remove duplicates
-   * @return the union of the two
+   * @param array the array to use
+   * @return whether 'array' contains duplicate values
    * @since 0.1.4.2.3
    */
-  public static Object[] union(double[] array, double[] array2, boolean removeDups) {
-    if (removeDups) {
-      ArrayList<Double> unionized = new ArrayList<>();
-      for (int i = 0; i < array.length; i++) {
-        unionized.add(array[i]);
-      }
-      for (int i = 0; i < array2.length; i++) {
-        unionized.add(array2[i]);
-      }
-      return removeDups(unionized.toArray());
-    }
-    ArrayList<Object> elements = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      elements.add(array[i]);
-    }
-    for (int i = 0; i < array2.length; i++) {
-      elements.add(array2[i]);
-    }
-    return elements.toArray();
+  public static boolean containsDups(double[] array) {
+    for (double obj : array)
+      if (countFreq(array, obj) > 1)
+        return true;
+    return false;
   }
 
   /**
-   * Returns the union of two arrays (concatenation) with the choice of containing duplicates.
+   * Checks if the given array has duplicates.
    * 
-   * @param array the first array
-   * @param array2 the second array
-   * @param removeDups remove duplicates
-   * @return the union of the two
+   * @param array the array to use
+   * @return whether 'array' contains duplicate values
    * @since 0.1.4.2.3
    */
-  public static Object[] union(char[] array, char[] array2, boolean removeDups) {
-    if (removeDups) {
-      ArrayList<Character> unionized = new ArrayList<>();
-      for (int i = 0; i < array.length; i++) {
-        unionized.add(array[i]);
-      }
-      for (int i = 0; i < array2.length; i++) {
-        unionized.add(array2[i]);
-      }
-      return removeDups(unionized.toArray());
-    }
-    ArrayList<Object> elements = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      elements.add(array[i]);
-    }
-    for (int i = 0; i < array2.length; i++) {
-      elements.add(array2[i]);
-    }
-    return elements.toArray();
+  public static boolean containsDups(boolean[] array) {
+    for (boolean obj : array)
+      if (countFreq(array, obj) > 1)
+        return true;
+    return false;
   }
 
   /**
-   * Finds the similarities between two arrays, note that this method uses HashSets, so the order of
-   * the array will be scrambled.
+   * Checks if the given array has duplicates.
    * 
-   * @param array the first array
-   * @param array2 the second array
-   * @return the similarities between 'array' and 'array2'
+   * @param array the array to use
+   * @return whether 'array' contains duplicate values
    * @since 0.1.4.2.3
    */
-  public static Object[] intersect(Object[] array, Object[] array2) {
-    Set<Object> set = new HashSet<>(Arrays.asList(array));
-    Set<Object> set2 = new HashSet<>(Arrays.asList(array2));
-    set.retainAll(set2);
-    return set.toArray();
+  public static boolean containsDups(char[] array) {
+    for (char obj : array)
+      if (countFreq(array, obj) > 1)
+        return true;
+    return false;
   }
 
   /**
-   * Finds the similarities between two arrays, note that this method uses HashSets, so the order of
-   * the array will be scrambled.
+   * Finds duplicate values in an array and returns them as another array.
    * 
-   * @param array the first array
-   * @param array2 the second array
-   * @return the similarities between 'array' and 'array2'
+   * @param array the array to check for duplicates
+   * @return a new array of duplicates within the array specified
    * @since 0.1.4.2.3
    */
-  public static Object[] intersect(int[] array, int[] array2) {
-    ArrayList<Integer> list = new ArrayList<Integer>();
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array2.length; j++) {
-        if (array[i] == array2[j]) {
-          list.add(array[i]);
-        }
-      }
-    }
-    if (verbose) {
-      System.out.println("intersect yielded " + Arrays.toString(list.toArray()));
-    }
-    return list.toArray();
+  public static Object[] getDups(Object[] array) {
+    ArrayList<Object> noDups = new ArrayList<>();
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array.length; j++)
+        if (i != j && !contains(noDups.toArray(), array[i]) && array[i].equals(array[j]))
+          noDups.add(array[j]);
+    if (verbose)
+      println("[+] found " + noDups.size() + " dups: " + Arrays.toString(noDups.toArray()));
+    return noDups.toArray();
   }
 
   /**
-   * Finds the similarities between two arrays, note that this method uses HashSets, so the order of
-   * the array will be scrambled.
+   * Finds duplicate values in an array and returns them as another array.
    * 
-   * @param array the first array
-   * @param array2 the second array
-   * @return the similarities between 'array' and 'array2'
+   * @param array the array to check for duplicates
+   * @return a new array of duplicates within the array specified
    * @since 0.1.4.2.3
    */
-  public static Object[] intersect(double[] array, double[] array2) {
-    ArrayList<Double> list = new ArrayList<Double>();
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array2.length; j++) {
-        if (array[i] == array2[j]) {
-          list.add(array[i]);
-        }
-      }
-    }
-    if (verbose) {
-      System.out.println("intersect yielded " + Arrays.toString(list.toArray()));
-    }
-    return list.toArray();
+  public static int[] getDups(int[] array) {
+    ArrayList<Integer> noDups = new ArrayList<>();
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array.length; j++)
+        if (i != j && !contains(noDups.toArray(), array[i]) && array[i] == array[j])
+          noDups.add(array[j]);
+    if (verbose)
+      println("[+] found " + noDups.size() + " dups: " + Arrays.toString(noDups.toArray()));
+    return toInt(noDups.toArray());
   }
 
   /**
-   * Finds the similarities between two arrays, note that this method uses HashSets, so the order of
-   * the array will be scrambled.
+   * Finds duplicate values in an array and returns them as another array.
    * 
-   * @param array the first array
-   * @param array2 the second array
-   * @return the similarities between 'array' and 'array2'
+   * @param array the array to check for duplicates
+   * @return a new array of duplicates within the array specified
    * @since 0.1.4.2.3
    */
-  public static Object[] intersect(char[] array, char[] array2) {
-    ArrayList<Character> list = new ArrayList<Character>();
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array2.length; j++) {
-        if (array[i] == array2[j]) {
-          list.add(array[i]);
-        }
-      }
-    }
-    if (verbose) {
-      System.out.println("intersect yielded " + Arrays.toString(list.toArray()));
-    }
-    return list.toArray();
+  public static double[] getDups(double[] array) {
+    ArrayList<Double> noDups = new ArrayList<>();
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array.length; j++)
+        if (i != j && !contains(noDups.toArray(), array[i]) && array[i] == array[j])
+          noDups.add(array[j]);
+    if (verbose)
+      println("[+] found " + noDups.size() + " dups: " + Arrays.toString(noDups.toArray()));
+    return toDouble(noDups.toArray());
+  }
+
+  /**
+   * Finds duplicate values in an array and returns them as another array.
+   * 
+   * @param array the array to check for duplicates
+   * @return a new array of duplicates within the array specified
+   * @since 0.1.4.2.3
+   */
+  public static char[] getDups(char[] array) {
+    ArrayList<Character> noDups = new ArrayList<>();
+    for (int i = 0; i < array.length; i++)
+      for (int j = 0; j < array.length; j++)
+        if (i != j && !contains(noDups.toArray(), array[i]) && array[i] == array[j])
+          noDups.add(array[j]);
+    if (verbose)
+      println("[+] found " + noDups.size() + " dups: " + Arrays.toString(noDups.toArray()));
+    return toChar(noDups.toArray());
+  }
+
+  /**
+   * Removes all duplicates in the array given.
+   * 
+   * @param array the array to use
+   * @param reorder whether to reorder the array to proper order after removing duplications
+   * @return the array with no duplicates
+   * @since 0.1.4.2.3
+   */
+  public static Object[] removeDups(Object[] list, boolean reorder) {
+    if (verbose)
+      println("[*] removing duplicates");
+    if (reorder)
+      return reorder(new HashSet<>(Arrays.asList(list)).toArray(), list);
+    return new HashSet<>(Arrays.asList(list)).toArray();
+  }
+
+  /**
+   * Removes all duplicates in the array given.
+   * 
+   * @param array the array to use
+   * @param reorder whether to reorder the array to proper order after removing duplications
+   * @return the array with no duplicates
+   * @since 0.1.4.2.3
+   */
+  public static int[] removeDups(int[] list, boolean reorder) {
+    if (verbose)
+      println("[*] removing duplicates");
+    if (reorder)
+      return reorder(toInt(new HashSet<>(List.of(box(list))).toArray()), list);
+    return toInt(new HashSet<>(List.of(box(list))).toArray());
+  }
+
+  /**
+   * Removes all duplicates in the array given.
+   * 
+   * @param array the array to use
+   * @param reorder whether to reorder the array to proper order after removing duplications
+   * @return the array with no duplicates
+   * @since 0.1.4.2.3
+   */
+  public static double[] removeDups(double[] list, boolean reorder) {
+    if (verbose)
+      println("[*] removing duplicates");
+    if (reorder)
+      return reorder(toDouble(new HashSet<>(List.of(box(list))).toArray()), list);
+    return toDouble(new HashSet<>(List.of(box(list))).toArray());
+  }
+
+  /**
+   * Removes all duplicates in the array given.
+   * 
+   * @param array the array to use
+   * @param reorder whether to reorder the array to proper order after removing duplications
+   * @return the array with no duplicates
+   * @since 0.1.4.2.3
+   */
+  public static char[] removeDups(char[] list, boolean reorder) {
+    if (verbose)
+      println("[*] removing duplicates");
+    if (reorder)
+      return reorder(toChar(new HashSet<>(List.of(box(list))).toArray()), list);
+    return toChar(new HashSet<>(List.of(box(list))).toArray());
+  }
+
+  /**
+   * Concatenates multiple arrays with the choice of removing duplicates.
+   * 
+   * 
+   * @param removeDups whether to remove duplicates or not
+   * @param arrays the arrays to concatenate
+   * @return the unionized arrays
+   * @since 0.1.5.3.1
+   */
+  public static Object[] union(boolean removeDups, Object[]... arrays) {
+    ArrayList<Object> unionized = new ArrayList<>();
+    for (int i = 0; i < arrays.length; i++)
+      for (int j = 0; j < arrays[i].length; j++)
+        unionized.add(arrays[i][j]);
+    Object[] union = unionized.toArray();
+    if (removeDups)
+      return removeDups(union, true);
+    return union;
+  }
+
+  /**
+   * Concatenates multiple arrays with the choice of removing duplicates.
+   * 
+   * 
+   * @param removeDups whether to remove duplicates or not
+   * @param arrays the arrays to concatenate
+   * @return the unionized arrays
+   * @since 0.1.5.3.1
+   */
+  public static int[] union(boolean removeDups, int[]... arrays) {
+    ArrayList<Integer> unionized = new ArrayList<>();
+    for (int i = 0; i < arrays.length; i++)
+      for (int j = 0; j < arrays[i].length; j++)
+        unionized.add(arrays[i][j]);
+    if (removeDups)
+      return toInt(removeDups(unionized.toArray(), true));
+    return toInt(unionized.toArray());
+  }
+
+  /**
+   * Concatenates multiple arrays with the choice of removing duplicates.
+   * 
+   * 
+   * @param removeDups whether to remove duplicates or not
+   * @param arrays the arrays to concatenate
+   * @return the unionized arrays
+   * @since 0.1.5.3.1
+   */
+  public static double[] union(boolean removeDups, double[]... arrays) {
+    ArrayList<Double> unionized = new ArrayList<>();
+    for (int i = 0; i < arrays.length; i++)
+      for (int j = 0; j < arrays[i].length; j++)
+        unionized.add(arrays[i][j]);
+    if (removeDups)
+      return toDouble(removeDups(unionized.toArray(), true));
+    return toDouble(unionized.toArray());
+  }
+
+  /**
+   * Concatenates multiple arrays with the choice of removing duplicates.
+   * 
+   * 
+   * @param removeDups whether to remove duplicates or not
+   * @param arrays the arrays to concatenate
+   * @return the unionized arrays
+   * @since 0.1.5.3.1
+   */
+  public static char[] union(boolean removeDups, char[]... arrays) {
+    ArrayList<Character> unionized = new ArrayList<>();
+    for (int i = 0; i < arrays.length; i++)
+      for (int j = 0; j < arrays[i].length; j++)
+        unionized.add(arrays[i][j]);
+    if (removeDups)
+      return toChar(removeDups(unionized.toArray(), true));
+    return toChar(unionized.toArray());
+  }
+
+  /**
+   * Finds the similarities between the arrays passed.
+   * 
+   * @return the intersected array
+   * @since 0.1.5.3.1
+   */
+  public static Object[] intersect(Object[]... arrays) {
+    ArrayList<Object> retained = new ArrayList<>(List.of(arrays[0]));
+    for (int i = 1; i < arrays.length; i++)
+      retained.retainAll(List.of(arrays[i]));
+    if (verbose)
+      println("[+] intersect yielded " + Arrays.toString(retained.toArray()));
+    return retained.toArray();
+  }
+
+  /**
+   * Finds the similarities between the arrays passed.
+   * 
+   * @return the intersected array
+   * @since 0.1.5.3.1
+   */
+  public static int[] intersect(int[]... arrays) {
+    ArrayList<Integer> retained = new ArrayList<>();
+    importAll(arrays[0], retained);
+    for (int i = 1; i < arrays.length; i++)
+      retained.retainAll(List.of(box(arrays[i])));
+    if (verbose)
+      println("[+] intersect yielded " + Arrays.toString(retained.toArray()));
+    return toInt(retained.toArray());
+  }
+
+  /**
+   * Finds the similarities between the arrays passed.
+   * 
+   * @return the intersected array
+   * @since 0.1.5.3.1
+   */
+  public static double[] intersect(double[]... arrays) {
+    ArrayList<Double> retained = new ArrayList<>();
+    importAll(arrays[0], retained);
+    for (int i = 1; i < arrays.length; i++)
+      retained.retainAll(List.of(box(arrays[i])));
+    if (verbose)
+      println("[+] intersect yielded " + Arrays.toString(retained.toArray()));
+    return toDouble(retained.toArray());
+  }
+
+  /**
+   * Finds the similarities between the arrays passed.
+   * 
+   * @return the intersected array
+   * @since 0.1.5.3.1
+   */
+  public static char[] intersect(char[]... arrays) {
+    ArrayList<Character> retained = new ArrayList<>();
+    importAll(arrays[0], retained);
+    for (int i = 1; i < arrays.length; i++)
+      retained.retainAll(List.of(box(arrays[i])));
+    if (verbose)
+      println("[+] intersect yielded " + Arrays.toString(retained.toArray()));
+    return toChar(retained.toArray());
+  }
+
+  /**
+   * Attempts to reorder an array according to a correctly ordered array.
+   * 
+   * @param toReorder the array to reorder
+   * @param reference the reference array
+   * @return the reordered array
+   * @since 0.1.5.3.1
+   */
+  public static Object[] reorder(Object[] toReorder, Object[] reference) {
+    TreeMap<Integer, Object> reorderedmap = new TreeMap<>();
+    for (int i = 0; i < toReorder.length; i++)
+      reorderedmap.put(getPosition(reference, toReorder[i]), toReorder[i]);
+    ArrayList<Object> fixed = new ArrayList<>();
+    for (Map.Entry<Integer, Object> entry : reorderedmap.entrySet())
+      fixed.add(entry.getValue());
+    return fixed.toArray();
+  }
+
+  /**
+   * Attempts to reorder an array according to a correctly ordered array.
+   * 
+   * @param toReorder the array to reorder
+   * @param reference the reference array
+   * @return the reordered array
+   * @since 0.1.5.3.1
+   */
+  public static int[] reorder(int[] toReorder, int[] reference) {
+    TreeMap<Integer, Integer> reorderedmap = new TreeMap<>();
+    for (int i = 0; i < toReorder.length; i++)
+      reorderedmap.put(getPosition(reference, toReorder[i]), toReorder[i]);
+    ArrayList<Integer> fixed = new ArrayList<>();
+    for (Map.Entry<Integer, Integer> entry : reorderedmap.entrySet())
+      fixed.add(entry.getValue());
+    return toInt(fixed.toArray());
+  }
+
+  /**
+   * Attempts to reorder an array according to a correctly ordered array.
+   * 
+   * @param toReorder the array to reorder
+   * @param reference the reference array
+   * @return the reordered array
+   * @since 0.1.5.3.1
+   */
+  public static double[] reorder(double[] toReorder, double[] reference) {
+    TreeMap<Integer, Double> reorderedmap = new TreeMap<>();
+    for (int i = 0; i < toReorder.length; i++)
+      reorderedmap.put(getPosition(reference, toReorder[i]), toReorder[i]);
+    ArrayList<Double> fixed = new ArrayList<>();
+    for (Map.Entry<Integer, Double> entry : reorderedmap.entrySet())
+      fixed.add(entry.getValue());
+    return toDouble(fixed.toArray());
+  }
+
+  /**
+   * Attempts to reorder an array according to a correctly ordered array.
+   * 
+   * @param toReorder the array to reorder
+   * @param reference the reference array
+   * @return the reordered array
+   * @since 0.1.5.3.1
+   */
+  public static char[] reorder(char[] toReorder, char[] reference) {
+    TreeMap<Integer, Character> reorderedmap = new TreeMap<>();
+    for (int i = 0; i < toReorder.length; i++)
+      reorderedmap.put(getPosition(reference, toReorder[i]), toReorder[i]);
+    ArrayList<Character> fixed = new ArrayList<>();
+    for (Map.Entry<Integer, Character> entry : reorderedmap.entrySet())
+      fixed.add(entry.getValue());
+    return toChar(fixed.toArray());
   }
 
   // -----------------------------TYPE CONVERSION---------------------------------
@@ -4366,7 +4127,7 @@ public class Msn {
    */
   public static Double[] box(double[] array) {
     Double[] arr = new Double[array.length];
-    for (int i = 0; i < arr.length; i++) 
+    for (int i = 0; i < arr.length; i++)
       arr[i] = array[i];
     return arr;
   }
@@ -6265,11 +6026,9 @@ public class Msn {
     immediate[2] = below(array, coord);
     immediate[3] = leftOf(array, coord);
     ArrayList<Object> adj = new ArrayList<>();
-    for (Object obj : immediate) {
-      if (obj != null) {
+    for (Object obj : immediate)
+      if (obj != null)
         adj.add(obj);
-      }
-    }
     return adj.toArray();
   }
 
@@ -6287,11 +6046,9 @@ public class Msn {
     immediate[2] = below(array, coord);
     immediate[3] = leftOf(array, coord);
     ArrayList<Integer> adj = new ArrayList<>();
-    for (int obj : immediate) {
-      if (!isConstant(obj)) {
+    for (int obj : immediate)
+      if (!isConstant(obj))
         adj.add(obj);
-      }
-    }
     return toInt(adj.toArray());
   }
 
@@ -6309,11 +6066,9 @@ public class Msn {
     immediate[2] = below(array, coord);
     immediate[3] = leftOf(array, coord);
     ArrayList<Double> adj = new ArrayList<>();
-    for (double obj : immediate) {
-      if (!isConstant(obj)) {
+    for (double obj : immediate)
+      if (!isConstant(obj))
         adj.add(obj);
-      }
-    }
     return toDouble(adj.toArray());
   }
 
@@ -6343,9 +6098,8 @@ public class Msn {
     } catch (IllegalArgumentException e) {
     }
     ArrayList<Boolean> adj = new ArrayList<>();
-    for (boolean obj : immediate) {
+    for (boolean obj : immediate)
       adj.add(obj);
-    }
     return toBoolean(adj.toArray());
   }
 
@@ -6363,11 +6117,9 @@ public class Msn {
     immediate[2] = below(array, coord);
     immediate[3] = leftOf(array, coord);
     ArrayList<Character> adj = new ArrayList<>();
-    for (char obj : immediate) {
-      if (!isConstant(obj)) {
+    for (char obj : immediate)
+      if (!isConstant(obj))
         adj.add(obj);
-      }
-    }
     return toChar(adj.toArray());
   }
 
@@ -6385,11 +6137,9 @@ public class Msn {
     immediate[2] = seOf(array, coord);
     immediate[3] = swOf(array, coord);
     ArrayList<Object> adj = new ArrayList<>();
-    for (Object obj : immediate) {
-      if (obj != null) {
+    for (Object obj : immediate)
+      if (obj != null)
         adj.add(obj);
-      }
-    }
     return adj.toArray();
   }
 
@@ -6407,11 +6157,9 @@ public class Msn {
     immediate[2] = seOf(array, coord);
     immediate[3] = swOf(array, coord);
     ArrayList<Integer> adj = new ArrayList<>();
-    for (int obj : immediate) {
-      if (!isConstant(obj)) {
+    for (int obj : immediate)
+      if (!isConstant(obj))
         adj.add(obj);
-      }
-    }
     return toInt(adj.toArray());
   }
 
@@ -6429,11 +6177,9 @@ public class Msn {
     immediate[2] = seOf(array, coord);
     immediate[3] = swOf(array, coord);
     ArrayList<Double> adj = new ArrayList<>();
-    for (double obj : immediate) {
-      if (!isConstant(obj)) {
+    for (double obj : immediate)
+      if (!isConstant(obj))
         adj.add(obj);
-      }
-    }
     return toDouble(adj.toArray());
   }
 
@@ -6463,9 +6209,8 @@ public class Msn {
     } catch (IllegalArgumentException e) {
     }
     ArrayList<Boolean> adj = new ArrayList<>();
-    for (boolean obj : immediate) {
+    for (boolean obj : immediate)
       adj.add(obj);
-    }
     return toBoolean(adj.toArray());
   }
 
@@ -6483,11 +6228,9 @@ public class Msn {
     immediate[2] = seOf(array, coord);
     immediate[3] = swOf(array, coord);
     ArrayList<Character> adj = new ArrayList<>();
-    for (char obj : immediate) {
-      if (!isConstant(obj)) {
+    for (char obj : immediate)
+      if (!isConstant(obj))
         adj.add(obj);
-      }
-    }
     return toChar(adj.toArray());
   }
 
@@ -6803,11 +6546,9 @@ public class Msn {
   public static double[][] generateDistanceInvTable(Object[][] array, int[] from) {
     Object[][] copy = arraycopy(array);
     double[][] dcopy = create2DDoubleArrayFromObj(array);
-    for (int i = 0; i < dcopy.length; i++) {
-      for (int j = 0; j < dcopy[i].length; j++) {
+    for (int i = 0; i < dcopy.length; i++)
+      for (int j = 0; j < dcopy[i].length; j++)
         dcopy[i][j] = distanceInv(dcopy, from, new int[] {i, j});
-      }
-    }
     return dcopy;
   }
 
@@ -6822,10 +6563,9 @@ public class Msn {
   public static embMsnMultimap<Double, Point> distanceMap(double[][] dt, Object[][] array,
       int[] center) {
     embMsnMultimap<Double, Point> map = new embMsnMultimap<>();
-    for (int i = 0; i < dt.length; i++) {
+    for (int i = 0; i < dt.length; i++)
       for (int j = 0; j < dt[i].length; j++)
         map.put(dt[i][j], new Point(i, j));
-    }
     return map;
   }
 
@@ -6839,15 +6579,14 @@ public class Msn {
   public static embMsnMultimap<Double, Point> distanceMap(Object[][] array, int[] center) {
     double[][] dt = generateDistanceInvTable(array, center);
     embMsnMultimap<Double, Point> map = new embMsnMultimap<>();
-    for (int i = 0; i < dt.length; i++) {
+    for (int i = 0; i < dt.length; i++)
       for (int j = 0; j < dt[i].length; j++)
         map.put(dt[i][j], new Point(i, j));
-    }
     return map;
   }
 
   /**
-   * Obtains the elements that form a circle with the radius specified.
+   * Obtains the elements with the same radius from the specified when given a radius.
    * 
    * @param radius the radius of the circle
    * @param array the array
@@ -6861,36 +6600,29 @@ public class Msn {
     double startdistance = directionalMulti(dt, center, "north", radius, true);
     while (isConstant(startdistance)) {
       startdistance = directionalMulti(dt, center, "south", radius, true);
-      if (!isConstant(startdistance)) {
+      if (!isConstant(startdistance))
         break;
-      }
       startdistance = directionalMulti(dt, center, "east", radius, true);
-      if (!isConstant(startdistance)) {
+      if (!isConstant(startdistance))
         break;
-      }
       startdistance = directionalMulti(dt, center, "west", radius, true);
-      if (!isConstant(startdistance)) {
+      if (!isConstant(startdistance))
         break;
-      }
     }
-
     double currdist = startdistance;
     ArrayList<Point> points = distanceMap.get(currdist);
-    for (Point p : points) {
+    for (Point p : points)
       circle.add(array[(int) p.getX()][(int) p.getY()]);
-    }
     while (circle.size() < Math.ceil(2 * Math.PI * radius)) {
       ArrayList<Double> adjdistance = new ArrayList<>();
-      for (Point init : points) {
+      for (Point init : points) 
         adjdistance = new ArrayList<>(
             Arrays.asList(box(adjacent(dt, new int[] {(int) init.getX(), (int) init.getY()}))));
-      }
       double[] adj = toDouble(adjdistance.toArray());
       currdist = closestTo(currdist, adj);
       points = distanceMap.get(currdist);
-      for (Point p : points) {
+      for (Point p : points)
         circle.add(array[(int) p.getX()][(int) p.getY()]);
-      }
     }
     return circle;
   }
@@ -7673,13 +7405,12 @@ public class Msn {
     int lower = (int) Math.floor(number);
     double upperdistance = upper - number;
     double lowerdistance = number - lower;
-    if (upperdistance == lowerdistance) {
+    if (upperdistance == lowerdistance)
       return upper;
-    } else if (upperdistance > lowerdistance) {
+    else if (upperdistance > lowerdistance)
       return lower;
-    } else {
+    else
       return upper;
-    }
   }
 
   /**
@@ -7723,9 +7454,8 @@ public class Msn {
    * @since 0.1.0.1.3
    */
   public static boolean divides(double num1, double num2) {
-    if (Math.floor(num2 / num1) == num2 / num1) {
+    if (Math.floor(num2 / num1) == num2 / num1)
       return true;
-    }
     return false;
   }
 
@@ -7738,9 +7468,8 @@ public class Msn {
    */
   public static int sum(int[] array) {
     int sum = 0;
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       sum += array[i];
-    }
     return sum;
   }
 
@@ -7753,9 +7482,8 @@ public class Msn {
    */
   public static double sum(double[] array) {
     double sum = 0;
-    for (int i = 0; i < array.length; i++) {
+    for (int i = 0; i < array.length; i++)
       sum += array[i];
-    }
     return sum;
   }
 
@@ -7768,14 +7496,13 @@ public class Msn {
    * @since 0.1.0.1.3
    */
   public static int gcd(int num1, int num2) {
-    while (num1 != num2) {
+    while (num1 != num2)
       if (num1 > num2)
         num1 = num1 - num2;
       else
         num2 = num2 - num1;
-    }
     if (verbose)
-      System.out.printf("GCD of given numbers is: %d", num2);
+      println("GCD of given numbers is: " + num2);
     return num2;
   }
 
@@ -7788,16 +7515,13 @@ public class Msn {
    * @since 0.1.0.1.3
    */
   public static double gcd(double num1, double num2) {
-    while (num1 != num2) {
-      if (num1 > num2) {
+    while (num1 != num2)
+      if (num1 > num2)
         num1 = num1 - num2;
-      } else {
+      else
         num2 = num2 - num1;
-      }
-    }
-    if (verbose) {
-      System.out.println("GCD of given numbers is: " + num2);
-    }
+    if (verbose)
+      println("[+] GCD of given numbers is: " + num2);
     return num2;
   }
 
@@ -7810,20 +7534,17 @@ public class Msn {
    * @since 0.1.0.1.3
    */
   public static double lcm(double d, double e) {
-    if (d == 0 || e == 0) {
+    if (d == 0 || e == 0)
       return 0;
-    }
     double absNumber1 = Math.abs(d);
     double absNumber2 = Math.abs(e);
     double absHigherNumber = Math.max(absNumber1, absNumber2);
     double absLowerNumber = Math.min(absNumber1, absNumber2);
     double lcm = absHigherNumber;
-    while (lcm % absLowerNumber != 0) {
+    while (lcm % absLowerNumber != 0)
       lcm += absHigherNumber;
-    }
-    if (verbose) {
-      System.out.println("lcm of " + d + " and " + e + " is " + lcm);
-    }
+    if (verbose)
+      println("[+] lcm of " + d + " and " + e + " is " + lcm);
     return lcm;
   }
 
@@ -7836,20 +7557,17 @@ public class Msn {
    * @since 0.1.0.1.3
    */
   public static long lcm(long num1, long num2) {
-    if (num1 == 0 || num2 == 0) {
+    if (num1 == 0 || num2 == 0)
       return 0;
-    }
     long absNumber1 = Math.abs(num1);
     long absNumber2 = Math.abs(num2);
     long absHigherNumber = Math.max(absNumber1, absNumber2);
     long absLowerNumber = Math.min(absNumber1, absNumber2);
     long lcm = absHigherNumber;
-    while (lcm % absLowerNumber != 0) {
+    while (lcm % absLowerNumber != 0)
       lcm += absHigherNumber;
-    }
-    if (verbose) {
-      System.out.println("lcm of " + num1 + " and " + num2 + " is " + lcm);
-    }
+    if (verbose)
+      println("[+] lcm of " + num1 + " and " + num2 + " is " + lcm);
     return lcm;
   }
 
@@ -7862,14 +7580,11 @@ public class Msn {
    */
   public static int max(int[] array) {
     int max = array[0];
-    for (int i = 1; i < array.length; i++) {
-      if (array[i] > max) {
+    for (int i = 1; i < array.length; i++)
+      if (array[i] > max)
         max = array[i];
-      }
-    }
-    if (verbose) {
-      System.out.println("max is " + max);
-    }
+    if (verbose)
+      println("[+] max is " + max);
     return max;
   }
 
@@ -7881,8 +7596,7 @@ public class Msn {
    * @since 0.1.0.1.3
    */
   public static int max(int[][] array) {
-    int[] longarray = to1DArray(array);
-    return max(longarray);
+    return max(to1DArray(array));
   }
 
   /**
@@ -7893,14 +7607,11 @@ public class Msn {
    */
   public static double max(double[] array) {
     double max = array[0];
-    for (int i = 1; i < array.length; i++) {
-      if (array[i] > max) {
+    for (int i = 1; i < array.length; i++)
+      if (array[i] > max)
         max = array[i];
-      }
-    }
-    if (verbose) {
-      System.out.println("max is " + max);
-    }
+    if (verbose)
+      println("[+] max is " + max);
     return max;
   }
 
@@ -7911,8 +7622,7 @@ public class Msn {
    * @return the largest number in the array
    */
   public static double max(double[][] array) {
-    double[] longarray = to1DArray(array);
-    return max(longarray);
+    return max(to1DArray(array));
   }
 
   /**
@@ -7923,14 +7633,11 @@ public class Msn {
    */
   public static int min(int[] array) {
     int minValue = array[0];
-    for (int i = 1; i < array.length; i++) {
-      if (array[i] < minValue) {
+    for (int i = 1; i < array.length; i++)
+      if (array[i] < minValue)
         minValue = array[i];
-      }
-    }
-    if (verbose) {
-      System.out.println("min is " + minValue);
-    }
+    if (verbose)
+      println("[+] min is " + minValue);
     return minValue;
   }
 
@@ -7943,14 +7650,11 @@ public class Msn {
   public static int min(int[][] array) {
     int[] longarray = to1DArray(array);
     int minValue = longarray[0];
-    for (int i = 1; i < longarray.length; i++) {
-      if (longarray[i] < minValue) {
+    for (int i = 1; i < longarray.length; i++)
+      if (longarray[i] < minValue)
         minValue = longarray[i];
-      }
-    }
-    if (verbose) {
-      System.out.println("min is " + minValue);
-    }
+    if (verbose)
+      println("[+] min is " + minValue);
     return minValue;
   }
 
@@ -7962,14 +7666,11 @@ public class Msn {
    */
   public static double min(double[] array) {
     double minValue = array[0];
-    for (int i = 1; i < array.length; i++) {
-      if (array[i] < minValue) {
+    for (int i = 1; i < array.length; i++)
+      if (array[i] < minValue)
         minValue = array[i];
-      }
-    }
-    if (verbose) {
-      System.out.println("min is " + minValue);
-    }
+    if (verbose)
+      println("[+] min is " + minValue);
     return minValue;
   }
 
@@ -7982,14 +7683,11 @@ public class Msn {
   public static double min(double[][] array) {
     double[] longarray = to1DArray(array);
     double minValue = longarray[0];
-    for (int i = 1; i < longarray.length; i++) {
-      if (longarray[i] < minValue) {
+    for (int i = 1; i < longarray.length; i++)
+      if (longarray[i] < minValue)
         minValue = longarray[i];
-      }
-    }
-    if (verbose) {
-      System.out.println("min is " + minValue);
-    }
+    if (verbose)
+      println("[+] min is " + minValue);
     return minValue;
   }
 
@@ -8005,9 +7703,22 @@ public class Msn {
       int leftelement = array[leftindex];
       int rightelement = array[leftindex - 1];
       return (leftelement + rightelement) / 2.0;
-    } else {
+    } else
       return array[array.length / 2];
-    }
+  }
+
+  /**
+   * Returns log base of a number.
+   * 
+   * @param base the base
+   * @param num the number
+   * @return log based a number
+   * @since 0.1.5.3.1
+   */
+  public static double log(int base, double num) {
+    if (verbose)
+      println("[*] performing log base function");
+    return Math.log(num) / Math.log(base);
   }
 
   /**
@@ -8289,18 +8000,16 @@ public class Msn {
   }
 
   /**
-   * Generates a random number within the range specified.
+   * Rolls a dice, giving a 1/sides chance of returning true.
+   *
+   * For example, a 1/6 chance would return true once every six method executions.
    * 
-   * @param min the minimum
-   * @param max the maximum
-   * @return a random number between min and max
+   * @param sides the amount of sides on the dice
+   * @return true if the chance is met, false otherwise
+   * @since 0.1.4.1.1
    */
-  public static double random(int min, int max) {
-    Random random = new Random();
-    double range = max - min;
-    double scaled = random.nextDouble() * range;
-    double shifted = scaled + min;
-    return shifted;
+  public static boolean diceroll(int sides) {
+    return randomInt(0, sides) == 0;
   }
 
   /**
@@ -8309,6 +8018,21 @@ public class Msn {
    * @param min the minimum
    * @param max the maximum
    * @return a random number between min and max
+   * @since 0.1.4.1.1
+   */
+  public static double random(int min, int max) {
+    return (new Random().nextDouble() * (max - min)) + min;
+  }
+
+  /**
+   * Generates a random number within the range specified.
+   * 
+   * Min is inclusive, while max is not
+   * 
+   * @param min the minimum
+   * @param max the maximum
+   * @return a random number between min and max
+   * @since 0.1.4.1.1
    */
   public static int randomInt(int min, int max) {
     if (min < max)
@@ -8321,6 +8045,7 @@ public class Msn {
    * 
    * @param array the array
    * @return a random index
+   * @since 0.1.4.1.1
    */
   public static int randomIndex(Object[] array) {
     return new Random().nextInt(array.length);
@@ -8331,6 +8056,7 @@ public class Msn {
    * 
    * @param array the array
    * @return a random index
+   * @since 0.1.4.1.1
    */
   public static int randomIndex(int[] array) {
     return new Random().nextInt(array.length);
@@ -8341,6 +8067,7 @@ public class Msn {
    * 
    * @param array the array
    * @return a random index
+   * @since 0.1.4.1.1
    */
   public static int randomIndex(double[] array) {
     return new Random().nextInt(array.length);
@@ -8351,6 +8078,7 @@ public class Msn {
    * 
    * @param array the array
    * @return a random index
+   * @since 0.1.4.1.1
    */
   public static int randomIndex(char[] array) {
     return new Random().nextInt(array.length);
@@ -8361,6 +8089,7 @@ public class Msn {
    * 
    * @param array the array to search
    * @return a random element
+   * @since 0.1.4.1.1
    */
   public static Object randomElement(Object[] array) {
     int rnd = new Random().nextInt(array.length);
@@ -8372,6 +8101,7 @@ public class Msn {
    * 
    * @param array the array to search
    * @return a random element
+   * @since 0.1.4.1.1
    */
   public static int randomElement(int[] array) {
     int rnd = new Random().nextInt(array.length);
@@ -8383,6 +8113,7 @@ public class Msn {
    * 
    * @param array the array to search
    * @return a random element
+   * @since 0.1.4.1.1
    */
   public static double randomElement(double[] array) {
     int rnd = new Random().nextInt(array.length);
@@ -8394,6 +8125,7 @@ public class Msn {
    * 
    * @param array the array to search
    * @return a random element
+   * @since 0.1.4.1.1
    */
   public static char randomElement(char[] array) {
     int rnd = new Random().nextInt(array.length);
@@ -8405,14 +8137,11 @@ public class Msn {
    * 
    * @param array the array to search
    * @return a random element
+   * @since 0.1.4.1.1
    */
   public static Object randomElement(Object[][] array) {
     ArrayList<Object> list = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        list.add(array[i][j]);
-      }
-    }
+    importAll(array, list);
     Collections.shuffle(list);
     return list.get(0);
   }
@@ -8422,14 +8151,11 @@ public class Msn {
    * 
    * @param array the array to search
    * @return a random element
+   * @since 0.1.4.1.1
    */
   public static int randomElement(int[][] array) {
     ArrayList<Integer> list = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        list.add(array[i][j]);
-      }
-    }
+    importAll(array, list);
     Collections.shuffle(list);
     return list.get(0);
   }
@@ -8439,14 +8165,11 @@ public class Msn {
    * 
    * @param array the array to search
    * @return a random element
+   * @since 0.1.4.1.1
    */
   public static double randomElement(double[][] array) {
     ArrayList<Double> list = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        list.add(array[i][j]);
-      }
-    }
+    importAll(array, list);
     Collections.shuffle(list);
     return list.get(0);
   }
@@ -8456,14 +8179,11 @@ public class Msn {
    * 
    * @param array the array to search
    * @return a random element
+   * @since 0.1.4.1.1
    */
   public static char randomElement(char[][] array) {
     ArrayList<Character> list = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      for (int j = 0; j < array[i].length; j++) {
-        list.add(array[i][j]);
-      }
-    }
+    importAll(array, list);
     Collections.shuffle(list);
     return list.get(0);
   }
@@ -8472,6 +8192,7 @@ public class Msn {
    * Gets a random letter from the English alphabet.
    * 
    * @return a random letter
+   * @since 0.1.4.1.1
    */
   public static char randomLetter() {
     return randomElement(alphabetArray());
@@ -8482,6 +8203,7 @@ public class Msn {
    * 
    * @param length the preferred length of the String
    * @return the randomized String
+   * @since 0.1.4.1.1
    */
   public static String randomString(int length) {
     String s = "";
@@ -8491,7 +8213,7 @@ public class Msn {
   }
 
   /**
-   * Generates a word that can be pronounced.
+   * Generates a word with length 5 that can be pronounced.
    * 
    * @return a String
    * @since 0.1.5.2.8
@@ -8503,13 +8225,33 @@ public class Msn {
   }
 
   /**
+   * Generates a random Color with random red, green and blue values.
+   * 
+   * @return a new Color
+   * @since 0.1.5.3.1
+   */
+  public static Color randomColor() {
+    return new Color(randomInt(0, 256), randomInt(0, 256), randomInt(0, 256));
+  }
+
+  /**
+   * Gets a random Color from the AWT Color collection.
+   * 
+   * @return a random Color
+   * @since 0.1.5.3.1
+   */
+  public static Color randomAwtColor() {
+    return (Color) randomElement(awtColorArray());
+  }
+
+  /**
    * Shuffles the given array.
    * 
    * @param array the array to shuffle
    * @since 0.1.5.2.6
    */
   public static void shuffle(Object[] array) {
-    ArrayList<Object> list = new ArrayList<>(Arrays.asList(array));
+    ArrayList<Object> list = new ArrayList<>(List.of(array));
     Collections.shuffle(list);
     for (int i = 0; i < array.length; i++)
       array[i] = list.get(i);
@@ -8578,155 +8320,6 @@ public class Msn {
     Toolkit.getDefaultToolkit().beep();
     if (verbose)
       println("[+] beep sound played");
-  }
-
-  /**
-   * Generates a random world containing two ores and three compositions.
-   * 
-   * @since 0.1.0.0.5
-   */
-  public static void worldLauncher() {
-    // Generation factors
-    int height = 20;
-    int minheight = 5;
-    double r = .50;
-    // Water
-    char water = '~';
-    int waterLevel = 15;
-    // Ores
-    char diamond = '^';
-    double diamondChance = 0.06;
-    boolean containsDiamonds = false;
-    char coal = 'c';
-    double coalChances = 0.20;
-    boolean containsCoal = false;
-    // The three compositions
-    char dirt = 'd';
-    double dirtPercent = 0.20;
-    char stone = 's';
-    double stonePercent = 0.70;
-    char bedrock = 'b';
-    double bedrockPercent = 0.10;
-    // Chances of the next block being a one or two block jump;
-    double oneBlock = 0.80;
-    double twoBlock = 0.20;
-    boolean isOneJump = false;
-    boolean isTwoJump = false;
-    String column;
-    // Beginning screen
-    Scanner kb = new Scanner(System.in);
-    int leng;
-
-    System.out.println("d = dirt");
-    System.out.println("s = stone");
-    System.out.println("c = coal");
-    System.out.println("b = bedrock");
-    System.out.println("^ = diamond");
-    System.out.println();
-    System.out.print("Type a generation length: ");
-    leng = kb.nextInt();
-    System.out.println("-------------------------");
-    System.out.println();
-
-    // Generation of each block on the y axis of the console (or x axis in
-    // game)
-    for (int i = 0; i < leng; i++) {
-
-      column = "";
-      isOneJump = false;
-      isTwoJump = false;
-      containsDiamonds = false;
-
-      double updown = Math.random();
-      double variant = Math.random();
-      double diamondVariant = Math.random();
-      double coalVariant = Math.random();
-
-      // Deciding whether to go +- x blocks
-      if (variant <= twoBlock) {
-        isTwoJump = true;
-      } else {
-        isOneJump = true;
-      }
-
-      if (updown <= r) {
-        if (isOneJump) {
-          height--;
-        }
-        if (isTwoJump) {
-          height -= 2;
-        }
-      } else {
-        if (isOneJump) {
-          height++;
-        }
-        if (isTwoJump) {
-          height += 2;
-        }
-      }
-
-      if (height < minheight) {
-        if (isOneJump) {
-          height++;
-        }
-        if (isTwoJump) {
-          height += 2;
-        }
-      }
-
-      // Decides whether the column contains diamonds
-      if (diamondVariant <= diamondChance) {
-        containsDiamonds = true;
-      }
-
-      if (coalVariant <= coalChances) {
-        containsCoal = true;
-      }
-
-      // Generation of column;
-      for (int k = 0; k < height * bedrockPercent; k++) {
-        column += bedrock;
-      }
-
-      for (int k = 0; k < height * stonePercent; k++) {
-        column += stone;
-        double waitD = Math.random();
-        if (waitD <= 0.66) {
-          if (containsDiamonds) {
-            column += diamond;
-            containsDiamonds = false;
-          }
-        }
-        double waitC = Math.random();
-        if (waitC <= .20) {
-
-          if (containsCoal) {
-            for (int l = 0; l < height * coalChances - 3; l++) {
-              column += coal;
-              for (int m = 0; m < 3; m++) {
-                column.replace("s", "");
-              }
-            }
-            containsCoal = false;
-          }
-        }
-      }
-
-      for (int k = 0; k < height * dirtPercent; k++) {
-        column += dirt;
-
-      }
-
-      if (height < waterLevel) {
-        while (height != waterLevel) {
-          column += water;
-        }
-      }
-
-      System.out.println(column);
-
-    }
-
   }
 
   // ---------------------------SUB CLASSES-------------------------------------

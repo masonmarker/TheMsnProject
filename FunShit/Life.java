@@ -20,7 +20,7 @@ import javax.swing.border.MatteBorder;
  * Simulation of John Conway's Game of Life.
  * 
  * @author Mason Marker
- * @version 1.0 - 06/5/2021
+ * @version 1.0 - 06/05/2021
  */
 @SuppressWarnings("serial")
 public class Life extends JFrame implements MouseListener {
@@ -185,9 +185,12 @@ public class Life extends JFrame implements MouseListener {
     JButton btnReset = new JButton("Reset");
     btnReset.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
+        paused = true;
+        pausebutton.setText("Unpause");
         for (int i = 0; i < cells.length; i++)
           for (int j = 0; j < cells[i].length; j++)
             cells[i][j].turnOff();
+        
       }
     });
     btnReset.setForeground(Color.GRAY);
