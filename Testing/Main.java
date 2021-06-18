@@ -1,13 +1,21 @@
-import java.awt.Color;
-import javax.swing.JFrame;
-
 public class Main {
 
   public static void main(String[] args) {
-
-    JFrame frame = Msn.buildFrame(Color.black, Color.LIGHT_GRAY, 400, 400, true);
-    frame.setVisible(true);
-
+            
+    Timer t = new Timer();
+    
+    
+    t.start();
+    MsnRandom rand = new MsnRandom();
+    t.stop();
+    
+    
+    for (int i = 0; i < 100; i++) 
+      System.out.println(rand.nextName(1));
+    
+    
+    t.printHistory();
+    
   }
 
 }

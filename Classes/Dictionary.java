@@ -1,22 +1,27 @@
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
 /**
- * Dictionary class, contains information and methods in relation to the English dictionary.
+ * Contains information and methods in relation to the English dictionary including a wide
+ * collection of names.
  * 
  * @author Mason Marker
- * @version 1.0 - 06/04/2021
+ * @version 1.1 - 06/11/2021
  */
-public class Dictionary {
+public class Dictionary implements Iterable<String> {
 
   TreeMap<String, String> dict;
+  String[] names;
 
   /**
    * Default constructor.
    */
   public Dictionary() {
     dict = new TreeMap<>();
+    names = Msn.toLineArray(Msn.contentsOfNoEmptyLines("names.txt"));
     Stream.of(Msn.toLineArray(Msn.contentsOfNoEmptyLines("english3.txt"))).forEach(this::addWord);
   }
 
@@ -37,6 +42,18 @@ public class Dictionary {
    */
   public void addDef(String word, String def) {
     dict.put(word, def);
+  }
+
+  /**
+   * Checks if this Dictionary contains the word or name specified.
+   * 
+   * @param s the String
+   * @return whether the String is included or not
+   */
+  public boolean contains(String s) {
+    if (!Msn.contains(getWords(), s) && !Msn.contains(names, s))
+      return false;
+    return true;
   }
 
   /**
@@ -100,7 +117,7 @@ public class Dictionary {
   public TreeMap<String, String> wordsThatStartWith(String prefix) {
     TreeMap<String, String> map = new TreeMap<>();
     for (Map.Entry<String, String> entry : dict.entrySet())
-      if (entry.getKey().startsWith(prefix))
+      if (entry.getKey().toLowerCase().startsWith(prefix.toLowerCase()))
         map.put(entry.getKey(), entry.getValue());
     return map;
   }
@@ -114,7 +131,7 @@ public class Dictionary {
   public TreeMap<String, String> wordsThatEndWith(String suffix) {
     TreeMap<String, String> map = new TreeMap<>();
     for (Map.Entry<String, String> entry : dict.entrySet())
-      if (entry.getKey().endsWith(suffix))
+      if (entry.getKey().toLowerCase().endsWith(suffix.toLowerCase()))
         map.put(entry.getKey(), entry.getValue());
     return map;
   }
@@ -132,7 +149,7 @@ public class Dictionary {
         count++;
     return count;
   }
-  
+
   /**
    * Gets the amount of consonants in a word.
    * 
@@ -155,10 +172,64 @@ public class Dictionary {
   }
 
   /**
+   * Gets the names in this Dictionary.
+   * 
+   * @return the names
+   */
+  public String[] getNames() {
+    return names;
+  }
+
+  /**
+   * Gets the names in this Dictionary that start with the given prefix.
+   * 
+   * @param prefix the prefix
+   * @return names that start with the prefix
+   */
+  public String[] namesThatStartWith(String prefix) {
+    ArrayList<String> n = new ArrayList<>();
+    for (int i = 0; i < names.length; i++)
+      if (names[i].toLowerCase().startsWith(prefix.toLowerCase()))
+        n.add(names[i]);
+    return n.toArray(String[]::new);
+  }
+
+  /**
+   * Gets the names in this Dictionary that end with the given suffix.
+   * 
+   * @param suffix the suffix
+   * @return names that end with the suffix
+   */
+  public String[] namesThatEndWith(String suffix) {
+    ArrayList<String> n = new ArrayList<>();
+    for (int i = 0; i < names.length; i++)
+      if (names[i].toLowerCase().endsWith(suffix.toLowerCase()))
+        n.add(names[i]);
+    return n.toArray(String[]::new);
+  }
+
+  /**
+   * Checks whether the word passed exists in this Dictionary's collection of names.
+   * 
+   * @param word the word
+   * @return whether the word is considered a name
+   */
+  public boolean isName(String word) {
+    return Msn.containsIgnoreCase(names, word);
+  }
+
+  /**
    * String representation of this Dictionary.
    */
   public String toString() {
     return dict.toString();
   }
 
+  /**
+   * Iterator over the words in this Dictionary.
+   */
+  @Override
+  public Iterator<String> iterator() {
+    return dict.keySet().iterator();
+  }
 }

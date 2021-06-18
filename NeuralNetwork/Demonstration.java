@@ -41,7 +41,8 @@ public class Demonstration {
 
     Scanner kb = new Scanner(System.in);
     while (true) {
-      int times = Msn.nextInt("How many training iterations? ", kb);
+      System.out.print("How many training iterations? ");
+      int times = kb.nextInt();
       System.out.println("training...");
       n.bulkTrain(inputs, targets, times);
       System.out.println("Training Results");
