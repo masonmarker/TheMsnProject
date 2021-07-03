@@ -24,17 +24,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.border.EmptyBorder;
 
 /**
@@ -44,12 +43,12 @@ import javax.swing.border.EmptyBorder;
  * stages, using them could cause errors.
  * 
  * @author Mason Marker
- * @version 0.1.5.3.1 - 06/08/2021
+ * @version 0.1.5.3.2 - 06/23/2021
  */
 public class Msn {
 
   // true = prints the return value after method execution if possible
-  // false = little to no information printed after method execution
+  // false = no information printed after method execution
   private static boolean verbose = false;
 
   // Used in array directional methods
@@ -219,12 +218,14 @@ public class Msn {
   /**
    * Checks for an element that is contained in the given array.
    * 
+   * @param <T> Generic
+   * 
    * @param array the array to parse
    * @param check the element to check for
    * @return whether the element is contained in the array
    * @since 0.1.0.0.0
    */
-  public static boolean contains(Object[] array, Object check) {
+  public static <T> boolean contains(T[] array, T check) {
     for (int i = 0; i < array.length; i++)
       if (check.equals(array[i]))
         return true;
@@ -294,12 +295,14 @@ public class Msn {
   /**
    * Checks for an element that is contained in the given array.
    * 
+   * @param <T> Generic
+   * 
    * @param array the array to parse
    * @param check the element to check for
    * @return whether the element is contained in the array
    * @since 0.1.0.0.0
    */
-  public static boolean contains(Object[][] array, Object check) {
+  public static <T> boolean contains(T[][] array, T check) {
     for (int i = 0; i < array.length; i++)
       for (int j = 0; j < array[i].length; j++)
         if (array[i][j].equals(check))
@@ -540,11 +543,13 @@ public class Msn {
   /**
    * Counts the total elements in a 2D array.
    * 
+   * @param <T> Generic
+   * 
    * @param array the array to use
    * @return the amount of elements that exist in the entire array
    * @since 0.1.0.0.0
    */
-  public static int eCount(Object[][] array) {
+  public static <T> int eCount(T[][] array) {
     int sum = 0;
     for (int i = 0; i < array.length; i++)
       sum += array[i].length;
@@ -624,12 +629,14 @@ public class Msn {
   /**
    * Counts the amount of times a specified element in an array occurs.
    * 
+   * @param <T> Generic
+   * 
    * @param array the array to use
    * @param obj the element to search for
    * @return the amount of times 'obj' occurs in 'array'
    * @since 0.1.0.0.0
    */
-  public static int countFreq(Object[] array, Object obj) {
+  public static <T> int countFreq(T[] array, T obj) {
     int count = 0;
     for (int i = 0; i < array.length; i++)
       if (array[i].equals(obj))
@@ -714,12 +721,14 @@ public class Msn {
   /**
    * Counts the amount of times a specified element in an array occurs.
    * 
+   * @param <T> Generic
+   * 
    * @param array the array to use
    * @param obj the element to search for
    * @return the amount of times 'obj' occurs in 'array'
    * @since 0.1.0.0.0
    */
-  public static int countFreq(Object[][] array, Object obj) {
+  public static <T> int countFreq(T[][] array, T obj) {
     int count = 0;
     for (int i = 0; i < array.length; i++)
       for (int j = 0; j < array[i].length; j++)
@@ -1509,6 +1518,20 @@ public class Msn {
   }
 
   /**
+   * Removes the last character of the String passed.
+   * 
+   * @param s the String
+   * @return the fixed String
+   * @since 0.1.5.3.2
+   */
+  public static String backspace(String s) {
+    String news = "";
+    for (int i = 0; i < s.length() - 1; i++)
+      news += s.charAt(i);
+    return news;
+  }
+  
+  /**
    * Takes a char array and turns it into a String array.
    * 
    * @param array to array to modify
@@ -1831,10 +1854,12 @@ public class Msn {
   /**
    * Prints an array, useful when needing to print arrays quickly.
    * 
+   * @param <T> Generic
+   * 
    * @param arr the array to print
    * @since 0.1.0.0.0
    */
-  public static void pa(Object[] arr) {
+  public static <T> void pa(T[] arr) {
     System.out.println(Arrays.toString(arr));
   }
 
@@ -1881,10 +1906,12 @@ public class Msn {
   /**
    * Prints a 2D array thats a little easier on the eyes.
    * 
+   * @param <T> Generic
+   * 
    * @param matrix the 2D matrix to print
    * @since 0.1.0.0.0
    */
-  public static void pa(Object[][] matrix) {
+  public static <T> void pa(T[][] matrix) {
     println(
         Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
   }
@@ -1947,18 +1974,21 @@ public class Msn {
   /**
    * Reverses the passed array.
    * 
+   * @param <T> Generic
+   * 
    * @param array the array to reverse
    * @since 0.1.1.0.0
    */
-  public static void reverse(Object[] array) {
-    Object[] copy = Arrays.copyOf(array, array.length);
-    ArrayList<Object> newArray = new ArrayList<>();
-    for (int i = copy.length - 1; i >= 0; i--)
-      newArray.add(copy[i]);
-    for (int i = 0; i < newArray.size(); i++)
-      array[i] = newArray.get(i);
+  public static Object[] reverse(Object[] array) {
+    int index = 0;
+    Object[] copy = new Object[array.length];
+    for (int i = array.length - 1; i >= 0; i--) {
+      copy[index] = array[i];
+      index++;
+    }
     if (verbose)
       println("[+] array reversed");
+    return copy;
   }
 
   /**
@@ -1967,15 +1997,16 @@ public class Msn {
    * @param array the array to reverse
    * @since 0.1.1.0.0
    */
-  public static void reverse(int[] array) {
-    int[] copy = Arrays.copyOf(array, array.length);
-    ArrayList<Object> newArray = new ArrayList<>();
-    for (int i = copy.length - 1; i >= 0; i--)
-      newArray.add(copy[i]);
-    for (int i = 0; i < newArray.size(); i++)
-      array[i] = (int) newArray.get(i);
+  public static int[] reverse(int[] array) {
+    int index = 0;
+    int[] copy = new int[array.length];
+    for (int i = array.length - 1; i >= 0; i--) {
+      copy[index] = array[i];
+      index++;
+    }
     if (verbose)
       println("[+] array reversed");
+    return copy;
   }
 
   /**
@@ -1984,15 +2015,16 @@ public class Msn {
    * @param array the array to reverse
    * @since 0.1.1.0.0
    */
-  public static void reverse(double[] array) {
-    double[] copy = Arrays.copyOf(array, array.length);
-    ArrayList<Object> newArray = new ArrayList<>();
-    for (int i = copy.length - 1; i >= 0; i--)
-      newArray.add(copy[i]);
-    for (int i = 0; i < newArray.size(); i++)
-      array[i] = (double) newArray.get(i);
+  public static double[] reverse(double[] array) {
+    int index = 0;
+    double[] copy = new double[array.length];
+    for (int i = array.length - 1; i >= 0; i--) {
+      copy[index] = array[i];
+      index++;
+    }
     if (verbose)
       println("[+] array reversed");
+    return copy;
   }
 
   /**
@@ -2001,27 +2033,79 @@ public class Msn {
    * @param array the array to reverse
    * @since 0.1.1.0.0
    */
-  public static void reverse(char[] array) {
-    char[] copy = Arrays.copyOf(array, array.length);
-    ArrayList<Object> newArray = new ArrayList<>();
-    for (int i = copy.length - 1; i >= 0; i--)
-      newArray.add(copy[i]);
-    for (int i = 0; i < newArray.size(); i++)
-      array[i] = (char) newArray.get(i);
+  public static char[] reverse(char[] array) {
+    int index = 0;
+    char[] copy = new char[array.length];
+    for (int i = array.length - 1; i >= 0; i--) {
+      copy[index] = array[i];
+      index++;
+    }
     if (verbose)
       println("[+] array reversed");
+    return copy;
+  }
+
+  /**
+   * Sorts an array, then reverses it.
+   * 
+   * @param <T> Generic
+   * 
+   * @param array the array to sort and reverse
+   * @return the fixed array
+   * @since 0.1.5.3.2
+   */
+  public static Object[] reverseSort(Object[] array) {
+    Arrays.sort(array);
+    return reverse(array);
+  }
+
+  /**
+   * Sorts an array, then reverses it.
+   * 
+   * @param array the array to sort and reverse
+   * @return the fixed array
+   * @since 0.1.5.3.2
+   */
+  public static int[] reverseSort(int[] array) {
+    Arrays.sort(array);
+    return reverse(array);
+  }
+
+  /**
+   * Sorts an array, then reverses it.
+   * 
+   * @param array the array to sort and reverse
+   * @return the fixed array
+   * @since 0.1.5.3.2
+   */
+  public static double[] reverseSort(double[] array) {
+    Arrays.sort(array);
+    return reverse(array);
+  }
+
+  /**
+   * Sorts an array, then reverses it.
+   * 
+   * @param array the array to sort and reverse
+   * @return the fixed array
+   * @since 0.1.5.3.2
+   */
+  public static char[] reverseSort(char[] array) {
+    Arrays.sort(array);
+    return reverse(array);
   }
 
   /**
    * Checks whether the coordinates are valid.
    * 
-   * @param <E> e
+   * @param <T> Generic
+   * 
    * @param array the array to check
    * @param coord the coordinates
    * @return whether the coordinates passed are valid
    * @since 0.1.5.0.4
    */
-  public static boolean validCoord(Object[][] array, int[] coord) {
+  public static <T> boolean validCoord(T[][] array, int[] coord) {
     try {
       Object e = array[coord[0]][coord[1]];
     } catch (IndexOutOfBoundsException e) {
@@ -2105,14 +2189,16 @@ public class Msn {
   /**
    * Copies an array.
    * 
+   * @param <T> Generic
+   * 
    * @param array the array to copy
    * @return the new array
    * @since 0.1.5.0.4
    */
-  public static Object[] arraycopy(Object[] array) {
+  public static <T> T[] arraycopy(T[] array) {
     return Arrays.copyOf(array, array.length);
   }
-  
+
   /**
    * Copies an array.
    * 
@@ -2123,7 +2209,7 @@ public class Msn {
   public static int[] arraycopy(int[] array) {
     return Arrays.copyOf(array, array.length);
   }
-  
+
   /**
    * Copies an array.
    * 
@@ -2134,7 +2220,7 @@ public class Msn {
   public static double[] arraycopy(double[] array) {
     return Arrays.copyOf(array, array.length);
   }
-  
+
   /**
    * Copies an array.
    * 
@@ -2145,7 +2231,7 @@ public class Msn {
   public static char[] arraycopy(char[] array) {
     return Arrays.copyOf(array, array.length);
   }
-  
+
   /**
    * Copies an array.
    * 
@@ -2156,11 +2242,12 @@ public class Msn {
   public static boolean[] arraycopy(boolean[] array) {
     return Arrays.copyOf(array, array.length);
   }
-  
+
   /**
    * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
    * 
-   * @param <E> e
+   * @param <T> Generic
+   * 
    * @param array the array
    * @return a new array
    * @since 0.1.5.0.4
@@ -2176,7 +2263,7 @@ public class Msn {
       println("[+] array copied");
     return newarr;
   }
-  
+
   /**
    * Provides a new 2D array with the same dimensions. ALLOWS FOR RAGGED ARRAYS.
    * 
@@ -2260,12 +2347,14 @@ public class Msn {
   /**
    * Imports all values from the array into the Collection specified.
    * 
+   * @param <T> Generic
+   * 
    * @param from the from array
    * @param to the collection to import the arrays values to
    * @since 0.1.4.3.2
    */
-  public static void importAll(Object[] from, Collection<Object> to) {
-    for (Object o : from)
+  public static <T> void importAll(T[] from, Collection<T> to) {
+    for (T o : from)
       to.add(o);
     if (verbose)
       println("[+] values from imported into Collection");
@@ -2330,11 +2419,13 @@ public class Msn {
   /**
    * Imports all values from the array into the Collection specified.
    * 
+   * @param <T> Generic
+   * 
    * @param from the from array
    * @param to the collection to import the arrays values to
    * @since 0.1.4.3.2
    */
-  public static void importAll(Object[][] from, Collection<Object> to) {
+  public static <T> void importAll(T[][] from, Collection<T> to) {
     for (int i = 0; i < from.length; i++)
       for (int j = 0; j < from[i].length; j++)
         to.add(from[i][j]);
@@ -2698,10 +2789,12 @@ public class Msn {
   /**
    * Finds the dimensions of the given array.
    * 
+   * @param <T> Generic
+   * 
    * @param array the array to use
    * @return the dimensions
    */
-  public static int[] getDims(Object[][] array) {
+  public static <T> int[] getDims(T[][] array) {
     if (isRagged(array))
       throw new IllegalArgumentException("array must be a table (not ragged)");
     int[] dims = new int[] {array.length, array[0].length};
@@ -2776,11 +2869,13 @@ public class Msn {
    * return true = not a perfect table / amount of entries in one subarray is not consistent among
    * all subarrays
    * 
+   * @param <T> Generic
+   * 
    * @param matrix the matrix to parse
    * @return whether the matrix is ragged or not
    * @since 0.1.0.0.0
    */
-  public static boolean isRagged(Object[][] matrix) {
+  public static <T> boolean isRagged(T[][] matrix) {
     for (int i = 0; i < matrix.length; i++)
       for (int j = 0; j < matrix.length; j++)
         if (matrix[i].length != matrix[j].length)
@@ -2866,11 +2961,13 @@ public class Msn {
   /**
    * Gets the position of an element in an array if ArrayUtils cannot be resolved.
    * 
+   * @param <T> Generic
+   * 
    * @param array the array to use
    * @param obj the object to find
    * @return the index of the element, -1 if not found
    */
-  public static int getPosition(Object[] array, Object obj) {
+  public static <T> int getPosition(T[] array, T obj) {
     for (int i = 0; i < array.length; i++)
       if (array[i].equals(obj))
         return i;
@@ -2936,11 +3033,13 @@ public class Msn {
   /**
    * Finds the x and y coordinates for the first instance of the specified value in a 2D array.
    * 
+   * @param <T> Generic
+   * 
    * @param array the array to search
    * @param obj the element to search for
    * @return the elements' coordinates
    */
-  public static int[] getPosition(Object[][] array, Object obj) {
+  public static <T> int[] getPosition(T[][] array, T obj) {
     if (!contains(array, obj))
       throw new IllegalArgumentException("obj specified must be in the array");
     for (int i = 0; i < array.length; i++)
@@ -6537,14 +6636,12 @@ public class Msn {
   /**
    * Generates a distance table for the coordinates provided.
    * 
-   * @param <E>
-   * 
+   * @param <T> Generic
    * @param array the array to reference
    * @param from the from coordinates
    * @return
    */
-  public static double[][] generateDistanceInvTable(Object[][] array, int[] from) {
-    Object[][] copy = arraycopy(array);
+  public static <T> double[][] generateDistanceInvTable(T[][] array, int[] from) {
     double[][] dcopy = create2DDoubleArrayFromObj(array);
     for (int i = 0; i < dcopy.length; i++)
       for (int j = 0; j < dcopy[i].length; j++)
@@ -6572,11 +6669,13 @@ public class Msn {
   /**
    * Creates a map with distances from a specific coordinate in the array specified.
    * 
+   * @param <T> Generic
+   * 
    * @param array the array
    * @param center the center
    * @return a distance map
    */
-  public static embMsnMultimap<Double, Point> distanceMap(Object[][] array, int[] center) {
+  public static <T> embMsnMultimap<Double, Point> distanceMap(T[][] array, int[] center) {
     double[][] dt = generateDistanceInvTable(array, center);
     embMsnMultimap<Double, Point> map = new embMsnMultimap<>();
     for (int i = 0; i < dt.length; i++)
@@ -6588,13 +6687,15 @@ public class Msn {
   /**
    * Obtains the elements with the same radius from the specified when given a radius.
    * 
+   * @param <T> Generic
+   * 
    * @param radius the radius of the circle
    * @param array the array
    * @param center the coordinates of the center of the circle
    * @return the elements forming a circle
    */
-  public static ArrayList<Object> circular(Object[][] array, int radius, int[] center) {
-    ArrayList<Object> circle = new ArrayList<>();
+  public static <T> ArrayList<T> circular(T[][] array, int radius, int[] center) {
+    ArrayList<T> circle = new ArrayList<>();
     double[][] dt = generateDistanceInvTable(array, center);
     embMsnMultimap<Double, Point> distanceMap = distanceMap(dt, array, center);
     double startdistance = directionalMulti(dt, center, "north", radius, true);
@@ -6615,7 +6716,7 @@ public class Msn {
       circle.add(array[(int) p.getX()][(int) p.getY()]);
     while (circle.size() < Math.ceil(2 * Math.PI * radius)) {
       ArrayList<Double> adjdistance = new ArrayList<>();
-      for (Point init : points) 
+      for (Point init : points)
         adjdistance = new ArrayList<>(
             Arrays.asList(box(adjacent(dt, new int[] {(int) init.getX(), (int) init.getY()}))));
       double[] adj = toDouble(adjdistance.toArray());
@@ -6657,6 +6758,8 @@ public class Msn {
   /**
    * Gets an element of the array a certain amount of blocks away.
    * 
+   * @param <T> Generic
+   * 
    * @param array the array to use
    * @param from the initial coordinates
    * @param direction the direction {"north", "south", "east", "west", "nw", "ne", "sw", "se"}
@@ -6664,9 +6767,9 @@ public class Msn {
    * @param includeEdges whether to return an edge if the distance is out of bounds
    * @return the Object
    */
-  public static Object directionalMulti(Object[][] array, int[] from, String direction,
-      int distance, boolean includeEdges) {
-    Object obj = null;
+  public static <T> T directionalMulti(T[][] array, int[] from, String direction, int distance,
+      boolean includeEdges) {
+    T obj = null;
     String[] allowed = {"north", "south", "east", "west", "nw", "ne", "sw", "se"};
     if (contains(allowed, direction)) {
       if (direction.equals("north")) {
@@ -7234,7 +7337,7 @@ public class Msn {
     return obj;
   }
 
-  // ----------------------------STREAMS AND ITERATION-----------------------------------
+  // ----------STREAMS AND ITERATION----------------
 
   /**
    * Generates a Stream from the String specified.
@@ -7247,71 +7350,6 @@ public class Msn {
     if (verbose)
       println("[*] converting to Stream");
     return s.chars().mapToObj(c -> (char) c);
-  }
-
-  /**
-   * Converts the array to a Stream.
-   * 
-   * @param array the array
-   * @returns a new Stream
-   * @since 0.1.5.2.5
-   */
-  public static Stream<Object> toStream(Object[] array) {
-    if (verbose)
-      println("[*] converting to Stream");
-    return Stream.of(array);
-  }
-
-  /**
-   * Converts the array to a Stream.
-   * 
-   * @param array the array
-   * @returns a new Stream
-   * @since 0.1.5.2.5
-   */
-  public static Stream<Integer> toStream(int[] array) {
-    if (verbose)
-      println("[*] converting to Stream");
-    return Arrays.asList(box(array)).stream();
-  }
-
-  /**
-   * Converts the array to a Stream.
-   * 
-   * @param array the array
-   * @returns a new Stream
-   * @since 0.1.5.2.5
-   */
-  public static Stream<Double> toStream(double[] array) {
-    if (verbose)
-      println("[*] converting to Stream");
-    return Arrays.asList(box(array)).stream();
-  }
-
-  /**
-   * Converts the array to a Stream.
-   * 
-   * @param array the array
-   * @returns a new Stream
-   * @since 0.1.5.2.5
-   */
-  public static Stream<Boolean> toStream(boolean[] array) {
-    if (verbose)
-      println("[*] converting to Stream");
-    return Arrays.asList(box(array)).stream();
-  }
-
-  /**
-   * Converts the array to a Stream.
-   * 
-   * @param array the array
-   * @returns a new Stream
-   * @since 0.1.5.2.5
-   */
-  public static Stream<Character> toStream(char[] array) {
-    if (verbose)
-      println("[*] converting to Stream");
-    return Arrays.asList(box(array)).stream();
   }
 
   /**
@@ -7328,11 +7366,13 @@ public class Msn {
   /**
    * Iterates through the elements of the given array.
    * 
+   * @param <T> Generic
+   * 
    * @param array the array
    * @return an Iterator
    * @since 0.1.5.2.7
    */
-  public static Iterator<Object> iterator(Object[] array) {
+  public static <T> Iterator<T> iterator(T[] array) {
     return Arrays.asList(array).iterator();
   }
 
@@ -7381,6 +7421,104 @@ public class Msn {
   }
 
   // --------------------------------MATH-------------------------------------
+
+  /**
+   * Reads a String as a math expression and returns the result as an Object.
+   * 
+   * Author: Boann on StackOverflow
+   * 
+   * @param str the String representation of the math expression to parse
+   * @return the evaluation
+   * @since 0.1.5.3.2
+   */
+  public static double evalulate(String str) {
+    return new Object() {
+      int pos = -1, ch;
+
+      void nextChar() {
+        ch = (++pos < str.length()) ? str.charAt(pos) : -1;
+      }
+
+      boolean eat(int charToEat) {
+        while (ch == ' ')
+          nextChar();
+        if (ch == charToEat) {
+          nextChar();
+          return true;
+        }
+        return false;
+      }
+
+      double parse() {
+        nextChar();
+        double x = parseExpression();
+        if (pos < str.length())
+          throw new RuntimeException("Unexpected: " + (char) ch);
+        return x;
+      }
+
+      double parseExpression() {
+        double x = parseTerm();
+        for (;;) {
+          if (eat('+'))
+            x += parseTerm(); // addition
+          else if (eat('-'))
+            x -= parseTerm(); // subtraction
+          else
+            return x;
+        }
+      }
+
+      double parseTerm() {
+        double x = parseFactor();
+        for (;;) {
+          if (eat('*'))
+            x *= parseFactor(); // multiplication
+          else if (eat('/'))
+            x /= parseFactor(); // division
+          else
+            return x;
+        }
+      }
+
+      double parseFactor() {
+        if (eat('+'))
+          return parseFactor(); // unary plus
+        if (eat('-'))
+          return -parseFactor(); // unary minus
+        double x;
+        int startPos = this.pos;
+        if (eat('(')) { // parentheses
+          x = parseExpression();
+          eat(')');
+        } else if ((ch >= '0' && ch <= '9') || ch == '.') { // numbers
+          while ((ch >= '0' && ch <= '9') || ch == '.')
+            nextChar();
+          x = Double.parseDouble(str.substring(startPos, this.pos));
+        } else if (ch >= 'a' && ch <= 'z') { // functions
+          while (ch >= 'a' && ch <= 'z')
+            nextChar();
+          String func = str.substring(startPos, this.pos);
+          x = parseFactor();
+          if (func.equals("sqrt"))
+            x = Math.sqrt(x);
+          else if (func.equals("sin"))
+            x = Math.sin(Math.toRadians(x));
+          else if (func.equals("cos"))
+            x = Math.cos(Math.toRadians(x));
+          else if (func.equals("tan"))
+            x = Math.tan(Math.toRadians(x));
+          else
+            throw new RuntimeException("Unknown function: " + func);
+        } else {
+          throw new RuntimeException("Unexpected: " + (char) ch);
+        }
+        if (eat('^'))
+          x = Math.pow(x, parseFactor()); // exponentiation
+        return x;
+      }
+    }.parse();
+  }
 
   /**
    * Checks whether the given number is even.
@@ -8087,11 +8225,13 @@ public class Msn {
   /**
    * Gets a random element in the array passed.
    * 
+   * @param <T> Generic
+   * 
    * @param array the array to search
    * @return a random element
    * @since 0.1.4.1.1
    */
-  public static Object randomElement(Object[] array) {
+  public static <T> T randomElement(T[] array) {
     int rnd = new Random().nextInt(array.length);
     return array[rnd];
   }
@@ -8135,12 +8275,14 @@ public class Msn {
   /**
    * Gets a random element in the array passed.
    * 
+   * @param <T> Generic
+   * 
    * @param array the array to search
    * @return a random element
    * @since 0.1.4.1.1
    */
-  public static Object randomElement(Object[][] array) {
-    ArrayList<Object> list = new ArrayList<>();
+  public static <T> T randomElement(T[][] array) {
+    ArrayList<T> list = new ArrayList<>();
     importAll(array, list);
     Collections.shuffle(list);
     return list.get(0);

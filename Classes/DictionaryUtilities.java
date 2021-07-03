@@ -1,19 +1,18 @@
 
 /**
- * Offers extensive random capabilities outside of the basic Msn random functions using a Dictionary
- * object.
+ * Offers extensive random capabilities outside of the basic Dictionary functions.
  * 
  * @author Mason Marker
  * @version 1.0 - 06/11/2021
  */
-public class MsnRandom {
+public class DictionaryUtilities {
 
   private Dictionary dict;
 
   /**
    * Constructor.
    */
-  public MsnRandom() {
+  public DictionaryUtilities() {
     dict = new Dictionary();
   }
 
