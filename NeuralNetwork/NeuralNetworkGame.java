@@ -53,7 +53,7 @@ public class NeuralNetworkGame extends JFrame {
             protected Void doInBackground() throws Exception {
               while (true) {
                 makeMove(network);
-                Thread.sleep(1);
+                Thread.sleep(2);
               }
             }
           };
@@ -214,6 +214,7 @@ public class NeuralNetworkGame extends JFrame {
     increaseScore();
   }
 
+
   public static void increaseScore() {
     score++;
     scorelabel.setText("Score: " + score);
@@ -254,33 +255,29 @@ public class NeuralNetworkGame extends JFrame {
 
   public static int above() {
     JPanel p = (JPanel) Msn.above(cells, ai.position());
-    if (p.getBackground().equals(Color.red)) {
+    if (p.getBackground().equals(Color.red))
       return 1;
-    }
     return 0;
   }
 
   public static int below() {
     JPanel p = (JPanel) Msn.below(cells, ai.position());
-    if (p.getBackground().equals(Color.red)) {
+    if (p.getBackground().equals(Color.red))
       return 1;
-    }
     return 0;
   }
 
   public static int left() {
     JPanel p = (JPanel) Msn.leftOf(cells, ai.position());
-    if (p.getBackground().equals(Color.red)) {
+    if (p.getBackground().equals(Color.red))
       return 1;
-    }
     return 0;
   }
 
   public static int right() {
     JPanel p = (JPanel) Msn.rightOf(cells, ai.position());
-    if (p.getBackground().equals(Color.red)) {
+    if (p.getBackground().equals(Color.red))
       return 1;
-    }
     return 0;
   }
 

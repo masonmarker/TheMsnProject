@@ -43,7 +43,7 @@ import javax.swing.border.EmptyBorder;
  * stages, using them could cause errors.
  * 
  * @author Mason Marker
- * @version 0.1.5.3.2 - 06/23/2021
+ * @version 0.1.5.3.2 - 08/28/2021
  */
 public class Msn {
 
@@ -374,6 +374,20 @@ public class Msn {
   }
 
   /**
+   * Checks for s in the array passed.
+   * 
+   * @param s the String to search for
+   * @param arr the array
+   * @return whether s is contained or not
+   */
+  public static boolean contains(String s, String[] arr) {
+    for (int i = 0; i < arr.length; i++)
+      if (s.equals(arr[i]))
+        return true;
+    return false;
+  }
+  
+  /**
    * Checks for an element that is contained in the given array.
    * 
    * @param array the array to parse
@@ -382,10 +396,9 @@ public class Msn {
    * @since 0.1.0.0.0
    */
   public static boolean containsAnyOf(String s, String[] sContains) {
-    for (int i = 0; i < sContains.length; i++) {
+    for (int i = 0; i < sContains.length; i++)
       if (s.contains(sContains[i]))
         return true;
-    }
     return false;
   }
 
@@ -1577,6 +1590,35 @@ public class Msn {
   }
 
   /**
+   * Gets all existing numbers in the String, including doubles and ints
+   * 
+   * @param s the String to analyze
+   * @return the numbers
+   * @since 0.1.5.3.2
+   */
+  public static double[] extractNumbers(String s) {
+    String fixed = "";
+    for (int i = 0; i < s.length(); i++) {
+      if (s.charAt(i) == '.' || Character.isDigit(s.charAt(i))) {
+        fixed += s.charAt(i);
+      } else {
+        fixed += " ";
+      }
+    }
+    System.out.println(fixed);
+    Scanner k = new Scanner(fixed);
+    ArrayList<Double> numbers = new ArrayList<>();
+    while (k.hasNext()) {
+      try {
+        numbers.add(k.nextDouble());
+      } catch (Exception e) {
+        numbers.add((double) k.nextInt());
+      }
+    }
+    return toDouble(numbers.toArray());
+  }
+  
+  /**
    * Converts an array into a single String of every element in the array.
    * 
    * @param array the array to use
@@ -1658,8 +1700,6 @@ public class Msn {
     String s = "";
     for (int i = 0; i < array.length; i++) {
       s += array[i];
-      if (i != array.length - 1)
-        s += " ";
     }
     if (verbose)
       println("[+] Sequence created: " + s);
@@ -7423,7 +7463,7 @@ public class Msn {
   // --------------------------------MATH-------------------------------------
 
   /**
-   * Reads a String as a math expression and returns the result as an Object.
+   * Reads a String as a math expression and evaluates.
    * 
    * Author: Boann on StackOverflow
    * 
