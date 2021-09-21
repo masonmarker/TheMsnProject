@@ -96,6 +96,16 @@ public class Dictionary implements Iterable<String> {
   }
 
   /**
+   * Decides whether the String passed is in the English Dictionary or not.
+   * 
+   * @param s the String
+   * @return whether the word is English
+   */
+  public boolean isWord(String s) {
+    return dict.containsKey(s);
+  }
+  
+  /**
    * Gets a HashMap of all words in this Dictionary that have a valid definition.
    * 
    * @return a HashMap<Word, Definition>

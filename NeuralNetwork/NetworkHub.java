@@ -19,7 +19,7 @@ import javax.swing.border.MatteBorder;
 /**
  * Hub for all Neural Network applications that exist in the NeuralNetwork folder.
  * 
- * @author Mason Marker
+ * @author Mason Marker 
  * @version 1.0 - 06/03/2021
  */
 @SuppressWarnings("serial")
@@ -37,7 +37,7 @@ public class NetworkHub extends JFrame {
           NetworkHub frame = new NetworkHub();
           frame.setVisible(true);
         } catch (Exception e) {
-          e.printStackTrace();
+          e.printStackTrace(); 
         }
       }
     });
