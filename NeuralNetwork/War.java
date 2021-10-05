@@ -9,6 +9,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
+import MsnLib.Msn;
 
 /**
  * Watch 3 neural network agents attempt to coexist!

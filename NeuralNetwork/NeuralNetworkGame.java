@@ -14,6 +14,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import MsnLib.Msn;
 
 /**
  * Watch an artificial intelligence agent learn to avoid walls!

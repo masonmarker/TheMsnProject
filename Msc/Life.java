@@ -16,6 +16,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
+import MsnLib.Msn;
 
 /**
  * Simulation of John Conway's Game of Life.

@@ -1,0 +1,122 @@
+MSNC syntax
+MSNDK 1.0 (MSN development kit 1.0)
+09/22/2021
+-----------
+
+-----------
+there must exist whitespace in between operators and the values being operated upon.
+integer = 5; //OK
+5 == 5; //OK
+integer -= 2; //OK
+integer= 5; //NOT OK
+5==5 //NOT OK
+5 ==5; //NOT OK
+-----------
+
+-----------
+assignment:
+i intVarName = 5;
+d doubleVarName = 6.6;
+s stringVarName = this is a string;
+c charVarName = c;
+b boolean = true;
+i[] intArrVarName = 5, 6, 7;  // intArrVarName = [5, 6, 7]
+s[] stringArrVarName = me, you, them;   //stringArrVarName = [me, you, them]
+o objectVarName = obj_definition // see object definitions
+-----------
+
+-----------
+default values for each type:
+i -> 0
+d -> 0.0
+s -> ""
+c -> a
+b -> false
+o -> null;
+-----------
+
+-----------
+comments:
+comments must not start with a variable name to avoid confusion with actual code, comments must also end with ;
+ex: this is a comment;
+-----------
+
+-----------
+possible operators:
++
+-
+=
+/
+^
+==
+!=
+>
+<
+>=
+<=
++=
+-=
+*=
+/=
+^=
+<> switch, ex: intVarName <> int2VarName // now intVarName = int2VarName and int2VarName = intVarName
+?? reset, resets the variable to its default, ex: intVarName ??  // intVarName is now 0
+-----------
+
+-----------
+escape sequences:
+\n   //new line
+-----------
+
+-----------
+console:
+print this is what needs to be printed;
+println this is what needs to be printed with new line;
+
+ex:
+i[] array = 5, 6, 7;
+print array; //[5, 6, 7]
+------
+
+-----------
+boolean:
+5 == 4 //false
+5 == 4 or 3 == 3  //true
+5 == 2 and 3 == 3    //false
+-----------
+
+-----------
+compound assignments:
+i integer = 4;
+i += 4;
+print i;    //8
+-----------
+
+-----------
+conditionals example:
+i integer = 5;
+if i == 5 then
+print i;;
+
+if i == 4 then
+print integer; else if i == 6
+print @integer is 6;
+else print @integer is not 4 or 6;;    // @integer accesses the variable name instead of the value it holds
+-----------
+
+-----------
+loops:
+for integer until 10;     // sets integer to 0 automatically if undefined
+print integer;;      //0123456789
+
+i[] intarray = 1, 2, 3;
+for each int in intarray;
+print int;; //123
+
+i integer3 = 5;
+while integer3 < 10;
+print integer3; //56789
+integer3++;; 
+
+
+

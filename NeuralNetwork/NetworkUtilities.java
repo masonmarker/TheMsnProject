@@ -1,5 +1,6 @@
 import java.util.Random;
 import java.util.TreeMap;
+import MsnLib.Msn;
 
 /**
  * Network Utilities class, offers extended capabilities for the Network class.
@@ -9,6 +10,15 @@ import java.util.TreeMap;
  */
 public class NetworkUtilities {
 
+  /**
+   * Saves the information stored within a Network to the path specified.
+   * 
+   * @param n
+   */
+  public static void save(Network n, String path) {
+    
+  }
+  
   /**
    * Performs a Sigmoid-Logistic operation on the number specified.
    * 

@@ -1,6 +1,7 @@
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import MsnLib.Msn;
 
 /**
  * Trains a Neural Network to add two numbers without any mathematical operations.
