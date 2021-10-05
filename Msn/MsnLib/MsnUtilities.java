@@ -1,3 +1,4 @@
+package MsnLib;
 
 /**
  * Utilities class for Msn.

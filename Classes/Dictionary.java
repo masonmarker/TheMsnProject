@@ -3,6 +3,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Stream;
+import MsnLib.Msn;
 
 /**
  * Contains information and methods in relation to the English dictionary including a wide

@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import MsnLib.Msn;
 
 public class Demonstration {
 

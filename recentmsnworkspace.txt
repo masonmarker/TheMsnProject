@@ -1,0 +1,9 @@
+d double = 2.5443;
+
+
+i integer = double + 1;
+
+i integer = double.
+
+
+

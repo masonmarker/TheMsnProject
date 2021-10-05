@@ -19,6 +19,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import MsnLib.Msn;
 
 /**
  * Watch a Neural Network agent attempt to dodge obstacles thrown at it.

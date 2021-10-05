@@ -1,3 +1,5 @@
+package MsnLib;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -148,7 +150,17 @@ public class Msn {
   // ----------------------------CONSOLE--------------------------------------
 
   /**
-   * Prints a String
+   * Prints a String.
+   * 
+   * @param s the String to print
+   * @since 0.1.0.0.0
+   */
+  public static void p(String s) {
+    System.out.print(s);
+  }
+
+  /**
+   * Prints a String.
    * 
    * @param s the String to print
    * @since 0.1.0.0.0
@@ -386,7 +398,7 @@ public class Msn {
         return true;
     return false;
   }
-  
+
   /**
    * Checks for an element that is contained in the given array.
    * 
@@ -1277,6 +1289,19 @@ public class Msn {
   }
 
   /**
+   * Determines whether every char passed in the String is a digit.
+   * 
+   * @param s the String
+   * @return whether every char passed in the String is a digit
+   */
+  public static boolean isNumber(String s) {
+    for (int i = 0; i < s.length(); i++)
+      if (!Character.isDigit(s.charAt(i)))
+        return false;
+    return true;
+  }
+
+  /**
    * Reverses the character order of the given String.
    * 
    * @param s the String to use
@@ -1301,6 +1326,19 @@ public class Msn {
     for (int i = 0; i < s.length(); i++)
       freq.put(countChars(s, s.charAt(i)), s.charAt(i));
     return freq.lastEntry().getValue();
+  }
+
+  /**
+   * Extracts all words from the given String.
+   * 
+   * @param s the String
+   * @return the words existing in the String
+   */
+  public static String[] getWords(String s) {
+    if (!s.contains(" ")) {
+      return new String[] {s};
+    }
+    return s.split(" ");
   }
 
   /**
@@ -1543,7 +1581,7 @@ public class Msn {
       news += s.charAt(i);
     return news;
   }
-  
+
   /**
    * Takes a char array and turns it into a String array.
    * 
@@ -1617,7 +1655,7 @@ public class Msn {
     }
     return toDouble(numbers.toArray());
   }
-  
+
   /**
    * Converts an array into a single String of every element in the array.
    * 
@@ -1832,6 +1870,20 @@ public class Msn {
   }
 
   /**
+   * Removes all elements that are equal to "" in the array passed.
+   * 
+   * @param array the array
+   * @return the fixed String
+   */
+  public static String[] removeEmptyStrings(String[] array) {
+    ArrayList<String> rem = new ArrayList<>();
+    for (int i = 0; i < array.length; i++)
+      if (!array[i].equals(""))
+        rem.add(array[i]);
+    return rem.toArray(String[]::new);
+  }
+
+  /**
    * Returns the contents of a file without empty lines.
    * 
    * @param path the path of the file
@@ -1887,6 +1939,36 @@ public class Msn {
     PrintWriter pw = new PrintWriter(new File(path));
     pw.write(text);
     pw.close();
+  }
+
+  /**
+   * Prompts a message to the console.
+   * 
+   * @param msg the message to be read
+   * @return the String read
+   */
+  public static Object prompt(String msg, Scanner sc) {
+    p(msg);
+    Object ret = null;
+    boolean found = false;
+    try {
+      ret = sc.nextInt();
+      found = true;
+    } catch (Exception e) {
+    }
+    try {
+      if (!found)
+        ret = sc.nextDouble();
+      found = true;
+    } catch (Exception e) {
+    }
+    try {
+      if (!found)
+        ret = sc.next();
+      found = true;
+    } catch (Exception e) {
+    }
+    return ret;
   }
 
   // ---------------------------ARRAY OPERATIONS------------------------------
@@ -4477,6 +4559,19 @@ public class Msn {
         destination[i][j] = (boolean) array[i][j];
     }
     return destination;
+  }
+
+  /**
+   * Converts the array specified to the array type requested.
+   * 
+   * @param array the array
+   * @return the fixed array
+   */
+  public static int[] toInt(double[] array) {
+    int[] a = new int[array.length];
+    for (int i = 0; i < a.length; i++)
+      a[i] = (int) array[i];
+    return a;
   }
 
   // ---------------------------------GUI-------------------------------------
@@ -7471,7 +7566,7 @@ public class Msn {
    * @return the evaluation
    * @since 0.1.5.3.2
    */
-  public static double evalulate(String str) {
+  public static Object evalulate(String str) {
     return new Object() {
       int pos = -1, ch;
 

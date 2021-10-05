@@ -1,3 +1,4 @@
+import MsnLib.Msn;
 
 /**
  * Offers extensive random capabilities outside of the basic Dictionary functions.

@@ -10,6 +10,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
+import MsnLib.Msn;
 
 /**
  * For testing with 2D arrays and GUIS
