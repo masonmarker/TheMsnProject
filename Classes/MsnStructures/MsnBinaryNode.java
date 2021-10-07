@@ -1,3 +1,4 @@
+package MsnStructures;
 
 /**
  * Node for binary tree development.
