@@ -2,7 +2,7 @@ import java.util.Scanner;
 import MsnLib.Msn;
 
 /**
- * (WIP) Plots two Networks against each other.
+ * Plots two Networks against each other.
  * 
  * @author Mason Marker
  * @version 1.0 - 09/28/2021
