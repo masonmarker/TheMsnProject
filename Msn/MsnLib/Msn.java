@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
@@ -30,6 +31,7 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import javax.swing.GroupLayout;
@@ -45,7 +47,7 @@ import javax.swing.border.EmptyBorder;
  * stages, using them could cause errors.
  * 
  * @author Mason Marker
- * @version 0.1.5.3.2 - 08/28/2021
+ * @version 0.1.5.3.3 - 10/05/2021
  */
 public class Msn {
 
@@ -167,6 +169,27 @@ public class Msn {
    */
   public static void println(String s) {
     System.out.println(s);
+  }
+
+  /**
+   * Prints a String with a "box" around it.
+   * 
+   * @param s String s
+   * @since 0.1.5.3.3
+   */
+  public static void printboxed(String s) {
+    String[] lines = Msn.toLineArray(s);
+    int max = lines[0].length();
+    for (int i = 0; i < lines.length; i++)
+      if (lines[i].length() > max)
+        max = lines[i].length();
+    String seq = generate('-', max + 2);
+    println("+" + seq + "+");
+    for (String l : lines) {
+      p("| " + l);
+      p(generate(' ', max - l.length() + 1) + "|\n");
+    }
+    p("+" + seq + "+\n");
   }
 
   /**
@@ -1092,6 +1115,20 @@ public class Msn {
   }
 
   // ----------------------------CREATION-------------------------------------
+
+  /**
+   * Generates a String that includes the char passed count amount of times.
+   * 
+   * @param c the character to repeat
+   * @param count the amount of times the char may appear
+   * @return the repeated characters
+   * @since 0.1.5.3.3
+   */
+  public static String generate(char c, int count) {
+    StringBuilder s = new StringBuilder("");
+    IntStream.range(0, count).forEach(i -> s.append(c));
+    return s.toString();
+  }
 
   /**
    * Generates an array with random values.
@@ -4597,7 +4634,6 @@ public class Msn {
     contentPane.setBackground(contentPaneBG);
     contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
     frame.setContentPane(contentPane);
-
     JPanel panel = new JPanel();
     panel.setBackground(mainPanelBG);
     GroupLayout gl_contentPane = new GroupLayout(contentPane);
@@ -4685,6 +4721,42 @@ public class Msn {
    */
   public static Dimension getScreenSize() {
     return Toolkit.getDefaultToolkit().getScreenSize();
+  }
+
+  /**
+   * Calculates the angle between two points.
+   * 
+   * @author MadProgrammer on StackOverflow
+   * @param from the Point2D from
+   * @param to the Point2D to
+   * @return the angle
+   */
+  protected double angleBetween(Point2D from, Point2D to) {
+    double x = from.getX();
+    double y = from.getY();
+    double deltaX = to.getX() - x;
+    double deltaY = to.getY() - y;
+    double rotation = -Math.atan2(deltaX, deltaY);
+    rotation = Math.toRadians(Math.toDegrees(rotation) + 180);
+    return rotation;
+  }
+
+  /**
+   * Retrieves a point on a circle.
+   * 
+   * @author MadProgrammer on StackOverflow
+   * @param center the center
+   * @param radians radians
+   * @param radius the radius
+   * @return the point
+   */
+  protected Point2D getPointOnCircle(Point2D center, double radians, double radius) {
+    double x = center.getX();
+    double y = center.getY();
+    radians = radians - Math.toRadians(90.0);
+    double xPosy = Math.round((float) (x + Math.cos(radians) * radius));
+    double yPosy = Math.round((float) (y + Math.sin(radians) * radius));
+    return new Point2D.Double(xPosy, yPosy);
   }
 
   // ------------------------2D ARRAY DIRECTIONAL-----------------------------

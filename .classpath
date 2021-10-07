@@ -10,6 +10,7 @@
 	<classpathentry kind="src" path="NeuralNetwork"/>
 	<classpathentry kind="src" path="Msc"/>
 	<classpathentry kind="src" path="Msn"/>
+	<classpathentry kind="src" path="External"/>
 	<classpathentry kind="lib" path="C:/Users/mason/Downloads/Spire.Pdf_4.8.7/lib/Spire.Pdf.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

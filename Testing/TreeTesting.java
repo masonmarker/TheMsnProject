@@ -1,3 +1,4 @@
+import MsnStructures.MsnNode;
 
 public class TreeTesting {
 
