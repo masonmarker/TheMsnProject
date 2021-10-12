@@ -178,18 +178,7 @@ public class Msn {
    * @since 0.1.5.3.3
    */
   public static void printboxed(String s) {
-    String[] lines = Msn.toLineArray(s);
-    int max = lines[0].length();
-    for (int i = 0; i < lines.length; i++)
-      if (lines[i].length() > max)
-        max = lines[i].length();
-    String seq = generate('-', max + 2);
-    println("+" + seq + "+");
-    for (String l : lines) {
-      p("| " + l);
-      p(generate(' ', max - l.length() + 1) + "|\n");
-    }
-    p("+" + seq + "+\n");
+    println(boxed(s));
   }
 
   /**
@@ -1310,6 +1299,29 @@ public class Msn {
   }
 
   // ----------------------------STRINGS--------------------------------------
+
+  /**
+   * Boxes a String.
+   * 
+   * @param s the String
+   * @return the boxed String
+   */
+  public static String boxed(String s) {
+    String b = "";
+    String[] lines = Msn.toLineArray(s);
+    int max = lines[0].length();
+    for (int i = 0; i < lines.length; i++)
+      if (lines[i].length() > max)
+        max = lines[i].length();
+    String seq = generate('-', max + 2);
+    b += "+" + seq + "+\n";
+    for (String l : lines) {
+      b += "| " + l;
+      b += generate(' ', max - l.length() + 1) + "|\n";
+    }
+    b += "+" + seq + "+\n";
+    return b;
+  }
 
   /**
    * Verifies that every character in the passed String is an English character.

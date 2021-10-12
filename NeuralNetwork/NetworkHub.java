@@ -220,7 +220,7 @@ public class NetworkHub extends JFrame {
 
           @Override
           protected Void doInBackground() throws Exception {
-            new NeuralNetworkGame().main(new String[] {});
+            new Tron().main(new String[] {});
             return null;
           }
         };

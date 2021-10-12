@@ -11,12 +11,23 @@ import MsnLib.Msn;
 public class NetworkUtilities {
 
   /**
-   * Saves the information stored within a Network to the path specified.
+   * (WIP) Saves the information stored within a Network to the path specified.
    * 
-   * @param n
+   * @param n the Network to save
+   * @param the path of the savefile
    */
   public static void save(Network n, String path) {
-    
+     
+  }
+  
+  /**
+   * (WIP) Loads a Network from the path specified.
+   * 
+   * @param path the path of the Network 
+   * @return the read Network
+   */
+  public static Network load(String path) {
+    return null;
   }
   
   /**

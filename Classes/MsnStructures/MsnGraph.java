@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.stream.Stream;
 import javax.swing.SwingWorker;
 import Drawing.StdDraw;
 import MsnLib.Msn;
@@ -24,33 +23,97 @@ public class MsnGraph implements Iterable<Edge> {
 
   ArrayList<Edge> edges;
 
+  /**
+   * Constructs an MsnGraph.
+   */
   public MsnGraph() {
     edges = new ArrayList<>();
   }
 
+  /**
+   * Constructs an MsnGraph.
+   * 
+   * @param edges the initial edges
+   */
   public MsnGraph(Edge... edges) {
     this.edges = new ArrayList<>(List.of(edges));
   }
 
+  /**
+   * Adds an Edge.
+   * 
+   * @param e the Edge to add
+   */
   public void addEdge(Edge e) {
     edges.add(e);
     fix();
   }
 
+  /**
+   * Adds an Edge.
+   * 
+   * @param v1 the first Vertex
+   * @param v2 the second Vertex
+   */
   public void addEdge(Vertex v1, Vertex v2) {
     addEdge(new Edge(v1, v2));
   }
 
+  /**
+   * Adds an Edge.
+   * 
+   * @param first the name of the first Vertex
+   * @param second the name of the second Vertex
+   */
   public void addEdge(String first, String second) {
     addEdge(new Edge(new Vertex(first), new Vertex(second)));
   }
 
+  /**
+   * Adds an Edge.
+   * 
+   * @param first the name of the first Vertex
+   * @param storage1 the storage of the first Vertex
+   * @param second the name of the second Vertex
+   * @param storage2 the storage of the second Vertex
+   */
   public void addEdge(String first, Object[] storage1, String second, Object[] storage2) {
     addEdge(new Edge(new Vertex(first, storage1), new Vertex(second, storage2)));
   }
 
+  /**
+   * Adds a Vertex.htrsf
+   * 
+   * @param v the Vertex to add
+   */
   public void addVertex(Vertex v) {
     addEdge(v.getName(), "");
+  }
+
+  /**
+   * Removes an edge from this MsnGraph.
+   * 
+   * @param v1 the first Vertex
+   * @param v2 the second Vertex
+   */
+  public void removeEdge(Vertex v1, Vertex v2) {
+    edges.remove(new Edge(v1, v2));
+  }
+
+  /**
+   * Removes a Vertex in this MsnGraph.
+   * 
+   * @param v the Vertex
+   */
+  public void removeVertex(Vertex v) {
+    edges.forEach(edge -> {
+      if (edge.getVertex1().equals(v)) {
+        edge.setVertex1(new Vertex(""));
+      } else if (edge.getVertex2().equals(v)) {
+        edge.setVertex2(new Vertex(""));
+      }
+    });
+    fix();
   }
 
   /**
@@ -73,7 +136,7 @@ public class MsnGraph implements Iterable<Edge> {
   }
 
   /**
-   * Determines if the Vertices passed are a walk in the current MsnGraph.
+   * Determines if the Vertices passed are a path in the current MsnGraph.
    * 
    * @param vertices the vertices
    * @return whether the sequence of vertices is a path or not
@@ -81,10 +144,11 @@ public class MsnGraph implements Iterable<Edge> {
   public boolean isPath(Vertex... vertices) {
     if (isWalk(vertices)) {
       ArrayList<Vertex> v = new ArrayList<>(List.of(vertices));
-      v.remove(0);
-      v.remove(v.size() - 1);
-      LinkedHashSet<Vertex> rem = new LinkedHashSet<>(v);
-      return isWalk(rem.toArray(Vertex[]::new));
+      if (v.get(0).equals(v.get(v.size() - 1))) {
+        v.remove(0);
+        v.remove(v.size() - 1);
+      }
+      return !Msn.containsDups(v.toArray(Vertex[]::new));
     }
     return false;
   }
@@ -97,7 +161,6 @@ public class MsnGraph implements Iterable<Edge> {
    */
   public boolean isTrail(Vertex... vertices) {
     if (isWalk(vertices)) {
-      Edge[] edg = convert(vertices);
       return !Msn.containsDups(vertices);
     }
     return false;
@@ -114,6 +177,16 @@ public class MsnGraph implements Iterable<Edge> {
   }
 
   /**
+   * Determines if the Vertices passed are a cycle in the current MsnGraph.
+   * 
+   * @param vertices the vertices
+   * @return whether the sequence of vertices is a cycle or not
+   */
+  public boolean isCycle(Vertex... vertices) {
+    return isCircuit(vertices) && Msn.getDups(vertices).length < 2;
+  }
+
+  /**
    * Determines if the current MsnGraph is complete.
    * 
    * @return whether the graph is complete or not
@@ -126,10 +199,66 @@ public class MsnGraph implements Iterable<Edge> {
     return true;
   }
 
+  /**
+   * (WIP) Determines if a path exists from the first Vertex to the second.
+   * 
+   * @param v1 the first Vertex
+   * @param v2 the second Vertex
+   * @return whether a path exists from the first Vertex to the second.
+   */
+  public boolean pathExistsFrom(Vertex v1, Vertex v2) {
+    return false;
+  }
+
+  /**
+   * (WIP) Finds the closest path from the first Vertex to the second.
+   * 
+   * @param v1 the first Vertex
+   * @param v2 the second Vertex
+   * @return the closest path (if any) from Vertex v1 to Vertex v2
+   */
+  public Edge[] closestPathFrom(Vertex v1, Vertex v2) {
+    return null;
+  }
+
+  /**
+   * (WIP) Gets the subgraphs that exist in this MsnGraph.
+   * 
+   * @return the subgraphs
+   */
+  public MsnGraph[] getComponents() {
+    return null;
+  }
+
+  /**
+   * Gets all Edges that incorporate the Vertex passed.
+   * 
+   * @param v the Vertex
+   * @return the Edges
+   */
+  public Edge[] edgesFor(Vertex v) {
+    ArrayList<Edge> edg = new ArrayList<>();
+    edges.forEach(edge -> {
+      if (edge.containsVertex(v))
+        edg.add(edge);
+    });
+    return edg.toArray(Edge[]::new);
+  }
+
+  /**
+   * Gets the Edges in this MsnGraph.
+   * 
+   * @return the Edges
+   */
   public ArrayList<Edge> edges() {
     return edges;
   }
 
+  /**
+   * Collects all vertices in this MsnGraph.
+   * 
+   * @return the vertices
+   */
   public Vertex[] gatherVertices() {
     HashSet<Vertex> vertices = new HashSet<>();
     edges.forEach(e -> {
@@ -166,13 +295,31 @@ public class MsnGraph implements Iterable<Edge> {
     worker.execute();
   }
 
+  /**
+   * Allows for visualization of any sequence of vertices, this function does not analyze or alter
+   * the current MsnGraph.
+   * 
+   * @param vertices the vertices to visualize
+   */
   public void visualize(Vertex... vertices) {
-    MsnGraph g = new MsnGraph(convert(vertices));
-    g.visualize();
+    new MsnGraph(convert(vertices)).visualize();
   }
 
+  /**
+   * Calculates the number of faces in this MsnGraph.
+   * 
+   * @return the number of faces
+   */
+  public int calculateFaces() {
+    return edges.size() + 2 - gatherVertices().length;
+  }
+
+  /**
+   * Draws this MsnGraph using StdDraw.
+   */
   public void draw() {
     StdDraw.clear(Color.black);
+    StdDraw.setPenColor(Color.white);
     HashMap<Vertex, Integer[]> positions = new HashMap<>();
     for (Vertex v : gatherVertices())
       positions.put(v, new Integer[] {Msn.randomInt(50, 550), Msn.randomInt(50, 550)});
@@ -197,10 +344,22 @@ public class MsnGraph implements Iterable<Edge> {
     });
   }
 
+  /**
+   * Determines if the current MsnGraph contains the Edge passed.
+   * 
+   * @param e the Edge
+   * @return whether this MsnGraph contains the Edge passed or not
+   */
   public boolean containsEdge(Edge e) {
     return edges.contains(e);
   }
 
+  /**
+   * Determines if the current MsnGraph contains the Vertex passed.
+   * 
+   * @param v the Vertex
+   * @return whether this MsnGraph contains the Vertex passed or not
+   */
   public boolean containsVertex(Vertex v) {
     for (Edge e : edges)
       if (e.containsVertex(v))
@@ -208,10 +367,22 @@ public class MsnGraph implements Iterable<Edge> {
     return false;
   }
 
+  /**
+   * Calculates the degree of the Vertex passed.
+   * 
+   * @param v the Vertex
+   * @return the degree
+   */
   public int degreeOf(Vertex v) {
     return vertexFreq(v);
   }
 
+  /**
+   * Counts the frequency of the Vertex passed.
+   * 
+   * @param v the Vertex to count
+   * @return the number of times the Vertex passed exists
+   */
   public int vertexFreq(Vertex v) {
     int count = 0;
     for (Edge e : edges)
@@ -220,66 +391,71 @@ public class MsnGraph implements Iterable<Edge> {
     return count;
   }
 
-  public void fix() {
-    Edge torem = null;
-    for (int i = 0; i < edges.size(); i++) {
-      Edge e = edges.get(i);
-      if (isSingle(e)) {
-        Vertex single = null;
-        if (e.getVertex1().getName().equals(""))
-          single = e.getVertex2();
-        else
-          single = e.getVertex1();
-        if (degreeOf(single) > 1)
-          torem = e;
-      }
-    }
-    edges.remove(torem);
+  /**
+   * Converts this MsnGraph to a multimap of vertices.
+   * 
+   * @return a multimap representation
+   */
+  public MsnMultimap<Vertex, Vertex> toMultimap() {
+    MsnMultimap<Vertex, Vertex> map = new MsnMultimap<>();
+    edges.forEach(edge -> {
+      map.put(edge.getVertex1(), edge.getVertex2());
+      map.put(edge.getVertex2(), edge.getVertex1());
+    });
+    return map;
   }
 
-  public boolean isSingle(Edge e) {
-    return e.getVertex1().getName().equals("") || e.getVertex2().getName().equals("");
+  /**
+   * Converts this MsnGraph to its matrix representation.
+   * 
+   * @return a matrix
+   */
+  public int[][] toMatrix() {
+    Vertex[] v = gatherVertices();
+    int[][] mat = new int[v.length][v.length];
+    return null;
   }
 
+  /**
+   * Iterates over the Edges in this MsnGraph.
+   */
   @Override
   public Iterator<Edge> iterator() {
     return edges.iterator();
   }
 
+  /**
+   * String representation.
+   */
   public String toString() {
     return edges.toString();
   }
 
   /**
-   * Randomizes this graph.
+   * Randomizes this MsnGraph.
    * 
    * @param vertices the amount of vertices
    */
   public void randomize(int vertices) {
-    ArrayList<Edge> randomized = new ArrayList<>();
+    HashSet<Edge> randomized = new HashSet<>();
     Vertex[] vert = new Vertex[vertices];
     for (int i = 0; i < vertices; i++) {
       char rand = Msn.randomLetter();
-      while (hasName(String.valueOf(rand), vert)) {
+      while (hasName(String.valueOf(rand), vert))
         rand = Msn.randomLetter();
-      }
-
       vert[i] = new Vertex(String.valueOf(rand));
       randomized.add(new Edge(vert[i], new Vertex("")));
     }
-
-    for (int i = 0; i < Msn.randomInt(vertices, vertices + 11); i++) {
-      if (Msn.diceroll(10)) {
+    for (int i = 0; i < Msn.randomInt(vertices, vertices + 11); i++)
+      if (Msn.diceroll(vertices + 3))
         randomized.add(new Edge(Msn.randomElement(vert), new Vertex("")));
-      } else {
+      else
         randomized.add(new Edge(Msn.randomElement(vert), Msn.randomElement(vert)));
-      }
-    }
-
-
-
-    edges = randomized;
+    edges = new ArrayList<>(randomized);
+    fix();
   }
+
+  // -----------------------------------------------------------
 
   private boolean hasName(String name, Vertex... vertices) {
     for (int i = 0; i < vertices.length; i++)
@@ -292,12 +468,25 @@ public class MsnGraph implements Iterable<Edge> {
     return false;
   }
 
-  /**
-   * Converts a list of vertices to edges.
-   * 
-   * @param vertices the vertices
-   * @return
-   */
+  private boolean isSingle(Edge e) {
+    return e.getVertex1().getName().equals("") || e.getVertex2().getName().equals("");
+  }
+
+  private void fix() {
+    for (int i = edges.size() - 1; i >= 0; i--) {
+      Edge e = edges.get(i);
+      if (isSingle(e)) {
+        Vertex single = null;
+        if (e.getVertex1().getName().equals(""))
+          single = e.getVertex2();
+        else
+          single = e.getVertex1();
+        if (degreeOf(single) > 1)
+          edges.remove(e);
+      }
+    }
+  }
+
   private Edge[] convert(Vertex... vertices) {
     ArrayList<Edge> edges = new ArrayList<>();
     for (int i = 0; i < vertices.length; i++)

@@ -26,7 +26,7 @@ import MsnLib.Msn;
  * @version 1.0 - 05/14/2021
  */
 @SuppressWarnings("serial")
-public class NeuralNetworkGame extends JFrame {
+public class Tron extends JFrame {
 
   private JPanel contentPane;
 
@@ -45,7 +45,7 @@ public class NeuralNetworkGame extends JFrame {
     EventQueue.invokeLater(new Runnable() {
       public void run() {
         try {
-          NeuralNetworkGame frame = new NeuralNetworkGame();
+          Tron frame = new Tron();
           frame.setVisible(true);
           Network network = new Network(4, 2, 4, 1);
           network.setLearningRate(.9);
@@ -69,7 +69,7 @@ public class NeuralNetworkGame extends JFrame {
   /**
    * Create the frame.
    */
-  public NeuralNetworkGame() {
+  public Tron() {
 
     gen = 1;
     score = 0;

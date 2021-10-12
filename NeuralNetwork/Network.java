@@ -381,6 +381,21 @@ public class Network {
     }
 
     /**
+     * Neuron constructor.
+     * 
+     * @param bias the bias of this Neuron
+     * @param weights the weights
+     * @param output the output value
+     * @param error the error value
+     */
+    public Neuron(double bias, double[] weights, double output, double error) {
+      bias = NetworkUtilities.weight();
+      output = 0;
+      error = 0;
+      this.weights = weights;
+    }
+
+    /**
      * Activates this Neuron using the Sigmoid -Logistic function.
      * 
      * @param weightsum the weighted sum calculation
