@@ -4,8 +4,7 @@ import MsnStructures.MsnGraph.Vertex;
 
 public class Main {
 
-  public static void main(String[] args) {
-
+  public static void main(String[] args) {    
     MsnGraph graph = new MsnGraph();
 
 
@@ -23,11 +22,15 @@ public class Main {
     Edge e2 = new Edge(b, c);
     Edge e3 = new Edge(c, a);
  
- 
-    graph.visualize(a, b, c, a, g);
-     
-    System.out.println(graph.isComplete());
-    
-        
+    graph.addEdge(a, b);
+    graph.addEdge(b, c);
+    graph.addEdge(b, f);
+    graph.addEdge(c, d);
+    graph.addEdge(d, e);
+    graph.addEdge(f, e);
+   
+    System.out.println(graph.isPath(c, d, e, f, b, c));
+          
+    graph.visualize();   
   }
 }
