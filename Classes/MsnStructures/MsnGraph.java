@@ -117,6 +117,20 @@ public class MsnGraph implements Iterable<Edge> {
   }
 
   /**
+   * (WIP) Removes a subdivision within this MsnGraph.
+   * 
+   * @param v the Vertex
+   */
+  public void removeSubdivision(Vertex v) {
+    if (degreeOf(v) == 2) {
+      Edge[] e = edgesFor(v);
+      for (Edge edge : e) {
+        
+      }
+    }
+  }
+  
+  /**
    * Determines if the Vertices passed are a walk in the current MsnGraph.
    * 
    * @param vertices the vertices
@@ -154,15 +168,14 @@ public class MsnGraph implements Iterable<Edge> {
   }
 
   /**
-   * Determines if the Vertices passed are a trail in the current MsnGraph.
+   * (WIP) Determines if the Vertices passed are a trail in the current MsnGraph.
    * 
    * @param vertices the vertices
    * @return whether the sequence of vertices is a trail or not
    */
   public boolean isTrail(Vertex... vertices) {
-    if (isWalk(vertices)) {
+    if (isWalk(vertices))
       return !Msn.containsDups(vertices);
-    }
     return false;
   }
 
@@ -173,7 +186,7 @@ public class MsnGraph implements Iterable<Edge> {
    * @return whether the sequence of vertices is a circuit or not
    */
   public boolean isCircuit(Vertex... vertices) {
-    return isWalk(vertices) && vertices[0].equals(vertices[vertices.length - 1]);
+    return isPath(vertices) && vertices[0].equals(vertices[vertices.length - 1]);
   }
 
   /**
@@ -183,7 +196,7 @@ public class MsnGraph implements Iterable<Edge> {
    * @return whether the sequence of vertices is a cycle or not
    */
   public boolean isCycle(Vertex... vertices) {
-    return isCircuit(vertices) && Msn.getDups(vertices).length < 2;
+    return isCircuit(vertices) && !Msn.containsDups(vertices);
   }
 
   /**
@@ -200,6 +213,40 @@ public class MsnGraph implements Iterable<Edge> {
   }
 
   /**
+   * (WIP) Determines whether this MsnGraph is connected.
+   * 
+   * Verifies that every Vertex has a degree of at least 2.
+   * 
+   * @return whether this MsnGraph is connected or not
+   */
+  public boolean isConnected() {
+    for (Vertex v : gatherVertices()) {
+      if (degreeOf(v) > 2) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * (WIP) Determines whether this MsnGraph can be drawn as planar.
+   * 
+   * @return whether this MsnGraph can be drawn as planar or not
+   */
+  public boolean isPlanar() {
+    return false;
+  }
+  
+  /**
+   * Calculates the degree of this MsnGraph.
+   * 
+   * @return the degree
+   */
+  public int degree() {
+    return 2 * edges.size();
+  }
+
+  /**
    * (WIP) Determines if a path exists from the first Vertex to the second.
    * 
    * @param v1 the first Vertex
@@ -208,6 +255,19 @@ public class MsnGraph implements Iterable<Edge> {
    */
   public boolean pathExistsFrom(Vertex v1, Vertex v2) {
     return false;
+  }
+
+  private boolean existshelper(Vertex[] vertices, Vertex v1, Vertex v2, Vertex current, int count) {
+    if (current.equals(v2)) {
+      return true;
+    }
+    if (count > vertices.length) {
+      return false;
+    }
+
+
+    return false;
+
   }
 
   /**
@@ -425,6 +485,17 @@ public class MsnGraph implements Iterable<Edge> {
   }
 
   /**
+   * Prints information on the current MsnGraph.
+   */
+  public void information() {
+    String s = "vertices: " + gatherVertices().length + "\n";
+    s += "edges: " + edges.size() + "\n";
+    s += "degree: " + degree() + "\n";
+    s += "is complete: " + isComplete();
+    Msn.printboxed(s);
+  }
+  
+  /**
    * String representation.
    */
   public String toString() {
@@ -440,9 +511,9 @@ public class MsnGraph implements Iterable<Edge> {
     HashSet<Edge> randomized = new HashSet<>();
     Vertex[] vert = new Vertex[vertices];
     for (int i = 0; i < vertices; i++) {
-      char rand = Msn.randomLetter();
+      int rand = Msn.randomInt(0, 10000);
       while (hasName(String.valueOf(rand), vert))
-        rand = Msn.randomLetter();
+        rand = Msn.randomInt(0, 10000);
       vert[i] = new Vertex(String.valueOf(rand));
       randomized.add(new Edge(vert[i], new Vertex("")));
     }
