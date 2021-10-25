@@ -1,5 +1,7 @@
 package MsnLib;
 
+
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -33,7 +35,12 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JFrame;
@@ -47,7 +54,7 @@ import javax.swing.border.EmptyBorder;
  * stages, using them could cause errors.
  * 
  * @author Mason Marker
- * @version 0.1.5.3.3 - 10/05/2021
+ * @version 0.1.5.3.4 - 10/05/2021
  */
 public class Msn {
 
@@ -3127,6 +3134,16 @@ public class Msn {
         if (matrix[i].length != matrix[j].length)
           return true;
     return false;
+  }
+
+  /**
+   * Converts a Point to an array of coordinates.
+   * 
+   * @param p the Point
+   * @return an array of coordinates
+   */
+  public static int[] coord(Point p) {
+    return new int[] {(int) p.getX(), (int) p.getY()};
   }
 
   /**
@@ -6853,6 +6870,684 @@ public class Msn {
   }
 
   /**
+   * Gets an array of all elements directly northeast of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly northeast of coord
+   * @since 0.1.5.3.4
+   */
+  public static Object[] neAll(Object[][] array, int[] coord) {
+    ArrayList<Object> list = new ArrayList<>();
+    int i = 1;
+    Object curr = directionalMulti(array, coord, "ne", i, false);
+    while (curr != null) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "ne", i, false);
+    }
+    return list.toArray();
+  }
+
+  /**
+   * Gets an array of all elements directly northeast of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly northeast of coord
+   * @since 0.1.5.3.4
+   */
+  public static int[] neAll(int[][] array, int[] coord) {
+    ArrayList<Integer> list = new ArrayList<>();
+    int i = 1;
+    int curr = directionalMulti(array, coord, "ne", i, false);
+    while (curr != Integer.MAX_VALUE) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "ne", i, false);
+    }
+    return toInt(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly northeast of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly northeast of coord
+   * @since 0.1.5.3.4
+   */
+  public static double[] neAll(double[][] array, int[] coord) {
+    ArrayList<Double> list = new ArrayList<>();
+    int i = 1;
+    double curr = directionalMulti(array, coord, "ne", i, false);
+    while (curr != Double.MAX_VALUE) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "ne", i, false);
+    }
+    return toDouble(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly northeast of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly northeast of coord
+   * @since 0.1.5.3.4
+   */
+  public static boolean[] neAll(boolean[][] array, int[] coord) {
+    ArrayList<Boolean> list = new ArrayList<>();
+    int i = 1;
+    Boolean curr = directionalMulti(array, coord, "ne", i, false);
+    while (curr != null) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "ne", i, false);
+    }
+    return toBoolean(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly northeast of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly northeast of coord
+   * @since 0.1.5.3.4
+   */
+  public static char[] neAll(char[][] array, int[] coord) {
+    ArrayList<Character> list = new ArrayList<>();
+    int i = 1;
+    char curr = directionalMulti(array, coord, "ne", i, false);
+    while (curr != '?') {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "ne", i, false);
+    }
+    return toChar(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly northeast of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly northeast of coord
+   * @since 0.1.5.3.4
+   */
+  public static Object[] seAll(Object[][] array, int[] coord) {
+    ArrayList<Object> list = new ArrayList<>();
+    int i = 1;
+    Object curr = directionalMulti(array, coord, "se", i, false);
+    while (curr != null) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "se", i, false);
+    }
+    return list.toArray();
+  }
+
+  /**
+   * Gets an array of all elements directly southeast of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly southeast of coord
+   * @since 0.1.5.3.4
+   */
+  public static int[] seAll(int[][] array, int[] coord) {
+    ArrayList<Integer> list = new ArrayList<>();
+    int i = 1;
+    int curr = directionalMulti(array, coord, "se", i, false);
+    while (curr != Integer.MAX_VALUE) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "se", i, false);
+    }
+    return toInt(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly southeast of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly southeast of coord
+   * @since 0.1.5.3.4
+   */
+  public static double[] seAll(double[][] array, int[] coord) {
+    ArrayList<Double> list = new ArrayList<>();
+    int i = 1;
+    double curr = directionalMulti(array, coord, "se", i, false);
+    while (curr != Double.MAX_VALUE) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "se", i, false);
+    }
+    return toDouble(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly southeast of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly southeast of coord
+   * @since 0.1.5.3.4
+   */
+  public static boolean[] seAll(boolean[][] array, int[] coord) {
+    ArrayList<Boolean> list = new ArrayList<>();
+    int i = 1;
+    Boolean curr = directionalMulti(array, coord, "se", i, false);
+    while (curr != null) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "se", i, false);
+    }
+    return toBoolean(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly southeast of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly southeast of coord
+   * @since 0.1.5.3.4
+   */
+  public static char[] seAll(char[][] array, int[] coord) {
+    ArrayList<Character> list = new ArrayList<>();
+    int i = 1;
+    char curr = directionalMulti(array, coord, "se", i, false);
+    while (curr != '?') {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "se", i, false);
+    }
+    return toChar(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly southwest of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly southwest of coord
+   * @since 0.1.5.3.4
+   */
+  public static Object[] swAll(Object[][] array, int[] coord) {
+    ArrayList<Object> list = new ArrayList<>();
+    int i = 1;
+    Object curr = directionalMulti(array, coord, "sw", i, false);
+    while (curr != null) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "sw", i, false);
+    }
+    return list.toArray();
+  }
+
+  /**
+   * Gets an array of all elements directly southwest of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly southwest of coord
+   * @since 0.1.5.3.4
+   */
+  public static int[] swAll(int[][] array, int[] coord) {
+    ArrayList<Integer> list = new ArrayList<>();
+    int i = 1;
+    int curr = directionalMulti(array, coord, "sw", i, false);
+    while (curr != Integer.MAX_VALUE) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "sw", i, false);
+    }
+    return toInt(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly southwest of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly southwest of coord
+   * @since 0.1.5.3.4
+   */
+  public static double[] swAll(double[][] array, int[] coord) {
+    ArrayList<Double> list = new ArrayList<>();
+    int i = 1;
+    double curr = directionalMulti(array, coord, "sw", i, false);
+    while (curr != Double.MAX_VALUE) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "sw", i, false);
+    }
+    return toDouble(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly southwest of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly southwest of coord
+   * @since 0.1.5.3.4
+   */
+  public static boolean[] swAll(boolean[][] array, int[] coord) {
+    ArrayList<Boolean> list = new ArrayList<>();
+    int i = 1;
+    Boolean curr = directionalMulti(array, coord, "sw", i, false);
+    while (curr != null) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "sw", i, false);
+    }
+    return toBoolean(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly southwest of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly southwest of coord
+   * @since 0.1.5.3.4
+   */
+  public static char[] swAll(char[][] array, int[] coord) {
+    ArrayList<Character> list = new ArrayList<>();
+    int i = 1;
+    char curr = directionalMulti(array, coord, "sw", i, false);
+    while (curr != '?') {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "sw", i, false);
+    }
+    return toChar(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly northwest of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly northwest of coord
+   * @since 0.1.5.3.4
+   */
+  public static Object[] nwAll(Object[][] array, int[] coord) {
+    ArrayList<Object> list = new ArrayList<>();
+    int i = 1;
+    Object curr = directionalMulti(array, coord, "nw", i, false);
+    while (curr != null) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "nw", i, false);
+    }
+    return list.toArray();
+  }
+
+  /**
+   * Gets an array of all elements directly northwest of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly northwest of coord
+   * @since 0.1.5.3.4
+   */
+  public static int[] nwAll(int[][] array, int[] coord) {
+    ArrayList<Integer> list = new ArrayList<>();
+    int i = 1;
+    int curr = directionalMulti(array, coord, "nw", i, false);
+    while (curr != Integer.MAX_VALUE) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "nw", i, false);
+    }
+    return toInt(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly northwest of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly northwest of coord
+   * @since 0.1.5.3.4
+   */
+  public static double[] nwAll(double[][] array, int[] coord) {
+    ArrayList<Double> list = new ArrayList<>();
+    int i = 1;
+    double curr = directionalMulti(array, coord, "nw", i, false);
+    while (curr != Double.MAX_VALUE) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "nw", i, false);
+    }
+    return toDouble(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly northwest of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly northwest of coord
+   * @since 0.1.5.3.4
+   */
+  public static boolean[] nwAll(boolean[][] array, int[] coord) {
+    ArrayList<Boolean> list = new ArrayList<>();
+    int i = 1;
+    Boolean curr = directionalMulti(array, coord, "nw", i, false);
+    while (curr != null) {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "nw", i, false);
+    }
+    return toBoolean(list.toArray());
+  }
+
+  /**
+   * Gets an array of all elements directly northwest of the coordinates specified.
+   * 
+   * @param array the array
+   * @param coord the coordinates
+   * @return the elements directly northwest of coord
+   * @since 0.1.5.3.4
+   */
+  public static char[] nwAll(char[][] array, int[] coord) {
+    ArrayList<Character> list = new ArrayList<>();
+    int i = 1;
+    char curr = directionalMulti(array, coord, "nw", i, false);
+    while (curr != '?') {
+      list.add(curr);
+      i++;
+      curr = directionalMulti(array, coord, "nw", i, false);
+    }
+    return toChar(list.toArray());
+  }
+
+  /**
+   * Gets the points above the coordinates specified in the array passed.
+   * 
+   * @param array the array
+   * @param coord the coords
+   * @return the Points that exist
+   * @since 0.1.5.3.4
+   */
+  public static Point[] pointsAbove(Object[][] array, int[] coord) {
+    ArrayList<Point> points = new ArrayList<>();
+    int i = 1;
+    Point curr = pointMulti(array, coord, "north", i, false);
+    while (curr.getX() >= 0) {
+      points.add(curr);
+      i++;
+      curr = pointMulti(array, coord, "north", i, false);
+    }
+    return points.toArray(Point[]::new);
+  }
+
+  /**
+   * Gets the points below the coordinates specified in the array passed.
+   * 
+   * @param array the array
+   * @param coord the coords
+   * @return the Points that exist
+   * @since 0.1.5.3.4
+   */
+  public static Point[] pointsBelow(Object[][] array, int[] coord) {
+    ArrayList<Point> points = new ArrayList<>();
+    int i = 1;
+    Point curr = pointMulti(array, coord, "south", i, false);
+    while (curr.getX() < array.length) {
+      points.add(curr);
+      i++;
+      curr = pointMulti(array, coord, "south", i, false);
+    }
+    return points.toArray(Point[]::new);
+  }
+
+  /**
+   * Gets the points right of the coordinates specified in the array passed.
+   * 
+   * @param array the array
+   * @param coord the coords
+   * @return the Points that exist
+   * @since 0.1.5.3.4
+   */
+  public static Point[] pointsRight(Object[][] array, int[] coord) {
+    ArrayList<Point> points = new ArrayList<>();
+    int i = 1;
+    Point curr = pointMulti(array, coord, "east", i, false);
+    while (curr.getY() < array[(int) curr.getX()].length) {
+      points.add(curr);
+      i++;
+      curr = pointMulti(array, coord, "east", i, false);
+    }
+    return points.toArray(Point[]::new);
+  }
+
+  /**
+   * Gets the points left of the coordinates specified in the array passed.
+   * 
+   * @param array the array
+   * @param coord the coords
+   * @return the Points that exist
+   * @since 0.1.5.3.4
+   */
+  public static Point[] pointsLeft(Object[][] array, int[] coord) {
+    ArrayList<Point> points = new ArrayList<>();
+    int i = 1;
+    Point curr = pointMulti(array, coord, "west", i, false);
+    while (curr.getY() >= 0) {
+      points.add(curr);
+      i++;
+      curr = pointMulti(array, coord, "west", i, false);
+    }
+    return points.toArray(Point[]::new);
+  }
+
+  /**
+   * Gets the points northeast of the coordinates specified in the array passed.
+   * 
+   * @param array the array
+   * @param coord the coords
+   * @return the Points that exist
+   * @since 0.1.5.3.4
+   */
+  public static Point[] pointsNe(Object[][] array, int[] coord) {
+    ArrayList<Point> points = new ArrayList<>();
+    int i = 1;
+    Point curr = pointMulti(array, coord, "ne", i, false);
+    while (curr.getX() >= 0 && curr.getY() < array[(int) curr.getX()].length) {
+      points.add(curr);
+      i++;
+      curr = pointMulti(array, coord, "ne", i, false);
+    }
+    return points.toArray(Point[]::new);
+  }
+
+  /**
+   * Gets the points northeast of the coordinates specified in the array passed.
+   * 
+   * @param array the array
+   * @param coord the coords
+   * @return the Points that exist
+   * @since 0.1.5.3.4
+   */
+  public static Point[] pointsSe(Object[][] array, int[] coord) {
+    ArrayList<Point> points = new ArrayList<>();
+    int i = 1;
+    Point curr = pointMulti(array, coord, "se", i, false);
+    while (curr.getX() < array.length && curr.getY() < array[(int) curr.getX()].length) {
+      points.add(curr);
+      i++;
+      curr = pointMulti(array, coord, "se", i, false);
+    }
+    return points.toArray(Point[]::new);
+  }
+
+  /**
+   * Gets the points northeast of the coordinates specified in the array passed.
+   * 
+   * @param array the array
+   * @param coord the coords
+   * @return the Points that exist
+   * @since 0.1.5.3.4
+   */
+  public static Point[] pointsSw(Object[][] array, int[] coord) {
+    ArrayList<Point> points = new ArrayList<>();
+    int i = 1;
+    Point curr = pointMulti(array, coord, "sw", i, false);
+    while (curr.getX() < array.length && curr.getY() >= 0) {
+      points.add(curr);
+      i++;
+      curr = pointMulti(array, coord, "sw", i, false);
+    }
+    return points.toArray(Point[]::new);
+  }
+
+  /**
+   * Gets the points northeast of the coordinates specified in the array passed.
+   * 
+   * @param array the array
+   * @param coord the coords
+   * @return the Points that exist
+   * @since 0.1.5.3.4
+   */
+  public static Point[] pointsNw(Object[][] array, int[] coord) {
+    ArrayList<Point> points = new ArrayList<>();
+    int i = 1;
+    Point curr = pointMulti(array, coord, "nw", i, false);
+    while (curr.getX() >= 0 && curr.getY() >= 0) {
+      points.add(curr);
+      i++;
+      curr = pointMulti(array, coord, "nw", i, false);
+    }
+    return points.toArray(Point[]::new);
+  }
+
+  /**
+   * Gets the Point thats the specified distance away from the specified center the the direction of
+   * the one specified.
+   * 
+   * @param array the array
+   * @param center the center
+   * @param direction the direction
+   * @param distance the distance
+   * @param includeEdges whether to include edges or not
+   * @return the Point
+   * @since 0.1.5.3.4
+   */
+  public static Point pointMulti(Object[][] array, int[] from, String direction, int distance,
+      boolean includeEdges) {
+    Point obj = null;
+    String[] allowed = {"north", "south", "east", "west", "nw", "ne", "sw", "se"};
+    if (contains(allowed, direction)) {
+      if (direction.equals("north")) {
+        try {
+          obj = new Point(from[0] - distance, from[1]);
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1]})) {
+              iterator--;
+            }
+            obj = new Point(from[0] - iterator, from[1]);
+          }
+        }
+      } else if (direction.equals("south")) {
+        try {
+          obj = new Point(from[0] + distance, from[1]);
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1]})) {
+              iterator--;
+            }
+            obj = new Point(from[0] + iterator, from[1]);
+          }
+        }
+      } else if (direction.equals("east")) {
+        try {
+          obj = new Point(from[0], from[1] + distance);
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0], from[1] + iterator})) {
+              iterator--;
+            }
+            obj = new Point(from[0], from[1] + iterator);
+          }
+        }
+      } else if (direction.equals("west")) {
+        try {
+          obj = new Point(from[0], from[1] - distance);
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0], from[1] - iterator})) {
+              iterator--;
+            }
+            obj = new Point(from[0], from[1] - iterator);
+          }
+        }
+      } else if (direction.equals("nw")) {
+        try {
+          obj = new Point(from[0] - distance, from[1] - distance);
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1] - iterator})) {
+              iterator--;
+            }
+            obj = new Point(from[0] - iterator, from[1] - iterator);
+          }
+        }
+      } else if (direction.equals("ne")) {
+        try {
+          obj = new Point(from[0] - distance, from[1] + distance);
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] - iterator, from[1] + iterator})) {
+              iterator--;
+            }
+            obj = new Point(from[0] - iterator, from[1] + iterator);
+          }
+        }
+      } else if (direction.equals("sw")) {
+        try {
+          obj = new Point(from[0] + distance, from[1] - distance);
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1] - iterator})) {
+              iterator--;
+            }
+            obj = new Point(from[0] + iterator, from[1] - iterator);
+          }
+        }
+      } else if (direction.equals("se")) {
+        try {
+          obj = new Point(from[0] + distance, from[1] + distance);
+        } catch (IndexOutOfBoundsException e) {
+          if (includeEdges) {
+            int iterator = distance - 1;
+            while (!validCoord(array, new int[] {from[0] + iterator, from[1] + iterator})) {
+              iterator--;
+            }
+            obj = new Point(from[0] + iterator, from[1] + iterator);
+          }
+        }
+      }
+    }
+    return obj;
+  }
+
+  /**
    * Generates a distance table for the coordinates provided.
    * 
    * @param <T> Generic
@@ -8442,6 +9137,73 @@ public class Msn {
   }
 
   /**
+   * Gets a random index of the array specified.
+   * 
+   * @param array the array
+   * @return a random index
+   * @since 0.1.5.3.4
+   */
+  public static Point randomIndex(Object[][] array) {
+    int randomI = Msn.randomInt(0, array.length);
+    int randomJ = Msn.randomInt(0, array[randomI].length);
+    return new Point(randomI, randomJ);
+  }
+
+  /**
+   * Gets a random index of the array specified.
+   * 
+   * @param array the array
+   * @return a random index
+   * @since 0.1.5.3.4
+   */
+  public static Point randomIndex(int[][] array) {
+    int randomI = Msn.randomInt(0, array.length);
+    int randomJ = Msn.randomInt(0, array[randomI].length);
+    return new Point(randomI, randomJ);
+  }
+
+  /**
+   * Gets a random index of the array specified.
+   * 
+   * @param array the array
+   * @return a random index
+   * @since 0.1.5.3.4
+   */
+  public static Point randomIndex(double[][] array) {
+    int randomI = Msn.randomInt(0, array.length);
+    int randomJ = Msn.randomInt(0, array[randomI].length);
+    return new Point(randomI, randomJ);
+  }
+
+  /**
+   * Gets a random index of the array specified.
+   * 
+   * @param array the array
+   * @return a random index
+   * @since 0.1.5.3.4
+   */
+  public static Point randomIndex(boolean[][] array) {
+    int randomI = Msn.randomInt(0, array.length);
+    int randomJ = Msn.randomInt(0, array[randomI].length);
+    return new Point(randomI, randomJ);
+  }
+
+  /**
+   * Gets a random index of the array specified.
+   * 
+   * @param array the array
+   * @return a random index
+   * @since 0.1.5.3.4
+   */
+  public static Point randomIndex(char[][] array) {
+    int randomI = Msn.randomInt(0, array.length);
+    int randomJ = Msn.randomInt(0, array[randomI].length);
+    return new Point(randomI, randomJ);
+  }
+
+
+
+  /**
    * Gets a random element in the array passed.
    * 
    * @param <T> Generic
@@ -8670,7 +9432,7 @@ public class Msn {
       array[i] = list.get(i);
   }
 
-  // --------------------------------MISC-------------------------------------
+  // --------------------------------SOUND-------------------------------------
 
   /**
    * Plays a beep sound
@@ -8681,6 +9443,36 @@ public class Msn {
     Toolkit.getDefaultToolkit().beep();
     if (verbose)
       println("[+] beep sound played");
+  }
+
+  /**
+   * Plays an audio file.
+   * 
+   * @param path
+   * @since 0.1.5.3.4
+   */
+  public static void playWav(String path, double gain) {
+    File f = new File("./" + path);
+    AudioInputStream audioIn = null;
+    try {
+      audioIn = AudioSystem.getAudioInputStream(f.toURI().toURL());
+    } catch (UnsupportedAudioFileException | IOException e) {
+      e.printStackTrace();
+    }
+    Clip clip = null;
+    try {
+      clip = AudioSystem.getClip();
+    } catch (LineUnavailableException e) {
+      e.printStackTrace();
+    }
+    try {
+      clip.open(audioIn);
+    } catch (LineUnavailableException | IOException e) {
+      e.printStackTrace();
+    }
+    FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+    gainControl.setValue((float) gain);
+    clip.start();
   }
 
   // ---------------------------SUB CLASSES-------------------------------------

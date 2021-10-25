@@ -37,7 +37,7 @@ public class Tron extends JFrame {
   private static Ai ai;
   static int gen;
   static int score;
-
+ 
   /**
    * Launch the application.
    */

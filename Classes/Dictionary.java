@@ -105,7 +105,7 @@ public class Dictionary implements Iterable<String> {
   public boolean isWord(String s) {
     return dict.containsKey(s);
   }
-  
+
   /**
    * Gets a HashMap of all words in this Dictionary that have a valid definition.
    * 
@@ -243,4 +243,12 @@ public class Dictionary implements Iterable<String> {
   public Iterator<String> iterator() {
     return dict.keySet().iterator();
   }
+
+  /**
+   * Removes all non-name entries in this Dictionary.
+   */
+  public void clear() {
+    dict = new TreeMap<>();
+  }
+
 }
