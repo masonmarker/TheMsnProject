@@ -125,11 +125,11 @@ public class MsnGraph implements Iterable<Edge> {
     if (degreeOf(v) == 2) {
       Edge[] e = edgesFor(v);
       for (Edge edge : e) {
-        
+        // TODO
       }
     }
   }
-  
+
   /**
    * Determines if the Vertices passed are a walk in the current MsnGraph.
    * 
@@ -236,7 +236,40 @@ public class MsnGraph implements Iterable<Edge> {
   public boolean isPlanar() {
     return false;
   }
-  
+
+  /**
+   * Removes all cycles that exist in this MsnGraph.
+   */
+  public void removeCycles() {
+    for (Vertex v : gatherVertices())
+      removeCycle(v);
+  }
+
+  /**
+   * Removes a cycle to and from the Vertex passed.
+   * 
+   * Does nothing if a cycle does not exist
+   * 
+   * @param startandfinish the starting and ending Vertex in this MsnGraph
+   */
+  public void removeCycle(Vertex startandfinish) {
+    int start = -1;
+    for (int i = 0; i < edges.size(); i++)
+      if (edges.get(i).getVertex1().equals(startandfinish)) {
+        start = i;
+        break;
+      }
+    int finish = -1;
+    if (start != -1)
+      for (int i = start + 1; i < edges.size(); i++)
+        if (edges.get(i).getVertex1().equals(startandfinish))
+          finish = i;
+    if (finish != -1)
+      for (int i = edges.size() - 1; i >= 0; i--)
+        if (i < finish && i >= start)
+          removeEdge(edges.get(i).getVertex1(), edges.get(i).getVertex2());
+  }
+
   /**
    * Calculates the degree of this MsnGraph.
    * 
@@ -315,7 +348,7 @@ public class MsnGraph implements Iterable<Edge> {
   }
 
   /**
-   * Collects all vertices in this MsnGraph.
+   * Collects existing vertices in this MsnGraph.
    * 
    * @return the vertices
    */
@@ -477,6 +510,23 @@ public class MsnGraph implements Iterable<Edge> {
   }
 
   /**
+   * Converts an array of Vertices to an array of Edges.
+   * 
+   * @param vertices the Vertices
+   * @return an Edge array
+   */
+  public static Edge[] convert(Vertex... vertices) {
+    ArrayList<Edge> edges = new ArrayList<>();
+    for (int i = 0; i < vertices.length; i++)
+      try {
+        edges.add(new Edge(vertices[i], vertices[i + 1]));
+      } catch (IndexOutOfBoundsException e) {
+        edges.add(new Edge(vertices[i], new Vertex("")));
+      }
+    return edges.toArray(Edge[]::new);
+  }
+
+  /**
    * Iterates over the Edges in this MsnGraph.
    */
   @Override
@@ -494,7 +544,7 @@ public class MsnGraph implements Iterable<Edge> {
     s += "is complete: " + isComplete();
     Msn.printboxed(s);
   }
-  
+
   /**
    * String representation.
    */
@@ -556,17 +606,6 @@ public class MsnGraph implements Iterable<Edge> {
           edges.remove(e);
       }
     }
-  }
-
-  private Edge[] convert(Vertex... vertices) {
-    ArrayList<Edge> edges = new ArrayList<>();
-    for (int i = 0; i < vertices.length; i++)
-      try {
-        edges.add(new Edge(vertices[i], vertices[i + 1]));
-      } catch (IndexOutOfBoundsException e) {
-        edges.add(new Edge(vertices[i], new Vertex("")));
-      }
-    return edges.toArray(Edge[]::new);
   }
 
   /**

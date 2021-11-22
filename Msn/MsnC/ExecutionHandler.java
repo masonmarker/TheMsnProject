@@ -22,7 +22,6 @@ public class ExecutionHandler {
   LinkedHashMap<String, Object> vars;
 
   public ExecutionHandler(String code, JTextArea console) {
-
     this.console = console;
     vars = new LinkedHashMap<>();
     ArrayList<Character> chars = new ArrayList<>(List.of(Msn.box(code.toCharArray())));
@@ -43,7 +42,13 @@ public class ExecutionHandler {
   }
 
   public void interpret() {
-    for (CodeLine line : lines) {
+    
+    
+    
+    
+    
+    for (int i = 0; i < lines.length; i++) {
+      CodeLine line = lines[i];
       if (isVariable(line.command())) {
         if (line.op().equals("=")) {
           vars.put(line.command(), evaluate(line.postop()));
@@ -136,6 +141,16 @@ public class ExecutionHandler {
         printToConsole(divided(line.line()), true);
       } else if (line.command().equals("print")) {
         printToConsole(divided(line.line()), false);
+      } else if (line.command().equals("for") && Msn.getWords(line.line())[2].equals("until")) {
+
+        if (!vars.containsKey(line.variable())) {
+          vars.put(line.variable(), 0);
+        } else {
+          vars.put(line.variable(), (int) Msn.extractNumbers(Msn.getWords(line.line())[3])[0]);
+        }
+
+
+
       } else {
         System.out.println("skipped line " + line.index());
       }

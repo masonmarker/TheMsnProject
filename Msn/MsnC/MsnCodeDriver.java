@@ -50,6 +50,7 @@ public class MsnCodeDriver extends JFrame {
 
   private ExecutionHandler h;
   private JTextArea console;
+  private JButton runbutton;
 
   /**
    * Launch the application.
@@ -136,34 +137,7 @@ public class MsnCodeDriver extends JFrame {
 
       @Override
       public void keyReleased(KeyEvent e) {
-        try {
-          Msn.writeTo(savefile.getAbsolutePath(), textArea.getText());
-        } catch (FileNotFoundException e1) {
-          e1.printStackTrace();
-        }
-        console.setText("");
-        h = new ExecutionHandler(textArea.getText(), console);
-        h.interpret();
-        int i = 1;
-        variableArea.setText("");
-        String s = "";
-        for (Map.Entry<String, Object> en : h.vars.entrySet()) {
-          String value = "" + en.getValue();
-          if (en.getValue().getClass().isArray())
-            value = Syntax.arrayToString(en.getValue());
-          s += i++ + ": " + en.getKey() + " (" + en.getValue().getClass().getTypeName() + ") -> "
-              + value + "\n";
-        }
-        variableArea.setText(variableArea.getText() + s);
 
-
-        if (e.getKeyCode() == KeyEvent.VK_PERIOD) {
-          int cursorpos = textArea.getCaretPosition();
-          while (cursorpos > textArea.getText().length()) {
-            cursorpos--;
-          }
-          new Methodology(methodbuttonspanel, textArea.getText(), cursorpos, h.vars);
-        }
       }
     });
     textArea.setCaretColor(Color.WHITE);
@@ -283,7 +257,42 @@ public class MsnCodeDriver extends JFrame {
     variableArea.setBackground(Color.BLACK);
     scrollPane_2_1.setViewportView(variableArea);
 
-
+    runbutton = new JButton("run");
+    sl_panel.putConstraint(SpringLayout.WEST, runbutton, 6, SpringLayout.EAST, scrollPane);
+    sl_panel.putConstraint(SpringLayout.SOUTH, runbutton, 0, SpringLayout.SOUTH, scrollPane);
+    runbutton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        try {
+          Msn.writeTo(savefile.getAbsolutePath(), textArea.getText());
+        } catch (FileNotFoundException e1) {
+          e1.printStackTrace();
+        }
+        console.setText("");
+        h = new ExecutionHandler(textArea.getText(), console);
+        h.interpret();
+        int i = 1;
+        variableArea.setText("");
+        String s = "";
+        for (Map.Entry<String, Object> en : h.vars.entrySet()) {
+          String value = "" + en.getValue();
+          if (en.getValue().getClass().isArray())
+            value = Syntax.arrayToString(en.getValue());
+          s += i++ + ": " + en.getKey() + " (" + en.getValue().getClass().getTypeName() + ") -> "
+              + value + "\n";
+        }
+        variableArea.setText(variableArea.getText() + s);
+        int cursorpos = textArea.getCaretPosition();
+        while (cursorpos > textArea.getText().length())
+          cursorpos--;
+        new Methodology(methodbuttonspanel, textArea.getText(), cursorpos, h.vars);
+      }
+    });
+    runbutton.setForeground(Color.WHITE);
+    runbutton.setFont(new Font("Monospaced", Font.PLAIN, 12));
+    runbutton.setFocusPainted(false);
+    runbutton.setBackground(Color.DARK_GRAY);
+    panel.add(runbutton);
     setLocationRelativeTo(null);
   }
 }

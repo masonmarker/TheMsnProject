@@ -10,26 +10,43 @@ import MsnLib.Msn;
  */
 public class NetworkUtilities {
 
+  public NetworkUtilities() {
+
+  }
+
   /**
    * (WIP) Saves the information stored within a Network to the path specified.
    * 
    * @param n the Network to save
    * @param the path of the savefile
    */
-  public static void save(Network n, String path) {
-     
+  public void save(Network n, String path) {
+    String write = "" + n.getLearningRate() + " lr\n";
+    write += "" + (n.getHiddenLayers().length + 2) + " layers\n";
+    write += n.getInputLayer().getNeurons().length + " neurons in input\n";
+    for (Neuron non : n.getInputLayer().getNeurons()) {
+      write += "" + non.getBias() + " " + non.getError() + " " + non.getOutput() + "\n";
+      write += "" + non.getWeights().length + " weights\n";
+      for (int i = 0; i < non.getWeights().length; i++) {
+        if (i != non.getWeights().length) {
+          write += "" + non.getWeights()[i] + " ";
+        } else {
+          write += "" + non.getWeights()[i] + "\n";
+        }
+      }
+    }
   }
-  
+
   /**
    * (WIP) Loads a Network from the path specified.
    * 
-   * @param path the path of the Network 
+   * @param path the path of the Network
    * @return the read Network
    */
-  public static Network load(String path) {
+  public Network load(String path) {
     return null;
   }
-  
+
   /**
    * Performs a Sigmoid-Logistic operation on the number specified.
    * 
