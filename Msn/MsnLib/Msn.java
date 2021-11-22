@@ -54,7 +54,7 @@ import javax.swing.border.EmptyBorder;
  * stages, using them could cause errors.
  * 
  * @author Mason Marker
- * @version 0.1.5.3.4 - 10/05/2021
+ * @version 0.1.5.3.5 - 10/25/2021
  */
 public class Msn {
 
@@ -431,6 +431,22 @@ public class Msn {
       if (s.contains(sContains[i]))
         return true;
     return false;
+  }
+
+  /**
+   * Checks whether duplicates occur in either array.
+   * 
+   * @param <T> Generic
+   * @param arr1 the first array
+   * @param arr2 the second array
+   * @return whether arr1 contains any of the elements within arr2
+   * @since 0.1.5.3.5
+   */
+  public static <T> boolean containsAnyOf(T[] arr1, T[] arr2) {
+    HashSet<T> syn = new HashSet<>();
+    syn.addAll(List.of(arr1));
+    syn.addAll(List.of(arr2));
+    return syn.size() != arr1.length + arr2.length;
   }
 
   /**
@@ -4448,6 +4464,40 @@ public class Msn {
   }
 
   /**
+   * Converts a primitive array into its respective Object array.
+   * 
+   * @param array the array to convert
+   * @return the Object array
+   * @since 0.1.5.3.5
+   */
+  public static Integer[][] box(int[][] array) {
+    Integer[][] destination = new Integer[array.length][];
+    for (int i = 0; i < destination.length; i++) {
+      destination[i] = new Integer[array[i].length];
+      for (int j = 0; j < destination[i].length; j++)
+        destination[i][j] = array[i][j];
+    }
+    return destination;
+  }
+
+  /**
+   * Converts a primitive array into its respective Object array.
+   * 
+   * @param array the array to convert
+   * @return the Object array
+   * @since 0.1.5.3.5
+   */
+  public static Double[][] box(double[][] array) {
+    Double[][] destination = new Double[array.length][];
+    for (int i = 0; i < destination.length; i++) {
+      destination[i] = new Double[array[i].length];
+      for (int j = 0; j < destination[i].length; j++)
+        destination[i][j] = array[i][j];
+    }
+    return destination;
+  }
+
+  /**
    * Converts an Object array into its respective primitive array.
    * 
    * @param array the array to convert
@@ -4528,6 +4578,20 @@ public class Msn {
     double[] fixed = new double[array.length];
     for (int i = 0; i < fixed.length; i++)
       fixed[i] = (double) array[i];
+    return fixed;
+  }
+  
+  /**
+   * Converts an array to the specified primitive array.
+   * 
+   * @param array the array to use
+   * @return the fixed array
+   * @since 0.1.2.3.7
+   */
+  public static double[] toDouble(int[] array) {
+    double[] fixed = new double[array.length];
+    for (int i = 0; i < fixed.length; i++)
+      fixed[i] = array[i];
     return fixed;
   }
 
@@ -4638,6 +4702,40 @@ public class Msn {
     for (int i = 0; i < a.length; i++)
       a[i] = (int) array[i];
     return a;
+  }
+
+  /**
+   * Converts the array specified to the array type requested.
+   * 
+   * @param array the array
+   * @return the fixed array
+   * @since 0.1.5.3.5
+   */
+  public static int[][] toInt(double[][] array) {
+    int[][] destination = new int[array.length][];
+    for (int i = 0; i < destination.length; ++i) {
+      destination[i] = new int[array[i].length];
+      for (int j = 0; j < destination[i].length; ++j)
+        destination[i][j] = (int) array[i][j];
+    }
+    return destination;
+  }
+
+  /**
+   * Converts the array specified to the array type requested.
+   * 
+   * @param array the array
+   * @return the fixed array
+   * @since 0.1.5.3.5
+   */
+  public static double[][] toDouble(int[][] array) {
+    double[][] destination = new double[array.length][];
+    for (int i = 0; i < destination.length; ++i) {
+      destination[i] = new double[array[i].length];
+      for (int j = 0; j < destination[i].length; ++j)
+        destination[i][j] = array[i][j];
+    }
+    return destination;
   }
 
   // ---------------------------------GUI-------------------------------------
@@ -9201,8 +9299,6 @@ public class Msn {
     return new Point(randomI, randomJ);
   }
 
-
-
   /**
    * Gets a random element in the array passed.
    * 
@@ -9430,6 +9526,41 @@ public class Msn {
     Collections.shuffle(list);
     for (int i = 0; i < array.length; i++)
       array[i] = list.get(i);
+  }
+
+  // ----------------------------COMBO/PERMU-----------------------------------
+
+  /**
+   * Calculates all permutations of the array passed.
+   * 
+   * @param arr the array
+   * @return all permutations of the array passed
+   */
+  public static List<List<Integer>> permute(int[] arr) {
+    List<List<Integer>> list = new ArrayList<>();
+    ph(list, new ArrayList<>(), arr);
+    return list;
+  }
+
+  /**
+   * Recursive permutation assistance.
+   * 
+   * @param list the current list of permutations.
+   * @param result current permutation
+   * @param a the array
+   */
+  private static void ph(List<List<Integer>> list, List<Integer> result, int[] a) {
+    if (result.size() == a.length)
+      list.add(new ArrayList<>(result));
+    else {
+      for (int i = 0; i < a.length; i++) {
+        if (result.contains(a[i]))
+          continue;
+        result.add(a[i]);
+        ph(list, result, a);
+        result.remove(result.size() - 1);
+      }
+    }
   }
 
   // --------------------------------SOUND-------------------------------------

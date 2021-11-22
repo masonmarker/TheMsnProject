@@ -1,37 +1,35 @@
+import java.util.Arrays;
 import java.util.Scanner;
 import MsnLib.Msn;
 
 /**
- * Plots two Networks against each other.
+ * Plots two Networks against each other in Tic Tac Toe.
  * 
  * @author Mason Marker
  * @version 1.0 - 09/28/2021
  */
 public class TicTacToe {
-
+  
   public static void main(String[] args) {
 
-    Scanner sc = new Scanner(System.in);
-    System.out.println("choose player against Network");
-    Object o = Msn.prompt("player 1: (user/network)", sc);
-    switch ((String) o) {
-
-      case "user": {
-
+    Network bot = new Network(9, 3, 3, 1);
+    Network bot2 = new Network(9, 10, 10, 1);
         
-
+    double[] possible = {0, 16.66, 16.66 * 2, 16.66 * 3, 16.66 * 4, 16.66 * 5, 16.66 * 6};
+    
+    while (true) {
+      System.out.println("restarting...");
+      Board board = new Board();
+      while (!board.hasWinner()) {
+        
+        
+        
+        
       }
-        break;
-      case "network": {
-
-
-
-      }
-
-      default:
-
+      
+      
     }
-
+    
 
 
   }
@@ -66,7 +64,10 @@ public class TicTacToe {
     public boolean isWinPattern(char[] c) {
       return c[0] == c[1] && c[1] == c[2];
     }
-
+    
+    public String toString() {
+      return Arrays.deepToString(board).replace("], ", "]\n").replace("[[", "[").replace("]]", "]");
+    }
 
   }
 

@@ -1,9 +1,5 @@
-d double = 2.5443;
+i[] array = 5 6 7;
 
+println array is the @array;
 
-i integer = double + 1;
-
-i integer = double.
-
-
-
+print what are you talking about?;
