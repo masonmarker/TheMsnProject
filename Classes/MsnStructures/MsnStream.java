@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import MsnLib.Msn;
 
@@ -228,6 +229,11 @@ public class MsnStream<T> extends ArrayList<T> {
     return this;
   }
 
+  public MsnStream<T> _print(String s) {
+    System.out.println(s);
+    return this;
+  }
+
   // ---------------- FUNCTIONS ----------------
 
   public MsnStream<T> _filter(Predicate<? super T> predicate) {
@@ -239,10 +245,8 @@ public class MsnStream<T> extends ArrayList<T> {
   }
 
   public MsnStream<T> _forEach(Consumer<? super T> action) {
-    Stream<T> s = stream();
-    s.forEach(action);
-    
-    return new MsnStream<T>(s);
+    forEach(action);
+    return this;
   }
 
   /**
