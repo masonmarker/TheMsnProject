@@ -1,15 +1,15 @@
+import MsnStructures.MsnStream;
+
 public class Main {
 
   public static void main(String[] args) {
-    
-    double[] inputs = {4.4, 8.6, 2.2};
-    
-    Network n = new Network(3, 2, 2, 1);
-    
-    n.train(inputs, .4, 1000);
-    
-    System.out.println(n.getAnswer(inputs));
-    
-     
+
+
+    new MsnStream<Integer>()._importRange(0, 5)._addDuplicate()._print()._isolateDuplicates()
+        ._print()._forEach(integer -> {
+          integer += 2;
+          integer -= 2;
+        })._add(10)._add(10)._isolateDuplicates()._print();
+
   }
 }
