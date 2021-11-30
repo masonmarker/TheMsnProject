@@ -432,7 +432,7 @@ public class Calculator extends JFrame {
   public static void update() {
     try {
       expressionlabel.setText(expression);
-      outputlabel.setText(String.valueOf(Msn.evalulate(expression)));
+      outputlabel.setText(String.valueOf(Msn.evaluate(expression)));
     } catch (Exception e) {
       outputlabel.setText("");
     }

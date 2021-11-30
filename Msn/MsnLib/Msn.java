@@ -8443,7 +8443,7 @@ public class Msn {
    * @return the evaluation
    * @since 0.1.5.3.2
    */
-  public static Object evalulate(String str) {
+  public static Object evaluate(String str) {
     return new Object() {
       int pos = -1, ch;
 
