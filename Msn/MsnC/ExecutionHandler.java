@@ -244,7 +244,7 @@ public class ExecutionHandler {
     applyVariables(divided);
     String applied = Msn.toSequence(divided);
     if (ret == null)
-      ret = Msn.evalulate(applied);
+      ret = Msn.evaluate(applied);
     return ret;
   }
 

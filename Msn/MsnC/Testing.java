@@ -8,9 +8,7 @@ import MsnLib.Msn;
 public class Testing {
 
   public static void main(String[] args) {
-    
-    System.out.println(Msn.evalulate("5 + 5"));
-    
+        
     
   }
    
