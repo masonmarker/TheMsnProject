@@ -10,9 +10,7 @@ import MsnLib.Msn;
  */
 public class NetworkUtilities {
 
-  public NetworkUtilities() {
-
-  }
+  public NetworkUtilities() {}
 
   /**
    * (WIP) Saves the information stored within a Network to the path specified.
@@ -45,6 +43,19 @@ public class NetworkUtilities {
    */
   public Network load(String path) {
     return null;
+  }
+
+  /**
+   * Creates a double array containing valid output possibilities from 0-1.
+   * 
+   * @param possible the amount of possible outputs
+   * @return the possible Network outputs
+   */
+  public static double[] getPossible(int possible) {
+    double[] d = new double[possible];
+    for (int i = 0; i < d.length; i++)
+      d[i] = Msn.decFormat((1.0 / possible) * i, 4);
+    return d;
   }
 
   /**

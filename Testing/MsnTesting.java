@@ -11,7 +11,7 @@ public class MsnTesting {
     g.randomize(10);
     
     g.visualize();
-
+ 
 
 
   }

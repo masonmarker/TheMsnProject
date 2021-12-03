@@ -5,20 +5,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import MsnLib.Msn;
 
 /**
- * Class for basic Stream functions.
+ * Class for advanced Stream functions.
+ * 
+ * Just keep going...just keep going...just keep going going going...
  * 
  * @author Mason Marker
  * @version 1.0 - 11/24/2021
@@ -28,6 +32,9 @@ public class MsnStream<T> extends ArrayList<T> {
 
   private static final long serialVersionUID = 8427462039662763516L;
 
+  /**
+   * Default constructor.
+   */
   public MsnStream() {}
 
   public MsnStream(T[] arr) {
@@ -44,7 +51,6 @@ public class MsnStream<T> extends ArrayList<T> {
       add(t.next());
   }
 
-
   /**
    * Creates a new MsnStream populated with numbers start-end.
    * 
@@ -59,10 +65,31 @@ public class MsnStream<T> extends ArrayList<T> {
       add((T) Integer.valueOf(i));
   }
 
+  public static <L> MsnStream<L> of(Collection<L> collection) {
+    return new MsnStream<L>(collection);
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <L> MsnStream<L> of(Object... objects) {
+    return new MsnStream<L>((L[]) objects);
+  }
+
   // ---------------- ARRAYLIST EXTENSION ----------------
 
   public MsnStream<T> _import(Collection<T> collection) {
     addAll(collection);
+    return this;
+  }
+
+  public MsnStream<T> _import(Stream<T> stream) {
+    Iterator<T> t = stream.iterator();
+    while (t.hasNext())
+      add(t.next());
+    return this;
+  }
+
+  public MsnStream<T> _import(T[] array) {
+    addAll(Arrays.asList(array));
     return this;
   }
 
@@ -117,6 +144,11 @@ public class MsnStream<T> extends ArrayList<T> {
     return this;
   }
 
+  public MsnStream<T> _removeIf(Predicate<? super T> predicate) {
+    removeIf(predicate);
+    return this;
+  }
+  
   public MsnStream<T> _removeAllOf(T t) {
     while (contains(t))
       remove(t);
@@ -130,7 +162,10 @@ public class MsnStream<T> extends ArrayList<T> {
 
   @SuppressWarnings("unchecked")
   public MsnStream<T> _reorder(T[] reference) {
-    return new MsnStream<T>((T[]) Msn.reorder(toArray(), reference));
+    T[] a = (T[]) Msn.reorder(toArray(), reference);
+    _empty();
+    _import(a);
+    return this;
   }
 
   /**
@@ -164,7 +199,9 @@ public class MsnStream<T> extends ArrayList<T> {
   public MsnStream<T> _sorted() {
     T[] a = toGeneric();
     Arrays.sort(a);
-    return new MsnStream<T>(a);
+    _empty();
+    _import(a);
+    return this;
   }
 
   @SuppressWarnings("unchecked")
@@ -176,7 +213,9 @@ public class MsnStream<T> extends ArrayList<T> {
       arr[index] = a[i];
       index++;
     }
-    return new MsnStream<T>((T[]) arr);
+    _empty();
+    _import((T[]) arr);
+    return this;
   }
 
   public MsnStream<T> _shuffled() {
@@ -186,7 +225,19 @@ public class MsnStream<T> extends ArrayList<T> {
 
   public MsnStream<T> _withoutDuplicates() {
     LinkedHashSet<T> set = new LinkedHashSet<>(this);
-    return new MsnStream<T>(set);
+    _empty();
+    addAll(set);
+    return this;
+  }
+
+  /**
+   * Removes all nulls from this MsnStream.
+   * 
+   * @return this MsnStream without null values
+   */
+  public MsnStream<T> _withoutNulls() {
+    removeAll(null);
+    return this;
   }
 
   /**
@@ -196,7 +247,23 @@ public class MsnStream<T> extends ArrayList<T> {
    */
   @SuppressWarnings("unchecked")
   public MsnStream<T> _isolateDuplicates() {
-    return new MsnStream<T>((T[]) Msn.getDups(toArray()));
+    T[] a = (T[]) Msn.getDups(toArray());
+    _empty();
+    _import(a);
+    return this;
+  }
+
+  /**
+   * Sorts the elements in this MsnStream as if it were a HashSet.
+   * 
+   * @return the fixed MsnStream
+   * @since 1.0
+   */
+  public MsnStream<T> _hashed() {
+    HashSet<T> h = new HashSet<>(this);
+    _empty();
+    addAll(h);
+    return this;
   }
 
   @SuppressWarnings("unchecked")
@@ -209,7 +276,9 @@ public class MsnStream<T> extends ArrayList<T> {
     } else
       for (int i = 0; i < arr.length; i++)
         arr[i] = get(i);
-    return new MsnStream<T>((T[]) arr);
+    _empty();
+    _import((T[]) arr);
+    return this;
   }
 
   public MsnStream<T> _doubleSize() {
@@ -237,60 +306,21 @@ public class MsnStream<T> extends ArrayList<T> {
   // ---------------- FUNCTIONS ----------------
 
   public MsnStream<T> _filter(Predicate<? super T> predicate) {
-    return new MsnStream<T>(stream().filter(predicate));
+    List<T> l = stream().filter(predicate).collect(Collectors.toList());
+    _empty();
+    addAll(l);
+    return this;
   }
 
   public MsnStream<T> _map(Function<? super T, ? extends T> mapper) {
-    return new MsnStream<T>(stream().map(mapper));
+    List<T> l = stream().map(mapper).collect(Collectors.toList());
+    _empty();
+    addAll(l);
+    return this;
   }
 
   public MsnStream<T> _forEach(Consumer<? super T> action) {
     forEach(action);
-    return this;
-  }
-
-  /**
-   * Adds the maximum element to the end of this MsnStream.
-   * 
-   * @return the fixed Stream
-   */
-  @SuppressWarnings("unchecked")
-  public MsnStream<T> _addMax() {
-    try {
-      add((T) (Double) Msn.max(Msn.toDouble(toArray())));
-    } catch (ClassCastException e) {
-      add((T) (Integer) Msn.max(Msn.toInt(toArray())));
-    }
-    return this;
-  }
-
-  /**
-   * Adds the minimum element to the end of this MsnStream.
-   * 
-   * @return the fixed Stream
-   */
-  @SuppressWarnings("unchecked")
-  public MsnStream<T> _addMin() {
-    try {
-      add((T) (Double) Msn.min(Msn.toDouble(toArray())));
-    } catch (ClassCastException e) {
-      add((T) (Integer) Msn.min(Msn.toInt(toArray())));
-    }
-    return this;
-  }
-
-  /**
-   * Adds the minimum element to the end of this MsnStream.
-   * 
-   * @return the fixed Stream
-   */
-  @SuppressWarnings("unchecked")
-  public MsnStream<T> _addAvg() {
-    try {
-      add((T) (Double) Msn.avg(Msn.toDouble(toArray())));
-    } catch (ClassCastException e) {
-      add((T) (Double) Msn.avg(Msn.toInt(toArray())));
-    }
     return this;
   }
 
@@ -312,18 +342,77 @@ public class MsnStream<T> extends ArrayList<T> {
     return this;
   }
 
-  // ---------------- CONVERSION ----------------
+  // ---------------- FINAL CONVERSION ----------------
 
+  public <A, R> R collect(Collector<? super T, A, R> collector) {
+    return stream().collect(collector);
+  }
+
+  /**
+   * Obtains basic statistic capabilities for this MsnStream.
+   * 
+   * @return a new MsnStatistics
+   * @since 1.0
+   */
+  public MsnStatistics statistics() {
+    return new MsnStatistics(Msn.toDouble(toArray()));
+  }
+
+  /**
+   * Obtains a copy of this MsnStream.
+   * 
+   * @return a copy of this MsnStream
+   * @since 1.0
+   */
   public MsnStream<T> copyOf() {
     MsnStream<T> ret = new MsnStream<>();
     ret.addAll(this);
     return ret;
   }
 
-  public Set<T> toSet() {
-    return new LinkedHashSet<>(this);
+  /**
+   * Converts this MsnStream to a String representation of each element concatinated.
+   * 
+   * @return a String
+   */
+  public String toSequence() {
+    String s = "";
+    for (T t : this)
+      s += t;
+    return s;
   }
 
+  /**
+   * Creates a Map with keys being each element mapped to null.
+   * 
+   * @param <K> Generic
+   * @return a map representation
+   */
+  public <K> Map<T, K> toMap() {
+    LinkedHashMap<T, K> m = new LinkedHashMap<>();
+    for (T t : this)
+      m.put(t, null);
+    return m;
+  }
+
+  /**
+   * Obtains an array of Nodes being one Node for each element in this MsnStream.
+   * 
+   * @return an array of Nodes
+   */
+  @SuppressWarnings("unchecked")
+  public MsnNode<T>[] toNodes() {
+    ArrayList<MsnNode<T>> l = new ArrayList<>();
+    for (T t : this)
+      l.add(new MsnNode<T>(t));
+    return l.toArray(MsnNode[]::new);
+  }
+
+  /**
+   * Obtains a Generic array.
+   * 
+   * @return a Generic array
+   */
   @SuppressWarnings("unchecked")
   public T[] toGeneric() {
     return (T[]) toArray();

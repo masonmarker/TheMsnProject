@@ -54,7 +54,7 @@ import javax.swing.border.EmptyBorder;
  * stages, using them could cause errors.
  * 
  * @author Mason Marker
- * @version 0.1.5.3.5 - 10/25/2021
+ * @version 0.1.5.3.6 - 12/02/2021
  */
 public class Msn {
 
@@ -3985,6 +3985,29 @@ public class Msn {
     return list;
   }
 
+  /**
+   * Attempts to identify the primitive type of the Object passed.
+   * 
+   * possible types the Object can be include Integer, Double, Character, Boolean, or Other
+   * 
+   * @param o the Object
+   * @return the possible data type of the Object passed, possibilities listed above
+   * @since 0.1.5.3.6
+   */
+  public static String identify(Object o) {
+    if (o instanceof Integer)
+      return "Integer";
+    if (o instanceof Double)
+      return "Double";
+    if (o instanceof Character)
+      return "Character";
+    if (o instanceof Boolean)
+      return "Boolean";
+    if (o instanceof String)
+      return "String";
+    return "Other";
+  }
+
   // -------------------------SET OPERATIONS----------------------------------
 
   /**
@@ -4580,7 +4603,7 @@ public class Msn {
       fixed[i] = (double) array[i];
     return fixed;
   }
-  
+
   /**
    * Converts an array to the specified primitive array.
    * 
