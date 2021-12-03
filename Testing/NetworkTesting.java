@@ -1,3 +1,4 @@
+import MsnLib.Msn;
 
 public class NetworkTesting {
 
@@ -5,9 +6,9 @@ public class NetworkTesting {
 
     Network n = new Network(2, 2, 2, 1);
 
-    double a = n.getAnswer(new double[] {0, 1});
+    double[] possible = NetworkUtilities.getPossible(15);
     
-    System.out.println(NetworkUtilities.interpret(a, 15));
+    Msn.pa(possible);
 
   }
 

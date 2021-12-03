@@ -1,5 +1,6 @@
 package MsnStructures;
 
+import java.util.Collection;
 import java.util.LinkedList;
 
 /**
@@ -17,12 +18,16 @@ public class MsnQueue<T> {
     q = new LinkedList<>();
   }
   
+  public MsnQueue(Collection<T> collection) {
+    q = new LinkedList<>(collection);
+  }
+  
   /**
    * Adds an element to the end of this Queue.
    * 
    * @param t the element
    */
-  public void add(T t) {
+  public void enqueue(T t) {
     q.add(t);
   }
   
