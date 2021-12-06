@@ -1,5 +1,3 @@
-d double = sin(4)
+i[] array = 3 4 5;
 
-print double;
-
-
+print array;
