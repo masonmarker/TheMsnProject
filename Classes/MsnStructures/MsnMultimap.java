@@ -1,10 +1,15 @@
 package MsnStructures;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Class for Multimap capabilities.
@@ -14,13 +19,25 @@ import java.util.Map.Entry;
  */
 public class MsnMultimap<K, V> implements Iterable<Map.Entry<K, V>> {
 
-  private HashMap<K, ArrayList<V>> map;
+  private Map<K, ArrayList<V>> map;
 
   /**
    * Multimap constructor.
    */
   public MsnMultimap() {
-    map = new HashMap<>();
+    map = new LinkedHashMap<>();
+  }
+
+  public void toHashMap() {
+    map = new HashMap<K, ArrayList<V>>(map);
+  }
+
+  public void toTreeMap() {
+    map = new TreeMap<K, ArrayList<V>>(map);
+  }
+
+  public void toLinkedHashMap() {
+    map = new LinkedHashMap<K, ArrayList<V>>(map);
   }
 
   /**
@@ -35,11 +52,10 @@ public class MsnMultimap<K, V> implements Iterable<Map.Entry<K, V>> {
       ArrayList<V> list = new ArrayList<>();
       list.add(v);
       map.put(k, list);
-    } else {
+    } else
       curr.add(v);
-    }
   }
-  
+
   /**
    * Gets the set of values for the specified key.
    * 
@@ -68,33 +84,60 @@ public class MsnMultimap<K, V> implements Iterable<Map.Entry<K, V>> {
    */
   public boolean containsValue(V value) {
     Iterator<Entry<K, V>> i = iterator();
-    while (i.hasNext()) {
+    while (i.hasNext())
       if (i.next().getValue().equals(value))
         return true;
-    }
     return false;
   }
 
   public boolean containsEntry(K key, V value) {
-    for (Map.Entry<K, V> entry : entryList()) {
+    for (Map.Entry<K, V> entry : entrySet())
       if (entry.getKey().equals(key) && entry.getValue().equals(value))
         return true;
-    }
     return false;
   }
-  
-  public List<Entry<K, V>> entryList() {
-    ArrayList<Entry<K, V>> list = new ArrayList<>();
+
+  /**
+   * Removes the entry for the key passed.
+   * 
+   * @param key the key to remove
+   * @return the collection of values mapped to the key removed
+   */
+  public Collection<V> remove(K key) {
+    return map.remove(key);
+  }
+
+  /**
+   * Removes the first instance of 'value', and returns the key that was mapped to that value.
+   * 
+   * --The key is removed if it is no longer mapped to any values after removing 'value'--
+   * 
+   * @param value the value to remove
+   * @return the key mapped to the value removed
+   */
+  public void removeValue(V value) {
+    for (Map.Entry<K, ArrayList<V>> en : map.entrySet())
+      if (en.getValue().remove(value)) {
+        if (en.getValue().isEmpty()) {
+          K k = en.getKey();
+          remove(k);
+        }
+        break;
+      }
+  }
+
+  public Set<Entry<K, V>> entrySet() {
+    LinkedHashSet<Entry<K, V>> list = new LinkedHashSet<>();
     Iterator<Entry<K, V>> i = iterator();
     while (i.hasNext())
       list.add(i.next());
     return list;
   }
-  
+
   public String toString() {
     return map.toString();
   }
-  
+
   /**
    * Iterates through entries.
    */
@@ -113,7 +156,7 @@ public class MsnMultimap<K, V> implements Iterable<Map.Entry<K, V>> {
 
       @Override
       public Entry<K, V> next() {
-        if (narrowit.hasNext()) 
+        if (narrowit.hasNext())
           return Map.entry(currententry.getKey(), narrowit.next());
         currententry = iterator.next();
         narrowit = currententry.getValue().iterator();

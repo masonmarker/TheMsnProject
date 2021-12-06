@@ -148,7 +148,7 @@ public class MsnStream<T> extends ArrayList<T> {
     removeIf(predicate);
     return this;
   }
-  
+
   public MsnStream<T> _removeAllOf(T t) {
     while (contains(t))
       remove(t);
@@ -329,16 +329,20 @@ public class MsnStream<T> extends ArrayList<T> {
    * 
    * @param path the file path
    * @return this MsnStream
-   * @throws FileNotFoundException
    */
-  public MsnStream<T> _writeTo(String path) throws FileNotFoundException {
+  public MsnStream<T> _writeTo(String path) {
     String s = "";
     for (int i = 0; i < size(); i++)
       if (i != size() - 1)
         s += get(i) + "\n";
       else
         s += get(i);
-    Msn.writeTo(path, s);
+    try {
+      Msn.writeTo(path, s);
+    } catch (FileNotFoundException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     return this;
   }
 

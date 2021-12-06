@@ -13,15 +13,15 @@ import java.util.LinkedList;
 public class MsnQueue<T> {
 
   LinkedList<T> q;
-  
+
   public MsnQueue() {
     q = new LinkedList<>();
   }
-  
+
   public MsnQueue(Collection<T> collection) {
     q = new LinkedList<>(collection);
   }
-  
+
   /**
    * Adds an element to the end of this Queue.
    * 
@@ -30,7 +30,7 @@ public class MsnQueue<T> {
   public void enqueue(T t) {
     q.add(t);
   }
-  
+
   /**
    * Returns the next element in this Queue.
    * 
@@ -39,26 +39,26 @@ public class MsnQueue<T> {
    */
   public T dequeue(boolean wrap) {
     if (wrap) {
-      
+      T t = q.pop();
+      enqueue(t);
+      return t;
     }
-    return null;
+    return q.pop();
   }
-  
+
   /**
    * Gets this Queue in LinkedList representation.
    * 
-   * @return the LinkedList 
+   * @return the LinkedList
    */
   public LinkedList<T> getList() {
-    return null;
+    return q;
   }
-  
+
   /**
    * String representation.
    */
   public String toString() {
     return q.toString();
   }
-  
-  
 }
