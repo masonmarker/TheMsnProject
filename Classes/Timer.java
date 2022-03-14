@@ -49,16 +49,16 @@ public class Timer {
 
   public int runtime() {
     if (endtime != 0)
-      return (int) TimeUnit.NANOSECONDS.toMillis(endtime - starttime);
+      return (int) (endtime - starttime);
     throw new IllegalStateException("Timer must be started and ended to obtain runtime");
   }
 
   public int getStartTime() {
-    return (int) TimeUnit.NANOSECONDS.toMillis(starttime);
+    return (int) starttime;
   }
 
   public int getEndTime() {
-    return (int) TimeUnit.NANOSECONDS.toMillis(endtime);
+    return (int) endtime;
   }
 
   public double getAvgRuntime() {
@@ -78,7 +78,7 @@ public class Timer {
 
   public void printHistory() {
     for (int i = 0; i < runtimes.size(); i++)
-      System.out.println("runtime #" + (i + 1) + ": " + runtimes.get(i) + "ms");
+      System.out.println("runtime #" + (i + 1) + ": " + runtimes.get(i) + "ns");
   }
 
   public void setVerbosity(boolean newVerbose) {

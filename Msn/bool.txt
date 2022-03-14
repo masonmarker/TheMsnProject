@@ -1,0 +1,27 @@
+:: boolean class --- uses 0 for false and 1 for true;
+:: author : Mason Marker;
+:: date   : 03/11/2022;
+
+s sreturn = &;
+i ireturn = 0;
+i iparam1 = 0;
+i true = 1;
+i false = 0;
+
+s b_isbool_def = determines if a number is a boolean value;
+f isbool b_isbool_def;
+isbool = ireturn = 0;
+isbool = {iparam1==true} ireturn = 1;
+isbool = {iparam1==false} ireturn = 1;
+end isbool;
+
+s b_booltostring_def = converts a bool to its string representation;
+f booltostring b_booltostring_def;
+booltostring = isbool with iparam1;
+booltostring = {iparam1==false} sreturn = fals;
+booltostring = {iparam1==false} sreturn ++ e;
+booltostring = {iparam1==true} sreturn = tru;
+booltostring = {iparam1==true} sreturn ++ e;
+end booltostring;
+
+:: end;

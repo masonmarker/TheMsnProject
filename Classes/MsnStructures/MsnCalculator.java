@@ -1,3 +1,4 @@
+package MsnStructures;
 
 import java.awt.Color;
 import java.awt.EventQueue;
@@ -24,40 +25,21 @@ import MsnLib.Msn;
  *
  */
 @SuppressWarnings("serial")
-public class Calculator extends JFrame {
+public class MsnCalculator extends JFrame {
 
 
   private JPanel contentPane;
-  private static String expression;
+  private String expression;
 
-  private static JLabel expressionlabel;
-  private static JLabel outputlabel;
-
-
-  /**
-   * Launch the application.
-   */
-  public static void main(String[] args) {
-    EventQueue.invokeLater(new Runnable() {
-      public void run() {
-        try {
-          Calculator frame = new Calculator();
-          frame.pack();
-          frame.setLocationRelativeTo(null);
-          frame.setVisible(true);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    });
-  }
+  private JLabel expressionlabel;
+  private JLabel outputlabel;
 
   /**
    * Create the frame.
    */
-  public Calculator() {
+  public MsnCalculator(String exp) {
 
-    expression = "";
+    expression = exp;
 
     setTitle("Msn Calculator 1.0");
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -424,12 +406,21 @@ public class Calculator extends JFrame {
     panel_1.add(clearbutton);
     panel.setLayout(gl_panel);
     contentPane.setLayout(gl_contentPane);
+
+    pack();
+    setLocationRelativeTo(null);
+
+
+  }
+
+  public JLabel getExpressionLabel() {
+    return expressionlabel;
   }
 
   /**
    * Checks for any change in the input and acts accordingly.
    */
-  public static void update() {
+  public void update() {
     try {
       expressionlabel.setText(expression);
       outputlabel.setText(String.valueOf(Msn.evaluate(expression)));

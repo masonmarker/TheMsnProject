@@ -19,25 +19,25 @@ import java.util.TreeMap;
  */
 public class MsnMultimap<K, V> implements Iterable<Map.Entry<K, V>> {
 
-  private Map<K, ArrayList<V>> map;
+  private MsnMap<K, ArrayList<V>> map;
 
   /**
    * Multimap constructor.
    */
   public MsnMultimap() {
-    map = new LinkedHashMap<>();
+    map = new MsnMap<>();
   }
 
   public void toHashMap() {
-    map = new HashMap<K, ArrayList<V>>(map);
+    map.toHashMap();
   }
 
   public void toTreeMap() {
-    map = new TreeMap<K, ArrayList<V>>(map);
+    map.toTreeMap();
   }
 
   public void toLinkedHashMap() {
-    map = new LinkedHashMap<K, ArrayList<V>>(map);
+    map.toLinkedHashMap();
   }
 
   /**
@@ -126,12 +126,24 @@ public class MsnMultimap<K, V> implements Iterable<Map.Entry<K, V>> {
       }
   }
 
+  public int size() {
+    return entrySet().size();
+  }
+
   public Set<Entry<K, V>> entrySet() {
     LinkedHashSet<Entry<K, V>> list = new LinkedHashSet<>();
     Iterator<Entry<K, V>> i = iterator();
     while (i.hasNext())
       list.add(i.next());
     return list;
+  }
+
+  public Set<K> keySet() {
+    return map.keySet();
+  }
+
+  public Map<K, ArrayList<V>> getMap() {
+    return map;
   }
 
   public String toString() {

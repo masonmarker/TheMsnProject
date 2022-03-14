@@ -25,7 +25,7 @@ import MsnLib.Msn;
  * Just keep going...just keep going...just keep going going going...
  * 
  * @author Mason Marker
- * @version 1.0 - 11/24/2021
+ * @version 1.1 - 02/26/2022
  * @param <T> Generic
  */
 public class MsnStream<T> extends ArrayList<T> {
@@ -73,7 +73,7 @@ public class MsnStream<T> extends ArrayList<T> {
   public static <L> MsnStream<L> of(Object... objects) {
     return new MsnStream<L>((L[]) objects);
   }
-
+  
   // ---------------- ARRAYLIST EXTENSION ----------------
 
   public MsnStream<T> _import(Collection<T> collection) {
@@ -121,11 +121,6 @@ public class MsnStream<T> extends ArrayList<T> {
 
   public MsnStream<T> _add(T t) {
     add(t);
-    return this;
-  }
-
-  public MsnStream<T> _addAll(T[] t) {
-    addAll(List.of(t));
     return this;
   }
 
@@ -359,7 +354,11 @@ public class MsnStream<T> extends ArrayList<T> {
    * @since 1.0
    */
   public MsnStatistics statistics() {
+    try {
     return new MsnStatistics(Msn.toDouble(toArray()));
+    } catch (ClassCastException e) {
+      return new MsnStatistics(Msn.toInt(toArray()));
+    }
   }
 
   /**
@@ -387,13 +386,46 @@ public class MsnStream<T> extends ArrayList<T> {
   }
 
   /**
+   * Joins this MsnStream to a String.
+   * 
+   * @return a String
+   * @since 1.1
+   */
+  public String join() {
+    String s = "";
+    for (T t : this) {
+      s += t;
+    }
+    return s;
+  }
+  
+  /**
+   * Joins this MsnStream with a delimiter.
+   * 
+   * @param delim the delimiter
+   * @return a String
+   * @since 1.1
+   */
+  public String join(String delim) {
+    String s = "";
+    for (int i = 0; i < size(); i++) {
+      if (i != size() - 1) {
+        s += get(i) + delim;
+      } else {
+        s += get(i);
+      }
+    }
+    return s;
+  }
+  
+  /**
    * Creates a Map with keys being each element mapped to null.
    * 
    * @param <K> Generic
    * @return a map representation
    */
-  public <K> Map<T, K> toMap() {
-    LinkedHashMap<T, K> m = new LinkedHashMap<>();
+  public <V> Map<T, V> toMap() {
+    LinkedHashMap<T, V> m = new LinkedHashMap<>();
     for (T t : this)
       m.put(t, null);
     return m;

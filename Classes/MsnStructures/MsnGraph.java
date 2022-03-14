@@ -220,11 +220,9 @@ public class MsnGraph implements Iterable<Edge> {
    * @return whether this MsnGraph is connected or not
    */
   public boolean isConnected() {
-    for (Vertex v : gatherVertices()) {
-      if (degreeOf(v) > 2) {
+    for (Vertex v : gatherVertices())
+      if (degreeOf(v) > 2)
         return false;
-      }
-    }
     return true;
   }
 
@@ -499,14 +497,14 @@ public class MsnGraph implements Iterable<Edge> {
   }
 
   /**
-   * Converts this MsnGraph to its matrix representation.
+   * (WIP) Converts this MsnGraph to its matrix representation.
    * 
    * @return a matrix
    */
   public int[][] toMatrix() {
     Vertex[] v = gatherVertices();
     int[][] mat = new int[v.length][v.length];
-    return null;
+    return mat;
   }
 
   /**
@@ -617,6 +615,7 @@ public class MsnGraph implements Iterable<Edge> {
 
     Vertex v1;
     Vertex v2;
+    ArrayList<Object> storage;
 
     public Edge() {
       v1 = null;
@@ -628,6 +627,14 @@ public class MsnGraph implements Iterable<Edge> {
       this.v2 = v2;
     }
 
+    public Edge(Object... objects) {
+      storage = new ArrayList<>(List.of(objects));
+    }
+    
+    public ArrayList<Object> getStorage() {
+      return storage;
+    }
+    
     public void setVertex1(Vertex v) {
       this.v1 = v;
     }

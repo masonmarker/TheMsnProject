@@ -2,6 +2,7 @@ package MsnStructures;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -13,7 +14,7 @@ import java.util.TreeMap;
  * @author Mason Marker
  * @version 1.0 - 12/02/2021
  */
-public class MsnMap<K, V> implements Map<K, V> {
+public class MsnMap<K, V> implements Map<K, V> , Iterable<Map.Entry<K, V>>{
 
   Map<K, V> map;
 
@@ -137,5 +138,10 @@ public class MsnMap<K, V> implements Map<K, V> {
 
   public String toString() {
     return map.toString();
+  }
+
+  @Override
+  public Iterator<Entry<K, V>> iterator() {
+    return map.entrySet().iterator();
   }
 }

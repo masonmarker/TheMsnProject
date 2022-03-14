@@ -52,4 +52,17 @@ public class MsnStatistics {
   public void visualize() {
     new GraphPanel(Arrays.asList(Msn.box(array))).createAndShowGui();
   }
+  
+  public String toString() {
+    String s = "";
+    s += "head: " + getFirst() + "\n";
+    s += "last: " + getLast() + "\n";
+    s += "min: " + getMin() + "\n";
+    s += "max: " + getMax() + "\n";
+    s += "avg: " + getAvg();
+    return s;
+  }
+  
+  
+  
 }

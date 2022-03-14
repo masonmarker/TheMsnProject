@@ -1,0 +1,25 @@
+:: offers additional random capabilities;
+:: author : Mason Marker;
+:: date   : 03/12/2022;
+
+import math;
+
+d dreturn = 0;
+i iparam1 = 0;
+i iparam2 = 0; 
+
+s r_random_def = obtains a random double within bounds;
+f random r_random_def;
+random = d r_random_ph = -1;
+random = r_random_ph = ?;
+random = d r_random_minus = iparam2 - iparam1;
+random = dreturn = r_random_ph * r_random_minus;
+random = dreturn += iparam1;
+end random;
+
+s r_randomint_def = obtains a random integer within bounds;
+f randomint r_randomint_def;
+randomint = random;
+randomint = iparam1 = iparam1;
+randomint = ireturn = dreturn;
+end randomint;

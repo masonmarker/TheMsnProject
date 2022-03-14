@@ -1,5 +1,6 @@
 import java.util.Random;
 import java.util.TreeMap;
+import javax.swing.SwingWorker;
 import MsnLib.Msn;
 
 /**
@@ -43,6 +44,19 @@ public class NetworkUtilities {
    */
   public Network load(String path) {
     return null;
+  }
+
+  /**
+   * Calculates an an estimate of hidden Neurons that should exist given the number of samples in
+   * the training set to prevent over-fitting.
+   * 
+   * @param inputs the amount of inputs
+   * @param outputs the amount of outputs
+   * @param samples the number of samples
+   * @return an estimate of hidden Neurons
+   */
+  public static int calculateHidden(int inputs, int outputs, int samples) {
+    return (int) (((double) samples) / (2 * (inputs + outputs)));
   }
 
   /**
@@ -141,16 +155,26 @@ public class NetworkUtilities {
    */
   public static Network findBest(double[][] inputs, double[] targets, int trainingIterations,
       boolean printNetworkAttributes) throws Exception {
+
+    System.out.println("[*] Finding best Network for " + inputs.length + " inputs via "
+        + trainingIterations + " training iterations...");
+    System.out.println("[*] Estimated trials: " + (inputs.length * 6));
     TreeMap<Integer, Network> map = new TreeMap<>();
     Timer t = new Timer();
-    for (int i = 2; i < 6; i++) {
+    for (int i = 2; i < 8; i++) {
+      System.out.println("[*] Running Network with " + i + " Layers and:");
       for (int j = inputs[0].length; j >= 2; j--) {
+        System.out.println(j + " Neurons per Layer");
         Network n = new Network(inputs[0].length, i, j, 1);
         t.start();
         n.bulkTrain(inputs, targets, trainingIterations);
         t.stop();
-        if (verify(n, inputs, targets))
+        if (verify(n, inputs, targets)) {
           map.put(t.runtime(), n);
+          String s = "[+] Possible Network found!\n";
+          s += n;
+          System.out.println(Msn.boxed(s));
+        }
       }
     }
     if (map.isEmpty())

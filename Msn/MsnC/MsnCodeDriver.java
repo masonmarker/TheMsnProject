@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -26,8 +27,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Element;
-import MsnC.Utils.Methodology;
-import MsnC.Utils.Syntax;
+import MsnC.ExecutionHandler.Function;
+import MsnC.Utils.CodeLine;
 import MsnLib.Msn;
 
 /**
@@ -46,11 +47,12 @@ public class MsnCodeDriver extends JFrame {
   private JTextArea textArea;
   private File savefile;
   private JTextArea variableArea;
-  private JPanel methodbuttonspanel;
 
   private ExecutionHandler h;
   private JTextArea console;
   private JButton runbutton;
+  private JButton btnValidate;
+  private JTextArea functionArea;
 
   /**
    * Launch the application.
@@ -206,7 +208,8 @@ public class MsnCodeDriver extends JFrame {
     sl_panel.putConstraint(SpringLayout.SOUTH, scrollPane_2, -311, SpringLayout.SOUTH, panel);
     sl_panel.putConstraint(SpringLayout.EAST, scrollPane_2, -394, SpringLayout.EAST, panel);
     panel.add(scrollPane_2);
-
+    scrollPane_2.getVerticalScrollBar().setPreferredSize(new Dimension(10, 10));
+    scrollPane_2.getHorizontalScrollBar().setPreferredSize(new Dimension(10, 10));
     JLabel lblConsole_1 = new JLabel("methodology");
     lblConsole_1.setOpaque(true);
     lblConsole_1.setHorizontalAlignment(SwingConstants.CENTER);
@@ -214,10 +217,6 @@ public class MsnCodeDriver extends JFrame {
     lblConsole_1.setFont(new Font("Monospaced", Font.PLAIN, 10));
     lblConsole_1.setBackground(Color.DARK_GRAY);
     scrollPane_2.setColumnHeaderView(lblConsole_1);
-
-    methodbuttonspanel = new JPanel();
-    methodbuttonspanel.setBackground(Color.BLACK);
-    scrollPane_2.setViewportView(methodbuttonspanel);
 
     JButton btnClearConsole = new JButton("clear console");
     btnClearConsole.addActionListener(new ActionListener() {
@@ -239,6 +238,14 @@ public class MsnCodeDriver extends JFrame {
     scrollPane_2_1.setBackground(Color.BLACK);
     sl_panel.putConstraint(SpringLayout.NORTH, scrollPane_2_1, 0, SpringLayout.NORTH, scrollPane);
     sl_panel.putConstraint(SpringLayout.WEST, scrollPane_2_1, 6, SpringLayout.EAST, scrollPane_2);
+    scrollPane_2_1.getVerticalScrollBar().setPreferredSize(new Dimension(10, 10));
+    scrollPane_2_1.getHorizontalScrollBar().setPreferredSize(new Dimension(10, 10));
+    functionArea = new JTextArea();
+    functionArea.setFont(new Font("Monospaced", Font.PLAIN, 11));
+    functionArea.setEditable(false);
+    functionArea.setBackground(Color.BLACK);
+    functionArea.setForeground(Color.WHITE);
+    scrollPane_2.setViewportView(functionArea);
     sl_panel.putConstraint(SpringLayout.SOUTH, scrollPane_2_1, 403, SpringLayout.NORTH, scrollPane);
     panel.add(scrollPane_2_1);
 
@@ -270,22 +277,54 @@ public class MsnCodeDriver extends JFrame {
         }
         console.setText("");
         h = new ExecutionHandler(textArea.getText(), console);
-        h.interpret();
+        try {
+          h.interpret(h.lines(), false);
+        } catch (Exception e1) {
+          // TODO Auto-generated catch block
+          e1.printStackTrace();
+        }
         int i = 1;
         variableArea.setText("");
         String s = "";
         for (Map.Entry<String, Object> en : h.vars.entrySet()) {
           String value = "" + en.getValue();
-          if (en.getValue().getClass().isArray())
-            value = Syntax.arrayToString(en.getValue());
-          s += i++ + ": " + en.getKey() + " (" + en.getValue().getClass().getTypeName() + ") -> "
-              + value + "\n";
+
+          // s += i++ + ": " + en.getKey() + " (" + en.getValue().getClass().getTypeName() + ") -> "
+          // + value + "\n";
+          if (!en.getKey().contains("_def")) {
+            s += en.getKey() + " :: " + en.getValue().getClass().getTypeName() + "\n";
+            s += "-> " + value + "\n\n";
+          }
         }
         variableArea.setText(variableArea.getText() + s);
+
+        String text = "";
+        ArrayList<String> printed = new ArrayList<>();
+        for (Function f : h.functions()) {
+          if (!printed.contains(f.name())) {
+            text += ":: " + f.comments() + "\n";
+            text += f.name() + "\n";
+
+            for (String param : f.params()) {
+              text += "(" + param + ") ";
+            }
+            text += " -> ";
+            for (String returns : f.returns()) {
+              text += "(" + returns + ")";
+            }
+            text += "\n";
+            for (CodeLine l : f.inside) {
+              text += "   " + l.line() + "\n";
+            }
+            text += "\n";
+            printed.add(f.name());
+          }
+        }
+        functionArea.setText(text);
+
         int cursorpos = textArea.getCaretPosition();
         while (cursorpos > textArea.getText().length())
           cursorpos--;
-        new Methodology(methodbuttonspanel, textArea.getText(), cursorpos, h.vars);
       }
     });
     runbutton.setForeground(Color.WHITE);
@@ -293,6 +332,33 @@ public class MsnCodeDriver extends JFrame {
     runbutton.setFocusPainted(false);
     runbutton.setBackground(Color.DARK_GRAY);
     panel.add(runbutton);
+
+    btnValidate = new JButton("validate");
+    btnValidate.addActionListener(new ActionListener() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        String v = Msn.contentsOf(
+            "C:\\Users\\mason\\OneDrive\\Documents\\GitHub\\TheMsnProject\\Msn\\validator.txt");
+        ExecutionHandler executionHandler = new ExecutionHandler(v, console);
+        executionHandler.printToConsole("[*] validating...", true);
+        try {
+          executionHandler.interpret(executionHandler.lines(), false);
+        } catch (Exception e1) {
+          // TODO Auto-generated catch block
+          e1.printStackTrace();
+        }
+        executionHandler.printToConsole("[+] validation complete", true);
+      }
+
+    });
+    sl_panel.putConstraint(SpringLayout.WEST, btnValidate, 6, SpringLayout.EAST, scrollPane);
+    sl_panel.putConstraint(SpringLayout.SOUTH, btnValidate, -49, SpringLayout.NORTH, runbutton);
+    btnValidate.setForeground(Color.WHITE);
+    btnValidate.setFont(new Font("Monospaced", Font.PLAIN, 12));
+    btnValidate.setFocusPainted(false);
+    btnValidate.setBackground(Color.DARK_GRAY);
+    panel.add(btnValidate);
     setLocationRelativeTo(null);
   }
 }

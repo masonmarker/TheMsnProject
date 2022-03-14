@@ -19,7 +19,7 @@ public class LearnToAdd {
     System.out.println("Running initial iterations...");
     System.out.println("(Average time to develop a successful Network: 500000 iterations)");
 
-    Network network = new Network(2, 4, 2, 1);
+    Network network = new Network(2, 3, 2, 1);
 
     int iterations = 0;
 

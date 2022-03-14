@@ -1,0 +1,87 @@
+:: provides basic mathematical functions;
+:: author : Mason Marker;
+:: date   : 03/10/2022;
+
+:: creating global variables for easier number access;
+i izero = 0;
+
+:: static field names within wrapper classes should be;
+:: defined with syntax (type)param(int) -> (default value);
+
+i ireturn = 0;
+d dreturn = 0;
+i iparam1 = 0;
+i iparam2 = 0;
+i iparam3 = 0;
+d dparam1 = 0;
+d dparam2 = 0;
+d dparam3 = 0;
+
+s m_imaximum_def = finds the maximum between two integers;
+f imaximum m_imaximum_def;
+imaximum = i ireturn = iparam1;
+imaximum = {iparam1>iparam2} ireturn = iparam1;
+imaximum = {iparam1<iparam2} ireturn = iparam2;
+end imaximum;
+
+s m_iminimum_def = finds the minimum between two integers;
+f iminimum m_iminimum_def;
+iminimum = i ireturn = iparam1;
+iminimum = {iparam1<iparam2} i ireturn = iparam1;
+iminimum = {iparam1>iparam2} i ireturn = iparam2;
+end iminimum;
+
+s m_dmaximum_def = finds the maximum between two doubles;
+f dmaximum m_dmaximum_def;
+dmaximum = d dreturn = dparam1;
+dmaximum = {dparam1<dparam2} d dreturn = dparam2;
+dmaximum = {dparam1>dparam2} d dreturn = dparam1;
+end dmaximum;
+
+s m_dminimum_def = finds the minimum between two doubles;
+f dminimum m_dminimum_def;
+dminimum = d dreturn = dparam1;
+dminimum = {dparam1<dparam2} d dreturn = dparam1;
+dminimum = {dparam1>dparam2} d dreturn = dparam2;
+end dminimum;
+
+s m_factorial_def = calculates factorial;
+f factorial m_factorial_def;
+factorial = ireturn = 1;
+factorial = i m_math_index = ireturn;
+factorial = f m_math_fact_forloop;
+factorial = m_math_fact_forloop = ireturn *= m_math_index;
+factorial = m_math_fact_forloop = m_math_index += 1;
+factorial = end m_math_fact_forloop;
+factorial = i m_math_plusone = iparam1 + 1;
+factorial = m_math_fact_forloop [1:m_math_plusone];
+end factorial;
+
+s m_pythagorean_def = calculates a^2 + b^2;
+f pythagorean m_pythagorean_def;
+pythagorean = i m_pyth_placeholder = dparam1;
+pythagorean = i m_pyth_placeholder2 = dparam2;
+pythagorean = m_pyth_placeholder ^= 2;
+pythagorean = m_pyth_placeholder2 ^= 2;
+pythagorean = dreturn r= m_pyth_placeholder + m_pyth_placeholder2;
+end pythagorean;
+
+s m_iabs_def = obtains absolute value;
+f iabs m_iabs_def;
+iabs = {iparam1<zero} ireturn = iparam1 - 2 * iparam1;
+iabs = {iparam1>zero} ireturn = iparam1;
+iabs = {iparam1==zero} ireturn = zero;
+end iabs;
+
+s m_inbounds_def = checks if a value is within the bounds;
+f inbounds m_inbounds_def;
+inbounds = i m_inbounds_bool = 1;
+inbounds = {dparam2<dparam1} m_inbounds_bool = 0;
+inbounds = {dparam2>dparam3} m_inbounds_bool = 0;
+inbounds = ireturn = m_inbounds_bool;
+end inbounds;
+
+s m_mod_def = performs modular arithmetic;
+f mod m_mod_def;
+mod = iparam1 m= iparam2;
+mod = ireturn = iparam1;

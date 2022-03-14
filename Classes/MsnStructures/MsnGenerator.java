@@ -84,58 +84,6 @@ public class MsnGenerator {
   }
 
   /**
-   * Generates a Set.
-   * 
-   * @param elements the amount of elements in the Set
-   * @return a new Set
-   */
-  public static Set<Integer> generateIntegerSet(int elements) {
-    LinkedHashSet<Integer> l = new LinkedHashSet<>();
-    for (int i = 0; i < elements; i++)
-      l.add(Msn.randomInt(0, 100));
-    return l;
-  }
-
-  /**
-   * Generates a Set.
-   * 
-   * @param elements the amount of elements in the Set
-   * @return a new Set
-   */
-  public static Set<Double> generateDoubleSet(int elements) {
-    LinkedHashSet<Double> l = new LinkedHashSet<>();
-    for (int i = 0; i < elements; i++)
-      l.add(Msn.random(0, 100));
-    return l;
-  }
-
-  /**
-   * Generates a Set.
-   * 
-   * @param elements the amount of elements in the Set
-   * @return a new Set
-   */
-  public static Set<Character> generateCharacterSet(int elements) {
-    LinkedHashSet<Character> l = new LinkedHashSet<>();
-    for (int i = 0; i < elements; i++)
-      l.add(Msn.randomLetter());
-    return l;
-  }
-
-  /**
-   * Generates a Set.
-   * 
-   * @param elements the amount of elements in the Set
-   * @return a new Set
-   */
-  public static Set<String> generateStringSet(int elements) {
-    LinkedHashSet<String> l = new LinkedHashSet<>();
-    for (int i = 0; i < elements; i++)
-      l.add(Msn.randomString(5));
-    return l;
-  }
-
-  /**
    * Generates a Stream.
    * 
    * @param elements the amount of elements in the Stream
@@ -202,17 +150,17 @@ public class MsnGenerator {
     String valueType = Msn.identify(first.getValue());
     switch (keyType) {
       case "Integer":
-        for (Integer i : generateIntegerSet(entries))
+        for (Integer i : generateIntegerCollection(entries))
           map.put((K) i, null);
         populateValues(map, valueType);
         break;
       case "Double":
-        for (Double i : generateDoubleSet(entries))
+        for (Double i : generateDoubleCollection(entries))
           map.put((K) i, null);
         populateValues(map, valueType);
         break;
       case "Character":
-        for (Character i : generateCharacterSet(entries))
+        for (Character i : generateCharacterCollection(entries))
           map.put((K) i, null);
         populateValues(map, valueType);
         break;

@@ -1,14 +1,12 @@
-import MsnLib.Msn;
-
 public class NetworkTesting {
 
   public static void main(String[] args) {
 
-    Network n = new Network(2, 2, 2, 1);
+    Generation g1 = new Generation(5, 5, new String[] {});
 
-    double[] possible = NetworkUtilities.getPossible(15);
-    
-    Msn.pa(possible);
+    for (int i = 0; i < 31; i++) {
+      
+    }
 
   }
 
