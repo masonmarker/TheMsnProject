@@ -1,0 +1,10 @@
+:: assists with loops;
+:: author : Mason Marker;
+:: date   : 03/11/2022;
+
+i index = 0;
+
+f lreset;
+resetloops = i index = 0;
+
+:: end;

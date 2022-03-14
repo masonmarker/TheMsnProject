@@ -1,0 +1,70 @@
+:: offers additional list capabilities;
+:: author : Mason Marker;
+:: date   : 03/11/2022;
+
+:: prerequisite variables;
+l lreturn;
+l lparam1;
+l lparam2;
+i iparam1 = 0;
+i iparam2 = 0;
+i iparam3 = 0;
+d dparam1 = 0;
+d dparam2 = 0;
+d dparam3 = 0;
+
+s l_lclear_def = clears a list of all elements;
+f lclear l_lclear_def;
+lclear = i l_lclear_length = -1;
+lclear = lparam1 length -> l_lclear_length;
+lclear = lparam1 removeat 0 [0:l_lclear_length];
+end lclear;
+
+s l_rangeof_def = creates a range of values;
+f rangeof l_rangeof_def;
+rangeof = l lreturn;
+rangeof = i l_rangeof_index = iparam1;
+rangeof = f l_rangeof_loop;
+rangeof = l_rangeof_loop = lreturn add l_rangeof_index;
+rangeof = l_rangeof_loop = l_rangeof_index += 1;
+rangeof = end l_rangeof_loop;
+rangeof = l_rangeof_loop [iparam1:iparam2];
+end rangeof;
+
+s l_dfill_def = fills a list with the specified double;
+f dfill l_dfill_def;
+dfill = lreturn add dparam1 [0:iparam1];
+end dfill;
+
+s l_sfill_def = fills a list with the specified string;
+f sfill l_sfill_def;
+sfill = l lreturn;
+sfill = lreturn add sparam1 [0:iparam1];
+end sfill;
+
+s l_lcat_def = concatinates two lists
+f lcat l_lcat_def;
+lcat = l lreturn;
+lcat = i l_lcat_index = 0;
+lcat = f l_lcat_loop;
+lcat = l_lcat_loop = o l_lcat_current = &;
+lcat = l_lcat_loop = lparam1 getat l_lcat_index -> l_lcat_current;
+lcat = l_lcat_loop = lreturn add l_lcat_current;
+lcat = l_lcat_loop = l_lcat_index += 1;
+lcat = end l_lcat_loop;
+lcat = i l_lcat_length = -1;
+lcat = lparam1 length -> l_lcat_length;
+lcat = l_lcat_loop [0:l_lcat_length];
+lcat = l_lcat_index = 0;
+lcat = f l_lcat_loop2;
+lcat = l_lcat_loop2 = o l_lcat_current = &;
+lcat = l_lcat_loop2 = lparam2 getat l_lcat_index -> l_lcat_current;
+lcat = l_lcat_loop2 = lreturn add l_lcat_current;
+lcat = l_lcat_loop2 = l_lcat_index += 1;
+lcat = end l_lcat_loop2;
+lcat = l_lcat_length = -1;
+lcat = lparam2 length -> l_lcat_length;
+lcat = l_lcat_loop2 [0:l_lcat_length];
+end lcat;
+
+

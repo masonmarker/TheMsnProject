@@ -59,8 +59,10 @@ possible operators:
 *=
 /=
 ^=
+r=
 <> switch, ex: intVarName <> int2VarName // now intVarName = int2VarName and int2VarName = intVarName
 ?? reset, resets the variable to its default, ex: intVarName ??  // intVarName is now 0
+++ array and string concatination ex; stringvarname ++ hey this is a string
 -----------
 
 -----------

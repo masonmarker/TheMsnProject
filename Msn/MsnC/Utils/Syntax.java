@@ -1,6 +1,7 @@
 package MsnC.Utils;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import MsnLib.Msn;
 
 /**
@@ -11,19 +12,37 @@ import MsnLib.Msn;
  */
 public class Syntax {
 
-  public static final String[] VALID_COMMANDS = {"print", "println", "i", "d", "s", "c", "b", "o", "i[]",
-      "d[]", "s[]", "c[]", "b[]", "o[]", "if", "for", "while"};
+  public static final String[] VALID_COMMANDS =
+      {"print", "println", "i", "d", "s", "c", "o", "l", "f"};
 
   public static final String VALID_COMMENT = "//";
   public static final String[] VALID_OPERATORS = {"+", "-", "=", "/", "^", "%", "==", "!=", ">",
-      "<", "<=", ">=", "+=", "-=", "*=", "/=", "^=", "<>", "??"};
+      "<", "<=", ">=", "+=", "-=", "*=", "/=", "^=", "<>", "??", "++", "r=", "m="};
   public static final String[] VALID_ESCAPES = {"\n"};
+
+  public static final String[] VALID_PARAMETERS =
+      {"iparam1", "iparam2", "iparam3", "iparam4", "dparam1", "dparam2", "dparam3", "dparam4",
+          "cparam1", "cparam2", "cparam3", "cparam4", "sparam1", "sparam2", "sparam3", "sparam4",
+          "lparam1", "lparam2", "lparam3", "lparam4", "oparam1", "oparam2", "oparam3", "oparam4"};
+
+  public static final String[] VALID_RETURNS =
+      {"ireturn", "dreturn", "creturn", "sreturn", "oreturn", "lreturn"};
 
   public static final int DEFAULT_INT = 0;
   public static final double DEFAULT_DOUBLE = 0.0;
   public static final String DEFAULT_STRING = "";
   public static final Object DEFAULT_OBJECT = null;
   public static final Object DEFAULT_CHAR = '?';
+
+  /**
+   * Decides whether the String passed is a valid return keyword.
+   * 
+   * @param s the String to check
+   * @return whether the String passed is a valid return keyword.
+   */
+  public static boolean isValidReturn(String s) {
+    return Msn.contains(VALID_RETURNS, s);
+  }
 
   /**
    * Decides whether the String passed is a valid operator.
@@ -36,13 +55,44 @@ public class Syntax {
   }
 
   /**
-   * Decides whether the String passed is a valid command.
+   * Finds the named parameters that a function uses;
+   * 
+   * @param str the String to check
+   * @return the params used in the function
+   */
+  public static String[] params(String s) {
+    LinkedHashSet<String> found = new LinkedHashSet<>();
+    for (String pm : VALID_PARAMETERS) {
+      if (s.contains(pm)) {
+        found.add(pm);
+      }
+    }
+    return found.toArray(String[]::new);
+  }
+
+  /**
+   * Extracts the return keywords from the String.
+   * 
+   * @param s the String to check
+   * @return the returns used in the function
+   */
+  public static String[] returns(String s) {
+    LinkedHashSet<String> found = new LinkedHashSet<>();
+    for (String pm : VALID_RETURNS) {
+      if (s.contains(pm)) {
+        found.add(pm);
+      }
+    }
+    return found.toArray(String[]::new);
+  }
+
+  /**
+   * Decides whether the String passed is a valid function parameter.
    * 
    * @param s the String
-   * @return whether the String is equal to a valid command
    */
-  public static boolean isValidCommand(String s) {
-    return Msn.contains(s, VALID_COMMANDS);
+  public static boolean isValidParameter(String s) {
+    return Msn.contains(VALID_PARAMETERS, s);
   }
 
   /**
@@ -69,72 +119,48 @@ public class Syntax {
     }
   }
 
-  /**
-   * Decides whether the String passed is a valid term within MSNC.
-   * 
-   * @param s the String
-   * @return whether the String is equal to a valid term
-   */
-  public static boolean isValidTerm(String s) {
-    return isValidOperator(s) || isValidCommand(s) || s.equals(VALID_COMMENT) || isValidEscape(s);
+  public static boolean isList(Object o) {
+
+    return o.getClass().getTypeName().equals("MsnStructures.MsnStream");
   }
-  
+
+  public static boolean isObject(Object o) {
+    return o.getClass().getTypeName().contains("Object");
+  }
+
   /**
-   * Converts an Object to its corresponding array.
+   * Determines if the String array passed contains an operator.
    * 
-   * @param o the Object
-   * @return String representation
+   * @param split the split String
    */
-  public static String arrayToString(Object o) {
-    switch (o.getClass().getTypeName()) {
-      case "int[]":
-        return Arrays.toString((int[]) o);
-      case "double[]":
-        return Arrays.toString((double[]) o);
-      case "String[]":
-        return Arrays.toString((String[]) o);
-      case "char[]":
-        return Arrays.toString((char[]) o);
-      case "Object[]":
-        return Arrays.toString((Object[]) o);
+  public static boolean containsOperator(String string) {
+    for (String s : VALID_OPERATORS) {
+      if (string.contains(s)) {
+        return true;
+      }
     }
-    return null;
+    return false;
   }
-  
+
+  public static boolean isBooleanOperator(String string) {
+    String[] bops = {"==", ">", "<", ">=", "<=", "!="};
+    return Msn.contains(bops, string);
+  }
+
   public static boolean isInt(Object o) {
     return o.getClass().getTypeName().equals("java.lang.Integer");
   }
-  
+
   public static boolean isDouble(Object o) {
     return o.getClass().getTypeName().equals("java.lang.Double");
   }
-  
+
   public static boolean isChar(Object o) {
     return o.getClass().getTypeName().equals("java.lang.Character");
   }
-  
+
   public static boolean isString(Object o) {
     return o.getClass().getTypeName().equals("java.lang.String");
   }
-  
-  public static boolean isIntArray(Object o) {
-    return o.getClass().getTypeName().equals("int[]");
-  }
-  
-  public static boolean isDoubleArray(Object o) {
-    return o.getClass().getTypeName().equals("double[]");
-  }
-  
-  public static boolean isCharArray(Object o) {
-    return o.getClass().getTypeName().equals("char[]");
-  }
-  
-  public static boolean isStringArray(Object o) {
-    return o.getClass().getTypeName().equals("String[]");
-  }
-  
-  public static boolean isObjectArray(Object o) {
-    return o.getClass().getTypeName().equals("Object[]");
-  }
-  
+
 }

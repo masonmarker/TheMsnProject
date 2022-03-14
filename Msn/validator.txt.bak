@@ -1,0 +1,842 @@
+:: tests functionality of MSNC;
+:: this is not the compiler!;
+:: asserts all of the operators function properly;
+
+timestart;
+
+import bool;
+import list;
+import string;
+import math;
+
+
+i true = 1;
+i false = 0;
+
+i int = 1;
+d double = 5.5;
+c char = f;
+s string = this is a string3483;
+
+:: ---- testing the assignment operator '=' ---- ;
+
+int = 3;
+i int2 = 1;
+i int3 = 3;
+assert int3 int;
+!assert int2 int3;
+
+d double2 = 5.5;
+d double3 = 10.753;
+assert double double2;
+!assert double2 double3;
+!assert double double3; 
+
+c char2 = j;
+c char3 = 5;
+c char4 = f;
+assert char char4;
+!assert char3 char2;
+
+s string2 = this is stri;
+s string3 = this is a string3483;
+assert string3 string;
+!assert string2 string;
+
+s string4 = f;
+s string5 = f;
+assert string4 string5;
+
+i int4 = 5;
+int = 5;
+assert int int4;
+
+d doubled = 10.78;
+double = doubled;
+assert double doubled;
+!assert double double3;
+
+c charc = p;
+charc = t;
+c checkchar = t;
+assert checkchar charc;
+!assert charc double;
+!assert charc int;
+
+string = newstring;
+s newstring = newstring;
+assert string newstring;
+!assert string string3;
+
+
+:: ---- testing arithmetic operators ---- ;
+
+int = 12;
+int += 1;
+int2 = 13;
+int3 = 100;
+assert int int2;
+!assert int int3;
+
+double = 12.32;
+double += 5;
+d checkdouble = 17.32;
+assert double checkdouble;
+
+double += 0.2;
+checkdouble = 17.52;
+assert checkdouble double;
+
+double -= double;
+d zero = 0.0;
+assert double zero;
+
+int = 5;
+int -= 2;
+int2 = 3;
+assert int int2;
+
+int = 2;
+int = int + 2 - 1;
+int2 = 3;
+assert int int2;
+int2 = 15;
+!assert int int2;
+
+int = 2;
+int2 =  10;
+int *= int2;
+int3 = 20;
+assert int3 int;
+
+int = 1;
+double = 3.0;
+double += int + 1;
+checkdouble = 5.0;
+assert checkdouble double;
+
+double = 2.0;
+double ^= double;
+double += 1;
+double -= 1;
+checkdouble = 4;
+assert double checkdouble;
+
+int = 5;
+double = int * int;
+checkdouble = 25.0;
+assert checkdouble double;
+
+double = 3;
+double ^= 2;
+checkdouble = 9;
+assert checkdouble double;
+
+:: MSNC adheres to integer division standards;
+int = 9;
+int2 = 4;
+int = int / int2;
+int3 = 2;
+assert int3 int;
+
+double = 5.6;
+d double2 = 4.5;
+double <> double2;
+checkdouble = 5.6;
+assert checkdouble double2;
+checkdouble = 4.5;
+assert checkdouble double;
+
+int = 5;
+i int2 = 4;
+int <> int2;
+i checkint = 5;
+assert checkint int2;
+checkint = 4;
+assert checkint int;
+
+string = hello;
+string2 = world;
+string <> string2;
+s checkstring = world;
+assert checkstring string;
+checkstring = hello;
+assert checkstring string2;
+
+:: modular arithmetic;
+
+int = 16;
+int2 = 7;
+
+int m= int2;
+checkint = 2;
+assert int checkint;
+
+int = 12;
+int2 = 9;
+
+int m= int2;
+checkint = 3;
+assert checkint int;
+
+:: ---- calculate pythagorean distance test ---- ;
+
+i side1 = 3;
+i side2 = 4;
+d root = 0;
+i sidesquared = side1;
+sidesquared ^= 2;
+i side2squared = side2;
+side2squared ^= 2;
+root r= sidesquared + side2squared;
+d checkdouble = 5;
+assert checkdouble root;
+ 
+:: ---- basic string operations ---- ;
+
+string = this is a new str;
+string ++ hello;
+s checkstring = this is a new strhello;
+assert string checkstring;
+
+string = s;
+int = 5;
+string ++ int;
+checkstring = s5;
+assert checkstring string;
+
+string = _string holds the value of;
+int = 58732;
+string ++ int;
+checkstring = _string holds the value of58732;
+assert checkstring string;
+
+string = hello;
+s stringg = world;
+i age = 20;
+checkstring = helloworld20;
+s result = string;
+result ++ stringg;
+result ++ age;
+assert result checkstring; 
+
+s empty = &;
+empty ++ hello;
+checkstring = hello;
+assert checkstring empty; 
+
+s empty = &;
+s another = x;
+empty ++ another;
+empty ++ :w:;
+empty ++ x;
+checkstring = x x;
+assert checkstring empty;
+
+:: string representation of a number;
+
+s string = &;
+double = 543.34325;
+string ++ double;
+checkstring = 543.34325;
+assert checkstring string;
+
+:: ---- create a string using a name and age ---- ;
+
+s name = mason;
+i age = 20;
+s string = &;
+string ++ hello, my name is name and i am age years old;
+checkstring = hello, my name is mason and i am 20 years old;
+assert checkstring string;
+
+:: ---- loop testing ---- ;
+
+i int = 0;
+int += 1 [0:5];
+i checkint = 5;
+assert int checkint;
+
+i int = 0;
+int += 1 [3:5];
+i checkint = 2;
+assert int checkint;
+
+d double = 0.0;
+double += 1 [5:3];
+d checkdouble = 2;
+assert checkdouble double;
+
+:: ---- variable indices ---- ;
+
+i index1 = 5;
+i index2 = 10;
+
+i int = 0;
+int += 1 [index1:index2];
+i checkint = 5;
+assert int checkint;
+
+i int = 0;
+int += 1 [index2:index1];
+i checkint = 5;
+assert int checkint;
+
+string = &;
+s string2 = yo;
+string ++ string2 [index1:index2];
+checkstring = yoyoyoyoyo;
+assert checkstring string;
+
+i int = 5;
+int *= int [0:3];
+checkint = 390625;
+assert checkint int;
+
+:: ---- FUNCTIONS ---- ;
+
+:: define a function and create a space for a return value;
+i return = 0;
+f increase;
+increase = return += 1;
+
+increase;
+i checkint = 1;
+assert checkint return;
+
+
+i return = 0;
+f dec;
+dec = return -= 1;  
+dec = return -= 1;
+
+dec;
+checkint = -2;
+assert checkint return;
+
+
+:: generate a string with 'count' characters of s;
+
+i count = 5;
+i int = count;
+s return = &;
+s string = str;
+f forloop;
+forloop = int += 1;  
+forloop = return ++ string;
+
+forloop [0:count];
+
+s checkstring = strstrstrstrstr;
+assert return checkstring;
+
+
+:: ---- factorial of 10 ---- ;
+
+i number = 10;
+
+i result = 1;
+i index = 1;
+f forloop2;
+forloop2 = result *= index;
+forloop2 = index += 1;
+
+i max = number + 1;
+forloop2 [1:max];
+
+i checkint = 3628800;
+assert checkint result;
+
+:: reset loops;
+
+
+f reset;
+reset = i result = 0;
+reset = i index = 0;
+
+
+f resetfactorial;
+resetfactorial = i max = number + 1;
+resetfactorial = result = 1;
+resetfactorial = index = 1;
+
+
+
+
+:: simpler factorial function;
+
+f sfactorial;
+sfactorial = forloop2 [1:max];
+
+i number = 8;
+
+resetfactorial;
+sfactorial;
+
+i checkint = 40320;
+assert checkint result;
+
+
+
+:: running factorial again;
+
+number = 9;
+resetfactorial;
+sfactorial;
+
+i checkint = 362880;
+assert result checkint;
+
+:: checking for 1;
+
+number = 1;
+
+resetfactorial;
+sfactorial;
+
+checkint = 1;
+assert result checkint;
+
+
+factorial with 6;
+i checkint = 720;
+assert checkint ireturn;
+
+:: a larger program with more arithmetic;
+
+f arith;
+arith = result += index;
+arith = result -= index;
+
+i index = 0;
+i result = 0;
+f largerfunction;
+largerfunction = arith;
+largerfunction = index += 1;
+
+largerfunction [0:10];
+
+i checkint = 0;
+assert checkint result;
+
+:: switches integer values multiple times;
+
+i int = 10;
+i int2 = 20;
+
+int <> int2 [0:11];
+
+i checkint = 10;
+assert checkint int2;
+!assert checkint int;
+
+
+:: boolean expressions;
+
+i int = 20;
+i int2 = 15;
+
+{int2<int} int += 1;
+
+i checkint = 21;
+assert checkint int;
+
+s string = yo whats up;
+s string2 = yo whats up;
+s string3 = hello;
+assert string string2;
+!assert string2 string3;
+
+i int = 0;
+{string==string2} int += 1;
+
+i int2 = 1;
+assert int2 int;
+
+{string!=string3} int += 1;
+checkint = 2;
+assert checkint int;
+
+double = 34.86;
+d double2 = 12.6;
+!assert double double2;
+
+int = 0;
+{double!=double2} int += 1;
+
+checkint = 1;
+assert checkint int;
+
+d double3 = 12.6;
+{double3==double2} double3 += 2;
+
+d checkdouble = 14.6;
+assert checkdouble double3;
+
+int = 0;
+{double3<=checkdouble} int += 1;
+
+checkint = 1;
+assert checkint int;
+
+double = 5.5;
+double2 = 5.5;
+{double>=double2} double2 += 1;
+d checkdouble = 6.5;
+assert checkdouble double2;
+
+c char = f;
+c char2 = f;
+
+int = 0;
+checkint = 1;
+{char==char2} int += 1;
+
+assert checkint int;
+
+int = 5;
+checkint = 5;
+{0} int += 1;
+assert int checkint;
+
+int = 5;
+checkint = 6;
+{1} int += 1;
+assert int checkint;
+
+int = 5;
+checkint = 6;
+int2 = 1;
+{int2} int += 1;
+assert int checkint;
+
+int = 5;
+checkint = 5;
+int2 = 0;
+{int2} int += 1;
+assert int checkint;
+
+:: ---- booleans in functions ---- ;
+
+i result = 0;
+
+i index = 0;
+i constant = 5;
+f function;
+function = {index<constant} result += index;
+function = index += 1;
+
+function [0:10];
+
+checkint = 10;
+assert checkint result;
+
+i param1 = 10;
+i param2 = 15;
+i result = 0;
+
+f maximum;
+maximum = result = param1;
+maximum = {param1<param2} result = param2;
+maximum = {param1>param2} result = param1;
+
+maximum;
+assert param2 result;
+
+:: ---- testing list functions ---- ;
+
+l list;
+
+:: list addition syntax;
+list add 5;
+list add 9;
+list add 20;
+
+l list2;
+list2 add 5;
+list2 add 9;
+list2 add 20;
+
+l list3;
+list3 add 34;
+
+assert list list2;
+!assert list3 list;
+
+i int = 0;
+i checkint = 1;
+{list==list2} int += 1;
+assert int checkint;
+
+i boolean = -1;
+d checkdouble = 9.0;
+list contains checkdouble -> boolean;
+assert boolean true;
+
+i boolean2 = -1;
+d checkdouble = 21;
+list contains checkdouble -> boolean2;
+assert false boolean2;
+
+i int4 = 15;
+list add int4 + 1;
+boolean = -1;
+
+i checkint = int4 + 1;
+list contains checkint -> boolean;
+assert boolean false;
+
+
+l list5;
+i index = 0;
+f forloop4;
+forloop4 = list5 add index;
+forloop4 = index += 1;
+
+forloop4 [0:10];
+
+i checkint = 10;
+i length = -1;
+list5 length -> length;
+assert checkint length;
+
+i length1 = -1;
+i lenght2 = -1;
+list length -> length1;
+list5 length -> length2;
+{length1>length2} list copy -> lreturn;
+{length1<length2} list5 copy -> lreturn;
+
+l checklist;
+checklist add 0;
+checklist add 1;
+checklist add 2;
+checklist add 3;
+checklist add 4;
+checklist add 5;
+checklist add 6;
+checklist add 7;
+checklist add 8;
+checklist add 9;
+
+assert checklist lreturn;
+
+list5 remove 4;
+list5 length -> length;
+checkint = 9;
+assert checkint length;
+
+i contains4 = 0;
+i four = 4;
+list contains four -> contains4;
+assert false contains4;
+
+:: ---- testing list removeat method ---- ;
+
+l list;
+i index = 0;
+
+f forloop5;
+forloop5 = list add index;
+forloop5 = index += 1;
+
+forloop5 [0:10];
+
+i index = 0;
+i izero = 0;
+f forloop6;
+forloop6 = list removeat 0;
+forloop6 = index += 1;
+
+i length = -1;
+list length -> length;
+forloop6 [0:length];
+
+list length -> length;
+
+i checkint = 0;
+assert length checkint;
+
+list add 0;
+list add 1 + 0;
+list add 1 + 1 + 0 + 0;
+list add 3 * 1;
+list add 9 - 1 - 4;
+list add 5;
+
+d at0 = -1;
+list getat 1 -> at0;
+d dzero = 1;
+assert dzero at0;
+
+d at0 = -1;
+list getat 2 -> at0;
+d dzero = 2;
+assert dzero at0;
+
+d at0 = -1;
+list getat 2 -> at0;
+d dzero = 2;
+assert dzero at0;
+
+d at0 = -1;
+i ithree = 3;
+list getat ithree -> at0;
+d dzero = 3;
+assert dzero at0;
+
+s delim = &;
+delim ++ :w:;
+s joined = &;
+list join delim -> joined;
+
+s scorrect = 0.0 1.0 2.0 3.0 4.0 5.0;
+assert joined scorrect;
+
+l list;
+list add 3;
+list add 5;
+
+list reverse;
+
+l list2;
+list2 add 5;
+list2 add 3;
+
+assert list list2;
+
+:: testing classes;
+
+
+iparam1 = 5;
+iparam2 = 3;
+iminimum;
+i checkint = 3;
+assert ireturn checkint;
+
+iparam1 = 34;
+iparam2 = 98;
+iminimum;
+i checkint = 34;
+assert ireturn checkint;
+
+iparam1 = 25;
+iparam2 = 32;
+imaximum;
+i checkint = 32;
+assert ireturn checkint;
+
+iparam1 = 54;
+iparam2 = 23;
+imaximum;
+i checkint = 54;
+assert ireturn checkint;
+
+dparam1 = 5;
+dparam2 = 3;
+dminimum;
+d checkdouble = 3;
+assert dreturn checkdouble;
+
+dparam1 = 5;
+dparam2 = 3;
+dmaximum;
+d checkdouble = 5;
+assert dreturn checkdouble;
+
+iparam1 = 6;
+factorial;
+i checkint = 720;  
+assert checkint ireturn;
+
+iparam1 = 5;
+factorial;
+i checkint = 120;
+assert checkint ireturn;
+
+dparam1 = 3;
+dparam2 = 4;
+d checkdouble = 5;
+pythagorean;
+assert checkdouble dreturn;
+
+:: testing more classes;
+
+:: for function calls with multiple parameters ---;
+:: list them in the order as specified in methodology;
+dminimum with 34.5 7.8;
+d checkdouble = 7.8;
+assert checkdouble dreturn;
+
+factorial with 4;
+i checkint = 24;
+assert checkint ireturn;
+
+isbool with 0;
+assert true ireturn;
+
+isbool with 1;
+assert true ireturn;
+
+isbool with 43;
+assert false ireturn;
+
+s stringtrue = true;
+s stringfalse = false;
+
+booltostring with 0;
+assert stringfalse sreturn;
+
+booltostring with 1;
+assert stringtrue sreturn;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+timestop;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 

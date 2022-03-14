@@ -8,7 +8,7 @@ public class MsnStreamTesting {
 
     MsnStream<Double> stream = new MsnStream<>();
     
-    stream._import(MsnGenerator.generateDoubleSet(100))._shuffled().statistics().visualize();
+    stream._import(MsnGenerator.generateDoubleCollection(100))._shuffled().statistics().visualize();
     
     
     

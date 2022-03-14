@@ -1,0 +1,75 @@
+:: offers additional string capabilities;
+:: author : Mason Marker;
+:: date   : 03/11/2022;
+
+
+:: prerequisite variables;
+s sreturn = &;
+i ireturn = 0;
+s sparam1 = &;
+c cparam1 = ?;
+s sparam2 = &;
+i iparam1 = 0;
+
+s s_sremove_def = removes all of a char from a string;
+f sremove s_sremove_def;
+sremove = l s_sremove_list;
+sremove = sparam1 -> s_sremove_list;
+sremove = s_sremove_list remove cparam1;
+sremove = s s_sremove_delim = &;
+sremove = s_sremove_list join s_sremove_delim -> sreturn;
+
+s s_scount_def = counts the number of times a char appears in a string;
+f scount s_scount_def;
+scount = i s_scount_count = 0;
+scount = l s_scount_list;
+scount = sparam1 -> s_scount_list;
+scount = i s_scount_length = -1;
+scount = s_scount_list length -> s_scount_length;
+scount = s s_scount_ph = &;
+scount = s_scount_ph ++ cparam1;
+scount = i s_scount_index = 0;
+scount = f s_scount_loop;
+scount = s_scount_loop = s s_scount_current = &;
+scount = s_scount_loop = s_scount_list getat s_scount_index -> s_scount_current;
+scount = s_scount_loop = {s_scount_ph==s_scount_current} s_scount_count += 1;
+scount = s_scount_loop = s_scount_index += 1;
+scount = s_scount_loop [0:s_scount_length];
+scount = ireturn = s_scount_count;
+
+
+s s_removen_def = removes a certain amount of an element in a list;
+f sremoven s_removen_def;
+sremoven = f s_sremoven_loop;
+sremoven = s_sremoven_loop = sremove;
+sremoven = s_sremoven_loop = sparam1 = sreturn;
+sremoven = s_sremoven_loop [0:iparam1];
+
+
+s s_scontains_def = determines if a string contains a char;
+f scontains s_scontains_def;
+scontains = l s_scontains_list;
+scontains = sparam1 -> s_scontains_list;
+scontains = s s_scontains_ph = &;
+scontains = s_scontains_ph ++ cparam1;
+scontains = s_scontains_list contains s_scontains_ph -> ireturn;
+
+s s_delimit_def = delimits a string;
+f sdelimit s_delimit_def;
+sdelimit = l s_sdelimit_list;
+sdelimit = sparam1 -> s_sdelimit_list;
+sdelimit = s_sdelimit_list join sparam2 -> sreturn;
+
+
+s s_sgetat_def = gets a character at an index in a string;
+f sgetat s_sgetat_def;
+sgetat = l s_sgetat_list;
+sgetat = sparam1 -> s_sgetat_list;
+sgetat = s_sgetat_list getat iparam1 -> sreturn;
+
+s s_slength_def = gets the length of a string;
+f slength s_slength_def ;
+slength = l s_sgetat_list;
+slength = sparam1 -> s_sgetat_list;
+slength = s_sgetat_list length -> ireturn;
+

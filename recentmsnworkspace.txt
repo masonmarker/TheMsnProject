@@ -1,3 +1,25 @@
-i[] array = 3 4 5;
+import bool;
+import random;
+import math;
+import list;
 
-print array;
+
+mod with 10 6;
+
+println ireturn;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

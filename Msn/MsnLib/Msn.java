@@ -16,6 +16,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -31,6 +33,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
@@ -1368,7 +1371,7 @@ public class Msn {
    */
   public static boolean isNumber(String s) {
     for (int i = 0; i < s.length(); i++)
-      if (!Character.isDigit(s.charAt(i)))
+      if (!Character.isDigit(s.charAt(i)) && s.charAt(i) != '-' && s.charAt(i) != '.')
         return false;
     return true;
   }
@@ -1715,7 +1718,6 @@ public class Msn {
         fixed += " ";
       }
     }
-    System.out.println(fixed);
     Scanner k = new Scanner(fixed);
     ArrayList<Double> numbers = new ArrayList<>();
     while (k.hasNext()) {
@@ -3951,7 +3953,7 @@ public class Msn {
   }
 
   /**
-   * Gets the Entry from a TreeMap at a certain index.
+   * Gets the Entry from a Map at a certain index.
    * 
    * @param <K> the key
    * @param <V> the value
@@ -3960,9 +3962,26 @@ public class Msn {
    * @return the Entry at the index
    * @since 0.1.5.1.6
    */
-  public static <K, V> Map.Entry<K, V> getAt(int index, TreeMap<K, V> map) {
+  public static <K, V> Map.Entry<K, V> getAt(int index, Map<K, V> map) {
     int count = 0;
     for (Map.Entry<K, V> entry : map.entrySet()) {
+      if (count == index)
+        return entry;
+      count++;
+    }
+    return null;
+  }
+  
+  /**
+   * Gets the element at an index in a set.
+   * 
+   * @param index the index
+   * @param set the set
+   * @return the element
+   */
+  public static <K> K getAt(int index, Set<K> set) {
+    int count = 0;
+    for (K entry : set) {
       if (count == index)
         return entry;
       count++;
@@ -8587,6 +8606,22 @@ public class Msn {
   }
 
   /**
+   * Rounds a double to the nth place.
+   * 
+   * @param value the value to round
+   * @param places the amount of decimal places to round to
+   * @return the rounded number
+   */
+  public static double round(double value, int places) {
+    if (places < 0)
+      throw new IllegalArgumentException();
+
+    BigDecimal bd = new BigDecimal(Double.toString(value));
+    bd = bd.setScale(places, RoundingMode.HALF_UP);
+    return bd.doubleValue();
+  }
+
+  /**
    * Rounds a double to the nearest tenth.
    * 
    * @param number the number to round
@@ -9556,11 +9591,13 @@ public class Msn {
   /**
    * Calculates all permutations of the array passed.
    * 
+   * @param <T>
+   * 
    * @param arr the array
    * @return all permutations of the array passed
    */
-  public static List<List<Integer>> permute(int[] arr) {
-    List<List<Integer>> list = new ArrayList<>();
+  public static <T> List<List<T>> permute(T[] arr) {
+    List<List<T>> list = new ArrayList<>();
     ph(list, new ArrayList<>(), arr);
     return list;
   }
@@ -9568,11 +9605,13 @@ public class Msn {
   /**
    * Recursive permutation assistance.
    * 
+   * @param <T>
+   * 
    * @param list the current list of permutations.
    * @param result current permutation
    * @param a the array
    */
-  private static void ph(List<List<Integer>> list, List<Integer> result, int[] a) {
+  private static <T> void ph(List<List<T>> list, List<T> result, T[] a) {
     if (result.size() == a.length)
       list.add(new ArrayList<>(result));
     else {
