@@ -59,4 +59,23 @@ lcat = lparam2 length -> l_lcat_length;
 lcat = l_lcat_loop2 [0:l_lcat_length];
 end lcat;
 
+s sum_def = gets the sum of a list;
+s sum_params = @lparam1 -> @ireturn @dreturn;
+f sum sum_def sum_params;
+sum = i l_sum_index = 0;
+sum = d l_sum_sum = 0;
+sum = i s_sum_length = -1;
+sum = lparam1 length -> s_sum_length;
+sum = f s_sum_loop;
+sum = s_sum_loop = d s_sum_current = 0;
+sum = s_sum_loop = lparam1 getat l_sum_index -> s_sum_current;
+sum = s_sum_loop = l_sum_sum += s_sum_current;
+sum = s_sum_loop = l_sum_index += 1;
+sum = end s_sum_loop;
+sum = s_sum_loop [0:s_sum_length];
+sum = dreturn = l_sum_sum;
+sum = ireturn = l_sum_sum;
+end sum;
+
+
 

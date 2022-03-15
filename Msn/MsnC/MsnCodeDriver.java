@@ -297,7 +297,8 @@ public class MsnCodeDriver extends JFrame {
 
           // s += i++ + ": " + en.getKey() + " (" + en.getValue().getClass().getTypeName() + ") -> "
           // + value + "\n";
-          if (!en.getKey().contains("_def") && !en.getKey().contains("_params")) {
+          if (!en.getKey().contains("_def") && !en.getKey().contains("_params")
+              && Msn.countChars(en.getKey(), '_') < 2) {
             s += en.getKey() + " :: " + en.getValue().getClass().getTypeName() + "\n";
             s += "-> " + value + "\n\n";
           }
@@ -307,7 +308,7 @@ public class MsnCodeDriver extends JFrame {
         String text = "";
         ArrayList<String> printed = new ArrayList<>();
         for (Function f : h.functions()) {
-          if (!printed.contains(f.name())) {
+          if (!printed.contains(f.name()) && Msn.countChars(f.name(), '_') < 2) {
             text += ":: " + f.comments() + "\n";
             text += f.name() + "\n";
 
@@ -319,9 +320,7 @@ public class MsnCodeDriver extends JFrame {
               text += "(" + returns + ")";
             }
             text += "\n";
-            for (CodeLine l : f.inside) {
-              text += "   " + l.line() + "\n";
-            }
+            text += Msn.generate('-', 100);
             text += "\n";
             printed.add(f.name());
           }

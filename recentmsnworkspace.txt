@@ -6,14 +6,19 @@ import string;
 
 
 
-s func3_params = @sparam1 @dparam1 -> @sreturn;
-s func3_def = concatinates a string and a double;
-f func3 func3_params func3_def;
-func3 = sparam1 ++ dparam1;
-func3 = sreturn = sparam1;
-end func3;
 
-func3 with hello 45.4;
+l list;
 
-println sreturn;
+rangeof with 0 10;
+lreturn copy -> list;
+
+
+println list;
+
+l list;
+
+println list;
+
+
+
 

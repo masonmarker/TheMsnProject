@@ -20,7 +20,7 @@ end random;
 
 s r_randomint_def = obtains a random integer within bounds;
 s r_randomint_params = @iparam1 @iparam2 -> @ireturn;
-f randomint r_randomint_def;
+f randomint r_randomint_def r_randomint_params;
 randomint = random;
 randomint = iparam1 = iparam1;
 randomint = iparam2 = iparam2;
