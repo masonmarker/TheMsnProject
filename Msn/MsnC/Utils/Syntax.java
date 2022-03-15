@@ -1,6 +1,5 @@
 package MsnC.Utils;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import MsnLib.Msn;
 
@@ -62,9 +61,10 @@ public class Syntax {
    */
   public static String[] params(String s) {
     LinkedHashSet<String> found = new LinkedHashSet<>();
-    for (String pm : VALID_PARAMETERS) {
-      if (s.contains(pm)) {
-        found.add(pm);
+    String[] split = s.split(" ");
+    for (String term : split) {
+      if (Syntax.isValidParameter(term)) {
+        found.add(term);
       }
     }
     return found.toArray(String[]::new);
@@ -78,9 +78,10 @@ public class Syntax {
    */
   public static String[] returns(String s) {
     LinkedHashSet<String> found = new LinkedHashSet<>();
-    for (String pm : VALID_RETURNS) {
-      if (s.contains(pm)) {
-        found.add(pm);
+    String[] split = s.split(" ");
+    for (String term : split) {
+      if (Syntax.isValidReturn(term)) {
+        found.add(term);
       }
     }
     return found.toArray(String[]::new);

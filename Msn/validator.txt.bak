@@ -8,7 +8,7 @@ import bool;
 import list;
 import string;
 import math;
-
+import random;
 
 i true = 1;
 i false = 0;
@@ -744,16 +744,6 @@ dmaximum;
 d checkdouble = 5;
 assert dreturn checkdouble;
 
-iparam1 = 6;
-factorial;
-i checkint = 720;  
-assert checkint ireturn;
-
-iparam1 = 5;
-factorial;
-i checkint = 120;
-assert checkint ireturn;
-
 dparam1 = 3;
 dparam2 = 4;
 d checkdouble = 5;
@@ -762,8 +752,8 @@ assert checkdouble dreturn;
 
 :: testing more classes;
 
-:: for function calls with multiple parameters ---;
-:: list them in the order as specified in methodology;
+:: --- for function calls with multiple parameters ---;
+:: --- list them in the order as specified in methodology --- ;
 dminimum with 34.5 7.8;
 d checkdouble = 7.8;
 assert checkdouble dreturn;
@@ -781,62 +771,123 @@ assert true ireturn;
 isbool with 43;
 assert false ireturn;
 
-s stringtrue = true;
-s stringfalse = false;
+inbounds with 0 12 30;
+assert true ireturn;
+inbounds with 0 52 34;
+assert false ireturn;
+inbounds with 23.43 43.23 54.3;
+assert true ireturn;
+inbounds with 5.6 9 10.4;
+assert true ireturn;
 
-booltostring with 0;
-assert stringfalse sreturn;
+mod with 4 5;
+i checkint = 4;
+assert checkint ireturn;
 
-booltostring with 1;
-assert stringtrue sreturn;
+l list;
+list add 1;
+list add 2;
+list add 3;
+list add 4;
+
+l list2;
+rangeof with 1 5;
+lreturn copy -> list2;
+assert list2 list;
+
+l emptylist;
+
+l list;
+rangeof with 0 10;
+lreturn copy -> list;
+
+:: moving pointers in and out of parameters allows for destructive methods;
+:: destructive methods should have an exclamation point at the end;
+
+move list to lparam1;
+clear!;
+move list out lparam1;
+
+l list2;
+list2 add 4;
+list2 add 7;
+list2 add 10;
+move list2 to lparam1;
+clear!;
+move list2 out lparam1;
+
+list add 2;
+
+list getat 0 -> double;
+d checkdouble = 2;
+assert double checkdouble;
+i length = -1;
+list2 length -> length;
+assert izero length;
+
+sremoven with masonmarker m 2;
+s checkstring = asonarker;
+assert checkstring sreturn;
+
+s string = hello;
+c chartoremove = l;
+sremove with string chartoremove;
+checkstring = helo;
+assert checkstring sreturn;
+
+randomint with 0 10;
+i randint = ireturn;
+inbounds with 0 randint 10;
+assert ireturn true;
+
+:: creating a function with explicit parameters;
+:: parameters should be defined ending with _params;
+:: function definitions should end with _def;
+:: this naming convention is not required, however;
+:: makes the variable panel less cluttered;
+
+s definition_def = adds two integers;
+s _params = @iparam1 @iparam2 -> @ireturn;
+f func _params definition_def;
+func = ireturn = iparam1;
+func = ireturn += iparam2;
+end func;
+
+func with 4 5;
+i checkint = 9;
+assert checkint ireturn;
+
+:: functions having more than 3 of one type of parameter must predefine the new parameter;
+:: in case the parameter has not been defined, the max number of any one parameter is 4;
+
+i iparam4 = -1;
+s func2_params = @iparam1 @iparam2 @iparam3 @iparam4 -> dreturn;
+f func2 func2_params; 
+func2 = d dreturn = iparam1 + iparam2 + iparam3 + iparam4;
+func2 = dreturn /= 4;
+end func2;
+
+func2 with 2 3 4 5;
+d checkdouble = 3.5;
+assert dreturn checkdouble;
 
 
+:: function definitions and params do not have to be in any particualar order;
+:: in the official function definition;
 
+s func3_params = @sparam1 @dparam1 -> @sreturn;
+s func3_params = concatinates a string and a double;
+f func3 func3_params func3_def;
+func3 = sparam1 ++ dparam1;
+func3 = sreturn = sparam1;
+end func3;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+func3 with hello 45.4;
+s checkstring = hello45.4;
+assert checkstring sreturn;
 
 
 
 
 
 timestop;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 

@@ -2,24 +2,18 @@ import bool;
 import random;
 import math;
 import list;
-
-
-mod with 10 6;
-
-println ireturn;
+import string;
 
 
 
+s func3_params = @sparam1 @dparam1 -> @sreturn;
+s func3_def = concatinates a string and a double;
+f func3 func3_params func3_def;
+func3 = sparam1 ++ dparam1;
+func3 = sreturn = sparam1;
+end func3;
 
+func3 with hello 45.4;
 
-
-
-
-
-
-
-
-
-
-
+println sreturn;
 

@@ -30,6 +30,7 @@ import javax.swing.text.Element;
 import MsnC.ExecutionHandler.Function;
 import MsnC.Utils.CodeLine;
 import MsnLib.Msn;
+import javax.swing.border.LineBorder;
 
 /**
  * Msn Code (MSNC): Original coding language.
@@ -79,14 +80,14 @@ public class MsnCodeDriver extends JFrame {
 
     setTitle("Msn Code (MSNC)");
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    setBounds(100, 100, 1096, 773);
+    setBounds(100, 100, 1313, 910);
     contentPane = new JPanel();
-    contentPane.setBackground(Color.GRAY);
+    contentPane.setBackground(new Color(123, 104, 238));
     contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
     setContentPane(contentPane);
 
     JPanel panel = new JPanel();
-    panel.setBackground(Color.GRAY);
+    panel.setBackground(new Color(75, 0, 130));
     GroupLayout gl_contentPane = new GroupLayout(contentPane);
     gl_contentPane.setHorizontalGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
         .addComponent(panel, GroupLayout.DEFAULT_SIZE, 798, Short.MAX_VALUE));
@@ -96,10 +97,11 @@ public class MsnCodeDriver extends JFrame {
     panel.setLayout(sl_panel);
 
     JScrollPane scrollPane = new JScrollPane();
+    scrollPane.setBorder(new LineBorder(new Color(176, 196, 222), 3));
     sl_panel.putConstraint(SpringLayout.NORTH, scrollPane, 10, SpringLayout.NORTH, panel);
-    sl_panel.putConstraint(SpringLayout.EAST, scrollPane, 426, SpringLayout.WEST, panel);
-    scrollPane.setBackground(Color.BLACK);
     sl_panel.putConstraint(SpringLayout.WEST, scrollPane, 10, SpringLayout.WEST, panel);
+    sl_panel.putConstraint(SpringLayout.SOUTH, scrollPane, -10, SpringLayout.SOUTH, panel);
+    scrollPane.setBackground(Color.BLACK);
     panel.add(scrollPane);
     scrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(10, 10));
     scrollPane.getHorizontalScrollBar().setPreferredSize(new Dimension(10, 10));
@@ -178,11 +180,11 @@ public class MsnCodeDriver extends JFrame {
     scrollPane.setRowHeaderView(lines);
 
     JScrollPane scrollPane_1 = new JScrollPane();
-    sl_panel.putConstraint(SpringLayout.SOUTH, scrollPane, -6, SpringLayout.NORTH, scrollPane_1);
-    sl_panel.putConstraint(SpringLayout.NORTH, scrollPane_1, 590, SpringLayout.NORTH, panel);
-    sl_panel.putConstraint(SpringLayout.WEST, scrollPane_1, 10, SpringLayout.WEST, panel);
+    scrollPane_1.setBorder(new LineBorder(new Color(210, 105, 30), 3));
+    sl_panel.putConstraint(SpringLayout.WEST, scrollPane_1, 502, SpringLayout.WEST, panel);
     sl_panel.putConstraint(SpringLayout.SOUTH, scrollPane_1, -10, SpringLayout.SOUTH, panel);
-    sl_panel.putConstraint(SpringLayout.EAST, scrollPane_1, -644, SpringLayout.EAST, panel);
+    sl_panel.putConstraint(SpringLayout.EAST, scrollPane_1, -10, SpringLayout.EAST, panel);
+    sl_panel.putConstraint(SpringLayout.EAST, scrollPane, -6, SpringLayout.WEST, scrollPane_1);
     panel.add(scrollPane_1);
     scrollPane_1.getVerticalScrollBar().setPreferredSize(new Dimension(10, 10));
     scrollPane_1.getHorizontalScrollBar().setPreferredSize(new Dimension(10, 10));
@@ -203,10 +205,9 @@ public class MsnCodeDriver extends JFrame {
     scrollPane_1.setColumnHeaderView(lblConsole);
 
     JScrollPane scrollPane_2 = new JScrollPane();
-    sl_panel.putConstraint(SpringLayout.NORTH, scrollPane_2, 0, SpringLayout.NORTH, scrollPane);
+    scrollPane_2.setBorder(new LineBorder(Color.LIGHT_GRAY, 3));
+    sl_panel.putConstraint(SpringLayout.NORTH, scrollPane_2, 10, SpringLayout.NORTH, panel);
     sl_panel.putConstraint(SpringLayout.WEST, scrollPane_2, 6, SpringLayout.EAST, scrollPane);
-    sl_panel.putConstraint(SpringLayout.SOUTH, scrollPane_2, -311, SpringLayout.SOUTH, panel);
-    sl_panel.putConstraint(SpringLayout.EAST, scrollPane_2, -394, SpringLayout.EAST, panel);
     panel.add(scrollPane_2);
     scrollPane_2.getVerticalScrollBar().setPreferredSize(new Dimension(10, 10));
     scrollPane_2.getHorizontalScrollBar().setPreferredSize(new Dimension(10, 10));
@@ -219,14 +220,16 @@ public class MsnCodeDriver extends JFrame {
     scrollPane_2.setColumnHeaderView(lblConsole_1);
 
     JButton btnClearConsole = new JButton("clear console");
+    sl_panel.putConstraint(SpringLayout.SOUTH, btnClearConsole, -294, SpringLayout.SOUTH, panel);
+    sl_panel.putConstraint(SpringLayout.NORTH, scrollPane_1, 6, SpringLayout.SOUTH,
+        btnClearConsole);
+    sl_panel.putConstraint(SpringLayout.EAST, btnClearConsole, -10, SpringLayout.EAST, panel);
     btnClearConsole.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         console.setText("");
       }
     });
-    sl_panel.putConstraint(SpringLayout.WEST, btnClearConsole, 6, SpringLayout.EAST, scrollPane_1);
-    sl_panel.putConstraint(SpringLayout.SOUTH, btnClearConsole, -10, SpringLayout.SOUTH, panel);
     btnClearConsole.setForeground(Color.WHITE);
     btnClearConsole.setFont(new Font("Monospaced", Font.PLAIN, 12));
     btnClearConsole.setFocusPainted(false);
@@ -234,10 +237,13 @@ public class MsnCodeDriver extends JFrame {
     panel.add(btnClearConsole);
 
     JScrollPane scrollPane_2_1 = new JScrollPane();
-    sl_panel.putConstraint(SpringLayout.EAST, scrollPane_2_1, 384, SpringLayout.EAST, scrollPane_2);
+    scrollPane_2_1.setBorder(new LineBorder(new Color(240, 248, 255), 3));
+    sl_panel.putConstraint(SpringLayout.EAST, scrollPane_2, -6, SpringLayout.WEST, scrollPane_2_1);
+    sl_panel.putConstraint(SpringLayout.NORTH, scrollPane_2_1, 10, SpringLayout.NORTH, panel);
+    sl_panel.putConstraint(SpringLayout.SOUTH, scrollPane_2_1, 0, SpringLayout.SOUTH, scrollPane_2);
+    sl_panel.putConstraint(SpringLayout.WEST, scrollPane_2_1, 899, SpringLayout.WEST, panel);
+    sl_panel.putConstraint(SpringLayout.EAST, scrollPane_2_1, -10, SpringLayout.EAST, panel);
     scrollPane_2_1.setBackground(Color.BLACK);
-    sl_panel.putConstraint(SpringLayout.NORTH, scrollPane_2_1, 0, SpringLayout.NORTH, scrollPane);
-    sl_panel.putConstraint(SpringLayout.WEST, scrollPane_2_1, 6, SpringLayout.EAST, scrollPane_2);
     scrollPane_2_1.getVerticalScrollBar().setPreferredSize(new Dimension(10, 10));
     scrollPane_2_1.getHorizontalScrollBar().setPreferredSize(new Dimension(10, 10));
     functionArea = new JTextArea();
@@ -246,7 +252,6 @@ public class MsnCodeDriver extends JFrame {
     functionArea.setBackground(Color.BLACK);
     functionArea.setForeground(Color.WHITE);
     scrollPane_2.setViewportView(functionArea);
-    sl_panel.putConstraint(SpringLayout.SOUTH, scrollPane_2_1, 403, SpringLayout.NORTH, scrollPane);
     panel.add(scrollPane_2_1);
 
     JLabel lblConsole_1_1 = new JLabel("variables");
@@ -265,8 +270,9 @@ public class MsnCodeDriver extends JFrame {
     scrollPane_2_1.setViewportView(variableArea);
 
     runbutton = new JButton("run");
+    sl_panel.putConstraint(SpringLayout.SOUTH, scrollPane_2, -6, SpringLayout.NORTH, runbutton);
     sl_panel.putConstraint(SpringLayout.WEST, runbutton, 6, SpringLayout.EAST, scrollPane);
-    sl_panel.putConstraint(SpringLayout.SOUTH, runbutton, 0, SpringLayout.SOUTH, scrollPane);
+    sl_panel.putConstraint(SpringLayout.SOUTH, runbutton, -6, SpringLayout.NORTH, scrollPane_1);
     runbutton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -291,7 +297,7 @@ public class MsnCodeDriver extends JFrame {
 
           // s += i++ + ": " + en.getKey() + " (" + en.getValue().getClass().getTypeName() + ") -> "
           // + value + "\n";
-          if (!en.getKey().contains("_def")) {
+          if (!en.getKey().contains("_def") && !en.getKey().contains("_params")) {
             s += en.getKey() + " :: " + en.getValue().getClass().getTypeName() + "\n";
             s += "-> " + value + "\n\n";
           }
@@ -325,6 +331,7 @@ public class MsnCodeDriver extends JFrame {
         int cursorpos = textArea.getCaretPosition();
         while (cursorpos > textArea.getText().length())
           cursorpos--;
+        updateTitle(h.linesrun);
       }
     });
     runbutton.setForeground(Color.WHITE);
@@ -334,6 +341,8 @@ public class MsnCodeDriver extends JFrame {
     panel.add(runbutton);
 
     btnValidate = new JButton("validate");
+    sl_panel.putConstraint(SpringLayout.WEST, btnValidate, 6, SpringLayout.EAST, runbutton);
+    sl_panel.putConstraint(SpringLayout.SOUTH, btnValidate, -6, SpringLayout.NORTH, scrollPane_1);
     btnValidate.addActionListener(new ActionListener() {
 
       @Override
@@ -352,8 +361,6 @@ public class MsnCodeDriver extends JFrame {
       }
 
     });
-    sl_panel.putConstraint(SpringLayout.WEST, btnValidate, 6, SpringLayout.EAST, scrollPane);
-    sl_panel.putConstraint(SpringLayout.SOUTH, btnValidate, -49, SpringLayout.NORTH, runbutton);
     btnValidate.setForeground(Color.WHITE);
     btnValidate.setFont(new Font("Monospaced", Font.PLAIN, 12));
     btnValidate.setFocusPainted(false);
@@ -361,4 +368,9 @@ public class MsnCodeDriver extends JFrame {
     panel.add(btnValidate);
     setLocationRelativeTo(null);
   }
+
+  public void updateTitle(int lines) {
+    setTitle("Msn Code (MSNC)  ||" + "  ran " + lines + " lines");
+  }
+
 }

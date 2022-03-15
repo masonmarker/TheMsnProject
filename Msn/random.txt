@@ -9,7 +9,8 @@ i iparam1 = 0;
 i iparam2 = 0; 
 
 s r_random_def = obtains a random double within bounds;
-f random r_random_def;
+s r_random_params = @iparam1 @iparam2 -> @dreturn;
+f random r_random_def r_random_params;
 random = d r_random_ph = -1;
 random = r_random_ph = ?;
 random = d r_random_minus = iparam2 - iparam1;
@@ -18,6 +19,7 @@ random = dreturn += iparam1;
 end random;
 
 s r_randomint_def = obtains a random integer within bounds;
+s r_randomint_params = @iparam1 @iparam2 -> @ireturn;
 f randomint r_randomint_def;
 randomint = random;
 randomint = iparam1 = iparam1;

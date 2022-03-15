@@ -2,25 +2,33 @@
 :: author : Mason Marker;
 :: date   : 03/11/2022;
 
-
 :: prerequisite variables;
 s sreturn = &;
 i ireturn = 0;
+l lreturn;
 s sparam1 = &;
-c cparam1 = ?;
 s sparam2 = &;
+s sparam3 = &;
+s sparam4 = &;
+c cparam1 = ?;
+c cparam2 = ?;
+c cparam3 = ?;
+c cparam4 = ?;
 i iparam1 = 0;
 
-s s_sremove_def = removes all of a char from a string;
-f sremove s_sremove_def;
+s s_sremove_def = removes the first occurance of a char from a string;
+s s_sremove_params = @sparam1 @cparam1 -> @sreturn;
+f sremove s_sremove_def s_sremove_params;
 sremove = l s_sremove_list;
 sremove = sparam1 -> s_sremove_list;
 sremove = s_sremove_list remove cparam1;
 sremove = s s_sremove_delim = &;
 sremove = s_sremove_list join s_sremove_delim -> sreturn;
+end sremove;
 
 s s_scount_def = counts the number of times a char appears in a string;
-f scount s_scount_def;
+s s_scount_params = @sparam1 @cparam1 -> @ireturn;
+f scount s_scount_def s_scount_params;
 scount = i s_scount_count = 0;
 scount = l s_scount_list;
 scount = sparam1 -> s_scount_list;
@@ -34,42 +42,69 @@ scount = s_scount_loop = s s_scount_current = &;
 scount = s_scount_loop = s_scount_list getat s_scount_index -> s_scount_current;
 scount = s_scount_loop = {s_scount_ph==s_scount_current} s_scount_count += 1;
 scount = s_scount_loop = s_scount_index += 1;
+scount = end s_scount_loop;
 scount = s_scount_loop [0:s_scount_length];
 scount = ireturn = s_scount_count;
+end scount;
 
-
-s s_removen_def = removes a certain amount of an element in a list;
-f sremoven s_removen_def;
+s s_removen_def = removes a certain amount of an element in a string;
+s s_sremoven_params = @sparam1 @cparam1 @iparam1 -> @sreturn;
+f sremoven s_removen_def s_sremoven_params;
 sremoven = f s_sremoven_loop;
 sremoven = s_sremoven_loop = sremove;
 sremoven = s_sremoven_loop = sparam1 = sreturn;
+sremoven = end s_sremoven_loop;
 sremoven = s_sremoven_loop [0:iparam1];
-
+end sremoven;
 
 s s_scontains_def = determines if a string contains a char;
-f scontains s_scontains_def;
+s s_scontains_params = @sparam1 @cparam1 -> @ireturn;
+f scontains s_scontains_def s_scontains_params;
 scontains = l s_scontains_list;
 scontains = sparam1 -> s_scontains_list;
 scontains = s s_scontains_ph = &;
 scontains = s_scontains_ph ++ cparam1;
 scontains = s_scontains_list contains s_scontains_ph -> ireturn;
+end scontains;
 
 s s_delimit_def = delimits a string;
-f sdelimit s_delimit_def;
+s s_delimit_params = @sparam1 @sparam2 -> @sreturn;
+f sdelimit s_delimit_def s_delimit_params;
 sdelimit = l s_sdelimit_list;
 sdelimit = sparam1 -> s_sdelimit_list;
 sdelimit = s_sdelimit_list join sparam2 -> sreturn;
-
+end sdelimit;
 
 s s_sgetat_def = gets a character at an index in a string;
-f sgetat s_sgetat_def;
+s s_sgetat_params = @sparam1 @iparam1 -> @sreturn;
+f sgetat s_sgetat_def s_sgetat_params;
 sgetat = l s_sgetat_list;
 sgetat = sparam1 -> s_sgetat_list;
 sgetat = s_sgetat_list getat iparam1 -> sreturn;
+end sgetat;
 
 s s_slength_def = gets the length of a string;
-f slength s_slength_def ;
+s s_slength_params = @sparam1 -> @ireturn;
+f slength s_slength_def s_slength_params;
 slength = l s_sgetat_list;
 slength = sparam1 -> s_sgetat_list;
 slength = s_sgetat_list length -> ireturn;
+end slength;
 
+s s_sindex_def = gets the indices of a char in a string;
+s s_sindex_params = @sparam1 @sparam2 -> @lreturn;
+f sindex s_sindex_def s_sindex_params;
+sindex = l lreturn;
+sindex = l s_sindex_s1list;
+sindex = i s_sindex_length = -1;
+sindex = sparam1 -> s_sindex_s1list;
+sindex = s_sindex_s1list length -> s_sindex_length;
+sindex = i s_sindex_index = 0;
+sindex = f s_sindex_loop;
+sindex = s_sindex_loop = s s_sindex_current = &;
+sindex = s_sindex_loop = s_sindex_s1list getat s_sindex_index -> s_sindex_current;
+sindex = s_sindex_loop = {s_sindex_current==sparam2} lreturn add s_sindex_index;
+sindex = s_sindex_loop = s_sindex_index += 1;
+sindex = end s_sindex_loop;
+sindex = s_sindex_loop [0:s_sindex_length];
+end sindex;

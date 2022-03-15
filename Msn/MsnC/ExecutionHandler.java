@@ -18,7 +18,7 @@ import MsnStructures.MsnStream;
  * Interprets code line by line and collects variables.
  * 
  * @author Mason Marker
- * @version 1.0 - 09/22/2021
+ * @version 1.0 - 03/13/2022
  */
 public class ExecutionHandler {
 
@@ -29,9 +29,11 @@ public class ExecutionHandler {
   public LinkedHashSet<Function> functions;
 
   private long start;
+  public int linesrun;
 
   public ExecutionHandler(String code, JTextArea console) {
     this.console = console;
+    linesrun = 0;
     functions = new LinkedHashSet<>();
     vars = new LinkedHashMap<>();
     lines = toCodeLines(code);
@@ -70,8 +72,6 @@ public class ExecutionHandler {
   }
 
   public void interpret(CodeLine[] lines, boolean functionCall) throws Exception {
-
-
     for (int i = 0; i < lines.length; i++) {
 
       CodeLine line = lines[i];
@@ -80,7 +80,6 @@ public class ExecutionHandler {
       if (splitline[0].equals("::")) {
         continue;
       }
-      System.out.println(line);
       if (splitline[0].equals("import")) {
         String cl = splitline[1];
         String code = null;
@@ -203,6 +202,7 @@ public class ExecutionHandler {
    */
   @SuppressWarnings("unchecked")
   private void store(CodeLine line, boolean functionCall) throws Exception {
+    String[] cut = line.line().split(" ");
     if (isVariable(line.command())) {
       if (line.op().equals("=")) {
         if (Syntax.isInt(vars.get(line.command()))) {
@@ -324,9 +324,9 @@ public class ExecutionHandler {
           MsnStream<Object> postop = (MsnStream<Object>) vars.get(line.postop().trim());
           command.addAll(postop);
         } else {
-          String[] split = line.line().split(" ");
+          String[] split = cut;
           String listop = split[1];
-          System.out.println(line);
+
           ArrayList<String> l = new ArrayList<>(List.of(split));
           l.remove(0);
           l.remove(0);
@@ -378,9 +378,7 @@ public class ExecutionHandler {
             case "join":
               String loc = split[split.length - 1];
               if (split[1].equals("->")) {
-
                 vars.put(loc, list.join(String.valueOf(vars.get(split[0]))));
-                System.out.println("joining");
               }
               break;
             case "reverse":
@@ -394,8 +392,8 @@ public class ExecutionHandler {
               break;
           }
         }
-      } else if (Msn.getWords(line.line())[1].equals("->")) {
-        String[] split = Msn.getWords(line.line());
+      } else if (cut[1].equals("->")) {
+        String[] split = cut;
         if (Syntax.isString(vars.get(split[0]))) {
           try {
             if (Syntax.isList(vars.get(split[2]))) {
@@ -461,31 +459,68 @@ public class ExecutionHandler {
         printToConsole("[-] assertion error (" + line.index() + "): '" + line.line() + "' "
             + vars.get(as[0]) + ", " + vars.get(as[1]), true);
       }
-    } else if (line.command().equals("f") && Msn.getWords(line.line()).length == 2) {
-      String[] split = Msn.getWords(line.line());
+    } else if (line.command().equals("f") && cut.length == 2) {
+      String[] split = cut;
       String def = "no comments";
       functions.add(new Function(split[1], def));
 
-    } else if (line.command().equals("f") && Msn.getWords(line.line()).length == 3) {
-      String[] split = Msn.getWords(line.line());
-      String def = String.valueOf(vars.get(split[2]));
-      functions.add(new Function(split[1], def));
-    }
-
-    else if (isFunction(line.preop()) && line.line().contains(" = ")) {
+    } else if (line.command().equals("f") && cut.length == 3) {
+      String[] split = cut;
+      String def = null;
+      if (split[2].contains("_def")) {
+        def = String.valueOf(vars.get(split[2]));
+        functions.add(new Function(split[1], def));
+      } else {
+        String p = String.valueOf(vars.get(split[2]));
+        Function func = new Function(split[1], def);
+        String[] params = Syntax.params(p);
+        String[] returns = Syntax.returns(p);
+        for (String param : params) {
+          func.addParam(param);
+        }
+        for (String r : returns) {
+          func.addReturn(r);
+        }
+        functions.add(func);
+      }
+    } else if (line.command().equals("f") && cut.length == 4) {
+      String[] split = cut;
+      String def = null;
+      Function funct = null;
+      String p = null;
+      if (split[2].contains("_def")) {
+        def = String.valueOf(vars.get(split[2]));
+        funct = new Function(split[1], def);
+        p = String.valueOf(vars.get(split[3]));
+        String[] params = Syntax.params(p);
+        String[] returns = Syntax.returns(p);
+        for (String param : params) {
+          funct.addParam(param);
+        }
+        for (String r : returns) {
+          funct.addReturn(r);
+        }
+        functions.add(funct);
+      } else if (split[3].contains("_def")) {
+        def = String.valueOf(vars.get(split[3]));
+        p = String.valueOf(vars.get(split[2]));
+        funct = new Function(split[1], def);
+        String[] params = Syntax.params(p);
+        String[] returns = Syntax.returns(p);
+        for (String param : params) {
+          funct.addParam(param);
+        }
+        for (String r : returns) {
+          funct.addReturn(r);
+        }
+        functions.add(funct);
+      }
+    } else if (isFunction(line.preop()) && line.line().contains(" = ")) {
       Function func = getFunctionByName(line.preop());
       if (!func.defined) {
         for (int i = 0; i < functions.size(); i++) {
           if (getAt(i).name().equals(line.preop())) {
             getAt(i).addDef(line);
-            String[] found = Syntax.params(line.line());
-            String[] returns = Syntax.returns(line.line());
-            for (String s : found) {
-              getAt(i).addParam(s);
-            }
-            for (String s : returns) {
-              getAt(i).addReturn(s);
-            }
           }
         }
       }
@@ -505,11 +540,20 @@ public class ExecutionHandler {
             } else if (Syntax.isDouble(vars.get(currentparam))) {
               vars.put(currentparam, evaluate(split[i]));
             } else if (Syntax.isString(vars.get(currentparam))) {
-              vars.put(currentparam, String.valueOf(evaluate(split[i])));
+              if (vars.get(split[i]) != null) {
+                vars.put(currentparam, vars.get(split[i]));
+              } else {
+                vars.put(currentparam, split[i]);
+              }
             } else if (Syntax.isList(vars.get(currentparam))) {
               MsnStream<Object> list = (MsnStream<Object>) vars.get(split[i]);
               vars.put(currentparam, list.copyOf());
-              System.out.println(currentparam);
+            } else if (Syntax.isChar(vars.get(currentparam))) {
+              if (vars.get(split[i]) != null) {
+                vars.put(currentparam, vars.get(split[i]));
+              } else {
+                vars.put(currentparam, split[i].charAt(0));
+              }
             }
           }
           if (isFunction(line.preop())) {
@@ -529,15 +573,19 @@ public class ExecutionHandler {
     } else if (line.command().equals("l")) {
       vars.put(line.variable(), new MsnStream<Object>());
     } else if (line.command().equals("move")) {
-      String[] split = line.line().split(" ");
+      String[] split = cut;
       if (split[2].equals("to")) {
         vars.put(split[3], vars.get(split[1]));
+      } else if (split[2].equals("out")) {
+        vars.put(split[3], new MsnStream<Object>());
       }
     } else if (line.command().equals("end")) {
-      String[] split = line.line().split(" ");
+      String[] split = cut;
       getFunctionByName(split[1]).setDefined();
+    } else {
+      printToConsole("skipped line " + line.index() + ": " + line.line(), true);
     }
-
+    linesrun++;
   }
 
   public Function getFunctionByName(String name) {
@@ -720,6 +768,10 @@ public class ExecutionHandler {
         }
       }
       return false;
+    }
+
+    public String toString() {
+      return name;
     }
 
   }
