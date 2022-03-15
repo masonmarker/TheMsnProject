@@ -861,7 +861,7 @@ assert checkint ireturn;
 :: in case the parameter has not been defined, the max number of any one parameter is 4;
 
 i iparam4 = -1;
-s func2_params = @iparam1 @iparam2 @iparam3 @iparam4 -> dreturn;
+s func2_params = @iparam1 @iparam2 @iparam3 @iparam4 -> @dreturn;
 f func2 func2_params; 
 func2 = d dreturn = iparam1 + iparam2 + iparam3 + iparam4;
 func2 = dreturn /= 4;

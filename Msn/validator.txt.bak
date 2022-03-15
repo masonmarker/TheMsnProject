@@ -876,7 +876,7 @@ assert dreturn checkdouble;
 :: in the official function definition;
 
 s func3_params = @sparam1 @dparam1 -> @sreturn;
-s func3_params = concatinates a string and a double;
+s func3_def = concatinates a string and a double;
 f func3 func3_params func3_def;
 func3 = sparam1 ++ dparam1;
 func3 = sreturn = sparam1;
