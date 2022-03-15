@@ -9,14 +9,16 @@ i true = 1;
 i false = 0;
 
 s b_isbool_def = determines if a number is a boolean value;
-f isbool b_isbool_def;
+s b_isbool_params = @iparam1 -> @ireturn;
+f isbool b_isbool_def b_isbool_params;
 isbool = ireturn = 0;
 isbool = {iparam1==true} ireturn = 1;
 isbool = {iparam1==false} ireturn = 1;
 end isbool;
 
 s b_booltostring_def = converts a bool to its string representation;
-f booltostring b_booltostring_def;
+s b_booltostring_params = @iparam1 -> @sreturn;
+f booltostring b_booltostring_def b_booltostring_params;
 booltostring = isbool with iparam1;
 booltostring = {iparam1==false} sreturn = fals;
 booltostring = {iparam1==false} sreturn ++ e;

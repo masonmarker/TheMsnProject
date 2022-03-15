@@ -14,14 +14,16 @@ d dparam2 = 0;
 d dparam3 = 0;
 
 s l_lclear_def = clears a list of all elements;
-f lclear l_lclear_def;
-lclear = i l_lclear_length = -1;
-lclear = lparam1 length -> l_lclear_length;
-lclear = lparam1 removeat 0 [0:l_lclear_length];
-end lclear;
+s l_lclear_params = @lparam1;
+f clear! l_lclear_def l_lclear_params;
+clear! = i l_lclear_length = -1;
+clear! = lparam1 length -> l_lclear_length;
+clear! = lparam1 removeat 0 [0:l_lclear_length];
+end clear!;
 
 s l_rangeof_def = creates a range of values;
-f rangeof l_rangeof_def;
+s l_rangeof_params = @iparam1 @iparam2 -> @lreturn;
+f rangeof l_rangeof_def l_rangeof_params;
 rangeof = l lreturn;
 rangeof = i l_rangeof_index = iparam1;
 rangeof = f l_rangeof_loop;
@@ -31,18 +33,8 @@ rangeof = end l_rangeof_loop;
 rangeof = l_rangeof_loop [iparam1:iparam2];
 end rangeof;
 
-s l_dfill_def = fills a list with the specified double;
-f dfill l_dfill_def;
-dfill = lreturn add dparam1 [0:iparam1];
-end dfill;
-
-s l_sfill_def = fills a list with the specified string;
-f sfill l_sfill_def;
-sfill = l lreturn;
-sfill = lreturn add sparam1 [0:iparam1];
-end sfill;
-
-s l_lcat_def = concatinates two lists
+s l_lcat_def = concatinates two lists;
+s l_lcat_params = @lparam1 @lparam2 -> @lreturn;
 f lcat l_lcat_def;
 lcat = l lreturn;
 lcat = i l_lcat_index = 0;
