@@ -2,7 +2,6 @@
 :: author : Mason Marker;
 :: date   : 03/11/2022;
 
-
 :: prerequisite variables;
 s sreturn = &;
 i ireturn = 0;
@@ -109,3 +108,10 @@ sindex = s_sindex_loop = s_sindex_index += 1;
 sindex = end s_sindex_loop;
 sindex = s_sindex_loop [0:s_sindex_length];
 end sindex;
+
+
+s s_sgenerate_def = generates a repeating string;
+s s_sgenerate_params = @sparam1 @iparam1 -> @sreturn;
+f sgenerate s_sgenerate_def s_sgenerate_params;
+sgenerate = s sreturn = &;
+sgenerate = sreturn ++ sparam1 [0:iparam1];

@@ -1,24 +1,13 @@
 import bool;
-import random;
-import math;
 import list;
 import string;
 
 
 
 
-l list;
-
-rangeof with 0 10;
-lreturn copy -> list;
-
-
-println list;
-
-l list;
-
-println list;
 
 
 
+sgenerate with cuh 3;
 
+println sreturn;

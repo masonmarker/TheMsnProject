@@ -63,7 +63,7 @@ public class ExecutionHandler {
     int semicount = Msn.countChars(code, ';');
     int linecount = Msn.countLines(code);
     if (semicount != linecount) {
-      printToConsole("[-] missing ';' || need " + (linecount - semicount) + " more", true);
+      printToConsole("[*] possibly missing ';'  (line count not equal to semicolon count)", true);
     }
   }
 
@@ -81,7 +81,12 @@ public class ExecutionHandler {
         continue;
       }
       if (splitline[0].equals("import")) {
-        String cl = splitline[1];
+        String cl = null;
+        try {
+          cl = splitline[1];
+        } catch (ArrayIndexOutOfBoundsException e) {
+          error("failed to import library (did you spell the library name correctly?)", line);
+        }
         String code = null;
 
         // no idea why this has to be done this way but just know it does
@@ -363,7 +368,13 @@ public class ExecutionHandler {
               if (split[1].equals("->")) {
                 location = split[2];
               }
-              vars.put(location, list.get((int) (double) evaluate(split[0])));
+              int eval = Integer.MIN_VALUE;
+              try {
+                eval = (int) (double) evaluate(split[0]);
+                vars.put(location, list.get(eval));
+              } catch (IndexOutOfBoundsException e) {
+                error("index out of bounds: " + eval, line);
+              }
               break;
             case "length":
               if (split[0].equals("->")) {
@@ -390,6 +401,12 @@ public class ExecutionHandler {
             case "sort":
               list._sorted();
               break;
+            case "hash":
+              list._hashed();
+              break;
+            case "shuffle":
+              list._shuffled();
+              break;
           }
         }
       } else if (cut[1].equals("->")) {
@@ -405,19 +422,22 @@ public class ExecutionHandler {
               vars.put(split[2], new MsnStream<String>(chars));
             }
           } catch (NullPointerException e) {
-            error("unknown variable, line " + line.index() + " (" + line.line() + ")",
-                line.index());
+            error("unknown variable, line " + line.index() + " (" + line.line() + ")", line);
           }
         }
       }
     } else if (line.command().equals("i")) {
-      vars.put(line.variable(),
-          (int) (double) Double.valueOf(String.valueOf(evaluate(line.postop()))));
+      try {
+        vars.put(line.variable(),
+            (int) (double) Double.valueOf(String.valueOf(evaluate(line.postop()))));
+      } catch (RuntimeException e) {
+        error("couldn't instantiate variable", line);
+      }
     } else if (line.command().equals("d")) {
       try {
         vars.put(line.variable(), Double.valueOf(String.valueOf(evaluate(line.postop()))));
-      } catch (NumberFormatException e) {
-        vars.put(line.variable(), Syntax.DEFAULT_OBJECT);
+      } catch (Exception e) {
+        error("couldn't instantiate variable", line);
       }
     } else if (line.command().equals("s")) {
       String[] w = Msn.getWords(line.postop());
@@ -559,14 +579,18 @@ public class ExecutionHandler {
           if (isFunction(line.preop())) {
             getFunctionByName(line.preop()).run();
           } else {
-            getFunctionByName(line.command()).run();
+            try {
+              getFunctionByName(line.command()).run();
+            } catch (NullPointerException e) {
+              error("invalid arguments", line);
+            }
           }
         }
       } catch (ArrayIndexOutOfBoundsException e) {
         try {
           getFunctionByName(line.preop()).run();
         } catch (NullPointerException e1) {
-          error("invalid arguments to '" + line.preop() + "'", line.index());
+          error("invalid arguments", line);
         }
       }
 
@@ -581,9 +605,13 @@ public class ExecutionHandler {
       }
     } else if (line.command().equals("end")) {
       String[] split = cut;
-      getFunctionByName(split[1]).setDefined();
+      try {
+        getFunctionByName(split[1]).setDefined();
+      } catch (NullPointerException e) {
+        error("unknown function", line);
+      }
     } else {
-      printToConsole("skipped line " + line.index() + ": " + line.line(), true);
+      error("unknown command", line);
     }
     linesrun++;
   }
@@ -608,8 +636,13 @@ public class ExecutionHandler {
     return null;
   }
 
-  public void error(String msg, int index) throws Exception {
-    printToConsole("[-] error (" + index + ") : " + msg, true);
+  public void checkFunction(String[] split) {
+
+  }
+
+  public void error(String msg, CodeLine line) throws Exception {
+    printToConsole("[-] error (" + line.index() + ") : " + msg + " : " + "'" + line.line() + "'",
+        true);
     throw new Exception(msg);
   }
 

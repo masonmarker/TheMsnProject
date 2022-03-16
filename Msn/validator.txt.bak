@@ -1,6 +1,6 @@
 :: tests functionality of MSNC;
 :: this is not the compiler!;
-:: asserts all of the operators function properly;
+:: asserts that all of the language's features function properly;
 
 timestart;
 
@@ -861,7 +861,7 @@ assert checkint ireturn;
 :: in case the parameter has not been defined, the max number of any one parameter is 4;
 
 i iparam4 = -1;
-s func2_params = @iparam1 @iparam2 @iparam3 @iparam4 -> dreturn;
+s func2_params = @iparam1 @iparam2 @iparam3 @iparam4 -> @dreturn;
 f func2 func2_params; 
 func2 = d dreturn = iparam1 + iparam2 + iparam3 + iparam4;
 func2 = dreturn /= 4;
@@ -886,8 +886,44 @@ func3 with hello 45.4;
 s checkstring = hello45.4;
 assert checkstring sreturn;
 
+i n = 0;
+f l;
+l = f x;
+l = x = f y;
+l = x = y = f z;
+l = x = y = z = f w;
+l = x = y = z = w = n += 1;
+l = x = y = z = w = end w;
+l = x = y = z = w [0:2];
+l = x = y = end z;
+l = x = y = z [0:2];
+l = x = end y;
+l = x = y [0:2];
+l = end x;
+l = x [0:2];
+end l;
+l;
 
+i checkint = 16;
+assert checkint n;
 
-
+and3 with 0 0 0;
+assert false ireturn;
+and3 with 1 1 1;
+assert true ireturn;
+and3 with 0 1 0;
+assert false ireturn;
+and3 with 1.0 1.0 1.0;
+assert true ireturn;
+and3 with 0.0 0.0 0.0;
+assert false ireturn;
+xor2 with 0 0;
+assert true ireturn;
+xor2 with 0 1;
+assert false ireturn;
+xor2 with 1 0;
+assert false ireturn;
+xor2 with 1 1;
+assert true ireturn;
 
 timestop;
