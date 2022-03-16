@@ -31,10 +31,11 @@ public class CodeLine implements Comparable<CodeLine> {
   String boperand2;
 
   public CodeLine(String codeline, int index) {
-    this.line = codeline.replaceAll("\r\n", "").replaceAll("\n", "");
+    this.line = codeline.replaceAll("\r\n", "").replaceAll("\n", "").replaceAll(" +", " ").trim();
+    String[] split = line.split(" ");
     try {
       if (line.charAt(0) == ' ') {
-        ArrayList<String> l = new ArrayList<>(List.of(Msn.getWords(line)));
+        ArrayList<String> l = new ArrayList<>(List.of(split));
         l.remove(0);
         line = Msn.toSequence(l.toArray(String[]::new));
       }
@@ -56,9 +57,7 @@ public class CodeLine implements Comparable<CodeLine> {
         boperand1 = splitb[0];
         boperand2 = splitb[1];
       } catch (ArrayIndexOutOfBoundsException e) {
-
       }
-
       ArrayList<String> list = new ArrayList<>(List.of(split2));
       list.remove(0);
       String jn = "";
@@ -110,7 +109,6 @@ public class CodeLine implements Comparable<CodeLine> {
     }
     lp = "";
     preop = preop.trim();
-    String[] split = line.split(" ");
     String last = split[split.length - 1];
     lp = last;
     if (last.contains("[") && last.contains("]") && last.contains(":") && !line.contains(" = ")) {

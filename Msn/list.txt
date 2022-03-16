@@ -4,6 +4,7 @@
 
 :: prerequisite variables;
 l lreturn;
+o oreturn = &;
 l lparam1;
 l lparam2;
 i iparam1 = 0;
@@ -77,5 +78,38 @@ sum = dreturn = l_sum_sum;
 sum = ireturn = l_sum_sum;
 end sum;
 
+s average_def = calculates the average in a list;
+s average_params = @lparam1 -> @dreturn;
+f average average_def average_params;
+average = sum with lparam1;
+average = i l_average_length = -1;
+average = lparam1 length -> l_average_length;
+average = dreturn /= l_average_length;
+end average;
 
+s l_get_def = gets an element in a list at an index;
+s l_get_params = @lparam1 @iparam1 -> @oreturn;
+f get l_get_def l_get_params;
+get = lparam1 getat iparam1 -> oreturn;
+end get;
 
+s l_head_def = gets the head of a list;
+s l_head_params = @lparam1 -> @oreturn;
+f head l_head_def l_head_params;
+head = get with lparam1 0;
+end head;
+
+s l_last_def = gets the last element in a list;
+s l_last_params = @lparam1 -> @oreturn;
+f last l_last_def l_last_params;
+last = i l_last_length = -1;
+last = lparam1 length -> l_last_length;
+last = i l_length_minus = l_last_length - 1;
+last = get with lparam1 l_length_minus;
+end last;
+
+s l_length_def = gets the length of a list;
+s l_length_params = @lparam1 -> @ireturn;
+f length l_length_def l_length_params;
+length = lparam1 length -> ireturn;
+end length;

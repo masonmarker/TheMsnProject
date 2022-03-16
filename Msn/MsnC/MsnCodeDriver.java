@@ -11,7 +11,10 @@ import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -54,6 +57,7 @@ public class MsnCodeDriver extends JFrame {
   private JButton runbutton;
   private JButton btnValidate;
   private JTextArea functionArea;
+  private JButton formatbutton;
 
   /**
    * Launch the application.
@@ -365,6 +369,48 @@ public class MsnCodeDriver extends JFrame {
     btnValidate.setFocusPainted(false);
     btnValidate.setBackground(Color.DARK_GRAY);
     panel.add(btnValidate);
+
+    formatbutton = new JButton("format");
+    formatbutton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        String code = textArea.getText();
+        LinkedList<Character> chars = new LinkedList<>(List.of(Msn.box(code.toCharArray())));
+        for (int i = chars.size() - 1; i >= 0; i--) {
+          try {
+            if (chars.get(i - 1) == ';') {
+              while (chars.get(i) == ' ') {
+                chars.remove(i);
+              }
+
+              while (chars.get(i + 1) == ' ') {
+                chars.remove(i);
+              }
+              chars.add(i, '\n');
+            }
+          } catch (Exception e1) {
+          }
+        }
+        String replace = "";
+        for (Character c : chars) {
+          replace += c;
+        }
+        replace = Msn.removeEmptyLines(replace.replaceAll(" +", " ").trim());
+        
+        
+        
+        
+        
+        textArea.setText(replace);
+      }
+    });
+    sl_panel.putConstraint(SpringLayout.WEST, formatbutton, 6, SpringLayout.EAST, btnValidate);
+    sl_panel.putConstraint(SpringLayout.SOUTH, formatbutton, -6, SpringLayout.NORTH, scrollPane_1);
+    formatbutton.setForeground(Color.WHITE);
+    formatbutton.setFont(new Font("Monospaced", Font.PLAIN, 12));
+    formatbutton.setFocusPainted(false);
+    formatbutton.setBackground(Color.DARK_GRAY);
+    panel.add(formatbutton);
     setLocationRelativeTo(null);
   }
 
