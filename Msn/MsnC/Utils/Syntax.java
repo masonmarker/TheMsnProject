@@ -19,13 +19,13 @@ public class Syntax {
       "<", "<=", ">=", "+=", "-=", "*=", "/=", "^=", "<>", "??", "++", "r=", "m="};
   public static final String[] VALID_ESCAPES = {"\n"};
 
-  public static final String[] VALID_PARAMETERS =
-      {"iparam1", "iparam2", "iparam3", "iparam4", "dparam1", "dparam2", "dparam3", "dparam4",
-          "cparam1", "cparam2", "cparam3", "cparam4", "sparam1", "sparam2", "sparam3", "sparam4",
-          "lparam1", "lparam2", "lparam3", "lparam4", "oparam1", "oparam2", "oparam3", "oparam4"};
+  public static final String[] VALID_PARAMETERS = {"iparam1", "iparam2", "iparam3", "iparam4",
+      "dparam1", "dparam2", "dparam3", "dparam4", "cparam1", "cparam2", "cparam3", "cparam4",
+      "sparam1", "sparam2", "sparam3", "sparam4", "lparam1", "lparam2", "lparam3", "lparam4",
+      "oparam1", "oparam2", "oparam3", "oparam4", "fparam1", "fparam2", "fparam3", "fparam4"};
 
   public static final String[] VALID_RETURNS =
-      {"ireturn", "dreturn", "creturn", "sreturn", "oreturn", "lreturn"};
+      {"ireturn", "dreturn", "creturn", "sreturn", "oreturn", "lreturn", "freturn"};
 
   public static final int DEFAULT_INT = 0;
   public static final double DEFAULT_DOUBLE = 0.0;

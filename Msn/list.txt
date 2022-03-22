@@ -4,6 +4,8 @@
 
 :: prerequisite variables;
 l lreturn;
+d dreturn = 0;
+i ireturn = 0;
 o oreturn = &;
 l lparam1;
 l lparam2;
@@ -13,14 +15,6 @@ i iparam3 = 0;
 d dparam1 = 0;
 d dparam2 = 0;
 d dparam3 = 0;
-
-s l_lclear_def = clears a list of all elements;
-s l_lclear_params = @lparam1;
-f clear! l_lclear_def l_lclear_params;
-clear! = i l_lclear_length = -1;
-clear! = lparam1 length -> l_lclear_length;
-clear! = lparam1 removeat 0 [0:l_lclear_length];
-end clear!;
 
 s l_rangeof_def = creates a range of values;
 s l_rangeof_params = @iparam1 @iparam2 -> @lreturn;

@@ -157,11 +157,6 @@ public class CodeLine implements Comparable<CodeLine> {
     return loop;
   }
 
-  public CodeLine copy() {
-    CodeLine copy = new CodeLine(line, index);
-    return copy;
-  }
-
   public String lp() {
     return lp;
   }
@@ -217,6 +212,10 @@ public class CodeLine implements Comparable<CodeLine> {
         + ", boolexp: " + boolexp + "\n";
     s += "-----\n";
     return s;
+  }
+  
+  public CodeLine copyOf() {
+    return new CodeLine(line, index);
   }
 
   @Override
