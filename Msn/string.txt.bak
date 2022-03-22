@@ -15,6 +15,8 @@ c cparam2 = ?;
 c cparam3 = ?;
 c cparam4 = ?;
 i iparam1 = 0;
+s :w: = &;
+:w: ++ :w:;
 
 s s_sremove_def = removes the first occurance of a char from a string;
 s s_sremove_params = @sparam1 @cparam1 -> @sreturn;
@@ -115,3 +117,4 @@ s s_sgenerate_params = @sparam1 @iparam1 -> @sreturn;
 f sgenerate s_sgenerate_def s_sgenerate_params;
 sgenerate = s sreturn = &;
 sgenerate = sreturn ++ sparam1 [0:iparam1];
+end sgenerate;

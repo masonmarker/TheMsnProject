@@ -8,6 +8,8 @@ i iparam1 = 0;
 i iparam2 = 0;
 i iparam3 = 0;
 i iparam4 = 0;
+o oparam1 = &;
+o oparam2 = &;
 i true = 1;
 i false = 0;
 
@@ -63,7 +65,7 @@ or2 = {iparam2==true} ireturn = true;
 end or2;
 
 s b_or3_def = ors three bools;
-s b_or3_params = @iparam1 @iparam2 @iparam3 -> ireturn;
+s b_or3_params = @iparam1 @iparam2 @iparam3 -> @ireturn;
 f or3 b_or3_def b_or3_params;
 f or3;
 or3 = or2 with iparam1 iparam2;
@@ -71,7 +73,7 @@ or3 = or2 with ireturn iparam3;
 end or3;
 
 s b_or4_def = ors 4 bools;
-s b_or4_params = @iparam1 @iparam2 @iparam3 @iparam4 -> ireturn;
+s b_or4_params = @iparam1 @iparam2 @iparam3 @iparam4 -> @ireturn;
 f or4 b_or4_def b_or4_params;
 or4 = or3 with iparam1 iparam2 iparam3;
 or4 = or2 with ireturn iparam4;
@@ -90,7 +92,22 @@ s b_not_def = nots a bool;
 s b_not_params = @iparam1 -> @ireturn;
 f not b_not_def b_not_params;
 not = {iparam1==true} ireturn = false;
-not = {iparam1==false} iparam1 = true;
+not = {iparam1==false} ireturn = true;
 end not;
+
+s b_equals_def = determines if two objects are equal;
+s b_equals_params = @oparam1 @oparam2 -> @ireturn;
+f equals b_equals_def b_equals_params;
+equals = ireturn = false;
+equals = {oparam1==oparam2} ireturn = true;
+end equals;
+
+s b_notequal_def = determines if two objects are equal;
+s b_notequal_params = @oparam1 @oparam2 -> @ireturn;
+f notequal b_notequal_def b_notequal_params;
+notequal = ireturn = false;
+notequal = {oparam1!=oparam2} ireturn = true;
+end notequal;
+
 
 :: end;

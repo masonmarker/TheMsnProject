@@ -5,6 +5,7 @@
 import math;
 
 d dreturn = 0;
+i ireturn = 0;
 i iparam1 = 0;
 i iparam2 = 0; 
 
@@ -26,3 +27,14 @@ randomint = iparam1 = iparam1;
 randomint = iparam2 = iparam2;
 randomint = ireturn = dreturn;
 end randomint;
+
+s r_randomlist_def = generates a list of random numbers of a certain length;
+s r_randomlist_params = @iparam1 -> @lreturn;
+f randomlist r_randomlist_def r_randomlist_params;
+randomlist = l lreturn;
+randomlist = f r_randomlist_block;
+randomlist = r_randomlist_block = randomint with 0 100;
+randomlist = r_randomlist_block = lreturn add ireturn;
+randomlist = end r_randomlist_block;
+randomlist = r_randomlist_block [0:iparam1];
+end randomlist;

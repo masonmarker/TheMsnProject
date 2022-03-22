@@ -17,6 +17,7 @@ i iparam4 = 0;
 d dparam1 = 0;
 d dparam2 = 0;
 d dparam3 = 0;
+d dparam4 = 0;
 
 s m_imaximum_def = finds the maximum between two integers;
 s m_imaximum_params = @iparam1 @iparam2 -> @ireturn;

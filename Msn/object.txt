@@ -1,0 +1,12 @@
+:: offers addition object capabilities;
+:: author : Mason Marker;
+:: date   : 03/21/2022;
+
+i ireturn = 0;
+o oparam1 = &;
+o oparam2 = &;
+
+
+
+
+

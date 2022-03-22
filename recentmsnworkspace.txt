@@ -1,6 +1,11 @@
-import bool;
+
 import list;
-import string;
+
+
+i int = 34;
+
+rangeof with 0 10;
+sum with lreturn;
 
 
 
@@ -8,6 +13,6 @@ import string;
 
 
 
-sgenerate with cuh 3;
 
-println sreturn;
+
+

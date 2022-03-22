@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -27,13 +26,12 @@ import javax.swing.JTextArea;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Element;
 import MsnC.ExecutionHandler.Function;
-import MsnC.Utils.CodeLine;
 import MsnLib.Msn;
-import javax.swing.border.LineBorder;
 
 /**
  * Msn Code (MSNC): Original coding language.
@@ -298,11 +296,11 @@ public class MsnCodeDriver extends JFrame {
         String s = "";
         for (Map.Entry<String, Object> en : h.vars.entrySet()) {
           String value = "" + en.getValue();
-
           // s += i++ + ": " + en.getKey() + " (" + en.getValue().getClass().getTypeName() + ") -> "
           // + value + "\n";
           if (!en.getKey().contains("_def") && !en.getKey().contains("_params")
-              && Msn.countChars(en.getKey(), '_') < 2) {
+              && Msn.countChars(en.getKey(), '_') < 2
+              && (!en.getKey().contains("::") && Msn.countChars(en.getKey(), ':') != 2)) {
             s += en.getKey() + " :: " + en.getValue().getClass().getTypeName() + "\n";
             s += "-> " + value + "\n\n";
           }
@@ -396,11 +394,9 @@ public class MsnCodeDriver extends JFrame {
           replace += c;
         }
         replace = Msn.removeEmptyLines(replace.replaceAll(" +", " ").trim());
-        
-        
-        
-        
-        
+
+
+
         textArea.setText(replace);
       }
     });
@@ -417,5 +413,7 @@ public class MsnCodeDriver extends JFrame {
   public void updateTitle(int lines) {
     setTitle("Msn Code (MSNC)  ||" + "  ran " + lines + " lines");
   }
+
+
 
 }

@@ -9,6 +9,7 @@ import list;
 import string;
 import math;
 import random;
+import arraylist;
 
 i true = 1;
 i false = 0;
@@ -801,29 +802,7 @@ l list;
 rangeof with 0 10;
 lreturn copy -> list;
 
-:: moving pointers in and out of parameters allows for destructive methods;
-:: destructive methods should have an exclamation point at the end;
-
-move list to lparam1;
-clear!;
-move list out lparam1;
-
-l list2;
-list2 add 4;
-list2 add 7;
-list2 add 10;
-move list2 to lparam1;
-clear!;
-move list2 out lparam1;
-
 list add 2;
-
-list getat 0 -> double;
-d checkdouble = 2;
-assert double checkdouble;
-i length = -1;
-list2 length -> length;
-assert izero length;
 
 sremoven with masonmarker m 2;
 s checkstring = asonarker;
@@ -925,5 +904,49 @@ xnor2 with 1 0;
 assert false ireturn;
 xnor2 with 1 1;
 assert true ireturn;
+
+s string = hello;
+s string2 = hello;
+equals with string string2;
+assert true ireturn;
+
+d double = 45.5;
+d double2 = 45.5;
+equals with double double2;
+assert true ireturn;
+
+double2 = 34;
+equals with double double2;
+assert false ireturn;
+notequal with double double2;
+assert true ireturn;
+
+:: objects in MSNC;
+
+object human;
+s human#name = <unset>;
+i human#age = -1;
+s human_prnt_def = prints this object;
+f prnt;
+prnt = name: human#name , age: human#age;
+human has human#name human#age prnt;
+
+:: create an instance of the object;
+create human mason;
+
+:: construct the new instance;
+mason#name = mason;
+mason#age = 20;
+
+s checkstring = mason;
+i checkint = 20;
+assert checkstring mason#name;
+assert checkint mason#age;
+
+:: reset an object by redefining it;
+create human mason;
+i checkint = -1;
+assert checkint mason#age;
+
 
 timestop;
