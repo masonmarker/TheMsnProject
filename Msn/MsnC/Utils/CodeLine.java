@@ -24,9 +24,9 @@ public class CodeLine implements Comparable<CodeLine> {
 
   boolean loop;
   boolean bool;
+
   String boolexp;
   String boolop;
-
   String boperand1;
   String boperand2;
 
@@ -129,6 +129,25 @@ public class CodeLine implements Comparable<CodeLine> {
 
   }
 
+  public void setLp(String lp) {
+    this.lp = lp;
+  }
+
+  public void setLoop(boolean set) {
+    loop = set;
+  }
+
+  public void setBool(boolean set) {
+    bool = set;
+  }
+
+  public void setBoolStuff(String boolexp, String boolop, String boperand1, String boperand2) {
+    this.boolexp = boolexp;
+    this.boolop = boolop;
+    this.boperand1 = boperand1;
+    this.boperand2 = boperand2;
+  }
+
   public String line() {
     return line;
   }
@@ -213,9 +232,14 @@ public class CodeLine implements Comparable<CodeLine> {
     s += "-----\n";
     return s;
   }
-  
+
   public CodeLine copyOf() {
-    return new CodeLine(line, index);
+    CodeLine c = new CodeLine(line, index);
+    c.setLoop(loop());
+    c.setLp(lp());
+    c.setBool(bool());
+    c.setBoolStuff(boolexp(), boolop(), bop1(), bop2());
+    return c;
   }
 
   @Override

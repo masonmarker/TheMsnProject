@@ -11,5 +11,6 @@
 	<classpathentry kind="src" path="Msc"/>
 	<classpathentry kind="src" path="Msn"/>
 	<classpathentry kind="src" path="External"/>
+	<classpathentry kind="src" path="MsnCLib"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

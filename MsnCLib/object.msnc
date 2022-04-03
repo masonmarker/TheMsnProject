@@ -1,0 +1,58 @@
+:: offers addition object capabilities;
+:: author : Mason Marker;
+:: date   : 03/21/2022;
+
+l lreturn;
+i ireturn = 0;
+s sreturn = &;
+o oparam1 = &;
+o oparam2 = &;
+i iparam1 = 0;
+o oreturn = &;
+s sparam1 = &;
+s sparam2 = &;
+o oparam1 = &;
+
+s o_getattr_def = extracts an object's variable value from its string name;
+s o_getattr_params = @sparam1 = object name , @sparam2 = variable name   ->  @oreturn;
+f getattr o_getattr_def o_getattr_params;
+getattr = s o_getattr_combined = sparam1;
+getattr = o_getattr_combined ++ #;
+getattr = o_getattr_combined ++ sparam2;
+getattr = extract o_getattr_combined -> oreturn;
+end getattr;
+
+s o_setattr_def = sets an object's attribute to a value;
+s o_setattr_params = @sparam1 = object name , @sparam2 = variable name @oparam1 = to set;
+f setattr o_setattr_def o_setattr_params;
+setattr = s o_setattr_combined = sparam1;
+setattr = o_setattr_combined ++ #;
+setattr = o_setattr_combined ++ sparam2;
+setattr = inject oparam1 -> o_setattr_combined;
+end setattr;
+
+s o_attrs_def = gets the attributes of an object;
+s o_attrs_params = @sparam1 = the object  -> @lreturn;
+f attrs o_attrs_def o_attrs_params;
+attrs = sparam1 -> lreturn;
+end attrs;
+
+s o_createnobj_def = creates a certain amount of objects;
+s o_createnobj_params = @sparam1 = variable name @iparam1 = count -> @lreturn;
+f createnobj o_createnobj_def o_createnobj_params;
+createnobj = i o_createnobj_index = 1;
+createnobj = l lreturn;
+createnobj = s o_createnobj_current = sparam1;
+createnobj = f o_crt_loop;
+createnobj = o_crt_loop = o_createnobj_current = sparam1;
+createnobj = o_crt_loop = nextvar o_createnobj_current -> o_createnobj_current;
+createnobj = o_crt_loop = create sparam1 o_createnobj_current;
+createnobj = o_crt_loop = lreturn add o_createnobj_current;
+createnobj = o_crt_loop = o_createnobj_index += 1;
+createnobj = end o_crt_loop;
+createnobj = o_crt_loop [0:iparam1];
+end createnobj;
+
+
+
+

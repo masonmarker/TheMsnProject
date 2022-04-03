@@ -1,6 +1,8 @@
 package MsnC.Utils;
 
+import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import MsnLib.Msn;
 
 /**
@@ -11,27 +13,53 @@ import MsnLib.Msn;
  */
 public class Syntax {
 
-  public static final String[] VALID_COMMANDS =
-      {"print", "println", "i", "d", "s", "c", "o", "l", "f"};
+  public static final HashSet<String> VALID_COMMANDS = new HashSet<>(List.of(new String[] {"print",
+      "println", "i", "d", "s", "c", "o", "l", "f", "import", "object", "assert", "!assert",
+      "create", "extract", "numbers", "inject", "run", "timestart", "timestop", "nextvar"}));
+
+  public static final HashSet<String> VALID_FUNCTIONAL_TERM =
+      new HashSet<>(List.of(new String[] {"add", "contains", "copy", "remove", "removeat",
+          "shuffle", "with", "has", "called", "sort"}));
+
+  public static final HashSet<String> VALID_IMPORTS =
+      new HashSet<>(List.of(new String[] {"math", "bool", "loop", "string", "list", "random",
+          "function", "games", "point", "arraylist", "duple", "random", "object"}));
 
   public static final String VALID_COMMENT = "//";
   public static final String[] VALID_OPERATORS = {"+", "-", "=", "/", "^", "%", "==", "!=", ">",
       "<", "<=", ">=", "+=", "-=", "*=", "/=", "^=", "<>", "??", "++", "r=", "m="};
-  public static final String[] VALID_ESCAPES = {"\n"};
 
-  public static final String[] VALID_PARAMETERS = {"iparam1", "iparam2", "iparam3", "iparam4",
-      "dparam1", "dparam2", "dparam3", "dparam4", "cparam1", "cparam2", "cparam3", "cparam4",
-      "sparam1", "sparam2", "sparam3", "sparam4", "lparam1", "lparam2", "lparam3", "lparam4",
-      "oparam1", "oparam2", "oparam3", "oparam4", "fparam1", "fparam2", "fparam3", "fparam4"};
+  public static final HashSet<String> VALID_PARAMETERS =
+      new HashSet<>(List.of(new String[] {"iparam1", "iparam2", "iparam3", "iparam4", "dparam1",
+          "dparam2", "dparam3", "dparam4", "cparam1", "cparam2", "cparam3", "cparam4", "sparam1",
+          "sparam2", "sparam3", "sparam4", "lparam1", "lparam2", "lparam3", "lparam4", "oparam1",
+          "oparam2", "oparam3", "oparam4", "fparam1", "fparam2", "fparam3", "fparam4"}));
 
-  public static final String[] VALID_RETURNS =
-      {"ireturn", "dreturn", "creturn", "sreturn", "oreturn", "lreturn", "freturn"};
+  public static final HashSet<String> VALID_RETURNS = new HashSet<>(List.of(
+      new String[] {"ireturn", "dreturn", "creturn", "sreturn", "oreturn", "lreturn", "freturn"}));
 
   public static final int DEFAULT_INT = 0;
   public static final double DEFAULT_DOUBLE = 0.0;
   public static final String DEFAULT_STRING = "";
   public static final Object DEFAULT_OBJECT = null;
   public static final Object DEFAULT_CHAR = '?';
+
+  public static boolean isValidFunctionalTerm(String word) {
+    return VALID_FUNCTIONAL_TERM.contains(word);
+  }
+
+  public static boolean isValidImport(String word) {
+    return VALID_IMPORTS.contains(word);
+  }
+
+  public static boolean isValidCommand(String word) {
+    return VALID_COMMANDS.contains(word);
+  }
+
+  public static boolean isKeyword(String word) {
+    return isValidCommand(word) || isValidFunctionalTerm(word) || isValidImport(word);
+  }
+
 
   /**
    * Decides whether the String passed is a valid return keyword.
@@ -40,7 +68,7 @@ public class Syntax {
    * @return whether the String passed is a valid return keyword.
    */
   public static boolean isValidReturn(String s) {
-    return Msn.contains(VALID_RETURNS, s);
+    return VALID_RETURNS.contains(s);
   }
 
   /**
@@ -93,17 +121,7 @@ public class Syntax {
    * @param s the String
    */
   public static boolean isValidParameter(String s) {
-    return Msn.contains(VALID_PARAMETERS, s);
-  }
-
-  /**
-   * Decides whether the String passed is a valid escape sequence.
-   * 
-   * @param s the String
-   * @return whether the String is equal to a valid escape sequence
-   */
-  public static boolean isValidEscape(String s) {
-    return Msn.contains(s, VALID_ESCAPES);
+    return VALID_PARAMETERS.contains(s);
   }
 
   /**

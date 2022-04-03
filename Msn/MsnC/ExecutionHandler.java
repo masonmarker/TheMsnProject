@@ -1,6 +1,7 @@
 package MsnC;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -25,7 +26,7 @@ public class ExecutionHandler {
   JTextArea console;
   public LinkedHashMap<String, Object> vars;
   public LinkedHashSet<Function> functions;
-  public LinkedHashSet<Obj> objects;
+  public HashSet<Obj> objects;
   private long start;
   public int linesrun;
 
@@ -34,7 +35,7 @@ public class ExecutionHandler {
     linesrun = 0;
     functions = new LinkedHashSet<>();
     vars = new LinkedHashMap<>();
-    objects = new LinkedHashSet<>();
+    objects = new HashSet<>();
     lines = toCodeLines(code);
     compile(lines, code);
   }
@@ -86,55 +87,9 @@ public class ExecutionHandler {
         } catch (ArrayIndexOutOfBoundsException e) {
           error("failed to import library (did you spell the library name correctly?)", line);
         }
-        String code = null;
 
-        // no idea why this has to be done this way but just know it does
-        switch (cl) {
-          case "math":
-            code = Msn.contentsOfNoEmptyLines(
-                "C:\\Users\\mason\\OneDrive\\Documents\\GitHub\\TheMsnProject\\Msn\\math.txt");
-            break;
-          case "bool":
-            code = Msn.contentsOfNoEmptyLines(
-                "C:\\Users\\mason\\OneDrive\\Documents\\GitHub\\TheMsnProject\\Msn\\bool.txt");
-            break;
-          case "loop":
-            code = Msn.contentsOfNoEmptyLines(
-                "C:\\Users\\mason\\OneDrive\\Documents\\GitHub\\TheMsnProject\\Msn\\loop.txt");
-            break;
-          case "string":
-            code = Msn.contentsOfNoEmptyLines(
-                "C:\\Users\\mason\\OneDrive\\Documents\\GitHub\\TheMsnProject\\Msn\\string.txt");
-            break;
-          case "list":
-            code = Msn.contentsOfNoEmptyLines(
-                "C:\\Users\\mason\\OneDrive\\Documents\\GitHub\\TheMsnProject\\Msn\\list.txt");
-            break;
-          case "random":
-            code = Msn.contentsOfNoEmptyLines(
-                "C:\\Users\\mason\\OneDrive\\Documents\\GitHub\\TheMsnProject\\Msn\\random.txt");
-            break;
-          case "function":
-            code = Msn.contentsOfNoEmptyLines(
-                "C:\\Users\\mason\\OneDrive\\Documents\\GitHub\\TheMsnProject\\Msn\\function.txt");
-            break;
-          case "games":
-            code = Msn.contentsOfNoEmptyLines(
-                "C:\\Users\\mason\\OneDrive\\Documents\\GitHub\\TheMsnProject\\Msn\\games.txt");
-            break;
-          case "point":
-            code = Msn.contentsOfNoEmptyLines(
-                "C:\\Users\\mason\\OneDrive\\Documents\\GitHub\\TheMsnProject\\Msn\\point.txt");
-            break;
-          case "arraylist":
-            code = Msn.contentsOfNoEmptyLines(
-                "C:\\Users\\mason\\OneDrive\\Documents\\GitHub\\TheMsnProject\\Msn\\arraylist.txt");
-            break;
-          case "object":
-            code = Msn.contentsOfNoEmptyLines(
-                "C:\\Users\\mason\\OneDrive\\Documents\\GitHub\\TheMsnProject\\Msn\\object.txt");
-            break;
-        }
+        String code = Msn.contentsOfNoEmptyLines("MsnCLib\\" + cl + ".msnc");
+
         interpret(toCodeLines(code), false);
       } else {
 
@@ -296,6 +251,7 @@ public class ExecutionHandler {
             applyVariables(split);
             vars.put(line.command(), String.valueOf(Msn.toSequence(split)));
           }
+
         } else if (Syntax.isDouble(vars.get(line.command()))) {
           if (line.postop().contains("?")) {
             vars.put(line.command(), new Random().nextDouble());
@@ -316,8 +272,12 @@ public class ExecutionHandler {
           vars.put(line.command(),
               (int) (double) evaluate(line.postop()) + (int) vars.get(line.command()));
         } else if (Syntax.isDouble(vars.get(line.command()))) {
-          vars.put(line.command(), (double) vars.get(line.command())
-              + Double.valueOf(String.valueOf(evaluate(line.postop()))));
+          try {
+            vars.put(line.command(), (double) vars.get(line.command())
+                + Double.valueOf(String.valueOf(evaluate(line.postop()))));
+          } catch (NumberFormatException e) {
+            vars.put(line.command(), String.valueOf(evaluate(line.postop())));
+          }
         } else if (Syntax.isString(vars.get(line.command()))) {
           vars.put(line.command(),
               (String) vars.get(line.command()) + String.valueOf(evaluate(line.postop())));
@@ -502,18 +462,27 @@ public class ExecutionHandler {
         }
       } else if (cut[1].equals("->")) {
         String[] split = cut;
-        if (Syntax.isString(vars.get(split[0]))) {
-          try {
-            if (Syntax.isList(vars.get(split[2]))) {
-              ArrayList<String> chars = new ArrayList<>();
-              String str = String.valueOf(vars.get(split[0]));
-              for (int i = 0; i < str.length(); i++) {
-                chars.add("" + str.charAt(i));
+        String structName = vars.get(cut[0]) + "";
+
+        if (isStruct(structName)) {
+          String[] variables = getObjByName(structName).getVariables();
+          MsnStream<String> names = new MsnStream<>(List.of(variables));
+          vars.put(cut[2], names);
+        } else {
+
+          if (Syntax.isString(vars.get(split[0]))) {
+            try {
+              if (Syntax.isList(vars.get(split[2]))) {
+                ArrayList<String> chars = new ArrayList<>();
+                String str = String.valueOf(vars.get(split[0]));
+                for (int i = 0; i < str.length(); i++) {
+                  chars.add("" + str.charAt(i));
+                }
+                vars.put(split[2], new MsnStream<String>(chars));
               }
-              vars.put(split[2], new MsnStream<String>(chars));
+            } catch (NullPointerException e) {
+              error("unknown variable, line " + line.index() + " (" + line.line() + ")", line);
             }
-          } catch (NullPointerException e) {
-            error("unknown variable, line " + line.index() + " (" + line.line() + ")", line);
           }
         }
       }
@@ -578,7 +547,7 @@ public class ExecutionHandler {
       String[] split = cut;
       String def = "no comments";
       functions.add(new Function(split[1], def));
-
+      vars.put(":" + split[1] + ":", split[1]);
     } else if (line.command().equals("f") && cut.length == 3) {
       String[] split = cut;
       String def = null;
@@ -597,6 +566,7 @@ public class ExecutionHandler {
           func.addReturn(r);
         }
         functions.add(func);
+        vars.put(":" + split[1] + ":", split[1]);
       }
     } else if (line.command().equals("f") && cut.length == 4) {
       String[] split = cut;
@@ -629,6 +599,7 @@ public class ExecutionHandler {
           funct.addReturn(r);
         }
         functions.add(funct);
+        vars.put(":" + split[1] + ":", split[1]);
       }
     } else if (isFunction(line.preop()) && line.line().contains(" = ")) {
       Function func = getFunctionByName(line.preop());
@@ -651,7 +622,15 @@ public class ExecutionHandler {
           for (int i = 0; i < f.params().size(); i++) {
             String currentparam = f.params().get(i);
             if (Syntax.isInt(vars.get(currentparam))) {
-              vars.put(currentparam, (int) (double) evaluate(split[i]));
+              try {
+                vars.put(currentparam, (int) (double) evaluate(split[i]));
+              } catch (Exception e) {
+                if (vars.get(split[i]) != null) {
+                  vars.put(currentparam, vars.get(split[i]));
+                } else {
+                  vars.put(currentparam, split[i]);
+                }
+              }
             } else if (Syntax.isDouble(vars.get(currentparam))) {
               vars.put(currentparam, evaluate(split[i]));
             } else if (Syntax.isString(vars.get(currentparam))) {
@@ -707,29 +686,60 @@ public class ExecutionHandler {
         error("unknown function", line);
       }
     } else if (line.command().equals("run")) {
-      String function = String.valueOf(vars.get(cut[1])) + ";";
-      interpret(toCodeLines(function), true);
+      if (cut.length == 2) {
+        String function = String.valueOf(vars.get(cut[1])) + ";";
+        interpret(toCodeLines(function), true);
+      } else if (cut.length == 3) {
+        if (vars.get(cut[1]) != null && Syntax.isString(vars.get(cut[1]))) {
+          if (vars.get(cut[2]) != null && Syntax.isString(vars.get(cut[2]))) {
+            getFunctionByName(vars.get(cut[1]) + "#" + vars.get(cut[2])).run();
+          } else {
+            getFunctionByName(vars.get(cut[1]) + "#" + cut[2]).run();
+          }
+        } else {
+          getFunctionByName(cut[1] + "#" + cut[2]);
+        }
+      }
     } else if (line.command().equals("object")) {
+      try {
       objects.add(new Obj(cut[1]));
+      } catch (ArrayIndexOutOfBoundsException e) {
+        error("unable to create object template",line);
+      }
     } else if (isStruct(line.command())) {
       Obj o = getObjByName(line.command());
-      String[] split = cut;
-      ArrayList<String> dropping = new ArrayList<>(List.of(split));
-      dropping.remove(0);
-      dropping.remove(0);
-      if (cut[1].equals("has")) {
-        for (String s : dropping) {
-          if (!isFunction(s)) {
-            o.addVariable(s, vars.get(s));
-          } else {
-            o.addFunction(getFunctionByName(s));
+      if (cut[1].equals("called")) {
+        if (vars.get(cut[2]) != null && Syntax.isString(vars.get(cut[2]))) {
+          objects.add(o.instance("" + vars.get(cut[2])));
+        } else {
+          objects.add(o.instance(cut[2]));
+        }
+      } else {
+        String[] split = cut;
+        ArrayList<String> dropping = new ArrayList<>(List.of(split));
+        dropping.remove(0);
+        dropping.remove(0);
+        if (cut[1].equals("has")) {
+          for (String s : dropping) {
+            if (!isFunction(s)) {
+              o.addVariable(s, vars.get(s));
+            } else {
+              o.addFunction(getFunctionByName(s));
+            }
           }
         }
       }
     } else if (line.command().equals("create")) {
-      String structname = cut[1];
-      String varname = cut[2];
-      objects.add(getObjByName(structname).instance(varname));
+      if (vars.get(cut[1]) != null && Syntax.isString(vars.get(cut[1]))
+          && Syntax.isString(vars.get(cut[2]))) {
+        String structName = "" + vars.get(cut[1]);
+        String varName = "" + vars.get(cut[2]);
+        objects.add(getObjByName(structName).instance(varName));
+      } else {
+        String structname = cut[1];
+        String varname = cut[2];
+        objects.add(getObjByName(structname).instance(varname));
+      }
     } else if (line.command().equals("sleep")) {
       Thread.sleep(Long.parseLong(String.valueOf(vars.get(cut[1]))));
     } else if (line.command().equals("destroy")) {
@@ -737,6 +747,44 @@ public class ExecutionHandler {
         destroyFunctionVariables(cut[1]);
       } else {
         vars.remove(cut[1]);
+      }
+    } else if (line.command().equals("extract")) {
+      if (cut.length == 4) {
+        if (cut[2].equals("->")) {
+          vars.put(cut[3], vars.get(vars.get(cut[1])));
+        }
+      }
+    } else if (line.command().equals("inject")) {
+      if (cut.length == 4) {
+        if (cut[2].equals("->")) {
+          String varname = String.valueOf(vars.get(cut[3]));
+          vars.put(varname, vars.get(cut[1]));
+        }
+      }
+    } else if (line.command().equals("numbers")) {
+      if (cut[2].equals("->")) {
+        if (Syntax.isString(vars.get(cut[1]))) {
+          vars.put(cut[3],
+              new MsnStream<Object>(Msn.box(Msn.extractNumbers("" + vars.get(cut[1])))));
+        } else {
+          vars.put(cut[3], new MsnStream<Object>(Msn.box(Msn.extractNumbers("" + cut[1]))));
+        }
+      }
+    } else if (line.command().equals("nextvar")) {
+      if (cut[2].equals("->")) {
+        if (vars.get(cut[1]) != null && Syntax.isString(vars.get(cut[1]))) {
+          String name = vars.get(cut[1]) + "";
+          while (nameExists(name)) {
+            name += Msn.randomInt(0, 10000);
+          }
+          vars.put(cut[3], name);
+        } else {
+          String name = cut[1];
+          while (nameExists(name)) {
+            name += Msn.randomInt(0, 10000);
+          }
+          vars.put(cut[3], name);
+        }
       }
     }
 
@@ -760,6 +808,10 @@ public class ExecutionHandler {
         }
       }
     }
+  }
+
+  public boolean nameExists(String name) {
+    return isVariable(name) || isFunction(name) || isStruct(name);
   }
 
   public Obj getObjByName(String name) {
@@ -869,7 +921,7 @@ public class ExecutionHandler {
    * @param s the String
    * @return if the String passed is a variable
    */
-  private boolean isVariable(String s) {
+  public boolean isVariable(String s) {
     for (Map.Entry<String, Object> en : vars.entrySet())
       if (en.getKey().equals(s))
         return true;
@@ -1014,9 +1066,7 @@ public class ExecutionHandler {
     }
 
     public void addVariable(String varname, Object value) {
-      // TODO
       vars.put(varname, value);
-
     }
 
     public void addFunction(Function f) {
@@ -1030,7 +1080,7 @@ public class ExecutionHandler {
           }
           toDrop += copy.name().charAt(i);
         }
-        String newname = copy.name().replace(toDrop, name + "#");
+        String newname = copy.name().replaceAll(toDrop, name + "#");
         copy.setName(newname);
       } else {
         copy.setName(name + "#" + copy.name());
@@ -1041,7 +1091,14 @@ public class ExecutionHandler {
     public String[] getVariables() {
       ArrayList<String> v = new ArrayList<>();
       for (Map.Entry<String, Object> en : vars.entrySet()) {
-        if (en.getKey().contains(name + "#")) {
+        String beginning = "";
+        for (int i = 0; i < en.getKey().length(); i++) {
+          if (en.getKey().charAt(i) == '#') {
+            break;
+          }
+          beginning += en.getKey().charAt(i);
+        }
+        if (beginning.equals(name) && en.getKey().contains("#")) {
           v.add(en.getKey());
         }
       }
@@ -1051,7 +1108,14 @@ public class ExecutionHandler {
     public String[] getFunctions() {
       ArrayList<String> v = new ArrayList<>();
       for (Function f : functions) {
-        if (f.name().contains(name + "#")) {
+        String beginning = "";
+        for (int i = 0; i < f.name().length(); i++) {
+          if (f.name().charAt(i) == '#') {
+            break;
+          }
+          beginning += f.name().charAt(i);
+        }
+        if (beginning.equals(name) && f.name().contains("#")) {
           v.add(f.name());
         }
       }
@@ -1066,30 +1130,32 @@ public class ExecutionHandler {
       Obj instance = new Obj(newname);
       for (String var : variables) {
         Object putting = vars.get(var);
-
+        String fixed = var.replaceAll(toDrop, toAdd);
         if (Syntax.isInt(putting)) {
           int in = (Integer) putting;
-          vars.put(var.replaceAll(toDrop, toAdd), in);
+          vars.put(fixed, in);
         } else if (Syntax.isDouble(putting)) {
           double d = (Double) putting;
-          vars.put(var.replaceAll(toDrop, toAdd), d);
+          vars.put(fixed, d);
         } else if (Syntax.isString(putting)) {
-          String s = "" + putting;
-          vars.put(var.replaceAll(toDrop, toAdd), s);
+          vars.put(fixed, "" + putting);
         } else if (Syntax.isList(putting)) {
           MsnStream<Object> stream = (MsnStream<Object>) putting;
-          vars.put(var.replaceAll(toDrop, toAdd), stream.copyOf());
+          vars.put(fixed, stream.copyOf());
         } else if (Syntax.isObject(putting)) {
-          vars.put(var.replaceAll(toDrop, toAdd), vars.get(var));
+          vars.put(fixed, vars.get(var));
         }
-        instance.addVariable(var.replaceAll(toDrop, toAdd), putting);
       }
       String[] funcs = getFunctions();
       for (String func : funcs) {
         Function f = getFunctionByName(func).copyOf();
         for (CodeLine c : f.inside) {
+          boolean loop = c.loop();
+          String lp = c.lp();
           String newline = c.line().replaceAll(toDrop, toAdd);
           c.setLine(newline);
+          c.setLoop(loop);
+          c.setLp(lp);
         }
         instance.addFunction(f);
       }

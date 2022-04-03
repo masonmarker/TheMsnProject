@@ -1,0 +1,14 @@
+:: duple implementation;
+:: allows for the collection of two different objects;
+:: author : Mason Marker;
+:: date   : 03/22/2022;
+
+object duple;
+o duple#first = &;
+o duple#second = &;
+s d_duple_def = prints a duple;
+f prnt d_duple_def;
+prnt = println first: duple#first;
+prnt = println second: duple#second;
+end prnt;
+duple has duple#first duple#second prnt;

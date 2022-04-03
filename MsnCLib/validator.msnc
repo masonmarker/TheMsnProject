@@ -10,6 +10,8 @@ import string;
 import math;
 import random;
 import arraylist;
+import object;
+import function;
 
 i true = 1;
 i false = 0;
@@ -928,7 +930,7 @@ s human#name = <unset>;
 i human#age = -1;
 s human_prnt_def = prints this object;
 f prnt;
-prnt = name: human#name , age: human#age;
+prnt = println name: human#name , age: human#age;
 human has human#name human#age prnt;
 
 :: create an instance of the object;
@@ -947,6 +949,11 @@ assert checkint mason#age;
 create human mason;
 i checkint = -1;
 assert checkint mason#age;
+
+create mason son;
+son#name = mason's son;
+checkstring = mason's son;
+assert checkstring son#name;
 
 
 timestop;
