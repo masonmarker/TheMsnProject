@@ -1,0 +1,29 @@
+:: linked set implementation, removes duplications;
+:: while maintaining insertion order, no hashing;
+:: is done here :( ;
+:: author : Mason Marker;
+:: date : 03/28/2022;
+
+o oparam1 = &;
+
+import list;
+import bool;
+
+object linkedset;
+l linkedset#elements;
+
+s l_add_def = adds an element to this linked set;
+s l_add_params = @oparam1;
+f add l_add_def l_add_params; 
+add = i __contains = 0;
+add = linkedset#elements contains oparam1 -> __contains;
+add = not with __contains;
+add = {ireturn} linkedset#elements add oparam1;
+end add;
+
+s l_prnt_def = prints this linkedset;
+f prnt l_prnt_def;
+prnt = println linkedset#elements;
+end prnt;
+
+linkedset has linkedset#elements add prnt;

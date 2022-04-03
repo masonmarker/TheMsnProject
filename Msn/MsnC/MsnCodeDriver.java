@@ -10,7 +10,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -23,14 +23,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.Element;
 import MsnC.ExecutionHandler.Function;
+import MsnC.ExecutionHandler.Obj;
+import MsnC.Utils.KeywordStyledDocument;
+import MsnC.Utils.TextLineNumber;
 import MsnLib.Msn;
 
 /**
@@ -46,7 +47,6 @@ public class MsnCodeDriver extends JFrame {
 
   private JPanel contentPane;
   private JTextArea lines;
-  private JTextArea textArea;
   private File savefile;
   private JTextArea variableArea;
 
@@ -56,6 +56,9 @@ public class MsnCodeDriver extends JFrame {
   private JButton btnValidate;
   private JTextArea functionArea;
   private JButton formatbutton;
+  private JTextPane textArea;
+
+  KeywordStyledDocument styledDocument;
 
   /**
    * Launch the application.
@@ -125,59 +128,7 @@ public class MsnCodeDriver extends JFrame {
     lblNewLabel.setFont(new Font("Monospaced", Font.PLAIN, 10));
     lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
     scrollPane.setColumnHeaderView(lblNewLabel);
-
-    textArea = new JTextArea();
-    textArea.setText(Msn.contentsOf(savefile.getAbsolutePath()));
-    textArea.addKeyListener(new KeyListener() {
-      @Override
-      public void keyTyped(KeyEvent e) {
-        // TODO Auto-generated method stub
-
-      }
-
-      @Override
-      public void keyPressed(KeyEvent e) {
-        // TODO Auto-generated method stub
-
-      }
-
-      @Override
-      public void keyReleased(KeyEvent e) {
-
-      }
-    });
-    textArea.setCaretColor(Color.WHITE);
-    textArea.setFont(new Font("Monospaced", Font.PLAIN, 13));
-    textArea.setForeground(Color.WHITE);
-    textArea.setBackground(Color.BLACK);
-    scrollPane.setViewportView(textArea);
     contentPane.setLayout(gl_contentPane);
-    textArea.getDocument().addDocumentListener(new DocumentListener() {
-
-      public String getText() {
-        int caretPosition = textArea.getDocument().getLength();
-        Element root = textArea.getDocument().getDefaultRootElement();
-        String text = "1" + System.getProperty("line.separator");
-        for (int i = 2; i < root.getElementIndex(caretPosition) + 2; i++)
-          text += i + System.getProperty("line.separator");
-        return text;
-      }
-
-      @Override
-      public void changedUpdate(DocumentEvent de) {
-        lines.setText(getText());
-      }
-
-      @Override
-      public void insertUpdate(DocumentEvent de) {
-        lines.setText(getText());
-      }
-
-      @Override
-      public void removeUpdate(DocumentEvent de) {
-        lines.setText(getText());
-      }
-    });
 
     scrollPane.setRowHeaderView(lines);
 
@@ -274,6 +225,41 @@ public class MsnCodeDriver extends JFrame {
     runbutton = new JButton("run");
     sl_panel.putConstraint(SpringLayout.SOUTH, scrollPane_2, -6, SpringLayout.NORTH, runbutton);
     sl_panel.putConstraint(SpringLayout.WEST, runbutton, 6, SpringLayout.EAST, scrollPane);
+
+    styledDocument = new KeywordStyledDocument(h);
+    textArea = new JTextPane(styledDocument);
+    try {
+      textArea.setText(Msn.contentsOf("recentmsnworkspace.txt"));
+    } catch (NullPointerException e) {
+    }
+    TextLineNumber tln = new TextLineNumber(textArea);
+    scrollPane.setRowHeaderView(tln);
+    textArea.setCaretColor(Color.WHITE);
+    textArea.setBackground(Color.BLACK);
+    textArea.setForeground(Color.WHITE);
+    textArea.setFont(new Font("Monospaced", Font.PLAIN, 13));
+    textArea.addKeyListener(new KeyListener() {
+
+      @Override
+      public void keyTyped(KeyEvent e) {
+        // TODO Auto-generated method stub
+
+      }
+
+      @Override
+      public void keyPressed(KeyEvent e) {
+        // TODO Auto-generated method stub
+
+      }
+
+      @Override
+      public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_ALT) {
+          runbutton.doClick();
+        }
+      }
+    });
+    scrollPane.setViewportView(textArea);
     sl_panel.putConstraint(SpringLayout.SOUTH, runbutton, -6, SpringLayout.NORTH, scrollPane_1);
     runbutton.addActionListener(new ActionListener() {
       @Override
@@ -287,6 +273,7 @@ public class MsnCodeDriver extends JFrame {
         h = new ExecutionHandler(textArea.getText(), console);
         try {
           h.interpret(h.lines(), false);
+          styledDocument.setHandler(h);
         } catch (Exception e1) {
           // TODO Auto-generated catch block
           e1.printStackTrace();
@@ -305,12 +292,26 @@ public class MsnCodeDriver extends JFrame {
             s += "-> " + value + "\n\n";
           }
         }
+
+        String l = Msn.generate('-', 100);
+        for (Obj o : h.objects) {
+
+          s += l + "\n";
+          s += "object: " + o.name + "\n";
+          for (String variable : o.getVariables()) {
+            Object value = h.vars.get(variable);
+            s += variable + " : " + value + "\n";
+          }
+          for (String function : o.getFunctions()) {
+            Function f = h.getFunctionByName(function);
+            s += "f : " + f.name() + "\n";
+          }
+        }
         variableArea.setText(variableArea.getText() + s);
 
         String text = "";
-        ArrayList<String> printed = new ArrayList<>();
         for (Function f : h.functions()) {
-          if (!printed.contains(f.name()) && Msn.countChars(f.name(), '_') < 2) {
+          if (Msn.countChars(f.name(), '_') < 2) {
             text += ":: " + f.comments() + "\n";
             text += f.name() + "\n";
 
@@ -321,18 +322,12 @@ public class MsnCodeDriver extends JFrame {
             for (String returns : f.returns()) {
               text += "(" + returns + ")";
             }
-            text += "\n";
-            text += Msn.generate('-', 100);
-            text += "\n";
-            printed.add(f.name());
+            text += "\n" + l + "\n";
           }
         }
         functionArea.setText(text);
-
-        int cursorpos = textArea.getCaretPosition();
-        while (cursorpos > textArea.getText().length())
-          cursorpos--;
         updateTitle(h.linesrun);
+        textArea.setText(textArea.getText());
       }
     });
     runbutton.setForeground(Color.WHITE);
@@ -348,8 +343,7 @@ public class MsnCodeDriver extends JFrame {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        String v = Msn.contentsOf(
-            "C:\\Users\\mason\\OneDrive\\Documents\\GitHub\\TheMsnProject\\Msn\\validator.txt");
+        String v = Msn.contentsOf("MsnCLib\\validator.msnc");
         ExecutionHandler executionHandler = new ExecutionHandler(v, console);
         executionHandler.printToConsole("[*] validating...", true);
         try {
@@ -359,6 +353,7 @@ public class MsnCodeDriver extends JFrame {
           e1.printStackTrace();
         }
         executionHandler.printToConsole("[+] validation complete", true);
+        updateTitle(executionHandler.linesrun);
       }
 
     });
@@ -411,7 +406,7 @@ public class MsnCodeDriver extends JFrame {
   }
 
   public void updateTitle(int lines) {
-    setTitle("Msn Code (MSNC)  ||" + "  ran " + lines + " lines");
+    setTitle("Msn Code (MSNC)  ||" + "  interpreted " + lines + " lines");
   }
 
 

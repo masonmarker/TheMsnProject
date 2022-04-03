@@ -1,0 +1,40 @@
+:: simple map implementation;
+:: does not remove duplicates or sort, rather;
+:: it acts as a list of duples;
+:: author : Mason Marker;
+:: date : 03/24/2022;
+
+timestart;
+
+import object;
+import duple;
+import list;
+import function;
+
+object map;
+l map#entries;
+s m_put_def = adds an entry to this map;
+s m_put_params = @oparam1 @oparam2;
+f put m_put_def m_put_params;
+put = s __first = oparam1;
+put = s __second = oparam2;
+put = createnobj with duple 1;
+put = last with lreturn;
+put = s __oname = oreturn;
+put = setattr with __oname first __first;
+put = setattr with __oname second __second;
+put = map#entries add __oname;
+end put;
+f printmap;
+printmap = length with map#entries;
+printmap = i __times = ireturn;
+printmap = i __index = 0;
+printmap = f __printblock;
+printmap = __printblock = get with map#entries __index;
+printmap = __printblock = run oreturn prnt;
+printmap = __printblock = println -----;
+printmap = __printblock = __index += 1;
+printmap = end __printblock;
+printmap = __printblock [0:__times];
+end printmap;
+map has map#entries put printmap;
