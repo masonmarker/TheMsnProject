@@ -53,8 +53,9 @@ public class ExecutionHandler {
       }
     ArrayList<CodeLine> codes = new ArrayList<>();
     int index = 1;
-    for (String str : codelines)
+    for (String str : codelines) {
       codes.add(new CodeLine(str, index++));
+    }
     return codes.toArray(CodeLine[]::new);
   }
 
@@ -75,7 +76,7 @@ public class ExecutionHandler {
     for (int i = 0; i < lines.length; i++) {
 
       CodeLine line = lines[i];
-
+      Msn.println(line.toString());
       String[] splitline = line.line().split(" ");
       if (splitline[0].equals("::")) {
         continue;
@@ -884,11 +885,11 @@ public class ExecutionHandler {
    */
   public void printToConsole(String s, boolean ln) {
     try {
-    console.setText(console.getText() + s);
-    if (ln)
-      console.setText(console.getText() + "\n");
+      console.setText(console.getText() + s);
+      if (ln)
+        console.setText(console.getText() + "\n");
     } catch (NullPointerException e) {
-      System.out.print("-> " + s); 
+      System.out.print("-> " + s);
       if (ln)
         System.out.println();
     }

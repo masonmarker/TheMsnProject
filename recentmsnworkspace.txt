@@ -1,18 +1,10 @@
+import bool;
 
-d double = 34.3423;
-
-
- 
-println double;
-
-
+f block;
+block = println yo whats good;
+block = println im pretty good;
+end block;
 
 
 
-
-
-
-
-
-
-
+{true} block [0:2];
