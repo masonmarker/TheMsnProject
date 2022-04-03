@@ -126,7 +126,7 @@ public class CodeLine implements Comparable<CodeLine> {
       }
       setLine(joined);
     }
-
+    System.out.println(line);
   }
 
   public void setLp(String lp) {
