@@ -1,15 +1,16 @@
 
-
-import random;
-
+d double = 34.3423;
 
 
+ 
+println double;
 
 
 
-o = efwf;
 
-println =;
+
+
+
 
 
 

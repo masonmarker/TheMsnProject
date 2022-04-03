@@ -702,9 +702,9 @@ public class ExecutionHandler {
       }
     } else if (line.command().equals("object")) {
       try {
-      objects.add(new Obj(cut[1]));
+        objects.add(new Obj(cut[1]));
       } catch (ArrayIndexOutOfBoundsException e) {
-        error("unable to create object template",line);
+        error("unable to create object template", line);
       }
     } else if (isStruct(line.command())) {
       Obj o = getObjByName(line.command());
@@ -848,9 +848,14 @@ public class ExecutionHandler {
   }
 
   public void error(String msg, CodeLine line) throws Exception {
-    printToConsole("[-] error (" + line.index() + ") : " + msg + " : " + "'" + line.line() + "'",
-        true);
-    throw new Exception(msg);
+    try {
+      printToConsole("[-] error (" + line.index() + ") : " + msg + " : " + "'" + line.line() + "'",
+          true);
+      throw new Exception(msg);
+    } catch (NullPointerException e) {
+      System.out
+          .println("[-] error (" + line.index() + ") : " + msg + " : " + "'" + line.line() + "'");
+    }
   }
 
   public boolean isStruct(String name) {
@@ -878,9 +883,15 @@ public class ExecutionHandler {
    * @param ln has newline at the end
    */
   public void printToConsole(String s, boolean ln) {
+    try {
     console.setText(console.getText() + s);
     if (ln)
       console.setText(console.getText() + "\n");
+    } catch (NullPointerException e) {
+      System.out.print("-> " + s); 
+      if (ln)
+        System.out.println();
+    }
   }
 
   /**
