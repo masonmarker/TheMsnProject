@@ -35,9 +35,7 @@ public class CodeLine implements Comparable<CodeLine> {
     String[] split = line.split(" ");
     try {
       if (line.charAt(0) == ' ') {
-        ArrayList<String> l = new ArrayList<>(List.of(split));
-        l.remove(0);
-        line = Msn.toSequence(l.toArray(String[]::new));
+        line = Msn.toSequence(Msn.dropWords(split, 1));
       }
     } catch (IndexOutOfBoundsException e) {
     }
@@ -58,17 +56,7 @@ public class CodeLine implements Comparable<CodeLine> {
         boperand2 = splitb[1];
       } catch (ArrayIndexOutOfBoundsException e) {
       }
-      ArrayList<String> list = new ArrayList<>(List.of(split2));
-      list.remove(0);
-      String jn = "";
-      for (int i = 0; i < list.size(); i++) {
-        if (i != list.size() - 1) {
-          jn += list.get(i) + " ";
-        } else {
-          jn += list.get(i);
-        }
-      }
-      setLine(jn);
+      setLine(Msn.toSequence(Msn.dropWords(split, 1)));
     }
 
     Scanner sc = new Scanner(line);
@@ -116,17 +104,8 @@ public class CodeLine implements Comparable<CodeLine> {
       ArrayList<String> l = new ArrayList<>(List.of(split));
       l.remove(l.size() - 1);
       String[] fixed = Msn.toString(l.toArray());
-      String joined = "";
-      for (int j = 0; j < fixed.length; j++) {
-        if (j != fixed.length - 1) {
-          joined += fixed[j] + " ";
-        } else {
-          joined += fixed[j];
-        }
-      }
-      setLine(joined);
+      setLine(Msn.toSequence(fixed));
     }
-    System.out.println(line);
   }
 
   public void setLp(String lp) {
@@ -213,7 +192,7 @@ public class CodeLine implements Comparable<CodeLine> {
 
   public void setLine(String line) {
     CodeLine c = new CodeLine(line, index);
-    this.line = line;
+    this.line = c.line();
     this.command = c.command();
     this.op = c.op();
     this.postop = c.postop();
