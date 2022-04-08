@@ -1,10 +1,32 @@
+timestart;
+
+
+
+
+
+
+
+import string;
 import bool;
-
-f block;
-block = println yo whats good;
-block = println im pretty good;
-end block;
+import list;
 
 
+l lst;
 
-{true} block [0:2];
+lst add 3;
+lst add 3.454;
+lst add hello;
+
+
+and4 with false true true true;
+
+println ireturn;
+
+
+
+
+
+
+
+
+timestop;

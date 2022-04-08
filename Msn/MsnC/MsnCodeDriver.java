@@ -285,11 +285,15 @@ public class MsnCodeDriver extends JFrame {
           String value = "" + en.getValue();
           // s += i++ + ": " + en.getKey() + " (" + en.getValue().getClass().getTypeName() + ") -> "
           // + value + "\n";
+          try {
           if (!en.getKey().contains("_def") && !en.getKey().contains("_params")
               && Msn.countChars(en.getKey(), '_') < 2
               && (!en.getKey().contains("::") && Msn.countChars(en.getKey(), ':') != 2)) {
             s += en.getKey() + " :: " + en.getValue().getClass().getTypeName() + "\n";
             s += "-> " + value + "\n\n";
+          }
+          } catch (NullPointerException e1) {
+            
           }
         }
 

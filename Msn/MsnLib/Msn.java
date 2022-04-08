@@ -57,7 +57,7 @@ import javax.swing.border.EmptyBorder;
  * stages, using them could cause errors.
  * 
  * @author Mason Marker
- * @version 0.1.5.3.6 - 12/02/2021
+ * @version 0.1.5.3.7 - 04/07/2022
  */
 public class Msn {
 
@@ -495,7 +495,7 @@ public class Msn {
           return true;
     return false;
   }
-  
+
   // ----------------------------COUNTING-------------------------------------
 
   /**
@@ -1700,6 +1700,22 @@ public class Msn {
     if (verbose)
       println("[*] creating String array");
     return s.split(" ");
+  }
+
+  /**
+   * Drops a certain amount of words from a String[].
+   * 
+   * @param s the String to drop from
+   * @param n the number of words to drop
+   * @since 0.1.5.3.7
+   */
+  public static String[] dropWords(String[] strings, int n) {
+    String[] dropped = new String[strings.length - n];
+    int ind = 0;
+    for (int i = n; i < strings.length; i++) {
+      dropped[ind++] = strings[i];
+    }
+    return dropped;
   }
 
   /**
@@ -3971,7 +3987,7 @@ public class Msn {
     }
     return null;
   }
-  
+
   /**
    * Gets the element at an index in a set.
    * 
