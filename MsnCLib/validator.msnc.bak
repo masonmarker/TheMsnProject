@@ -970,7 +970,6 @@ integer = 3;
 
 if with true __changeinteger;
 
-
 checkint = 2;
 assert checkint integer;
 

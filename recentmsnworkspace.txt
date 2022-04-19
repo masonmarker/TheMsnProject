@@ -1,32 +1,21 @@
-timestart;
+
+
+l list;
+
+list add 34.34;
+list add 34;
+list add hello;
+
+s string = &;
+list getat 2 -> string;
+
+
+string ++ :w:;
+string ++  yo whats happening;
+
+
+i integer = 2;
 
 
 
-
-
-
-
-import string;
-import bool;
-import list;
-
-
-l lst;
-
-lst add 3;
-lst add 3.454;
-lst add hello;
-
-
-and4 with false true true true;
-
-println ireturn;
-
-
-
-
-
-
-
-
-timestop;
+integer += 3 [0:10];

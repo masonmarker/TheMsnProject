@@ -2,15 +2,29 @@
 
 
 class Main {
+  static int a = 1;
+
   public static void main(String[] args) {
 
+    V();
+    System.out.println(a);
+  }
 
-    System.out.println("sup cuh");
-    
-    System.out.println("whats good foo");
-    
-    System.out.println();
+  public static int t(int x) {
+    if (x > 0) {
+      t(0);
+    }
+    a += 1;
+    x += 2;
+    return x;
+    // POINT B
+  }
 
+  public static void V() {
+    int a = 4;
+    int b = 5;
+    // POINT A
+    t(b);
   }
 
 

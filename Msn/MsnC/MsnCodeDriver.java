@@ -59,6 +59,7 @@ public class MsnCodeDriver extends JFrame {
   private JTextPane textArea;
 
   KeywordStyledDocument styledDocument;
+  private JButton helpbutton;
 
   /**
    * Launch the application.
@@ -118,8 +119,6 @@ public class MsnCodeDriver extends JFrame {
     lines.setBackground(Color.black);
     lines.setForeground(Color.white);
     lines.setEditable(false);
-
-
 
     JLabel lblNewLabel = new JLabel("editor");
     lblNewLabel.setOpaque(true);
@@ -286,14 +285,14 @@ public class MsnCodeDriver extends JFrame {
           // s += i++ + ": " + en.getKey() + " (" + en.getValue().getClass().getTypeName() + ") -> "
           // + value + "\n";
           try {
-          if (!en.getKey().contains("_def") && !en.getKey().contains("_params")
-              && Msn.countChars(en.getKey(), '_') < 2
-              && (!en.getKey().contains("::") && Msn.countChars(en.getKey(), ':') != 2)) {
-            s += en.getKey() + " :: " + en.getValue().getClass().getTypeName() + "\n";
-            s += "-> " + value + "\n\n";
-          }
+            if (!en.getKey().contains("_def") && !en.getKey().contains("_params")
+                && Msn.countChars(en.getKey(), '_') < 2
+                && (!en.getKey().contains("::") && Msn.countChars(en.getKey(), ':') != 2)) {
+              s += en.getKey() + " :: " + en.getValue().getClass().getTypeName() + "\n";
+              s += "-> " + value + "\n\n";
+            }
           } catch (NullPointerException e1) {
-            
+
           }
         }
 
@@ -379,10 +378,6 @@ public class MsnCodeDriver extends JFrame {
               while (chars.get(i) == ' ') {
                 chars.remove(i);
               }
-
-              while (chars.get(i + 1) == ' ') {
-                chars.remove(i);
-              }
               chars.add(i, '\n');
             }
           } catch (Exception e1) {
@@ -406,6 +401,21 @@ public class MsnCodeDriver extends JFrame {
     formatbutton.setFocusPainted(false);
     formatbutton.setBackground(Color.DARK_GRAY);
     panel.add(formatbutton);
+
+    helpbutton = new JButton("help");
+    helpbutton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        new HelpMePls().setVisible(true);
+      }
+    });
+    sl_panel.putConstraint(SpringLayout.NORTH, helpbutton, 6, SpringLayout.SOUTH, scrollPane_2);
+    sl_panel.putConstraint(SpringLayout.WEST, helpbutton, 6, SpringLayout.EAST, formatbutton);
+    helpbutton.setForeground(Color.WHITE);
+    helpbutton.setFont(new Font("Monospaced", Font.PLAIN, 12));
+    helpbutton.setFocusPainted(false);
+    helpbutton.setBackground(Color.DARK_GRAY);
+    panel.add(helpbutton);
     setLocationRelativeTo(null);
   }
 

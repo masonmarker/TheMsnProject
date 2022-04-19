@@ -29,9 +29,11 @@ public class ExecutionHandler {
   public HashSet<Obj> objects;
   private long start;
   public int linesrun;
+  public char mode;
 
   public ExecutionHandler(String code, JTextArea console) {
     this.console = console;
+    mode = '?';
     linesrun = 0;
     functions = new LinkedHashSet<>();
     vars = new LinkedHashMap<>();
@@ -637,6 +639,7 @@ public class ExecutionHandler {
             try {
               getFunctionByName(line.command()).run();
             } catch (NullPointerException e) {
+              e.printStackTrace();
               error("invalid arguments", line);
             }
           }
@@ -767,10 +770,26 @@ public class ExecutionHandler {
           vars.put(cut[3], name);
         }
       }
-    } else {
+    } else if (line.command().equals("mode")) { 
+      mode = cut[1].charAt(0);
+    }
+    
+    
+    else {
       error("unknown command", line);
     }
+    
+    switch (mode) {
+      case 's':
+        modeS(line);
+        break;
+    }
+    
     linesrun++;
+  }
+  
+  public void modeS(CodeLine c) {
+    
   }
 
   public void destroyFunctionVariables(String name) {
@@ -866,7 +885,7 @@ public class ExecutionHandler {
       if (ln)
         console.setText(console.getText() + "\n");
     } catch (NullPointerException e) {
-      System.out.print("-> " + s);
+      System.out.print("---> " + s);
       if (ln)
         System.out.println();
     }
