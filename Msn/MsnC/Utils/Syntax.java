@@ -15,7 +15,7 @@ public class Syntax {
 
   public static final HashSet<String> VALID_COMMANDS = new HashSet<>(List.of(new String[] {"print",
       "println", "i", "d", "s", "c", "o", "l", "f", "import", "object", "assert", "!assert",
-      "create", "extract", "numbers", "inject", "run", "timestart", "timestop", "nextvar"}));
+      "create", "extract", "numbers", "inject", "run", "timestart", "timestop", "nextvar", "destroy"}));
 
   public static final HashSet<String> VALID_FUNCTIONAL_TERM =
       new HashSet<>(List.of(new String[] {"add", "contains", "copy", "remove", "removeat",

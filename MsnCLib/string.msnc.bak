@@ -47,6 +47,10 @@ scount = s_scount_loop = s_scount_index += 1;
 scount = end s_scount_loop;
 scount = s_scount_loop [0:s_scount_length];
 scount = ireturn = s_scount_count;
+scount = destroy s_scount_count;
+scount = destroy s_scount_list;
+scount = destroy s_scount_ph;
+scount = destroy s_scount_ph;
 end scount;
 
 s s_removen_def = removes a certain amount of an element in a string;
@@ -125,4 +129,4 @@ addspace = sreturn = sparam1;
 addspace = sreturn ++ :w:;
 end addspace;
 
-:: end 
+:: end ;
