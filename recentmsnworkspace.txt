@@ -1,21 +1,107 @@
+timestart;
+
+import object;
+import list;
+
+:: creating template object;
+
+object person;
+s person#name = template_name;
+i person#age = -1;
+
+f prnt;
+prnt = println;
+prnt = println name: person#name;
+prnt = println age: person#age;
+prnt = println;
+end prnt;
+person has prnt;
+
+:: create me;
+person called mason;
+
+mason#name = mason;
+mason#age = 21;
+
+l mason#children;
 
 
-l list;
-
-list add 34.34;
-list add 34;
-list add hello;
-
-s string = &;
-list getat 2 -> string;
-
-
-string ++ :w:;
-string ++  yo whats happening;
-
-
-i integer = 2;
+mason called masons_child;
+masons_child#name = child name here;
+masons_child#age = 0;
 
 
 
-integer += 3 [0:10];
+s add_child_params = @sparam1;
+f add_child add_child_params;
+add_child = s __newname = sparam1;
+add_child = createnobj with masons_child 1;
+add_child = head with lreturn;
+add_child = setattr with oreturn name __newname;
+add_child = setattr with oreturn age 0;
+add_child = mason#children add oreturn;
+add_child = destroy __newname;
+end add_child;
+mason has add_child;
+
+
+mason#add_child with raymond;
+mason#add_child with jacob;
+
+s masonjr = mason jr.;
+mason#add_child with masonjr;
+
+
+f print_children;
+print_children = i __length = -1;
+print_children = length with mason#children;
+print_children = __length = ireturn;
+print_children = i __i = 0;
+print_children = f ch__loop;
+print_children = ch__loop = get with mason#children __i;
+print_children = ch__loop = run oreturn prnt;
+print_children = ch__loop = __i += 1;
+print_children = end ch__loop;
+print_children = ch__loop [0:__length];
+print_children = destroy __i;
+print_children = destroy __length;
+end print_children;
+mason has print_children;
+
+
+s advance_time_params = @iparam1;
+f advance_time advance_time_params;
+advance_time = mason#age += iparam1;
+advance_time = i __yearstoadd = iparam1;
+advance_time = i __i = 0;
+advance_time = length with mason#children;
+advance_time = i __length = ireturn;
+advance_time = f ad__loop;
+advance_time = ad__loop = s current__child = &;
+advance_time = ad__loop = get with mason#children __i;
+advance_time = ad__loop = current__child = oreturn;
+advance_time = ad__loop = getattr with current__child age;
+advance_time = ad__loop = i __newage = oreturn;
+advance_time = ad__loop = __newage += __yearstoadd;
+advance_time = ad__loop = setattr with current__child age __newage;
+advance_time = ad__loop = __i += 1;
+advance_time = end ad__loop;
+advance_time = ad__loop [0:__length];
+advance_time = destroy __yearstoadd;
+advance_time = destroy __i;
+advance_time = destroy __length;
+advance_time = destroy __newage;
+advance_time = destroy current__child;
+end advance_time;
+
+
+
+mason has advance_time;
+mason#advance_time with 10000;
+
+mason#prnt;
+mason#print_children;
+
+
+
+timestop;
