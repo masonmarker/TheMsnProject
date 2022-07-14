@@ -30,6 +30,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import MsnC.ExecutionHandler.Function;
 import MsnC.ExecutionHandler.Obj;
+import MsnC.Utils.CodeLine;
 import MsnC.Utils.KeywordStyledDocument;
 import MsnC.Utils.TextLineNumber;
 import MsnLib.Msn;
@@ -315,13 +316,20 @@ public class MsnCodeDriver extends JFrame {
         String text = "";
         for (Function f : h.functions()) {
           if (Msn.countChars(f.name(), '_') < 2) {
-            text += ":: " + f.comments() + "\n";
+            try {
+            text += ":: " + Msn.formatString(f.comments, 45) + "\n";
+            } catch (NullPointerException e1) {
+              text += ":: no comments\n";
+            }
             text += f.name() + "\n";
 
             for (String param : f.params()) {
               text += "(" + param + ") ";
             }
             text += " -> ";
+            if (f.returns().isEmpty()) {
+              text += "(nothing)";
+            }
             for (String returns : f.returns()) {
               text += "(" + returns + ")";
             }

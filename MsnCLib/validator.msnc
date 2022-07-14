@@ -587,8 +587,7 @@ boolean = -1;
 
 i checkint = int4 + 1;
 list contains checkint -> boolean;
-assert boolean false;
-
+assert boolean true;
 
 l list5;
 i index = 0;
