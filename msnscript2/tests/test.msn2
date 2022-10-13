@@ -1,0 +1,30 @@
+
+
+ai.setkey("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")
+import (<lib/time.msn2>)
+
+
+
+
+var.set(<t1done>, False)
+var.set(<t2done>, False)
+
+$$
+_(
+    :: thread 2 and context
+    thread(^_(
+        print ("t2 done"),
+        var.set(<t2done>, True),
+        wait(^*t1done),
+        print("t2 running")
+    )),
+
+    :: thread 1 and context
+    thread(^_(
+        print("t1 done"),
+        var.set(<t1done>, True),
+        print ("t1 waiting on t2"),
+        print ("t1 running")
+    ))
+)
+$$
