@@ -1,0 +1,8 @@
+:: additional AI support
+:: author : Mason Marker
+
+
+:: executes python code when given a description of the code
+~ exec_from_eng(__desc) -> __code
+>  var.set(<__code>, prnt(ai.ask(*__desc)))
+>  exec(*__code)

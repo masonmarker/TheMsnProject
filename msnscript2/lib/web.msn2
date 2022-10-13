@@ -1,0 +1,10 @@
+:: offers functionality for web development
+:: author : Mason Marker
+
+:: generates a web page with the given English description
+~ web_gen_page(__desc)->__page
+>  ai.settokens(1000)
+>  var.set(<__html>, ai.ask(*__desc))
+>  file.write("file.html", *__html)
+>  print ("webpage generated")
+>  var.set(<__page>, *__html)

@@ -1,0 +1,12 @@
+:: advanced thread utilization
+:: author : Mason Marker
+
+:: permits an interactive shell outside of the main execution thread
+~ t_shell() -> __complete
+$$
+>  thread(^_(
+    script(*__ip),
+    var.set(<__ip>, input())
+))
+$$ 
+>  var.set(<__complete>, True)
