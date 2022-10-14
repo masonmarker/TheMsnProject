@@ -6,27 +6,21 @@ class Main {
 
   public static void main(String[] args) {
 
-    V();
-    System.out.println(a);
-  }
-
-  public static int t(int x) {
-    if (x > 0) {
-      t(0);
+    int a = 0;
+    for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < 2; j++) {
+        for (int k = 0; k < 2; k++) {
+          for (int l = 0; l < 2; l++) {
+            a += 1;
+          }
+        }
+      }
     }
-    a += 1;
-    x += 2;
-    return x;
-    // POINT B
+    
+    
+    System.out.println(a);
+    
   }
-
-  public static void V() {
-    int a = 4;
-    int b = 5;
-    // POINT A
-    t(b);
-  }
-
 
 
 }
