@@ -1,34 +1,11 @@
 
 
+
 import (<lib/thread.msn2>)
 
 
-:: ---- wait for message ---- 
-var.set(<answer>, None)
-
-var.set(<lock>, 0)
-
-~ coroutine1() -> __answer
->    var.set(<lock>, 1)
->    var.set(<answer>, input())
->    var.set(<lock>, 0)
-
-~ coroutine2() -> __answer
->    var.set(<lock>, 1)
->    var.set(<answer>, input())
->    var.set(<lock>, 0)
+var.set(<number>, 0)
+while (^*number < 10, ^var.add(<number>, 2))
 
 
-$$
-thread(^_(
-    script(*coroutine1),
-    var.set(<coroutine1>, input())
-))
-
-
-$$
-
-
-
-
-:: print ("main thread finished")
+print (*out)
