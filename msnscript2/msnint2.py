@@ -592,7 +592,8 @@ class Interpreter:
                     
                 # waits for the boolean expression to be true
                 if func == "wait":
-                    while not self.interpret(self.calledmethod):
+                    waitcond = self.calledmethod
+                    while not self.interpret(waitcond):
                         None
                     return True
 
@@ -623,6 +624,7 @@ class Interpreter:
                 if func == 'later':
                     return self.interpret(self.calledmethod)
                 if func == 'for':
+                    inside = self.calledmethod
                     # times to loop
                     start = eval(evals[0])
                     end = eval(evals[1])
@@ -630,11 +632,11 @@ class Interpreter:
                     if start < end:
                         for i in range(start, end):
                             self.vars[loopvar] = Var(loopvar, i)
-                            self.interpret(self.calledmethod)
+                            self.interpret(inside)
                     elif start > end:
                         for i in reversed(range(end, start)):
                             self.vars[loopvar] = Var(loopvar, i) 
-                            self.interpret(self.calledmethod)
+                            self.interpret(inside)
                     return self.vars[loopvar].value
                          
                 if func in self.methods.keys():

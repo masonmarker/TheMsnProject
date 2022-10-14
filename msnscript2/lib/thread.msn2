@@ -2,11 +2,11 @@
 :: author : Mason Marker
 
 :: permits an interactive shell outside of the main execution thread
-~ t_shell() -> __complete
+~ t_shell() -> __started
 $$
 >  thread(^_(
     script(*__ip),
     var.set(<__ip>, input())
 ))
 $$ 
->  var.set(<__complete>, True)
+>  var.set(<__started>, True)
