@@ -6,7 +6,7 @@
 $$
 >  thread(^_(
     script(*__ip),
-    var.set(<__ip>, input())
+    var.set(<__ip>, input(">>> "))
 ))
 $$ 
 >  var.set(<__started>, True)

@@ -587,9 +587,13 @@ class Interpreter:
 
                 # interprets a function
                 if obj == "script":
-                    print (evals[0])
                     return self.interpret(evals[0])
-                    
+                
+                # while logic
+                if func == "while":
+                    None
+                        
+
                 # waits for the boolean expression to be true
                 if func == "wait":
                     waitcond = self.calledmethod
@@ -597,8 +601,13 @@ class Interpreter:
                         None
                     return True
 
+                # obtains the called method
                 if func == "called":
                     return self.calledmethod
+
+                # gets the current out
+                if func == "out":
+                    return self.out
 
                 if func == "sleep":
                     sleeping = eval(evals[0])
