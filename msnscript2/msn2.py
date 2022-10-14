@@ -24,5 +24,6 @@ with open(filename, 'r') as f:
 interpreter = msnint2.Interpreter()
 interpreter.execute(script)
 
-print(interpreter.out)
+if interpreter.out != '':
+    print(interpreter.out)
 

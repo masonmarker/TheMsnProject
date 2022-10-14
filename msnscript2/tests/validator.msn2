@@ -282,15 +282,15 @@ assert(assert(assert(assert(assert(assert(1))))))
 
 :: set up the AI, API key obtained from OpenAI website
 
-ai.setkey("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")
-ai.settokens(1000)
+:: ai.setkey("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")
+:: ai.settokens(1000)
 
 :: random number generation via AI
 :: prnt(ai.ask("generate a beautiful HTML file for me "))
 
 :: -------------------- web implementation --------------------
 
-browser.setpath('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
+:: browser.setpath('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
 :: browser.open('google.com')
 
 :: -------------------- file implementation --------------------
@@ -308,9 +308,9 @@ browser.setpath('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
 
 
 :: AI assisted math
-var.set(<sum>, 0)
-var.add(<sum>, ai.ask(*"evaluate sum + 5 + 1"))
-assert (* sum == 6)
+:: var.set(<sum>, 0)
+:: var.add(<sum>, ai.ask(*"evaluate sum + 5 + 1"))
+:: assert (* sum == 6)
 
 
 :: -------------------- advanced syntactical operations --------------------
@@ -439,6 +439,11 @@ var.set(<lock>, 1)
 :: waiting for thread to finish
 wait(^*lock == -1)
 assert (*lock == -1)
+prnt ("[+] threads tests finished")
+
+
+
+
 
 prnt ('[+] done')
 

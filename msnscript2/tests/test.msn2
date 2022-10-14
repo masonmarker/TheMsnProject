@@ -1,30 +1,34 @@
 
 
-ai.setkey("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")
-import (<lib/time.msn2>)
+import (<lib/thread.msn2>)
 
 
+:: ---- wait for message ---- 
+var.set(<answer>, None)
 
+var.set(<lock>, 0)
 
-var.set(<t1done>, False)
-var.set(<t2done>, False)
+~ coroutine1() -> __answer
+>    var.set(<lock>, 1)
+>    var.set(<answer>, input())
+>    var.set(<lock>, 0)
+
+~ coroutine2() -> __answer
+>    var.set(<lock>, 1)
+>    var.set(<answer>, input())
+>    var.set(<lock>, 0)
+
 
 $$
-_(
-    :: thread 2 and context
-    thread(^_(
-        print ("t2 done"),
-        var.set(<t2done>, True),
-        wait(^*t1done),
-        print("t2 running")
-    )),
+thread(^_(
+    script(*coroutine1),
+    var.set(<coroutine1>, input())
+))
 
-    :: thread 1 and context
-    thread(^_(
-        print("t1 done"),
-        var.set(<t1done>, True),
-        print ("t1 waiting on t2"),
-        print ("t1 running")
-    ))
-)
+
 $$
+
+
+
+
+:: print ("main thread finished")
