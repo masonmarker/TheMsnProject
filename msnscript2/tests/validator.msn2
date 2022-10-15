@@ -397,7 +397,7 @@ thread(^_(
 $$
 
 wait (^*done)
-assert (*done)
+assert (*done and thread_done)
 
 
 
@@ -439,7 +439,13 @@ var.set(<lock>, 1)
 :: waiting for thread to finish
 wait(^*lock == -1)
 assert (*lock == -1)
-prnt ("[+] threads tests finished")
+
+:: -------------------- dict assistance --------------------
+
+var.set(<dictionary>, {})
+
+
+
 
 
 

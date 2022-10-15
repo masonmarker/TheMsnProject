@@ -173,7 +173,7 @@ class Interpreter:
                     try:
                         return eval(line[1:])
                     except:
-                        return line[1:]
+                        return self.interpret(line[1:])
         if line[0] == '^':
             self.calledmethod = line[1:]
             cont = True
@@ -296,6 +296,20 @@ class Interpreter:
                             self.logg("importing library", str(args[0][0]))
                             self.execute(script)
                 
+                # allows for continuation of logic flow
+                if func == 'continue':
+                    continue;
+
+                if func == 'break':
+                    break;
+
+                if func == "while":
+                    whilecond = args[0][0]
+                    waitfunc = args[1][0]
+                    while (self.interpret(whilecond[1:])):
+                        self.interpret(waitfunc[1:])
+                    return None
+                    
 
                 # AI features
                 if obj == 'ai':
@@ -588,12 +602,7 @@ class Interpreter:
                 # interprets a function
                 if obj == "script":
                     return self.interpret(evals[0])
-                
-                # while logic
-                if func == "while":
-                    None
-                        
-
+  
                 # waits for the boolean expression to be true
                 if func == "wait":
                     waitcond = self.calledmethod
@@ -640,10 +649,14 @@ class Interpreter:
                     loopvar =  evals[2]
                     if start < end:
                         for i in range(start, end):
+                            if loopvar in self.vars and self.vars[loopvar].value >= end:
+                                break
                             self.vars[loopvar] = Var(loopvar, i)
                             self.interpret(inside)
                     elif start > end:
                         for i in reversed(range(end, start)):
+                            if loopvar in self.vars and self.vars[loopvar].value < end:
+                                break
                             self.vars[loopvar] = Var(loopvar, i) 
                             self.interpret(inside)
                     return self.vars[loopvar].value
