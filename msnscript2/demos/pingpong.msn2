@@ -1,0 +1,45 @@
+
+
+:: ping pongs two threads back and forth
+:: author : Mason Marker
+:: date : 10/15/2022
+
+
+
+var.set(<number>, 0)
+var.set(<pinger>, 0)
+
+
+
+
+:: thread 1
+$$
+thread(^_(
+    for (0, 5, <index1>, ^_(
+        wait(^*pinger == 0),
+        var.set(<pinger>, 1),
+        print ("thread 1 started")
+    ))
+))
+$$
+
+
+
+
+
+:: thread 2
+
+$$
+thread(^_(
+    for (0, 5, <index2>, ^_(
+        wait(^*pinger == 1),
+        var.set(<pinger>, 0),
+        print ("thread 2 started")
+    ))
+))
+$$
+
+
+
+:: the wait() mechanism is used properly here to wait for the opposing thread to set the pinger to the respective value
+:: print() should be used instead of prnt() because print() uses python backend to work in harmony with threads
