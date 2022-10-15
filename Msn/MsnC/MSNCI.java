@@ -27,6 +27,8 @@ public class MSNCI {
       }
       try {
         handler.interpret(handler.toCodeLines(line), false);
+        System.out.println();
+        System.out.println("** " + handler.linesrun + " lines interpreted **");
       } catch (Exception e) {
         e.printStackTrace();
       }

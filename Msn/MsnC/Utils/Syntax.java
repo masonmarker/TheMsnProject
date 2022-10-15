@@ -15,11 +15,11 @@ public class Syntax {
 
   public static final HashSet<String> VALID_COMMANDS = new HashSet<>(List.of(new String[] {"print",
       "println", "i", "d", "s", "c", "o", "l", "f", "import", "object", "assert", "!assert",
-      "create", "extract", "numbers", "inject", "run", "timestart", "timestop", "nextvar"}));
+      "create", "extract", "numbers", "inject", "run", "timestart", "timestop", "nextvar", "destroy", "move", "ignore"}));
 
   public static final HashSet<String> VALID_FUNCTIONAL_TERM =
       new HashSet<>(List.of(new String[] {"add", "contains", "copy", "remove", "removeat",
-          "shuffle", "with", "has", "called", "sort"}));
+          "shuffle", "with", "has", "called", "sort", "to"}));
 
   public static final HashSet<String> VALID_IMPORTS =
       new HashSet<>(List.of(new String[] {"math", "bool", "loop", "string", "list", "random",
