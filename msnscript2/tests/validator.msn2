@@ -443,10 +443,12 @@ assert (*lock == -1)
 :: -------------------- dict assistance --------------------
 
 var.set(<dictionary>, {})
+var.dictadd(<dictionary>, 0, 0)
+var.dictadd(<dictionary>, <mason>, 21)
+prnt(*dictionary)
 
 
-
-
+prnt(var.get(<dictionary>, <mason>))
 
 
 
