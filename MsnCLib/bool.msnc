@@ -68,7 +68,6 @@ end or2;
 s b_or3_def = ors three bools;
 s b_or3_params = @iparam1 @iparam2 @iparam3 -> @ireturn;
 f or3 b_or3_def b_or3_params;
-f or3;
 or3 = or2 with iparam1 iparam2;
 or3 = or2 with ireturn iparam3;
 end or3;

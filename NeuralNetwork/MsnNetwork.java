@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import MsnLib.Msn;
@@ -21,7 +22,7 @@ public class MsnNetwork {
   public static final double MEDIOCRE_LEARNING = 0.6;
   public static final double FAST_LEARNING = 0.8;
   public static final double FASTEST_LEARNING = 1;
-  
+
   /**
    * Constructor for a Network for scenarios where data has not already been gathered.
    * 
@@ -70,7 +71,7 @@ public class MsnNetwork {
   public void setLearningRate(double rate) {
     n.setLearningRate(rate);
   }
-  
+
   /**
    * Allows for setting of this MsnNetwork's Layer count as well as Neurons per Layer.
    * 
@@ -117,6 +118,24 @@ public class MsnNetwork {
   }
 
   /**
+   * Calculates the confidence that this Network will retrieve the correct target.
+   * 
+   * @param inputs the inputs
+   * @param target the target value
+   * @return a double 0 - 1
+   */
+  public double percentError(double[] inputs, String target) {
+    double t = op.get(target);
+    double e = n.getAnswer(inputs);
+
+    if (t == 0 || e == 0) {
+      return Msn.decFormat(Math.abs(e - t), 3);
+    }
+
+    return Msn.decFormat((Math.abs(e - t) / Math.abs(t)) * 100, 3);
+  }
+
+  /**
    * Gets the answer for this MsnNetwork in its double value.
    * 
    * This method does not run closestTo()
@@ -126,6 +145,20 @@ public class MsnNetwork {
    */
   public double getAnswerByValue(double[] inputs) {
     return n.getAnswer(inputs);
+  }
+
+  /**
+   * Prints the answer of this Network for the given inputs with details.
+   * 
+   * @param inputs the input values
+   */
+  public void printAnswer(double[] inputs, String expectedoptional) {
+    System.out.println("-----------");
+    System.out.println("expecting " + expectedoptional);
+    System.out.println(name + " received " + Arrays.toString(inputs));
+    System.out.println(name + " returned " + getAnswer(inputs) + " with a "
+        + percentError(inputs, expectedoptional) + "% error");
+    System.out.println("-----------");
   }
 
   /**

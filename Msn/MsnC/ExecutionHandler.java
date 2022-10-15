@@ -2,6 +2,7 @@ package MsnC;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.InputMismatchException;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -27,15 +28,19 @@ public class ExecutionHandler {
   public LinkedHashMap<String, Object> vars;
   public LinkedHashSet<Function> functions;
   public HashSet<Obj> objects;
+  public HashSet<String> ignored;
   private long start;
   public int linesrun;
+  public char mode;
 
   public ExecutionHandler(String code, JTextArea console) {
     this.console = console;
+    mode = '?';
     linesrun = 0;
     functions = new LinkedHashSet<>();
     vars = new LinkedHashMap<>();
     objects = new HashSet<>();
+    ignored = new HashSet<>();
     lines = toCodeLines(code);
     compile(lines, code);
   }
@@ -104,7 +109,11 @@ public class ExecutionHandler {
           applyVariables(loop);
           String loopind = Msn.toSequence(loop);
           int[] indices = new int[2];
-          indices = Msn.toInt(Msn.extractNumbers(loopind));
+          try {
+            indices = Msn.toInt(Msn.extractNumbers(loopind));
+          } catch (InputMismatchException e) {
+
+          }
           if (line.loop() && run) {
             if (indices[0] > indices[1]) {
               for (int j = indices[0]; j > indices[1]; j--) {
@@ -249,7 +258,7 @@ public class ExecutionHandler {
             vars.put(line.command(), new Random().nextDouble());
           } else {
             try {
-            vars.put(line.command(), evaluate(line.postop()));
+              vars.put(line.command(), evaluate(line.postop()));
             } catch (RuntimeException e) {
               error("invalid type", line);
             }
@@ -373,7 +382,17 @@ public class ExecutionHandler {
               }
               break;
             case "contains":
-              Object contains = vars.get(split[0]);
+              Object contains = null;
+              if (isVariable(split[0])) {
+                contains = vars.get(split[0]);
+                try {
+                  contains = Double.valueOf("" + contains);
+                } catch (Exception e) {
+
+                }
+              } else {
+                contains = split[0];
+              }
               String boollocation = null;
               if (split[1].equals("->")) {
                 boollocation = split[2];
@@ -637,6 +656,7 @@ public class ExecutionHandler {
             try {
               getFunctionByName(line.command()).run();
             } catch (NullPointerException e) {
+              e.printStackTrace();
               error("invalid arguments", line);
             }
           }
@@ -654,8 +674,9 @@ public class ExecutionHandler {
     } else if (line.command().equals("move")) {
       if (cut[2].equals("to")) {
         vars.put(cut[3], vars.get(cut[1]));
+        vars.put(cut[1], null);
       } else if (cut[2].equals("out")) {
-        vars.put(cut[3], new MsnStream<Object>());
+        vars.put(cut[2], new MsnStream<Object>());
       }
     } else if (line.command().equals("end")) {
       try {
@@ -767,10 +788,32 @@ public class ExecutionHandler {
           vars.put(cut[3], name);
         }
       }
-    } else {
+    } else if (line.command().equals("mode")) {
+      mode = cut[1].charAt(0);
+    } else if (line.command().equals("ignore")) {
+      String toIgnore = "";
+      for (int i = 1; i < cut.length; i++) {
+        toIgnore += cut[i] + " ";
+      }
+      ignored.add(toIgnore.trim());
+    }
+
+
+    else {
       error("unknown command", line);
     }
+
+    switch (mode) {
+      case 's':
+        modeS(line);
+        break;
+    }
+
     linesrun++;
+  }
+
+  public void modeS(CodeLine c) {
+
   }
 
   public void destroyFunctionVariables(String name) {
@@ -826,13 +869,25 @@ public class ExecutionHandler {
   }
 
   public void error(String msg, CodeLine line) throws Exception {
-    try {
-      printToConsole("[-] error (" + line.index() + ") : " + msg + " : " + "'" + line.line() + "'",
-          true);
-      throw new Exception(msg);
-    } catch (NullPointerException e) {
-      System.out
-          .println("[-] error (" + line.index() + ") : " + msg + " : " + "'" + line.line() + "'");
+
+    boolean shouldIgnore = false;
+
+    for (String s : ignored) {
+      System.out.println(s);
+      if (msg.contains(s)) {
+        shouldIgnore = true;
+      }
+    }
+
+    if (!shouldIgnore) {
+      try {
+        printToConsole(
+            "[-] error (" + line.index() + ") : " + msg + " : " + "'" + line.line() + "'", true);
+        throw new Exception(msg);
+      } catch (NullPointerException e) {
+        System.out
+            .println("[-] error (" + line.index() + ") : " + msg + " : " + "'" + line.line() + "'");
+      }
     }
   }
 
@@ -866,7 +921,7 @@ public class ExecutionHandler {
       if (ln)
         console.setText(console.getText() + "\n");
     } catch (NullPointerException e) {
-      System.out.print("-> " + s);
+      System.out.print("---> " + s);
       if (ln)
         System.out.println();
     }

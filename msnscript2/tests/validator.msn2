@@ -1,0 +1,459 @@
+console.run(<cls>)
+
+prnt ('[*] verifying MSNScript2 integrity...')
+
+:: initializing a variable
+
+var . set(<integer>, 0)
+var . set(<integer2>, 1)
+var . set(<integer3>, 2) 
+
+:: assertions
+assert(integer == 0)
+assert(integer2 == 1)
+assert(integer3 == 2)
+
+:: variable destruction
+system  .  destroy(<integer> , <integer2>, <integer3>)
+
+:: modifying a variable
+var.set(<integer>, 0)
+var . set(<integer>, *integer + 1)
+
+:: existence of variables
+var.set(<exists>, var.exists?(<integer>))
+assert (*exists)
+
+:: not syntax
+var.set(<exists>, var.exists?(<int>))
+assert (* not exists)
+
+system.destroy(<exists>)
+
+:: setting to another variable
+var.set(<integer2>, var.get(<integer>))
+
+:: -------------------- arrays --------------------
+
+var.set(<first>, var.get(var.set(<>, [1, 2, 3, 4, 5]), 0))
+assert(first == 1)
+
+:: adding to an array
+var.set(<array>, [1, 2, 3, 4, 5])
+var.add(<array>, 4)
+assert (array == [1, 2, 3, 4, 5, 4])
+
+:: removing from an array
+var.remove(<array>, 4)
+assert (array == [1, 2, 3, 5, 4])
+
+
+system.destroy(<array>, <first>)
+
+:: -------------------- strings --------------------
+
+:: comparing strings
+var.set(<string>, <hey man>)
+var.set(<check>, <hey man>)
+assert (var.equals?(<string>, <check>))
+
+var.set(<check2>, <hello>)
+var.set(<equals>, var.equals?(<check2>, <string>))
+assert (* not equals)
+
+:: adding to strings
+assert (var.equals?(var.add(<string>, <test>), <hey mantest>))
+
+assert (var.equals?(var.remove(var.set(<string>, <hello!>), <ll>), <heo!>))
+
+system.destroy(<string>, <check>, <check2>, <equals>, <integer>, <integer2>)
+
+assert (var.equals   ?  (var.length([1, 2, 3, 4, 5]), 5))
+assert (var.equals?(var.length(<string>), 6))
+
+:: -------------------- conditionals --------------------
+var.set(<true>, True)
+var.set(<false>, False)
+
+$$
+var.set(<evaluation>,
+        if (*false,
+            <false bool is true>,
+    :: else
+        if (* false==True and false==False,
+            <still testing if false is true??>,
+    :: else
+            <everything is a lie>
+        )
+    )
+)
+$$
+
+
+
+:: -------------------- running console commands --------------------
+
+:: run console commands with 'console.run(<cmd>)'
+:: running console commands is still a work in progress
+
+:: -------------------- functions --------------------
+
+~ add (number) -> result
+>  var.add(<number>, 1)
+>  var.set(<result>, *number)
+
+assert (add(0), 1)
+
+~ concatinate (str1, str2) -> ret
+>  var.set(<ret>, var.add(*str1, *str2))
+
+
+assert (var.equals? (concatinate(<hello >, <bro>), <hello bro>))
+
+:: -------------------- looping --------------------
+
+var.set(<accum>, 0)
+
+~ sum (var1) -> ret
+>  var.set(<ret>, var.set(<accum>, *accum + var1))
+
+:: for loop structure is as follows
+:: for (start, end, loop variable, '^' + function to execute end-start times)
+:: for function returns the last return value of the specified function upon the last iteration
+
+for (1, 5, <i>, ^sum(*i))
+assert (*accum == 10)
+
+
+:: -------------------- fizzbuzz --------------------
+
+
+:: if x % 3 == 0 and x % 5 == 0
+::    print fizzbuzz
+:: else if x % 3 == 0
+::    print Fizz
+:: else if x % 5 == 0
+::     print Buzz
+
+
+
+var.set(<output>, [])
+$$
+for (5, 10, <i>, ^
+    var.add(<output>,
+                if (* i % 3 == 0 and i % 5 == 0,
+                    <FizzBuzz>,
+                :: else
+                if (* i % 3 == 0,
+                    <Fizz>,
+                ::else
+                if (* i % 5 == 0,
+                    <Buzz>,
+                ::else
+                    None
+                )
+            )
+        )
+    )
+)
+$$
+
+assert (* output == ['Buzz', 'Fizz', None, None, 'Fizz'])
+system.destroy(<output>, <accum>, <ret>, <evaluation>, <true>, <false>)
+
+:: -------------------- imports --------------------
+import(<lib/array.msn2>)
+
+:: reverse_array is a method residing in the array library
+
+assert (var.equals?(a_reverse([1, 2, 3, 4, 5]), [5, 4, 3, 2, 1]))
+
+:: -------------------- piggybacking --------------------
+:: all Python functions have been integrated into base MSNScript2
+
+:: len will not be found anywhere in MSNScript2 source code because it piggybacks off of Python
+assert (var.equals?(len([1, 2, 3, 4, 5]), 5))
+
+assert(var.equals?(list(range(var.set(<>, 0), var.set(<>, 5))), [0, 1, 2, 3, 4]))
+
+:: with this method, we can simplify work
+
+assert ( var . equals? ( list ( reversed ( [ 1 , 2 , 3 ] ) ) , [ 3 , 2 , 1 ] ) )
+assert (var.equals?(a_slice([1, 2, 3, 4, 5, 6], 0, 3), [1, 2, 3]))
+assert (var.equals?(a_slice([], 0, 0), []))
+assert (var.equals?(a_sum([1, 2, 3]), 6))
+assert (var.equals?(a_avg([1, 2, 3, 4, 5]), 3.0))
+
+system.destroy(<__>, <str1>, <str2>, <var1>, <i>, <number>, <result>)
+
+var.set(<unsorted>, [6, 3, 8, 4])
+assert(var.equals?(var.sort(<unsorted>), [3, 4, 6, 8]))
+
+:: assert (var.equals?(a_median([]), 0))
+:: assert (var.equals?(a_median([4, 3, 5, 1, 2]), 3))
+assert (var.equals?(a_median([1, 2, 6, 10]), 4))
+
+system.destroy(<__>, <unsorted>, <i>)
+:: -------------------- misc --------------------
+
+:: checks if the length of the array is not 0
+~ is_ok(__array) -> __ok
+>  var.set(<__length>, var.length(<__array>))
+>  var.set(<__ok>, *__length != 0)
+
+var.set(<array>, [6, 3, 0, 5])
+assert (var.equals?(is_ok(*array), True))
+var.set(<array>, [])
+assert (var.equals?(is_ok(*array), False))
+
+:: the inline function '_' permits sequential lines within itself, 
+:: however its code must be written BACKWARDS for correct evaluation
+$$
+_(
+    _(
+        _(
+            _(
+                _(
+                    assert(* __val1 == __val2),
+                    var.set(<__val1>, 10),
+                    var.set(<__val2>, 10)
+                )
+            )
+        )
+    )
+)
+$$
+
+var.set(<str>, <>)
+
+:: general for loop with inline function, the code must be written backwards
+$$
+for (0, 5, <i>, ^_
+    (
+        var.add(<str>, *__h),
+        var.set(<__h>, <hey>)
+    )
+)
+$$
+
+assert(var.equals?(var.get(<str>), <heyheyheyheyhey>))
+
+var.set(<test>, <hello>)
+var.set(<cp>, *test)
+
+:: string equality
+assert (var.equals?(<test>, <cp>))
+
+system.destroy (<__>, <array>, <str>, <i>, <test>, <cp>)
+
+:: importing string library
+import (<lib/string.msn2>)
+
+assert (s_equals?(<123>, <123>))
+assert (s_equals?(<>, <>))
+assert (s_equals?(<hey how are you>, <hey how are you>))
+
+assert (var.equals?(s_split(<this is a string>, < >), ["this", "is", "a", "string"]))
+assert (var.equals?(s_split(<hello>, <>), ["hello"]))
+
+
+var.set(<array>, [1, 2, 3, 4, 5])
+var.set(<index>, 2)
+
+system.destroy(<__>)
+:: -------------------- advanced indexing --------------------
+
+assert (* array[index] == 3)
+assert (* array[0:index] == [1, 2])
+assert ("hello"[0:3] == "hel")
+
+assert(assert(assert(assert(assert(assert(1))))))
+
+:: -------------------- more powerful uses of MSNScript2 --------------------
+
+:: stock prices
+
+:: makes an API call to Yahoo Finance to get the current price of a stock ticker
+:: prnt(stock.price("AAPL"))
+
+
+
+:: -------------------- ai implementation --------------------
+
+:: set up the AI, API key obtained from OpenAI website
+
+:: ai.setkey("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")
+:: ai.settokens(1000)
+
+:: random number generation via AI
+:: prnt(ai.ask("generate a beautiful HTML file for me "))
+
+:: -------------------- web implementation --------------------
+
+:: browser.setpath('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
+:: browser.open('google.com')
+
+:: -------------------- file implementation --------------------
+
+:: -- creates an AI assisted HTML file and opens it in the browser
+:: $$file.write("file.html", ai.ask("
+:: generate a modern personal website with the following information:
+:: the title should be 'masons's ai generated website'.
+:: the body should contain an unordered list with the following information:
+:: a paragraph with the following text: 'this is a paragraph generated by ai'.
+:: a paragraph with the following text: 'this is another paragraph generated by ai'.
+:: a paragraph with the following text: 'this is the last paragraph generated by ai'.
+:: "))$$
+:: browser.open('C:\\Users\\mason\\OneDrive\\Desktop\\msnscript21.0\\file.html')
+
+
+:: AI assisted math
+:: var.set(<sum>, 0)
+:: var.add(<sum>, ai.ask(*"evaluate sum + 5 + 1"))
+:: assert (* sum == 6)
+
+
+:: -------------------- advanced syntactical operations --------------------
+
+
+
+
+var.set(<number>, & | var.set(<>, 5) | + |var.set(<>, 4)|)
+
+$$assert(&
+    |  var.set(<>, 5)  | + | var.set(<>, 4) | == 9
+)$$
+
+
+:: -------------------- complex ways of doing things for no reason --------------------
+
+$$assert(&|_
+    (
+        True
+    )
+| and |_(
+        True
+)|
+)$$
+
+
+assert (& [True][0])
+
+assert (& |assert(True)| and |assert(True)|)
+
+var.set(<sum>, 0)
+each([1, 2, 3, 4, 5, 6], <element>, ^var.set(<sum>, *sum + element))
+
+var.set(<safeconcat>, <>)
+var.set(<string>, <first>)
+var.set(<safeconcat>, &|*string| hello string |3 + 2|)
+var.set(<equals>, <first hello string 5>)
+assert (var.equals?(<safeconcat>, <equals>))
+
+
+~ inlinemethod () -> __success
+>  assert(True)
+$$>assert(
+    eval("True")
+)$$
+>  var.set(<__success>, False)
+
+inlinemethod()
+
+:: -------------------- using operations more effectively --------------------
+
+                                :: safest comparison of a string
+& |var.set(<string>, <hello>)| |assert(@ '?string?' == 'hello')|
+
+
+
+:: calculate avg in two lines (one is just too long fr) (without python code)
+
+& |var.set(<array>, [1, 2, 3, 4, 5])| |var.set(<sum>, 0)| |each (*array, <__el>, ^var.set(<sum>, @?sum? + ?__el?))|
+var.set(<avg>, & |*sum| / |var.length(*array)|)
+assert(*avg == 3.0)
+
+system.destroy(<index>, <sum>, <add>, <sum>, <concatinate>, <__>)
+
+:: -------------------- multithreading --------------------
+
+var.set(<thread_done>, False)
+var.set(<done>, False)
+
+$$
+:: thread 1
+thread(^_(
+    var.set(<done>, True),
+    assert(*thread_done),
+    wait(^*thread_done)
+))
+$$
+
+$$
+:: thread 2
+thread(^_(
+    var.set(<thread_done>, True)
+))
+$$
+
+wait (^*done)
+assert (*done and thread_done)
+
+
+
+var.set(<semaphore>, 0)
+var.set(<number>, 0)
+
+:: thread 1 coroutine
+~ coroutine(thread_id)->__started
+
+$$
+>  
+check(*thread_id == 1, ^_
+        (
+            var.set(<thread1_done>, True),
+            var.add(<number>, 1)
+        ),
+check(*thread_id == 2, ^_
+        (
+            var.set(<thread2_done>, True),
+            var.add(<number>, 2)
+        ),
+        None
+    )
+    )
+$$
+>  var.set(<__started>, True)
+assert(thread(^coroutine(1)))
+assert(thread(^coroutine(2)))
+
+var.set(<lock>, 0)
+
+~ test_thread() -> __done
+>  thread(^_(var.set(<lock>, -1), wait(^*lock == 1)))
+>  var.set(<__done>, True)
+
+test_thread()
+var.set(<lock>, 1)
+
+:: waiting for thread to finish
+wait(^*lock == -1)
+assert (*lock == -1)
+
+:: -------------------- dict assistance --------------------
+
+var.set(<dictionary>, {})
+var.dictadd(<dictionary>, 0, 0)
+var.dictadd(<dictionary>, <mason>, 21)
+prnt(*dictionary)
+
+
+prnt(var.get(<dictionary>, <mason>))
+
+
+
+
+
+
+prnt ('[+] done')
+

@@ -1,0 +1,11 @@
+
+
+
+import (<lib/thread.msn2>)
+
+
+var.set(<number>, 0)
+while (^*number < 10, ^var.add(<number>, 2))
+
+
+print (*out)

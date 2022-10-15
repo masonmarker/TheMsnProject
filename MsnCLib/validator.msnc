@@ -587,8 +587,7 @@ boolean = -1;
 
 i checkint = int4 + 1;
 list contains checkint -> boolean;
-assert boolean false;
-
+assert boolean true;
 
 l list5;
 i index = 0;
@@ -878,7 +877,7 @@ l = x = y = z = w = end w;
 l = x = y = z = w [0:2];
 l = x = y = end z;
 l = x = y = z [0:2];
-l = x = end y;
+l = x = end y; 
 l = x = y [0:2];
 l = end x;
 l = x [0:2];

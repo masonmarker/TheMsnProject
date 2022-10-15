@@ -9244,7 +9244,7 @@ public class Msn {
    * @return a random number between min and max
    * @since 0.1.4.1.1
    */
-  public static double random(int min, int max) {
+  public static double random(double min, double max) {
     return (new Random().nextDouble() * (max - min)) + min;
   }
 
