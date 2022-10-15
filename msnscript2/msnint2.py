@@ -583,7 +583,13 @@ class Interpreter:
                             return len(self.vars[varname].value)
                         except:
                             return len(eval(varname))
-                    
+                    # adds to a dictionary variable
+                    elif func == 'dictadd':
+                        varname = evals[0]
+                        key = eval(evals[1])
+                        value = eval(evals[2])
+                        self.vars[varname].value[key] = value
+                        return self.vars[varname].value                
                 if func == "assert" or func == "bool" or func == 'if':
                     arg = eval(evals[0])
                     if func == 'if':
