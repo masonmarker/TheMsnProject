@@ -1,7 +1,6 @@
 package MsnC;
 
 import java.util.Scanner;
-import MsnLib.Msn;
 
 /**
  * Interprets MSNC via the console.
