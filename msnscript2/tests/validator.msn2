@@ -440,15 +440,19 @@ var.set(<lock>, 1)
 wait(^*lock == -1)
 assert (*lock == -1)
 
-:: -------------------- dict assistance --------------------
+:: -------------------- more object support --------------------
 
 var.set(<dictionary>, {})
-var.dictadd(<dictionary>, 0, 0)
-var.dictadd(<dictionary>, <mason>, 21)
-prnt(*dictionary)
+var.obj_add(<dictionary>, 0, 0)
+var.obj_add(<dictionary>, <mason>, 21)
 
 
-prnt(var.get(<dictionary>, <mason>))
+assert (*0 in dictionary)
+assert (*21 in dictionary.values())
+assert (*"mason" in dictionary.keys())
+assert (*dictionary["mason"] == 21)
+
+
 
 
 

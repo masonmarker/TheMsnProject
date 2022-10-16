@@ -10,13 +10,6 @@ import time
 import threading
 import sys
 
-# receiving SMS
-import requests
-import ssl
-import xml.etree.ElementTree as ET
-
-# import yf for stocks
-import yfinance as yf 
 
 class Err:
     def __init__(self, errorcode):
@@ -295,7 +288,7 @@ class Interpreter:
                                 script += line
                             self.logg("importing library", str(args[0][0]))
                             self.execute(script)
-                
+                    break
                 # allows for continuation of logic flow
                 if func == 'continue':
                     continue;
@@ -378,10 +371,11 @@ class Interpreter:
 
                 # performs an each function on evals[0]
                 if func == 'each':
+                    function = self.calledmethod
                     evals[0] = eval(evals[0])
                     for i in range(len(evals[0])):
                         self.vars[evals[1]] = Var(evals[1], evals[0][i])
-                        self.interpret(self.calledmethod)
+                        self.interpret(function)
 
                     return evals[0]
 
@@ -402,23 +396,6 @@ class Interpreter:
                     if self.is_py_str(evals[0]):
                         return evals[0][1:len(evals[0]) - 1]
                     return evals
-
-                if obj == 'stock':
-                    if func == 'price':
-                        # get the stock price
-                        stock = yf.Ticker(evals[0])
-                        price = stock.info['regularMarketPrice']
-                        return price
-                    if func == 'history':
-                        # get the stock price
-                        stock = yf.Ticker(evals[0])
-                        hist = stock.history(period=evals[1])
-                        return hist
-                    if func == 'info':
-                        # get the stock price
-                        stock = yf.Ticker(evals[0])
-                        info = stock.info
-                        return info
                 
                 if obj == 'math':
                     if func == 'sin':
@@ -575,7 +552,7 @@ class Interpreter:
                     # find out if vars contains the evals passed
                     elif func == 'exists?':
                         return self.var_exists(evals[0])
-                    
+                
                     # length of first argument
                     elif func == 'length':
                         varname = evals[0]
@@ -583,13 +560,15 @@ class Interpreter:
                             return len(self.vars[varname].value)
                         except:
                             return len(eval(varname))
-                    # adds to a dictionary variable
-                    elif func == 'dictadd':
+                            
+                    # adds an entry to an object
+                    elif func == 'obj_add':
                         varname = evals[0]
                         key = eval(evals[1])
                         value = eval(evals[2])
                         self.vars[varname].value[key] = value
-                        return self.vars[varname].value                
+                        return self.vars[varname].value
+                                   
                 if func == "assert" or func == "bool" or func == 'if':
                     arg = eval(evals[0])
                     if func == 'if':
@@ -608,7 +587,38 @@ class Interpreter:
                 # interprets a function
                 if obj == "script":
                     return self.interpret(evals[0])
-  
+
+                if func == 'log':
+                    return self.log
+                
+                # obtains the current environment variables
+                if func == 'variables':
+                    vars = {}
+                    for var in self.vars:
+                        try:
+                            vars[var] = self.vars[var].value
+                        except:
+                            None
+                    return vars
+                if func == 'env':
+                    print("--------- environment ---------")
+                    print("\n\tvariables:")
+                    for varname, v in self.vars.items():
+                        try:
+                            print (varname + " = " + str(v.value))
+                        except:
+                            None
+
+                    print("\n\tmethods:")
+                    # printing methods
+                    for methodname, Method in self.methods.items():
+                        print (methodname + ":")
+
+                    print("\nlog:")
+                    print (self.log)
+                    print("-------------------------------")
+                    return True
+                            
                 # waits for the boolean expression to be true
                 if func == "wait":
                     waitcond = self.calledmethod
