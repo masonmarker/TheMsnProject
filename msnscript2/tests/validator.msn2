@@ -1,4 +1,4 @@
-console.run(<cls>)
+console.run(<clear>)
 
 prnt ('[*] verifying MSNScript2 integrity...')
 
@@ -377,6 +377,9 @@ system.destroy(<index>, <sum>, <add>, <sum>, <concatinate>, <__>)
 
 :: -------------------- multithreading --------------------
 
+import (<lib/thread.msn2>)
+
+
 var.set(<thread_done>, False)
 var.set(<done>, False)
 
@@ -440,16 +443,32 @@ var.set(<lock>, 1)
 wait(^*lock == -1)
 assert (*lock == -1)
 
-:: -------------------- dict assistance --------------------
+:: -------------------- dict support --------------------
 
 var.set(<dictionary>, {})
 var.dictadd(<dictionary>, 0, 0)
 var.dictadd(<dictionary>, <mason>, 21)
-prnt(*dictionary)
 
 
-prnt(var.get(<dictionary>, <mason>))
+~ add_to_dict(dict, key, value)->__success
+>  var.dictadd(stringify(*dict), *key, *value)
+>  var.set(<__success>, True)
 
+
+
+
+:: tests dictionary get and contains methods
+~ test_dict_get_and_contains()->__finished
+>  assert (& |var.get(<dictionary>, <mason>)| == 21)
+>  assert (& |var.get(<dictionary>, 0)| == 0)
+>  assert (*'mason' in dictionary)
+>  assert (*0 in dictionary)
+>  add_to_dict(<dictionary>, 45, 45.1)
+>  assert (*45 in dictionary)
+>  assert (@45.1 in ?dictionary?.values())
+>  var.set(<__finished>, True)
+
+assert(test_dict_get_and_contains())
 
 
 
