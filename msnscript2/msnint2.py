@@ -10,10 +10,6 @@ import time
 import threading
 import sys
 
-<<<<<<< HEAD
-=======
-
->>>>>>> ba53197c05a16c1bfa26b61f1c037080c53b7c6a
 class Err:
     def __init__(self, errorcode):
         self.errorcode = errorcode

@@ -446,12 +446,12 @@ assert (*lock == -1)
 :: -------------------- dict support --------------------
 
 var.set(<dictionary>, {})
-var.dictadd(<dictionary>, 0, 0)
-var.dictadd(<dictionary>, <mason>, 21)
+var.obj_add(<dictionary>, 0, 0)
+var.obj_add(<dictionary>, <mason>, 21)
 
 
 ~ add_to_dict(dict, key, value)->__success
->  var.dictadd(stringify(*dict), *key, *value)
+>  var.obj_add(stringify(*dict), *key, *value)
 >  var.set(<__success>, True)
 
 
