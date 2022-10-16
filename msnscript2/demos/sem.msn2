@@ -1,15 +1,18 @@
-:: demonstrates semaphores
+
+:: demonstrates semaphore capabilities
 :: author : Mason Marker
 :: date : 10/15/2022
 
-import (<lib/thread.msn2>)
+:: cls for windows / clear for linux
+console.run(<cls>)
+
+import (<lib/semaphore.msn2>)
 
 
+prnt (*s_semaphores)
 
-print(variables())
 
-
-t_sem_open(<sem1>)
+env()
 
 
 
