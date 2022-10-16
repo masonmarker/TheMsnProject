@@ -3,27 +3,33 @@
 
 
 
+
+
 :: initializing binary semaphores
-var.set(<__t_semaphores>, {})
-var.set(<__t_semaphores_initlen>, 100)
-$$
-for (0, *__t_semaphores_initlen, <__t_i>, ^)
-$$
+var.set(<tsemaphores>, {})
+var.set(<tsemaphoresinitlen>, 100)
+
 
 :: permits an interactive shell outside of the main execution thread
-~ t_shell() -> __started
+~ t_shell() -> __t_started
 $$
 >  thread(^_(
     script(*__ip),
     var.set(<__ip>, input(">>> "))
 ))
 $$ 
->  var.set(<__started>, True)
+>  var.set(<__t_started>, True)
+
+
+
+:: creates a semaphore
+~ t_sem_open(__name)->__t_created
+>  var.dictadd(<tsemaphores>, *__name, 0)
+>  var.set(<__t_created>, True)
 
 
 
 
 
-:: waits on a certain semaphore
-~ t_sem_wait()
+
 

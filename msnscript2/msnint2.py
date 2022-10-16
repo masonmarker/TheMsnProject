@@ -10,14 +10,6 @@ import time
 import threading
 import sys
 
-# receiving SMS
-import requests
-import ssl
-import xml.etree.ElementTree as ET
-
-# import yf for stocks
-import yfinance as yf 
-
 class Err:
     def __init__(self, errorcode):
         self.errorcode = errorcode
@@ -510,7 +502,7 @@ class Interpreter:
                             return value[eval(evals[1])]
                         else:
                             return value
-                    
+
                     elif func == 'sort':
                         varname = evals[0]
                         var = self.get_var(varname)
@@ -585,11 +577,12 @@ class Interpreter:
                             return len(eval(varname))
                     # adds to a dictionary variable
                     elif func == 'dictadd':
+                        print (evals)
                         varname = evals[0]
                         key = eval(evals[1])
                         value = eval(evals[2])
                         self.vars[varname].value[key] = value
-                        return self.vars[varname].value                
+                        return self.vars[varname]            
                 if func == "assert" or func == "bool" or func == 'if':
                     arg = eval(evals[0])
                     if func == 'if':
@@ -619,6 +612,9 @@ class Interpreter:
                 # obtains the called method
                 if func == "called":
                     return self.calledmethod
+
+                if func == "variables":
+                    return self.vars
 
                 # gets the current out
                 if func == "out":

@@ -1,0 +1,17 @@
+:: demonstrates semaphores
+:: author : Mason Marker
+:: date : 10/15/2022
+
+import (<lib/thread.msn2>)
+
+
+
+print(variables())
+
+
+t_sem_open(<sem1>)
+
+
+
+
+
