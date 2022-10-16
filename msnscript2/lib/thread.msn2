@@ -17,7 +17,7 @@ $$
 
 :: creates a semaphore
 ~ t_sem_open(__name)->__t_created
->  var.dictadd(<tsemaphores>, *__name, 0)
+>  var.obj_add(<tsemaphores>, *__name, 0)
 >  var.set(<__t_created>, True)
 
 
