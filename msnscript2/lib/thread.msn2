@@ -3,13 +3,6 @@
 
 
 
-:: initializing binary semaphores
-var.set(<__t_semaphores>, {})
-var.set(<__t_semaphores_initlen>, 100)
-$$
-for (0, *__t_semaphores_initlen, <__t_i>, ^)
-$$
-
 :: permits an interactive shell outside of the main execution thread
 ~ t_shell() -> __started
 $$
@@ -22,8 +15,4 @@ $$
 
 
 
-
-
-:: waits on a certain semaphore
-~ t_sem_wait()
 
