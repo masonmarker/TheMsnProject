@@ -3,6 +3,7 @@
 
 
 
+
 :: permits an interactive shell outside of the main execution thread
 ~ t_shell() -> __t_started
 $$
@@ -14,11 +15,6 @@ $$
 >  var.set(<__t_started>, True)
 
 
-
-:: creates a semaphore
-~ t_sem_open(__name)->__t_created
->  var.obj_add(<tsemaphores>, *__name, 0)
->  var.set(<__t_created>, True)
 
 
 

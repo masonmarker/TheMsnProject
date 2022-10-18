@@ -454,9 +454,6 @@ var.obj_add(<dictionary>, <mason>, 21)
 >  var.obj_add(stringify(*dict), *key, *value)
 >  var.set(<__success>, True)
 
-
-
-
 :: tests dictionary get and contains methods
 ~ test_dict_get_and_contains()->__finished
 >  assert (& |var.get(<dictionary>, <mason>)| == 21)
@@ -469,6 +466,9 @@ var.obj_add(<dictionary>, <mason>, 21)
 >  var.set(<__finished>, True)
 
 assert(test_dict_get_and_contains())
+
+
+
 
 
 
