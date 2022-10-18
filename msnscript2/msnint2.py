@@ -286,8 +286,7 @@ class Interpreter:
                             for line in contents:
                                 script += line
                             self.logg("importing library", str(args[0][0]))
-                            self.execute(script)
-                    break
+                    return self.execute(script)
                 # allows for continuation of logic flow
                 if func == 'continue':
                     continue;

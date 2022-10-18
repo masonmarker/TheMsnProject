@@ -1,0 +1,6 @@
+the following variable names do not play well in MSNScript2,
+likely because of an internal Python reservation for the
+specific keyword
+
+
+- containing semaphore
