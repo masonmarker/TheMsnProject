@@ -10,7 +10,6 @@ import time
 import threading
 import sys
 
-
 class Err:
     def __init__(self, errorcode):
         self.errorcode = errorcode
@@ -287,8 +286,7 @@ class Interpreter:
                                 script += line
                             self.logg("importing library", str(args[0][0]))
                             self.execute(script)
-
-                    return
+                    break
                 # allows for continuation of logic flow
                 if func == 'continue':
                     continue;
@@ -487,7 +485,7 @@ class Interpreter:
                             return value[eval(evals[1])]
                         else:
                             return value
-                    
+
                     elif func == 'sort':
                         varname = evals[0]
                         var = self.get_var(varname)
@@ -629,6 +627,9 @@ class Interpreter:
                 # obtains the called method
                 if func == "called":
                     return self.calledmethod
+
+                if func == "variables":
+                    return self.vars
 
                 # gets the current out
                 if func == "out":

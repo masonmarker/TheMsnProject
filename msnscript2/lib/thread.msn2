@@ -3,15 +3,19 @@
 
 
 
+
 :: permits an interactive shell outside of the main execution thread
-~ t_shell() -> __started
+~ t_shell() -> __t_started
 $$
 >  thread(^_(
     script(*__ip),
     var.set(<__ip>, input(">>> "))
 ))
 $$ 
->  var.set(<__started>, True)
+>  var.set(<__t_started>, True)
+
+
+
 
 
 
