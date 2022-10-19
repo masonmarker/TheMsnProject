@@ -3,18 +3,14 @@
 :: author : Mason Marker
 :: date : 10/15/2022
 
-:: cls for windows / clear for linux
-console.run(<cls>)
 
 import (<lib/semaphore.msn2>)
 
 
-prnt (*s_semaphores)
 
+prnt(<s_semaphores>)
 
 env()
-
-
 
 
 

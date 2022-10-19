@@ -170,11 +170,10 @@ class Interpreter:
         if line[0] == '^':
             self.calledmethod = line[1:]
             cont = True
-        if line[0] == '<' and line[len(line) - 1] == '>':
+        if line[0] == '<' and line[-1] == '>':
             return '"' + line[1:len(line) - 1] + '"'
-        if line[0] == '[' and line[len(line) - 1] == ']':
-            return eval(line)
         try:
+            print (line)
             return eval(line)
         except:
             None
@@ -288,7 +287,8 @@ class Interpreter:
                                 script += line
                             self.logg("importing library", str(args[0][0]))
                             self.execute(script)
-                    break
+
+                    return
                 # allows for continuation of logic flow
                 if func == 'continue':
                     continue;
