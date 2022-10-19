@@ -4,13 +4,32 @@
 :: date : 10/15/2022
 
 
-import (<lib/semaphore.msn2>)
 
 
+var.set(<sem>, 0)
+var.set(<SEM_RESERVE>, -1)
+var.set(<SEM_DONE>, 0)
 
 prnt(<s_semaphores>)
 
-env()
+:: thread 1
+$$
+thread(^for(0, 5, <index1>, ^_(
+    wait(^*sem == SEM_DONE),
+    print("thread 1 running"),
+    var.set(<sem>, *SEM_RESERVE)
+)))
+$$
+
+
+:: thread 2
+$$
+thread(^for(0, 5, <index2>, ^_(
+    wait(^*sem == SEM_DONE),
+    print("thread 2 running"),
+    var.set(<sem>, *SEM_RESERVE)
+)))
+$$
 
 
 
