@@ -1,4 +1,4 @@
-console.run(<clear>)
+console.run(<cls>)
 
 prnt ('[*] verifying MSNScript2 integrity...')
 
@@ -468,10 +468,19 @@ var.obj_add(<dictionary>, <mason>, 21)
 assert(test_dict_get_and_contains())
 
 
+:: -------------------- while implementation --------------------
 
 
+import (<lib/leave.msn2>)
 
+var.set(<variable>, 0)
 
+$$
+for (0, 9, <index>, ^_(
+    check(*i == 5, ^leave(3), None),
+    var.add(<variable>, 1)
+))
+$$
 
 
 prnt ('[+] done')

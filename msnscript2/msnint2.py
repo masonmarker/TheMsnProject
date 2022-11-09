@@ -2,6 +2,7 @@
 # Author : Mason Marker
 # Date : 09/15/2022
 
+from http.client import CONTINUE
 import os
 import math
 import openai
@@ -41,6 +42,7 @@ class Interpreter:
     methods = {}
     loggedmethod = []
     calledmethod = None
+    calledmethod2 = None
     current_line = 0
 
     # threading implementation
@@ -172,7 +174,6 @@ class Interpreter:
         if line[0] == '<' and line[-1] == '>':
             return '"' + line[1:len(line) - 1] + '"'
         try:
-            print (line)
             return eval(line)
         except:
             None
@@ -293,14 +294,6 @@ class Interpreter:
 
                 if func == 'break':
                     break;
-
-                if func == "while":
-                    whilecond = args[0][0]
-                    waitfunc = args[1][0]
-                    while (self.interpret(whilecond[1:])):
-                        self.interpret(waitfunc[1:])
-                    return None
-                    
 
                 # AI features
                 if obj == 'ai':
@@ -624,9 +617,14 @@ class Interpreter:
                         None
                     return True
 
+
                 # obtains the called method
                 if func == "called":
                     return self.calledmethod
+
+                # obtains the called method
+                if func == "called2":
+                    return self.calledmethod2
 
                 if func == "variables":
                     return self.vars
@@ -676,6 +674,7 @@ class Interpreter:
                                 break
                             self.vars[loopvar] = Var(loopvar, i) 
                             self.interpret(inside)
+                            
                     return self.vars[loopvar].value
                          
                 if func in self.methods.keys():
@@ -726,6 +725,8 @@ class Interpreter:
                         return True
                 elif func == "_":
                     return evals[0]
+                elif func == "now":
+                    return time.time()
                 elif func == 'strn':
                     return None
                 elif func not in self.methods.keys():
