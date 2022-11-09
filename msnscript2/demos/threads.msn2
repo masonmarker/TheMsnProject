@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # tests threading functionality
 # author : Mason Marker
 # date : 11/7/2022
@@ -94,3 +95,51 @@ timer_end()
 
 # time to completion
 prnt ('owner: only took us', timer_runtime(), 'seconds to do', ?work_needed?, 'work!')
+=======
+:: demonstrates usage of threads
+:: author : Mason Marker
+
+
+var.set(<total_work>, 0)
+
+
+:: unithreaded approach
+
+var.set(<start>, now())
+var.set(<total_work>, *total_work + 1)
+sleep(0.5)
+var.set(<end>, now())
+
+prnt("unithreaded time taken:", *end - start)
+assert(*total_work == 1)
+
+
+
+
+
+:: multithreaded approach
+
+var.set(<thread1_done>, False)
+var.set(<thread2_done>, False)
+
+var.set(<start>, now())
+$$ thread(^_(
+    var.set(<thread1_done>, True),
+    var.set(<total_work>, *total_work + 1),
+    sleep(0.5)
+))$$
+
+$$ thread(^_(
+    var.set(<thread2_done>, True),
+    var.set(<total_work>, *total_work + 1),
+    sleep(0.5)
+))$$
+
+
+wait(^*thread1_done and thread2_done)
+var.set(<end>, now())
+
+prnt("multithreaded time taken:", *end - start)
+
+prnt("total work done:", *total_work)
+>>>>>>> e004a12156b221b8b9e6a66eeba226fc3693873d
