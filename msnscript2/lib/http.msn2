@@ -1,0 +1,9 @@
+# library for http server support
+# author : Mason Marker
+# date : 11/9/2022
+
+
+
+# starts an http server on 0.0.0.0:8000 on a new thread
+~ server_start() ->__
+-- thread('http1', console('python3 -m http.server'))

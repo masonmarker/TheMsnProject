@@ -1,3 +1,5 @@
+# launches a .msn2 script
+
 
 # prepare msn2 interpreter
 import msnint2
@@ -15,15 +17,11 @@ if filename[filename.index('.'):] != '.msn2':
     exit()
 
 
-# read script from file
-with open(filename, 'r') as f:
-    script = f.read()
-
-
+f = open(filename, "r")
+script = f.read()
 
 interpreter = msnint2.Interpreter()
 interpreter.execute(script)
 
 if interpreter.out != '':
     print(interpreter.out)
-

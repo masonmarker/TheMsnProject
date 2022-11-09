@@ -1,0 +1,63 @@
+# demonstrates how exporting can move resources between contexts
+# author : Mason Marker
+# date : 11/8/2022
+
+# fresh console
+console('clear')
+
+
+# system-specific requirements
+var('work_needed', 1000)
+
+# main finished
+var('main_return', None)
+
+# boots
+print('boot: starting main')
+
+# creates a private context to perform operations specific to the block
+# starts main thread context
+
+# exporting allows for a context to have a return value
+# export() adds a pointer to the variable to the immediately surrounding context
+
+# keep in mind a context does not have write access to outside resources
+!{private(thread('main', =>(
+    
+    print('main: starting work'),
+
+    # work completed
+    var('work_done', 0),
+
+    # worker thread
+    thread('worker', =>(
+        while (?work_done?<?work_needed?, add('work_done', 1))
+    )),
+
+    # joins worker thread with main thread
+    join('worker'),
+
+    # assert work is done
+    assert(?work_done? == ?work_needed?),
+
+    # returns the work completed and work requiring completion
+    var('main_return', [?work_done?, ?work_needed?]),
+
+    # exports return variable
+    export('main_return')
+
+)))}
+
+# waits for a return from main
+wait(?main_return? != None)
+
+# boot verifies work of child process
+print('boot: checking work...')
+
+# assert main thread received correct parameters and did correct work
+assert(?main_return? == [1000, 1000])
+
+print('boot: work OK')
+
+# shutdown
+print('boot: shutting down')

@@ -1,0 +1,37 @@
+# demonstrates simple usage of the console() implementation
+# author : Mason Marker
+# date : 11/8/2022
+
+# simulates a Makefile for the user program in the current directory
+
+
+
+# make clean
+~ make_clean() -> __
+-- console('rm -f main')
+
+# clears the console
+~ clear() -> __
+-- console('clear')
+
+# compiles the user program
+~ main() ->__
+-- console('gcc demos/practical/main.c -o main')
+
+~ run() -> __
+-- console('./main')
+
+# simulates a run of 'make all'
+~ all()->__
+-- main()
+
+# simulates a run of 'make'
+~ make()->__
+-- all()
+
+
+
+clear()
+make_clean()
+make()
+run()
