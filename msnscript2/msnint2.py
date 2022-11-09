@@ -2,6 +2,7 @@
 # Author : Mason Marker
 # Date : 09/15/2022
 
+from http.client import CONTINUE
 import os
 import math
 import openai
@@ -32,6 +33,31 @@ class Var:
 # interprets MSNScript2, should create a new interpreter for each execution iteration
 class Interpreter:
 
+<<<<<<< HEAD
+=======
+    # code-specific variables
+    version = 2.0
+    lines = []
+    out = ''
+    log = ''
+    errors = []
+    vars = {}
+    methods = {}
+    loggedmethod = []
+    calledmethod = None
+    calledmethod2 = None
+    current_line = 0
+
+    # threading implementation
+    thread = None
+
+    # ai implementation
+    openaikey = None
+    tokens = 100
+
+    # browser specific variables
+    browser_path = None
+>>>>>>> e004a12156b221b8b9e6a66eeba226fc3693873d
 
     # initializer
     def __init__(self):
@@ -878,14 +904,6 @@ class Interpreter:
                 if func == 'break':
                     break;
 
-                if func == "while":
-                    whilecond = args[0][0]
-                    waitfunc = args[1][0]
-                    while (self.interpret(whilecond[1:])):
-                        self.interpret(waitfunc[1:])
-                    return None
-                    
-
                 # AI features
                 if obj == 'ai':
                     if func == 'setkey':
@@ -1207,13 +1225,20 @@ class Interpreter:
                         None
                     return True
 
+<<<<<<< HEAD
                 # current time
                 if func == "now":
                     return time.time()
+=======
+>>>>>>> e004a12156b221b8b9e6a66eeba226fc3693873d
 
                 # obtains the called method
                 if func == "called":
                     return self.calledmethod
+
+                # obtains the called method
+                if func == "called2":
+                    return self.calledmethod2
 
                 if func == "variables":
                     return self.vars
@@ -1264,6 +1289,7 @@ class Interpreter:
                                 break
                             self.vars[loopvar] = Var(loopvar, i) 
                             self.interpret(inside)
+                            
                     return self.vars[loopvar].value
                          
                 if func in self.methods.keys():
@@ -1330,6 +1356,8 @@ class Interpreter:
                         return True
                 elif func == "_":
                     return evals[0]
+                elif func == "now":
+                    return time.time()
                 elif func == 'strn':
                     return None
                 elif func == '-':
