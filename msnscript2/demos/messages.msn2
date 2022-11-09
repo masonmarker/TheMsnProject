@@ -1,0 +1,106 @@
+# demonstrates a larger system
+# author : Mason Marker
+# date : 11/8/2022
+
+# overview:
+# 1. system waits for a command from STDIN
+# 2. once a command is received, the argument is interpreted as two numbers separated by space,
+# 3. once these arguments are interpreted, average_handler computes and stores the average of the two numbers
+# 4. once a response from average_handler is received, the average is printed
+# 5. process is repeated until the command sent is 'exit'
+# after the exit command is sent, a Python error will display in STDOUT, this is due to internal threading
+# complications post-kill, however these errors are pseudo indicators as each thread terminates as requested.
+
+
+# fresh console
+console('clear')
+
+# main return buffer
+var('main_return', None)
+
+print ('cmd line usage: type two numbers separated by space')
+print ('ex >>> 1.5 423.342')
+print ('type "exit" to leave')
+print ('boot: booting')
+
+# private system
+!{private(thread('main', =>(
+    
+    # regulates threads within main
+    var('exit', False),
+
+    # buffer for the most recent average computed
+    var('most_recent_avg', None),
+    
+    # for average handler
+    var('avg_can_start', False),
+    var('avg_finished', False),
+
+    # buffers for cmd arguments
+    var('arg1', None),
+    var('arg2', None),
+    
+    # starts the command line handler
+    thread('cmd_handler', =>(
+
+        # current command
+        var('cmd', None),
+
+        # continously prompt the user for two numbers to pass to the average handler
+        while (1, =>(
+
+            # prompt and store command
+            var('cmd', input("cmd_handler >>>  ")),
+
+            # verify user does not want to leave
+            if (?cmd?=='exit', exit()),
+
+            # split args by space
+            var('args', split(?cmd?, ' ')),
+
+            # first number
+            var('arg1',  get (?args?, 0)),
+
+            # second number
+            var('arg2', get(?args?, 1)),
+
+            # arguments have been created, notify average_handler thread to compute and print the average
+            var('avg_finished', False),
+            var('avg_can_start', True),
+            wait(?avg_finished?, if (?cmd? == 'exit', exit()))
+        ))
+    )),
+
+    # starts the average computation thread
+    thread('average_handler', =>(
+
+        # continuously wait for arguments from command line
+        while (1, =>(
+
+            # waiting for permission to start from command line
+            wait(?avg_can_start?, if (?cmd? == 'exit', exit())),
+
+            # reset wait condition
+            var('avg_can_start', False),
+
+            # calculate average of the two arguments and store the most recent average
+            var('sum', ?arg1? + ?arg2?),
+            var('most_recent_avg', ?sum? / 2),
+
+            # print computation
+            print ("average_handler says:", ?most_recent_avg?),
+
+            # notify command line that an average has been computed
+            var('avg_finished', True)
+        ))
+    )),
+
+    # wait for exit signal
+    wait(?cmd? == 'exit'),
+
+    # obtain and print main environment
+    print('obtaining main environment...'),
+    env(True),
+    print('main: shutting down')
+
+)))}

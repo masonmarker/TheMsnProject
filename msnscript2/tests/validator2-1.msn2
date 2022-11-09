@@ -1,0 +1,289 @@
+# secondary validator for major internal adjustments
+
+
+# '*' operator (replace operator) : bluntly replaces all
+# occurances of each variable in the argument with its value 
+
+
+
+
+
+
+
+
+# start of validator
+console('clear')
+
+# ----------------- variables -----------------
+var('mason', 3)
+var('bro', {'name': 'me lol'})
+var('true', True)
+
+# ----------------- assertions -----------------
+
+# default variable replacement syntax is ??
+# ? must be directly to the left and right of the variable name
+assert (?true? == True)
+assert (?mason? == 3, assert(True))
+
+
+# ----------------- modifying variables -----------------
+
+var('mason', 5)
+assert (?mason? == 5)
+var('mason', ?mason? + 1)
+assert(?mason? == 6)
+
+var('string', "hello")
+var('string2', ?string? + ' whats up')
+assert(?string2? == 'hello whats up')
+
+var('i', 2)
+var('m', 3)
+var('a', 5)
+assert(?i?+?m?-?a?==0)
+
+
+var('test', var('test2', 30)) 
+var(var('__varname', 'test3'), var('test4', [1, 2, 3]))
+assert(?test? == 30 and ?test2? == 30, ?test? == ?test2?)
+if (assert(?test3? == [1, 2, 3]),assert(assert(assert(True)), assert(assert(True))),None)
+
+# string comparison
+assert(?__varname? =='test3')
+
+
+assert (1 < 3)
+var   ('integer', 0)
+assert(?integer? >= 0)
+assert (?integer? < 5 and ?integer? > -1)
+
+var('map', {'first': 4})
+assert (?map?['first'] == 4)
+
+
+
+
+# ----------------- if logic -----------------
+
+if (True, var('good', True), var('good', False)) 
+
+# brute test on argument evaluation and accuracy
+   assert  (   assert (  assert ( assert (  assert ( True  )   , assert(True), assert(    assert  (   True), assert(  True))  )   ), assert(assert(  True), assert(True))    ), assert  (   assert(True)   , assert(True)), assert(True  ))
+
+
+
+# ----------------- while logic -----------------
+
+var('number', 0)
+!{while (?number? < 10, =>(
+    var('number', add('number', 1))
+))}
+
+assert (?number? == 10)
+
+
+
+
+# ----------------- array support -----------------
+
+
+var('array', [1, 2, 3, 4, 5])
+var('sum', 0)
+each(?array?, 'element', var('sum', ?sum? + ?element?))
+assert (?sum? == 15)
+
+
+
+
+
+
+# ----------------- simpler arithmetic -----------------
+var('number', 0)
+
+
+var('__', 6)
+del('__', 'element')
+del('mason', 'bro', 'true', 'string', 'string2', 'i', 'm', 'a', 'test2', 'test')
+del('__varname', 'test4', 'test3', 'integer', 'good', 'map', 'number', 'array')
+
+
+
+# ----------------- inline function -----------------
+
+
+# denoted with '=>'
+# can take any amount of instructions
+# returns the result of the last argument
+
+
+
+  =>    (var('hello', 3))
+  assert  ( ?hello? == 3 )
+
+=> (var(=>(4, None, 'number'), =>(4)), assert(?number?==4))
+
+
+
+# ----------------- multi-line support -----------------
+
+
+# !{} (aggregate) syntax allows for the continuous flow of a line
+!{var('nu
+    mber', -1)}
+    assert(?number?==-1)
+
+
+!{var('number', 0)}
+assert(?number?==0)
+
+!{
+    var('number', 5)
+}
+assert(?number?==5)
+
+
+# ----------------- multi-line support with function blocks -----------------
+
+# function declaration
+~ func (arg1) -> ret
+func()
+assert(?ret? == None)
+
+
+# adding body to the most recently declared function
+# a return can be specified with return()
+~ concat(string1, string2) -> concatination
+-- return(?string1? + ?string2?)
+
+var('conc', concat('mason', ' yo'))
+assert(?conc? == 'mason yo')
+
+# gets the average of an array
+~ average (f_array)-> avg
+-- var('sum', 0)
+-- var('length', len(?f_array?))
+-- for (0, ?length?, 'i', add('sum', ?f_array?[?i?]))
+-- return (?sum? / ?length?)
+
+
+
+# ----------------- & (also) syntax -----------------
+
+# & syntax allows for two functions to converge into a literal
+# the function argument prefixed with & must be the last
+# given argument for the calling function
+var('statement', & |average([1,2,3,4,5])| == |average([1,2,3,4,5])|)
+assert(?statement?)
+
+# ----------------- private execution environments -----------------
+
+!{=>(
+    var("priv", [1, 2, 3])
+)}
+assert (?priv?== [1, 2, 3])
+
+
+
+
+
+# private environment, resources inherited
+# however private does not permit writing to outside
+# variables
+!{private(=>(
+    var('priv', [1, 2]),
+    assert(?priv? == [1, 2])
+))}
+assert (?priv?==[1, 2, 3])
+
+
+
+
+# starts a completely new enviroment for the
+# instruction block to execute
+!{new(=>(
+    var('array', [1, 2, 3]),
+    assert(?array? == [1, 2, 3])
+))}
+
+
+
+var('thread_done', False)
+# starts a new thread of execution
+!{thread('thread1', =>(
+    var('thread_done', True)
+))}
+
+
+wait(?thread_done?)
+assert(?thread_done?)
+
+
+# ----------------- private execution environments x functions -----------------
+
+# new environment to run new functional integrity tests
+!{new(=>(
+
+    ~ function1(__arg, __arg2)->_,
+    -- return (?__arg? + ?__arg2?),
+
+    ~ function2(privatearg1, privatearg2)->_,
+    -- return (function1(?privatearg1?, ?privatearg2?)),
+    
+    assert(equals(function2(0, 0), 0)),
+    assert(equals(function2(1, 1), 2)),
+    
+    assert(True),
+    assert(not(True and True and False)),
+
+    assert(not(exists('number'))),
+    var('number', 0),
+    assert(exists('number')),
+    
+    for (5 - 3 - 2, -3 + 3 + 5, 'i', add('number', 1)),
+    assert(?number? == 5),
+))}
+
+
+# ----------------- || functional syntax  -----------------
+
+!{new(=>(
+
+    # use this syntax for a different approach to looping
+    var('number', 0),
+    -3|0|i (add('number', ?i?)),
+    assert(?number? == -6),
+    assert(*number == -6),
+
+
+    # better conditional syntax
+    # ? operator as a prefix in a function will only run if the function suffixed is true
+    
+    var('number', 0),
+    var('true', True),
+    ? False(add('number', 1)),
+    assert(?number? == 0),
+    ? True (add('number', 1)),
+    assert('number', 1),
+
+))}
+
+
+# executing MSNScript as code
+
+-("var('number', 100)")
+assert(?number? == 100)
+
+
+? False (var('number', 1), var('number', 0))
+assert(?number? == 0)
+
+var('str', '')
+0|5|_(add('str', 'm'))
+assert(?str? == 'mmmmm')
+
+
+
+
+
+env(True)

@@ -1,7 +1,0 @@
-:: assists with time related functions
-:: author : Mason Marker
-:: date : 10/10/2022
-
-:: sleeps for ms
-~ ms_sleep(__ms)->__ms
->  sleep(*__ms / 1000)

@@ -1,0 +1,96 @@
+# tests threading functionality
+# author : Mason Marker
+# date : 11/7/2022
+
+# fresh console
+console('clear')
+
+# prepare statistics
+import('lib/2x/timer.msn2')
+
+
+# working variable
+var('work', 0)
+
+# shared resource for synchronization (binary semaphore)
+var('semaphore', 0)
+
+# semaphorical indicators
+var('worker_finished', 2)
+var('start_worker', 1)
+
+# thread joinage
+var('joined', False)
+
+# how much work is needed to be created by worker thread
+var('work_needed', eval(input('how much work needs to be done? (integer): ')))
+
+
+# determine length of program
+timer_start()
+
+# start program
+prnt('owner: manager can you please get', ?work_needed?, "work done today")
+
+# thread 1 (worker thread)
+!{thread(=>(
+
+    # for loop creates a critical section for work to be performed
+    for (0, ?work_needed?, 'i', =>(
+
+        # waits for the manager thread to ask for work
+        wait(?semaphore? == ?start_worker?),
+
+        # performs work
+        add('work', 1),
+
+        # i did work!
+        prnt('worker: did 1 work'),
+
+        # signal / post that the work iteration has finished
+        var('semaphore', ?worker_finished?)
+    ))
+))}
+
+
+
+
+
+# thread 2 (manager thread)
+!{thread(=>(
+
+    # 'launches' the worker thread 'work_needed' amount of times
+    for (0, ?work_needed?, 'i', =>(
+
+        # go to work >:(
+        prnt('manager: asking worker to work'),
+
+        # signals / posts that the worker needs to complete one work iteration
+        var('semaphore', ?start_worker?),
+
+        # waits for the worker thread to finished
+        wait(?semaphore? == ?worker_finished?),
+
+        # print the amount of work currently done
+        prnt('manager:', ?work_needed? - ?work?, 'work still needed!')
+    )),
+
+    # signal to the actual manager thread that the work has been completed
+    var('joined', True)
+
+))}
+
+# (literal) manager thread joins with 2 subthreads
+wait(?joined?)
+
+# assert work was finished
+assert(?work? == ?work_needed?)
+
+# lets go home
+prnt('owner: work is done!')
+
+# end timer
+timer_end()
+
+# time to completion
+prnt ('owner: only took us', timer_runtime(), 'seconds to do', ?work_needed?, 'work!')

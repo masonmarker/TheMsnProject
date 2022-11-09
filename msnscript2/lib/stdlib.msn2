@@ -1,9 +1,0 @@
-
-:: standard library for MSNScript2 imports
-:: author : Mason Marker
-:: date : 10/15/2022
-
-import (<lib/array.msn2>)
-import (<lib/string.msn2>)
-import (<lib/time.msn2>)
-
