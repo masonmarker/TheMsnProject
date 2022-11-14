@@ -1,0 +1,37 @@
+# demonstrates get usage for http server interaction
+# author : Mason Marker
+# date : 11/10/2022
+
+# fresh console
+console('clear')
+
+# import http operations
+import ('lib/http.msn2')
+
+
+# api endpoint for jokes
+var('url', 'https://official-joke-api.appspot.com/random_joke')
+
+
+
+# send and store http request for location data
+var('request', request(?url?, {}))
+
+~ tell_joke() -> __told
+# send and store http request for location data
+-- var('request', request(?url?, {}))
+-- print('setup: ' + ?request?['setup'])
+-- sleep(2)
+-- print('punchline: ' + ?request?['punchline'])
+
+
+
+
+# tell jokes!
+for (0, 10, 'i', =>(
+    tell_joke(),
+    sleep(3),
+    print(),
+    print()
+))
+

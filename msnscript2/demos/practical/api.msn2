@@ -1,0 +1,14 @@
+# demonstrates usage api libraries
+# author : Mason Marker
+# date : 11/10/2022
+
+# fresh console
+console('clear')
+
+# load general api package
+import ('lib/apis/stdapis.msn2')
+import ('lib/apis/misc.msn2')
+
+# WIPWIPWIPWIPWIPWIP
+
+env(True)

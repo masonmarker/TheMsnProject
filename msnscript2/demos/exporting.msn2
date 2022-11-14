@@ -7,13 +7,14 @@ console('clear')
 
 
 # system-specific requirements
-var('work_needed', 1000)
+var('work_needed', 20)
 
 # main finished
 var('main_return', None)
 
 # boots
 print('boot: starting main')
+
 
 # creates a private context to perform operations specific to the block
 # starts main thread context
@@ -37,6 +38,7 @@ print('boot: starting main')
     # joins worker thread with main thread
     join('worker'),
 
+
     # assert work is done
     assert(?work_done? == ?work_needed?),
 
@@ -55,7 +57,7 @@ wait(?main_return? != None)
 print('boot: checking work...')
 
 # assert main thread received correct parameters and did correct work
-assert(?main_return? == [1000, 1000])
+assert(?main_return? == [20, 20])
 
 print('boot: work OK')
 

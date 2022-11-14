@@ -9,8 +9,6 @@
 
 
 
-
-
 # start of validator
 console('clear')
 
@@ -45,7 +43,7 @@ assert(?i?+?m?-?a?==0)
 
 
 var('test', var('test2', 30)) 
-var(var('__varname', 'test3'), var('test4', [1, 2, 3]))
+var(var('__varname', 'test3'), [1, 2, 3])
 assert(?test? == 30 and ?test2? == 30, ?test? == ?test2?)
 if (assert(?test3? == [1, 2, 3]),assert(assert(assert(True)), assert(assert(True))),None)
 
@@ -105,7 +103,7 @@ var('number', 0)
 var('__', 6)
 del('__', 'element')
 del('mason', 'bro', 'true', 'string', 'string2', 'i', 'm', 'a', 'test2', 'test')
-del('__varname', 'test4', 'test3', 'integer', 'good', 'map', 'number', 'array')
+del('__varname', 'test3', 'integer', 'good', 'map', 'number', 'array')
 
 
 
@@ -125,7 +123,7 @@ del('__varname', 'test4', 'test3', 'integer', 'good', 'map', 'number', 'array')
 
 
 
-# ----------------- multi-line support -----------------
+# ----------------- multi-line support ----------------- (kinda not recommended for all cases anymore, see block syntax further down)
 
 
 # !{} (aggregate) syntax allows for the continuous flow of a line
@@ -160,21 +158,33 @@ var('conc', concat('mason', ' yo'))
 assert(?conc? == 'mason yo')
 
 # gets the average of an array
-~ average (f_array)-> avg
+~ average (f_array)-> __avg
 -- var('sum', 0)
 -- var('length', len(?f_array?))
--- for (0, ?length?, 'i', add('sum', ?f_array?[?i?]))
--- return (?sum? / ?length?)
+-- for (0, ?length?, '__i', add('sum', ?f_array?[?__i?]))
+-- var('__avg', ?sum?/?length?)
 
 
 
-# ----------------- & (also) syntax -----------------
+# ----------------- <<>> (converge) syntax -----------------
 
-# & syntax allows for two functions to converge into a literal
-# the function argument prefixed with & must be the last
-# given argument for the calling function
-var('statement', & |average([1,2,3,4,5])| == |average([1,2,3,4,5])|)
-assert(?statement?)
+# converge syntax allows for function calls to converge into literals immediately,
+# the line must loosely start with '<<' and end with '>>'
+
+# converging function calls must be loosely surrounded by '|'s
+# converge syntax essentially allows for a Python fallback with msn2 integration
+
+# months passed 
+assert(<<   True  >>)
+assert(<< |not(False)| and True   >>)
+assert(  <<   | not(False) | and | not(not(not(False))) |   >>  )
+assert(  <<|average([1,3,5, 7, 9])|==|sum([4, 5, 6])| / 3>> )
+assert(<< |len([1,2,3,4,5,6,7,8])| == 8  >>)
+
+var('d', {'hello':{'hello2':{'hello3':{5:2}}}})
+
+assert(?d?['hello']['hello2']['hello3'][5] == 2)
+
 
 # ----------------- private execution environments -----------------
 
@@ -282,8 +292,86 @@ var('str', '')
 0|5|_(add('str', 'm'))
 assert(?str? == 'mmmmm')
 
+# ----------------- continuous function syntax  -----------------
+# added 11/10/2022
+# no longer have to use aggregate syntax to carry code over multiple lines
+# so long a '(' ends the first line
+
+# very clean :)
+assert(
+    assert(True)
+)
 
 
+assert (
+    assert(True), assert(True),
+    assert(True)
+)
+
+assert(
+    True
+)
+
+assert(
+    assert(
+        True
+    )
+)
+
+
+assert(
+    << True and |not(False)| >>)
+
+
+class('person', =>(
+    var('name', None)
+))
+
+
+var(
+    'number',
+    3
+)
+assert(
+    ?number? == 3
+)
+
+assert (not(
+    ?number? == 1
+))
+
+
+
+-(
+    'var("number", 100)'
+)
+assert(?number? == 100)
+
+
+~ array_sort(array) -> array_sorted
+-- var('array_sorted', <<sorted(|?array?|)>>)
+
+var('array', [5, 4, 3, 2, 1])
+
+# private execution of user method
+# avoids variable and method tangling
+private(exportas('sorted', array_sort(?array?)))
+
+# function specific variables don't exist in parent context unless exported
+assert(not(exists('array_sorted')))
+
+var('array', [3, 4, 5, 8, 7])
+
+# private inline equivalent avoiding user methods
+private(exportas('sorted', =>(
+    var('inline-spec', 'hello i exist'),
+    << sorted(|?array?|) >>
+)))
+assert(?sorted? == [3, 4, 5, 7, 8])
+assert(not(exists('inline-spec')))
 
 
 env(True)
+
+
+

@@ -14,7 +14,12 @@ command line:
 
     
 see /demos for demonstrations
-
+see /tests for syntax specific usage (find the most recent validator in /tests)
 
 file-based code depends on the user's current directory after executing a .msn2 program,
 verify that file paths in written code are compatible with the directory at which the program is launched
+
+
+
+
+

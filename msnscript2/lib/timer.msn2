@@ -17,4 +17,4 @@ var('__timer_end', None)
 
 # computes the runtime of the current timer
 ~ timer_runtime() -> __runtime
--- return(?__timer_end? - ?__timer_start?)
+-- var('__runtime', ?__timer_end? - ?__timer_start?)
