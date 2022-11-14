@@ -1,6 +1,6 @@
 import msnint2
 
-f = open("tests/validator.msn2", "r")
+f = open("tests/validator2-1.msn2", "r")
 script = f.read()
 
 

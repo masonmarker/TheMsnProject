@@ -1,0 +1,66 @@
+# demonstrates algorithmic capabilities
+# author : Mason Marker
+# date : 11/13/2022
+
+# fresh console
+console('clear')
+
+# import timer for speed testing
+import ('lib/timer.msn2')
+
+
+
+
+print('------------------------------ FREQUENCY MAP ------------------------------')
+
+# determines the frequency of each element in the array in linear time
+~ freqmap(array) -> map
+-- var('map', {})
+-- each(?array?, 'e', =>(
+    if (?e? in ?map?, =>(
+        set('map', ?e?, ?map?[?e?] + 1)
+    ), =>(
+        set('map', ?e?, 1)
+    )) 
+)) 
+
+# runs a test on the frequency map algorithm
+~ test_freqmap(test_array) -> _
+-- timer_start()
+-- var('fm', freqmap(?test_array?))
+-- timer_end()
+-- print('freqmap of', ?test_array?, 'is', ?fm?)
+-- print('determined in', <<|timer_runtime()|s>>)
+-- print()
+
+
+# test 1
+test_freqmap([1, 2, 3, 4, 5, 1, 2, 3])
+
+# test 2
+test_freqmap([8, 8, 8, 6, 6, 6, 4, 4, 4, 2, 2, 2])
+
+# test 3
+test_freqmap([0, 0, 3, 2, 1])
+print('---------------------------------------------------------------------------')
+print()
+
+
+
+print('------------------------------ SORTING ------------------------------')
+
+# converge -> python fallback allows for fast sorting
+~ sort(array) -> sorted
+-- var('sorted', <<sorted(|?array?|)>>)
+
+~ test_sort(test_array) -> _
+-- timer_start()
+-- print(?test_array?,'sorted is', sort(?test_array?))
+-- timer_end()
+-- print('determined in', <<|timer_runtime()|s>>)
+-- print()
+
+test_sort([7, 6, 5, 4, 3, 2])
+test_sort([3,5 ,9, 6, 4, 2, 1])
+test_sort([1, 2, 3] * 10)
+print('---------------------------------------------------------------------------')

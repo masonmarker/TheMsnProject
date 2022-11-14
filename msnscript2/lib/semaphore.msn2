@@ -1,0 +1,9 @@
+# simulates similar behavior to a semaphore
+# author : Mason Marker
+# date : 11/10/2022
+
+# semaphore class
+class('semaphore', =>(
+    var('held', False),
+    var('message', None)
+))

@@ -1,9 +1,0 @@
-:: for loop leave/break implementation
-:: author : Mason Marker
-:: date : 10/22/2022
-
-:: leaves the surrounding for loop from the loops index variable
-~ leave(__fiv) -> __left
->  prnt (<hello>)
->  var.set(*__fiv, 999999999999999999999999)
->  var.set(<__left>, True)

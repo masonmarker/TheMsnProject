@@ -4,6 +4,27 @@
 
 
 
-# starts an http server on 0.0.0.0:8000 on a new thread
-~ server_start() ->__
--- thread('http1', console('python3 -m http.server'))
+# localhost
+var('localhost', '127.0.0.1')
+
+# default http post
+var('http_default_port', 8000)
+
+# starts an http server on __http_address:__http_port on a new thread to permit further instructions
+~ http_start(__http_address, __http_port) ->__http_started
+# created console command to start server
+-- var('__http_cmd', 'python3 -m http.server ' + str(?__http_port?) + ' --bind ' + str(?__http_address?))
+# start console on new thread
+-- thread('http1', console(?__http_cmd?))
+-- var('__http_started', True)
+
+
+
+
+
+
+
+
+
+
+

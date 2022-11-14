@@ -49,8 +49,14 @@ prnt('main: setattr() passed testing')
     var('name', None)
 ))}
 
-var('dad1', father('david', 80))
+var('dad1', father('david', []))
 var('son1', son('alvin'))
 
-assert(& |?dad1?|['children'] == [])
 
+# easier way of getting attributes
+assert(<< |dad1.name()| =='david'   >>)
+assert(<<|dad1.name()| != 50 and |dad1.children()| == []>>)
+
+# setting attributes
+dad1.name('jerry')
+assert(<< |dad1.name()| =='jerry'   >>)

@@ -1,0 +1,67 @@
+# demonstrates both new syntactical advantages to writing code
+# as well as threads accessing a shared resource
+# author : Mason Marker
+# date : 11/10/2022
+
+# fresh console
+console('clear')
+
+# import semaphore as shared resource
+import ('lib/semaphore.msn2')
+
+# create instance of shared resource
+var('resource', semaphore(False, ''))
+
+# delay to grant opposing thread an opportunity
+# to write to the resource
+~ offer_resource() -> __offered
+-- sleep(0.001)
+
+# only 1 thread can write at a time to the buffer
+thread('thread1', =>(
+
+    # waits for resource to be available
+    for (0, 10, 'i1', =>(
+        wait(not(resource . held())),
+
+        # critical section for writing to resource
+        resource.held(True),
+        resource.message(cat(resource.message(), '1 ')),
+        print('thread 1 wrote'),
+        resource.held(False),
+
+        # delay to grant opposing thread an opportunity
+        # to write to the resource
+        offer_resource()
+    ))
+))
+
+# start second thread
+thread('thread2', =>(
+
+    # waits for resource to be available
+    for (0, 10, 'i2', =>(
+        wait(not(resource . held())),
+
+        # critical section for writing to resource
+        resource.held(True),
+        resource.message(cat(resource.message(), '2 ')),
+        print('thread 2 wrote'),
+        resource.held(False),
+
+        # delay to grant opposing thread an opportunity
+        # to write to the resource
+        offer_resource()
+    ))
+))
+
+# wait for subthreads to finish writing to resource
+join('thread1')
+join('thread2')
+
+# assert threads ping-ponged wrote back and forth
+assert(not(resource.held()))
+assert(<< |resource.message()| == '1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 ' >>)
+
+# prints the results of the shared resource
+print(<<resource: |?resource?| >>)
