@@ -23,13 +23,13 @@ var('request', request(?url?, {}))
 -- print('setup: ' + ?request?['setup'])
 -- sleep(2)
 -- print('punchline: ' + ?request?['punchline'])
-
+-- return(True)
 
 
 
 # tell jokes!
 for (0, 10, 'i', =>(
-    tell_joke(),
+    assert(tell_joke()),
     sleep(3),
     print(),
     print()
