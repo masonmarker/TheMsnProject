@@ -65,7 +65,8 @@ assert (?map?['first'] == 4)
 # ----------------- if logic -----------------
 
 if (True, var('good', True), var('good', False)) 
-
+assert(exists('good'))
+assert(?good?)
 # brute test on argument evaluation and accuracy
    assert  (   assert (  assert ( assert (  assert ( True  )   , assert(True), assert(    assert  (   True), assert(  True))  )   ), assert(assert(  True), assert(True))    ), assert  (   assert(True)   , assert(True)), assert(True  ))
 
@@ -371,7 +372,25 @@ assert(?sorted? == [3, 4, 5, 7, 8])
 assert(not(exists('inline-spec')))
 
 
+
+
+
+# ----------------- nested loops  -----------------
+
+var('array2d', [[1, 2, 4], [1, 2, 3], [1, 2, 3]])
+
+var('sum', 0)
+
+# uses => syntax for readability
+for(0, len(?array2d?), 'i', =>(
+    for(0, len(?array2d?[?i?]), 'j', =>(
+        add('sum', ?array2d?[?i?][?j?])
+    ))
+))
+assert(?sum? == 19)
+
+
+
+
+
 env(True)
-
-
-

@@ -14,9 +14,9 @@
 ~ clear() -> __
 -- console('clear')
 
-# compiles the user program
+# compiles the user program in the directory specified
 ~ main() ->__
--- console('gcc demos/practical/main.c -o main')
+-- console('gcc demos/practical/cfiles/main.c -o main')
 
 ~ run() -> __
 -- console('./main')

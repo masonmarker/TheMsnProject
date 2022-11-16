@@ -5,10 +5,22 @@
 # fresh console
 console('clear')
 
-# load general api package
-import ('lib/apis/stdapis.msn2')
-import ('lib/apis/misc.msn2')
 
-# WIPWIPWIPWIPWIPWIP
+# starts an api endpoint on 127.0.0.1:5000/data on a new thread
+# endpoint(path) with a single argument starts an endpoint on the default localhost and endpoint hosting port (above)
+thread('ep', endpoint('/data'))
+
+# give small segment of time for api endpoint startup
+sleep(0.05)
+
+# offers async command line to user
+thread('usershell', while (1, =>(
+
+    # '-()' interprets the first argument, which should be a string representation
+    # of MSNScript2 code
+    -(input('>>>  '))
+)))
+
+
 
 env(True)

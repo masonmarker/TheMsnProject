@@ -47,20 +47,53 @@ print()
 
 
 
-print('------------------------------ SORTING ------------------------------')
+print('------------------------------ SUM ------------------------------')
 
-# converge -> python fallback allows for fast sorting
-~ sort(array) -> sorted
--- var('sorted', <<sorted(|?array?|)>>)
+# performs insertion sort algorithm
+~ sum(arr) -> sum
+-- if (<< |len(?arr?)| == 0 >>, var('sum', None), var('sum', 0))
+-- each(?arr?, 'e', add('sum', ?e?))
 
-~ test_sort(test_array) -> _
+# runs a test on the frequency map algorithm
+~ test_sum(test_array) -> _
 -- timer_start()
--- print(?test_array?,'sorted is', sort(?test_array?))
+-- var('fm', sum(?test_array?))
 -- timer_end()
+-- print('sum of', ?test_array?, 'is', ?fm?)
 -- print('determined in', <<|timer_runtime()|s>>)
 -- print()
 
-test_sort([7, 6, 5, 4, 3, 2])
-test_sort([3,5 ,9, 6, 4, 2, 1])
-test_sort([1, 2, 3] * 10)
+test_sum([1,2,3])
+test_sum([1,2,3, 4])
+test_sum([1,2])
+test_sum([1])
+test_sum([])
+print('---------------------------------------------------------------------------')
+
+
+print('------------------------------ AVERAGE ------------------------------')
+
+# performs insertion sort algorithm
+# method should be executed privately
+~ average(arr) -> avg
+-- if (<< |len(?arr?)| == 0>>, =>(
+    var('avg', None),
+    break()
+))
+-- var('avg', << |sum(?arr?)| / |len(?arr?)|  >>)
+
+# runs a test on the frequency map algorithm
+~ test_average(test_array) -> _
+-- timer_start()
+-- private(exportas('fm', average(?test_array?)))
+-- timer_end()
+-- print('avg of', ?test_array?, 'is', ?fm?)
+-- print('determined in', <<|timer_runtime()|s>>)
+-- print()
+
+test_average([1,2,3])
+test_average([1,2,3, 4])
+test_average([1,2, 3, 4, 5])
+test_average([1])
+test_average([])
 print('---------------------------------------------------------------------------')

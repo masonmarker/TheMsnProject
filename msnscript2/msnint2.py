@@ -2,7 +2,6 @@
 # Author : Mason Marker
 # Date : 09/15/2022
 
-from http.client import CONTINUE
 import os
 import math
 import openai
@@ -11,7 +10,12 @@ import time
 import threading
 import time
 import requests
-from copy import copy, deepcopy
+import numpy
+from flask import Flask, request
+from flask_restful import Resource, Api, reqparse
+import pandas as pd
+import ast
+import logging
 
 class Err:
     def __init__(self, errorcode):
@@ -59,6 +63,10 @@ class Interpreter:
         self.tokens = 100
         self.browser_path = None
         self.serial_1 = 0
+        
+        self.endpoints = {}
+        self.endpoint_datas = {}
+        self.endpoint_path = 'demos/practical/apidata/apitestdata.csv'
 
     # executes stored script
     def execute(self, script):
@@ -193,26 +201,6 @@ class Interpreter:
         except:
             None
 
-        # # || function replacement
-        # # parse all text in the line for text surrounded by %
-        # funccalls = []
-        # infunc = False
-        # func = ''
-        # for i in range(0, l):
-        #     if line[i] == '|' and not infunc:
-        #         infunc = True
-        #     elif line[i] == '|' and infunc:
-        #         infunc = False
-        #         funccalls.append(func)
-        #         func = ''
-        #     elif infunc:
-        #         func += line[i]
-        # line = line[1:]
-        # for function in funccalls:
-        #     print (function)
-        #     line = line.replace('|' + function + '|', str(self.interpret(function)))
-        # print (line)
-        
         evaluation = None
         func = ''
         obj = ''
@@ -376,17 +364,16 @@ class Interpreter:
                     except:
                         false_block_s = None
                     
-                    # extract and replacing the interpretation result of the if condition
-                    line, ifcond = self.convert_arg(ifcond_s, line, f, sp, args)
+                    ifcond = self.parse(0, line, f, sp ,args)[2]                    
                     
                     # if condition is true
                     if (ifcond):
-                        line, ret = self.convert_arg(true_block_s, line, f, sp, args)
-                        return ret
+                        return self.parse(1, line, f, sp, args)[2]
 
                     # otherwise false block is executed
-                    line, ret = self.convert_arg(false_block_s, line, f, sp, args)
-                    return ret    
+                    if false_block_s:
+                        return self.parse(2, line, f, sp, args)[2]
+                    return False
 
                 # while logic WIPWIPWIPWIPWIP
                 elif func == 'while':
@@ -475,6 +462,110 @@ class Interpreter:
                     self.vars[first].value /= second
                     return self.vars[first].value
 
+                # performs file-specific operations
+                elif obj == 'file':
+                    
+                    # reads text from a file
+                    if func == 'read':
+                        f = open(evals[0], "r")
+                        return f.read()
+                    
+                    # writes to a file
+                    if func == 'write':
+                        f = open(evals[0], "w")
+                        f.write(evals[1])
+                        return evals[1]
+                    
+                    # appends 
+                    if func == 'append':
+                        f = open(evals[0], "a")
+                        f.write(evals[1])
+                        return evals[1]
+                    if func == 'delete':
+                        os.remove(evals[0])
+                        return evals[0]
+                    if func == 'create':
+                        f = open(evals[0], "w")
+                        f.write("")
+                        return evals[0]
+                    if func == 'exists':
+                        return os.path.exists(evals[0])
+                    if func == 'rename':
+                        os.rename(evals[0], evals[1])
+                        return evals[1]
+                    if func == 'list':
+                        return os.listdir(evals[0])
+                    if func == 'isdir':
+                        return os.path.isdir(evals[0])
+                    if func == 'isfile':
+                        return os.path.isfile(evals[0])
+                    if func == 'path':
+                        return os.path.abspath(evals[0])
+                    if func == 'size':
+                        return os.path.getsize(evals[0])
+                    if func == 'created':
+                        return os.path.getctime(evals[0])
+                    if func == 'modified':
+                        return os.path.getmtime(evals[0])
+
+
+                    elif obj == 'math':
+                        if func == 'sin':
+                            return math.sin(float(evals[0]))
+                        if func == 'cos':
+                            return math.cos(float(evals[0]))
+                        if func == 'tan':
+                            return math.tan(float(evals[0]))
+                        if func == 'asin':
+                            return math.asin(float(evals[0]))
+                        if func == 'acos':
+                            return math.acos(float(evals[0]))
+                        if func == 'atan':
+                            return math.atan(float(evals[0]))
+                        if func == 'atan2':
+                            return math.atan2(float(evals[0]), float(evals[1]))
+                        if func == 'sinh':
+                            return math.sinh(float(evals[0]))
+                        if func == 'cosh':
+                            return math.cosh(float(evals[0]))
+                        if func == 'tanh':
+                            return math.tanh(float(evals[0]))
+                        if func == 'asinh':
+                            return math.asinh(float(evals[0]))
+                        if func == 'acosh':
+                            return math.acosh(float(evals[0]))
+                        if func == 'atanh':
+                            return math.atanh(float(evals[0]))
+                        if func == 'degrees':
+                            return math.degrees(float(evals[0]))
+                        if func == 'radians':
+                            return math.radians(float(evals[0]))
+                        if func == 'exp':
+                            return math.exp(float(evals[0]))
+                        if func == 'expm1':
+                            return math.expm1(float(evals[0]))
+                        if func == 'log':
+                            return math.log(float(evals[0]))
+                        if func == 'log1p':
+                            return math.log1p(float(evals[0]))
+                        if func == 'log2':
+                            return math.log2(float(evals[0]))
+                        if func == 'log10':
+                            return math.log10(float(evals[0]))
+                        if func == 'pow':
+                            return math.pow(float(evals[0]), float(evals[1]))
+                        if func == 'sqrt':
+                            return math.sqrt(float(evals[0]))
+                        if func == 'ceil':
+                            return math.ceil(float(evals[0]))
+                        if func == 'floor':
+                            return math.floor(float(evals[0]))
+                        if func == 'fabs':
+                            return math.fabs(float(evals[0]))
+                        if func == 'factorial':
+                            return math.factorial(float(evals[0]))
+
+
                 # sets an index of an array
                 # first argument is the variable to modify
                 # second is the index to modify
@@ -489,8 +580,10 @@ class Interpreter:
 
                     # value to set
                     val = self.parse(2, line, f, sp, args)[2]
-                                        
+                    
+                    # perform set operation                                                      
                     self.vars[varname].value[ind] = val
+                        
                     return val
 
                 # deletes a variable
@@ -523,6 +616,17 @@ class Interpreter:
                 elif func == 'not':
                     return not self.parse(0, line, f, sp, args)[2]
 
+                # ands two bools
+                elif func == 'and':
+                    first = self.parse(0, line, f, sp, args)[2]
+                    for i in range(1, len(args)):
+                        if not first and self.parse(i, line, f, sp ,args)[2]:
+                            return False
+                    return True
+
+                # ors two bools
+                elif func == 'or':
+                    return self.parse(0, line, f, sp, args)[2] or self.parse(1, line, f, sp ,args)[2]
 
                 # inline function, takes any amount of instructions
                 # returns the result of the last instruction
@@ -704,6 +808,12 @@ class Interpreter:
                     self.thread_by_name(self.parse(0, line, f, sp, args)[2]).join()
                     return True
                 
+                # kills a thread by its name as the first argument
+                elif func == 'kill':
+                    tname = self.parse(0, line, f, sp, args)[2]
+                    self.thread_by_name(tname).kill()
+                    return True
+                
                 # tries the first argument, if it fails, code falls to the catch/except block
                 # there is no finally implementation
                 elif func == 'try':
@@ -809,9 +919,30 @@ class Interpreter:
                     self.vars[ret_name].value = ret
                     return ret
 
+                # starts an api endpoint
+                elif func == 'endpoint':
+                    
+                    # path to endpoint
+                    path = self.parse(0, line, f, sp, args)[2]
+                    
+                    print('msnint2: preparing api server on http://127.0.0.1:5000' + path)
+                    app = Flask(__name__)
+                    
+                    # disable flask messages that aren't error-related
+                    log = logging.getLogger('werkzeug')
+                    log.disabled = True
+                    app.logger.disabled = True
+                    
+                    api = Api(app)
+                    self.endpoints[path] = api
+                    api.add_resource(self.EndPoint, path)
+                    print(dir(api))
+                    app.run()
+                    return True
+
                 # starts an http server
                 elif func == 'server':
-                    None
+                    return
 
                 # simulates function closure
                 elif func == 'end':
@@ -851,11 +982,8 @@ class Interpreter:
                     try: 
                         return eval(str(self.vars[method.returns[0]].value))
                     except:
-                        try:
-                            return str(self.vars[method.returns[0]].value)
-                        except:
-                            return str(self.vars[method.returns[0]])
-
+                        return str(self.vars[method.returns[0]].value)
+                
                 # object instance requested
                 elif func in self.vars:
 
@@ -973,64 +1101,7 @@ class Interpreter:
                         except:
                             # ok hopefully its a string lol
                             return line
-                    # for i in range(len(evals)):
-                    #     if i != len(evals) - 1:
-                    #         self.out +=  (evals[i] + " ")
-                    #     else:
-                    #         self.out +=  (evals[i] + "\n")
-                    #         return evals[i]
-
-
-
-
-
-                     #   current_eval_str = str(self.interpret(arg[0]))
-                    #    evals.append(current_eval_str)
                 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                # reverse evals to match the order of the arguments
-                evals.reverse()
-
-                if func == "import":
-                    for path in evals:
-                        if path in self.imports:
-                            continue
-                        self.imports.add(path)
-                        contents = ''
-                        with open(eval(path)) as f:
-                            contents = f.readlines()
-                            script = ''
-                            for line in contents:
-                                script += line
-                            self.logg("importing library", str(args[0][0]))
-                            self.execute(script)
-                    break
-                # allows for continuation of logic flow
-                if func == 'continue':
-                    continue;
-
-                if func == 'break':
-                    break;
-
                 # AI features
                 if obj == 'ai':
                     if func == 'setkey':
@@ -1057,142 +1128,9 @@ class Interpreter:
                             webbrowser.open(evals[0])
                         return evals[0]
 
-                if obj == 'file':
-                    if func == 'read':
-                        f = open(evals[0], "r")
-                        return f.read()
-                    if func == 'write':
-                        f = open(evals[0], "w")
-                        f.write(evals[1])
-                        return evals[1]
-                    if func == 'append':
-                        f = open(evals[0], "a")
-                        f.write(evals[1])
-                        return evals[1]
-                    if func == 'delete':
-                        os.remove(evals[0])
-                        return evals[0]
-                    if func == 'create':
-                        f = open(evals[0], "w")
-                        f.write("")
-                        return evals[0]
-                    if func == 'exists':
-                        return os.path.exists(evals[0])
-                    if func == 'rename':
-                        os.rename(evals[0], evals[1])
-                        return evals[1]
-                    if func == 'list':
-                        return os.listdir(evals[0])
-                    if func == 'isdir':
-                        return os.path.isdir(evals[0])
-                    if func == 'isfile':
-                        return os.path.isfile(evals[0])
-                    if func == 'path':
-                        return os.path.abspath(evals[0])
-                    if func == 'size':
-                        return os.path.getsize(evals[0])
-                    if func == 'created':
-                        return os.path.getctime(evals[0])
-                    if func == 'modified':
-                        return os.path.getmtime(evals[0])
-
-                # performs an each function on evals[0]
-                if func == 'each':
-                    function = self.calledmethod
-                    evals[0] = eval(evals[0])
-                    for i in range(len(evals[0])):
-                        self.vars[evals[1]] = Var(evals[1], evals[0][i])
-                        self.interpret(function)
-
-                    return evals[0]
-
-                if func == "stringify":
-                    if not self.is_py_str(evals[0]):
-                        return '"' + evals[0] + '"'
-                    return evals[0]
-                if func == "destringify":
-                    if self.is_py_str(evals[0]):
-                        return evals[0][1:len(evals[0]) - 1]
-                    return evals
                 
-                if obj == 'math':
-                    if func == 'sin':
-                        return math.sin(float(evals[0]))
-                    if func == 'cos':
-                        return math.cos(float(evals[0]))
-                    if func == 'tan':
-                        return math.tan(float(evals[0]))
-                    if func == 'asin':
-                        return math.asin(float(evals[0]))
-                    if func == 'acos':
-                        return math.acos(float(evals[0]))
-                    if func == 'atan':
-                        return math.atan(float(evals[0]))
-                    if func == 'atan2':
-                        return math.atan2(float(evals[0]), float(evals[1]))
-                    if func == 'sinh':
-                        return math.sinh(float(evals[0]))
-                    if func == 'cosh':
-                        return math.cosh(float(evals[0]))
-                    if func == 'tanh':
-                        return math.tanh(float(evals[0]))
-                    if func == 'asinh':
-                        return math.asinh(float(evals[0]))
-                    if func == 'acosh':
-                        return math.acosh(float(evals[0]))
-                    if func == 'atanh':
-                        return math.atanh(float(evals[0]))
-                    if func == 'degrees':
-                        return math.degrees(float(evals[0]))
-                    if func == 'radians':
-                        return math.radians(float(evals[0]))
-                    if func == 'exp':
-                        return math.exp(float(evals[0]))
-                    if func == 'expm1':
-                        return math.expm1(float(evals[0]))
-                    if func == 'log':
-                        return math.log(float(evals[0]))
-                    if func == 'log1p':
-                        return math.log1p(float(evals[0]))
-                    if func == 'log2':
-                        return math.log2(float(evals[0]))
-                    if func == 'log10':
-                        return math.log10(float(evals[0]))
-                    if func == 'pow':
-                        return math.pow(float(evals[0]), float(evals[1]))
-                    if func == 'sqrt':
-                        return math.sqrt(float(evals[0]))
-                    if func == 'ceil':
-                        return math.ceil(float(evals[0]))
-                    if func == 'floor':
-                        return math.floor(float(evals[0]))
-                    if func == 'fabs':
-                        return math.fabs(float(evals[0]))
-                    if func == 'factorial':
-                        return math.factorial(float(evals[0]))
                     
-                # evaluating variable functions
-                if obj == "var":
-                    if func == "set":
-                        result = evals[1]
-                        varname = evals[0]
-                        ev = eval(varname)
-                        # in case the variable name is empty
-                        if ev == '':
-                            return result
-                        if self.is_str(evals[0]):
-                            varname = evals[0][1:len(evals[0]) - 1]
-                        else:
-                            try:
-                                return self.get_var(ev)
-                            except:
-                                None
-                        try:
-                            self.vars[varname] = Var(varname, eval(result))
-                        except:
-                            self.vars[varname] = Var(varname, result)
-                        return result
-                    
+
                     # retrieve the variable passed
                     elif func == "get":
                         varname = evals[0]
@@ -1205,40 +1143,7 @@ class Interpreter:
                         else:
                             return value
 
-                    elif func == 'sort':
-                        varname = evals[0]
-                        var = self.get_var(varname)
-                        sorted = var.copy()
-                        sorted.sort()
-                        return sorted
-                    elif func == 'add':
-                        varname = evals[0]
-                        try:
-                            value = self.get_var(evals[1])
-                        except:
-                            try:
-                                value = eval(evals[1])
-                            except:
-                                value = evals[1]
-                        try:
-                            self.vars[varname].value.append(value)
-                        except:
-                            try:
-                                self.vars[varname].value += value
-                            except:
-                                try:
-                                    added = eval(varname)
-                                except:
-                                    added = varname
-                                try:
-                                    added.append(value)
-                                except:
-                                    try:
-                                        added += str(value)
-                                    except:
-                                        added += value
-                                return added
-                        return self.vars[varname].value
+
                     elif func == 'remove' or func == 'delete':
                         varname = evals[0]
                         try:
@@ -1255,29 +1160,7 @@ class Interpreter:
                             except:
                                 return eval(varname.replace(value, ''))
                         return self.vars[varname].value
-                    # test the equality of a variable and another value
-                    elif func == 'equals?':
-                        varname = evals[0]
-                        try:
-                            value = self.get_var(evals[1])
-                        except:
-                            value = eval(evals[1])
-                        try:
-                            return self.vars[varname].value == value
-                        except: 
-                            return str(varname) == str(value) 
-                    # find out if vars contains the evals passed
-                    elif func == 'exists?':
-                        return self.var_exists(evals[0])
-                
-                    # length of first argument
-                    elif func == 'length':
-                        varname = evals[0]
-                        try:
-                            return len(self.vars[varname].value)
-                        except:
-                            return len(eval(varname))
-                            
+
                     # adds an entry to an object
                     elif func == 'obj_add':
                         varname = evals[0]
@@ -1291,78 +1174,12 @@ class Interpreter:
                             return found
                         return self.vars[varname].value
                                    
-                if func == "assert" or func == "bool":
-                    arg = eval(evals[0])
-                    if not arg:
-                        self.errors.append(Err(1))
-                        if func == 'assert':
-                            self.err("assertion failed", "", str(args[0][0]))
-                        return False
-                    return True
-
-                # interprets a function
-                if obj == "script":
-                    return self.interpret(evals[0])
-
-                # private execution block
-                if func == "private":
-                    inter = Interpreter()
-                    block = self.calledmethod
-                    for vname, entry in self.vars.items():
-                        inter.vars[vname] = entry
-                    for mname, entry in self.methods.items():
-                        inter.methods[mname] = entry
-                    inter.execute(block)
-                    return inter
 
                 if func == 'log':
                     return self.log
                 
-                # obtains the current environment variables
-                if func == 'variables':
-                    for var in self.vars:
-                        try:
-                            vars[var] = self.vars[var].value
-                        except:
-                            None
-                    return vars
-                if func == 'env':
-                    print("--------- environment ---------")
-                    print("\n\tvariables:")
-                    for varname, v in self.vars.items():
-                        try:
-                            print (varname + " = " + str(v.value))
-                        except:
-                            None
+  
 
-                    print("\n\tmethods:")
-                    # printing methods
-                    for methodname, Method in self.methods.items():
-                        print (methodname + ":")
-
-                    print("\nlog:")
-                    print (self.log)
-                    print("-------------------------------")
-                    return True
-                            
-                # waits for the boolean expression to be true
-                if func == "wait":
-                    waitcond = self.calledmethod
-                    while not self.interpret(waitcond):
-                        None
-                    return True
-
-                # current time
-                if func == "now":
-                    return time.time()
-
-                # obtains the called method
-                if func == "called":
-                    return self.calledmethod
-
-                # obtains the called method
-                if func == "called2":
-                    return self.calledmethod2
 
                 if func == "variables":
                     return self.vars
@@ -1370,11 +1187,6 @@ class Interpreter:
                 # gets the current out
                 if func == "out":
                     return self.out
-
-                if func == "sleep":
-                    sleeping = eval(evals[0])
-                    time.sleep(sleeping)
-                    return sleeping
 
                 if func == "thread":
                     self.thread = threading.Thread(target=self.interpret, args=(self.calledmethod,))
@@ -1387,57 +1199,6 @@ class Interpreter:
                     except:
                         return evals[0]
 
-                # checking mechanism
-                if func == 'check':
-                    checker = eval(evals[0])
-                    if checker:
-                        return self.interpret(self.calledmethod)
-                    return evals[2]
-                if func == 'later':
-                    return self.interpret(self.calledmethod)
-                if func == 'for':
-                    inside = self.calledmethod
-                    # times to loop
-                    start = eval(evals[0])
-                    end = eval(evals[1])
-                    loopvar =  evals[2]
-                    if start < end:
-                        for i in range(start, end):
-                            if loopvar in self.vars and self.vars[loopvar].value >= end:
-                                break
-                            self.vars[loopvar] = Var(loopvar, i)
-                            self.interpret(inside)
-                    elif start > end:
-                        for i in reversed(range(end, start)):
-                            if loopvar in self.vars and self.vars[loopvar].value < end:
-                                break
-                            self.vars[loopvar] = Var(loopvar, i) 
-                            self.interpret(inside)
-                            
-                    return self.vars[loopvar].value
-                         
-                if func in self.methods.keys():
-                    method = self.methods[func]
-                    for i in range(len(method.args)):
-                        name = method.args[i]
-                        self.vars[name] = Var(name, eval(evals[i]))
-                    converted = []
-
-                    for ev in evals:
-                        converted.append(eval(ev))
-
-                    # execute method
-                    method.run(converted)
-                    
-                    ret = None
-                    # logging return value
-                    
-                    try: 
-                        ret = eval(str(self.vars[method.returns[0]].value))
-                    except:
-                        ret = str(self.vars[method.returns[0]].value)
-
-                    return ret
                 if obj == "system":
                     if func == "exit":
                         exit(eval(evals[0]))
@@ -1473,67 +1234,7 @@ class Interpreter:
                                     del self.methods[methodname]
                             if arg == '"log"':
                                 self.log = ''    
-                if obj == 'console':
-                    if func == 'run':
-                        for ev in evals:
-                            os.system(str(eval(ev)))
-                        return True
-                elif func == "_":
-                    return evals[0]
-                elif func == "now":
-                    return time.time()
-                elif func == 'strn':
-                    return None
-                elif func == '-':
-                    for ins in args:
-                        self.interpret_msnscript_1(ins[0])
-                    return True
-                # msn1 primal looping mechanism                
-                elif "{" in func and "}" in func:
-                    if ":" not in func:
-                        called = self.calledmethod
-                        expression = func.replace("{", '').replace("}", '')
-                        willrun = self.interpret(expression)
-                        if willrun:
-                            self.interpret(called)
-                    else:
-                        times = self.loop(func)
-                        first = times[0]
-                        last = times[1]
-                        optvar = times[2]
-                        try:
-                            first = self.vars[first].value
-                        except: 
-                            None
-                        try:
-                            last = self.vars[last].value
-                        except:
-                            None
-                        first = int(first)
-                        last = int(last)
-                        self.vars[optvar] = Var(optvar, first)
-                        interpreting = line.replace(func, '')
-                        called = self.calledmethod
-                        if first <= last:
-                            for i in range(first, last):
-                                if optvar in self.vars:
-                                    self.vars[optvar].value = i
-                                self.interpret(called)
-                        else:
-                            for i in range(last, first):
-                                if optvar != '':
-                                    self.vars[optvar].value = i
-                                self.interpret(called)
-                    return True
-
-                elif func not in self.methods.keys():
-                    try:
-                        return eval(line)
-                    except:
-                        None
-
-                break
-
+                    
             func += c
         
         try:
@@ -1974,6 +1675,8 @@ class Interpreter:
             None
         return array
 
+
+
     class Method:
             def __init__(self, name, interpreter):
                 self.name = name
@@ -2003,12 +1706,19 @@ class Interpreter:
                             inter.vars[self.args[i]] = args[i]
                 for line in self.body:
                     inter.interpret(line)
-            
-            def clean(self):
-                for arg in self.args:
-                    try:
-                        del inter.vars['"' + arg + '"']
-                    except:
-                        None
-    
-    
+                        
+    class EndPoint(Resource):
+        
+        path = None
+
+        # rest convention
+        def get(self, path):
+            data = pd.read_csv(self.path)
+            data = data.to_dict()
+            return {'data': data}, 200
+
+        def post(self):
+            parser = reqparse.RequestParser()
+
+            data = pd.read_csv(self.path)
+
