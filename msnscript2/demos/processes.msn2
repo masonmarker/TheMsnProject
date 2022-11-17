@@ -1,0 +1,24 @@
+# demonstrates how process is created
+# author : Mason Marker
+# date : 11/16/2022
+
+# fresh console
+if (windows(), console('cls'), console('clear'))
+ 
+
+
+
+process('process1', =>(
+    var('var', 'p1'),
+    print('hello im p1'),
+    env(True),
+))
+
+
+
+process('process1', =>(
+    var('var2', 'p2'),
+    print('hello im p2'),
+    env(True)
+))
+

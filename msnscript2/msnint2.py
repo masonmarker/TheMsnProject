@@ -10,12 +10,14 @@ import time
 import threading
 import time
 import requests
-import numpy
 from flask import Flask, request
 from flask_restful import Resource, Api, reqparse
 import pandas as pd
 import ast
 import logging
+
+from multiprocessing import Pool
+
 
 class Err:
     def __init__(self, errorcode):
@@ -67,6 +69,8 @@ class Interpreter:
         self.endpoints = {}
         self.endpoint_datas = {}
         self.endpoint_path = 'demos/practical/apidata/apitestdata.csv'
+        
+        self.processes = {}
 
     # executes stored script
     def execute(self, script):
@@ -292,8 +296,12 @@ class Interpreter:
                 # clean function for handling
                 func = func.strip()
 
+                # class attribute / method access
                 if obj in self.vars:
-                    object = self.vars[obj].value
+                    try:
+                        object = self.vars[obj].value
+                    except:
+                        object = self.vars[obj]
                     if func in object:
                         if args[0][0] == '':
                             return object[func]
@@ -326,6 +334,7 @@ class Interpreter:
 
                 # gets the first argument at the second argument
                 elif func == 'get':
+                    
                     getting_from = self.parse(0, line, f, sp, args)[2]
                     index = self.parse(1, line, f, sp, args)[2]
                     return eval(getting_from[index])
@@ -476,7 +485,7 @@ class Interpreter:
                         f.write(evals[1])
                         return evals[1]
                     
-                    # appends 
+                    # appends to a file 
                     if func == 'append':
                         f = open(evals[0], "a")
                         f.write(evals[1])
@@ -595,13 +604,20 @@ class Interpreter:
 
                 # concatinates two strings
                 elif func == 'cat':
-                    # first argument
+                    
+                    # first argument (required)
                     first = self.parse(0, line, f, sp, args)[2]
 
-                    # second argument
+                    # second argument (required)
                     second = self.parse(1, line, f, sp ,args)[2]
 
-                    return first + second
+                    cat = first + second
+                    
+                    # concatinate rest of arguments
+                    for i in range(2, len(args)):
+                        cat += str(self.parse(i, line, f, sp, args)[2])
+
+                    return cat
 
                 # determines equality of all arguments
                 elif func == 'equals':
@@ -645,7 +661,10 @@ class Interpreter:
                 elif func == 'class':
                     # new interpreter
                     inter = Interpreter()
-
+                    
+                    # log self
+                    inter.parent = self
+                    
                     # extract class name
                     name = self.parse(0, line, f, sp, args)[2]
 
@@ -661,8 +680,8 @@ class Interpreter:
                         val = inter.vars[varname].value
                         obj_to_add[varname] = Var(varname, val)
                     
-                    for methodname, method in inter.methods.keys():
-                        obj_to_add[methodname] = method
+                    for methodname in inter.methods:
+                        obj_to_add[methodname] = Var(methodname + "#method", inter.methods[methodname])
                     
                     self.vars[name] = Var(name, obj_to_add)
                     return obj_to_add
@@ -711,9 +730,9 @@ class Interpreter:
                 elif func == 'print':
                     for i in range(len(args)):
                         if i != len(args) - 1:
-                            print(self.parse(i, line, f, sp, args)[2], end=" ")
+                            print(self.parse(i, line, f, sp, args)[2], end=" ", flush=True)
                         else:
-                            print(self.parse(i, line, f, sp, args)[2])
+                            print(self.parse(i, line, f, sp, args)[2], flush=True)
                     return True
 
                 # sleeps the thread for the first argument amount of seconds
@@ -793,6 +812,28 @@ class Interpreter:
                     inter.parent = self
                     return inter.execute(args[0][0])
 
+                # starts a new process with the first argument as the target
+                elif func == 'process':
+                    
+                    # name of the process
+                    name = self.parse(0, line, f, sp, args)[2]
+                    
+                    # target
+                    target = args[1][0]
+
+                    # start a new process
+                    p = Pool()
+                    p.apply_async(self.execute, args=(args[1][0],))
+                    self.processes[name] = p
+                        
+                    return name
+                
+                # joins the process with the first argument as the name of created process
+                elif func == 'pjoin':
+                    name = self.parse(0, line, f, sp, args)[2]
+                    p = self.processes[name]
+                    return p.join()
+
                 # creates a new thread to execute the block, thread
                 # starts on the same interpreter
                 elif func == "thread":
@@ -808,12 +849,10 @@ class Interpreter:
                     self.thread_by_name(self.parse(0, line, f, sp, args)[2]).join()
                     return True
                 
-                # kills a thread by its name as the first argument
-                elif func == 'kill':
-                    tname = self.parse(0, line, f, sp, args)[2]
-                    self.thread_by_name(tname).kill()
-                    return True
-                
+                # exits the working thread
+                elif func == 'exit':
+                    exit()
+                    
                 # tries the first argument, if it fails, code falls to the catch/except block
                 # there is no finally implementation
                 elif func == 'try':
@@ -821,7 +860,11 @@ class Interpreter:
                     try:
                         ret = self.interpret(args[0][0])
                     except:
-                        ret = self.interpret(args[0][0])
+                        try:
+                            catch_block = args[1][0]
+                            ret = self.interpret(catch_block)
+                        except:
+                            None
                     return ret
                     
                 # waits for a certain condition to be true
@@ -920,12 +963,47 @@ class Interpreter:
                     return ret
 
                 # starts an api endpoint
-                elif func == 'endpoint':
+                elif func == 'ENDPOINT':
                     
-                    # path to endpoint
-                    path = self.parse(0, line, f, sp, args)[2]
+                    # initial API endpoint data
+                    path = None
+                    init_data = {}
+                    port = 5000
+                    host = '127.0.0.1'
                     
-                    print('msnint2: preparing api server on http://127.0.0.1:5000' + path)
+                    # 1 argument, defaults to 127.0.0.1:5000/path = {}
+                    if len(args) == 1:
+                        
+                        # path to endpoint
+                        path = self.parse(0, line, f, sp, args)[2]
+
+                    # 2 arguments, defaults to 127.0.0.1:5000/path = init_data
+                    elif len(args) == 2:
+                    
+                        # path to endpoint
+                        path = self.parse(0, line, f, sp, args)[2]
+                    
+                        # json to initialize at the endpoint
+                        init_data = self.parse(1, line, f, sp, args)[2]
+                    
+                    # 3 arguments, defaults to host:port/path = init_data
+                    elif len(args) == 4:
+                        
+                        # host to endpoint as first argument
+                        host = self.parse(0, line, f, sp, args)[2]
+                        
+                        # port to endpoint as second argument
+                        port = self.parse(1, line, f, sp, args)[2]
+                        
+                        # path to endpoint
+                        path = self.parse(2, line, f, sp, args)[2]
+                        
+                        # json to initialize at the endpoint
+                        init_data = self.parse(3, line, f, sp, args)[2]                        
+                        
+                    
+                    # prepare endpoint
+                    print('msnint2: preparing api server on http://127.0.0.1:' + str(port) + path)
                     app = Flask(__name__)
                     
                     # disable flask messages that aren't error-related
@@ -933,16 +1011,89 @@ class Interpreter:
                     log.disabled = True
                     app.logger.disabled = True
                     
+                    # gets Flask Api
                     api = Api(app)
+                    
+                    # makes a response to itself, carrying data to endpoint as a response
+                    curr_endpoint = self.EndPoint.make_api(init_data)
+                    
+                    # logs newly created endpoint
                     self.endpoints[path] = api
-                    api.add_resource(self.EndPoint, path)
-                    print(dir(api))
-                    app.run()
+                    
+                    # adds class EndPoint as a Resource to the Api with the specific path
+                    # passes arg2 alongside
+                    api.add_resource(curr_endpoint, path)
+                    
+                    # start flask server
+                    app.run(host=host, port=port)
                     return True
 
+                # posts to an api endpoint
+                elif func == 'POST':
+                    
+                    # url to post to, defaults to localhost
+                    post_url = self.parse(0, line, f, sp, args)[2]
+                    
+                    # port to post to
+                    port = self.parse(1, line, f, sp, args)[2]
+                    
+                    # path after url
+                    path = self.parse(2, line, f, sp, args)[2]
+                    
+                    # data to post
+                    data = self.parse(3, line, f, sp, args)[2]
+                                        
+                    # post to endpoint
+                    response = requests.post(url=('http://' + post_url + ':' + str(port) + path), json=data)
+                    
+                    # get response
+                    return response.json()
+                    
+                # gets from an api endpoint
+                elif func == 'GET':
+                        
+                    # url to get from, defaults to localhost
+                    get_url = self.parse(0, line, f, sp, args)[2]
+                        
+                    # port to get from
+                    port = self.parse(1, line, f, sp, args)[2]
+                        
+                    # path after url
+                    path = self.parse(2, line, f, sp, args)[2]
+                                            
+                    # get from endpoint
+                    response = requests.get(url=('http://' + get_url + ':' + str(port) + path))
+                                        
+                    # get response
+                    return response.json()
+                
+                # deletes from an api endpoint
+                elif func == 'DELETE':
+                    
+                    # url to delete from, defaults to localhost
+                    delete_url = self.parse(0, line, f, sp, args)[2]
+                    
+                    # port to delete from
+                    port = self.parse(1, line, f, sp, args)[2]
+                    
+                    # path after url
+                    path = self.parse(2, line, f, sp, args)[2]
+                    
+                    # delete from endpoint
+                    response = requests.delete(url=('http://' + delete_url + ':' + str(port) + path))
+                    
+                    return response.json()
+                    
+                    
                 # starts an http server
                 elif func == 'server':
                     return
+
+                # determines if the system is windows or not
+                elif func == 'windows':
+                    return os.name == 'nt'
+                    
+                
 
                 # simulates function closure
                 elif func == 'end':
@@ -1004,11 +1155,15 @@ class Interpreter:
                         # value can be None
                         try:
                             instance[name] = self.parse(curr_arg_num, line, f, sp, args)[2]
-                            curr_arg_num += 1
 
                         # if not specified, field is default value
                         except:
-                            instance[name] = var_obj.value[name].copy()
+                            try:
+                                instance[name] = var_obj.value[name].copy()
+                            except:
+                                var = var_obj[name]
+                                instance[name] = var.value
+                        curr_arg_num += 1
 
                     return instance
 
@@ -1706,19 +1861,35 @@ class Interpreter:
                             inter.vars[self.args[i]] = args[i]
                 for line in self.body:
                     inter.interpret(line)
-                        
+                    
+                    
+                    
     class EndPoint(Resource):
         
-        path = None
+        @classmethod
+        def make_api(cls, response):
+            cls.response = response
+            return cls
 
-        # rest convention
-        def get(self, path):
-            data = pd.read_csv(self.path)
-            data = data.to_dict()
-            return {'data': data}, 200
+        # GET
+        def get(self):
+            return self.response
 
+        # POST
         def post(self):
-            parser = reqparse.RequestParser()
+            
+            # obtains current endpoint data
+            current_data = self.response   
+            
+            # updates current data with data to post         
+            current_data.update(request.get_json())
+            
+            # updates next response
+            self.make_api(current_data)
+            return current_data
 
-            data = pd.read_csv(self.path)
+        # DELETE
+        def delete(self):
+            self.make_api({})
+            return self.response
 

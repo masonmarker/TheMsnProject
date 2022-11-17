@@ -2182,6 +2182,16 @@ public class Msn {
     println(
         Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]"));
   }
+  
+  /**
+   * Prints a 2D array thats a little easier on the eyes.
+   * 
+   * @param matrix the 2D matrix to print
+   * @since 0.1.0.0.0
+   */
+  public static String toString2D(int[][] matrix) {
+      return Arrays.deepToString(matrix).replace("], ", "]\n").replace("[[", "[").replace("]]", "]");
+  }
 
   /**
    * Reverses the passed array.
