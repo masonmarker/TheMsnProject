@@ -6,6 +6,7 @@ starting a .msn2 script:
        else: $ python msn2.py script.msn2
 
 it is suggested that when editing a .msn2 file that you switch VS Code's Language Mode to CoffeeScript!!
+to do this, under VS Code's language mode tab, configure file association of .msn2 as CoffeeScript
 
 
 executing user programs:
