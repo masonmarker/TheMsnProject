@@ -42,11 +42,11 @@ var('self_child_processes', cat(?msnint2_processes_location?, ?__me?))
     # writes the code to run to the process file
     -- file.write(?__process_path?, ?code?)
 
-    # starts the process
-    -- var('name', start_process(?__process_path?, ?new_file_num?))
-
     # releases the auxiliary lock
     -- release()
+
+    # starts the process
+    -- var('name', start_process(?__process_path?, ?new_file_num?))
 
     # joins with this process
     -- join(?name?)
