@@ -15,9 +15,10 @@ from flask_restful import Resource, Api, reqparse
 import pandas as pd
 import ast
 import logging
+import socket
+import sys
 
-from multiprocessing import Pool
-
+import subprocess
 
 class Err:
     def __init__(self, errorcode):
@@ -214,8 +215,10 @@ class Interpreter:
         for i in range(l):
             if cont:
                 continue
-
-            c = line[i]
+            try:
+                c = line[i]
+            except:
+                break
             if c == ' ' and s == 0:
                 sp += 1
                 continue
@@ -311,6 +314,9 @@ class Interpreter:
 
                         self.vars[obj].value[func] = param
                         return param
+                    
+                    if func == 'copy':
+                        return object.copy()
 
 
                 # splits the first argument by the second argument
@@ -610,7 +616,7 @@ class Interpreter:
 
                     # second argument (required)
                     second = self.parse(1, line, f, sp ,args)[2]
-
+                    
                     cat = first + second
                     
                     # concatinate rest of arguments
@@ -728,12 +734,14 @@ class Interpreter:
 
                 # python print
                 elif func == 'print':
+                    ret = None
                     for i in range(len(args)):
+                        ret = self.parse(i, line, f, sp, args)[2]
                         if i != len(args) - 1:
-                            print(self.parse(i, line, f, sp, args)[2], end=" ", flush=True)
+                            print(ret, end=" ", flush=True)
                         else:
-                            print(self.parse(i, line, f, sp, args)[2], flush=True)
-                    return True
+                            print(ret, flush=True)
+                    return ret
 
                 # sleeps the thread for the first argument amount of seconds
                 elif func == "sleep":
@@ -815,25 +823,16 @@ class Interpreter:
                 # starts a new process with the first argument as the target
                 elif func == 'process':
                     
-                    # name of the process
-                    name = self.parse(0, line, f, sp, args)[2]
+                    # path to the process to run
+                    path = self.parse(0, line, f, sp, args)[2]
                     
-                    # target
-                    target = args[1][0]
-
-                    # start a new process
-                    p = Pool()
-                    p.apply_async(self.execute, args=(args[1][0],))
-                    self.processes[name] = p
-                        
-                    return name
+                    return subprocess.run (args=['python', 'msn2.py', path], shell=True)
                 
-                # joins the process with the first argument as the name of created process
-                elif func == 'pjoin':
-                    name = self.parse(0, line, f, sp, args)[2]
-                    p = self.processes[name]
-                    return p.join()
 
+                # gets the pid of the working process
+                elif func == 'pid':
+                    return os.getpid()
+                
                 # creates a new thread to execute the block, thread
                 # starts on the same interpreter
                 elif func == "thread":
@@ -962,6 +961,16 @@ class Interpreter:
                     self.vars[ret_name].value = ret
                     return ret
 
+                # gets the public IP address of the machine
+                elif func == 'pubip':
+                    
+                    # asks an api server for this address
+                    return requests.get('https://api.ipify.org').text
+
+                # gets the private ips of this machine
+                elif func == 'privips':
+                    return socket.gethostbyname_ex(socket.gethostname())[2]
+
                 # starts an api endpoint
                 elif func == 'ENDPOINT':
                     
@@ -1003,7 +1012,7 @@ class Interpreter:
                         
                     
                     # prepare endpoint
-                    print('msnint2: preparing api server on http://127.0.0.1:' + str(port) + path)
+                    print('serving on http://' + host +':' + str(port) + path)
                     app = Flask(__name__)
                     
                     # disable flask messages that aren't error-related
@@ -1024,15 +1033,26 @@ class Interpreter:
                     # passes arg2 alongside
                     api.add_resource(curr_endpoint, path)
                     
-                    # start flask server
-                    app.run(host=host, port=port)
-                    return True
+                    # starting flask server
+                    try:
+                        
+                        # if internal
+                        app.run(host=host, port=port, debug=False, use_reloader=False)
+                    except:
+                        # if external
+                        
+                        try:
+                            if __name__ == '__main__':
+                                app.run(host=host, port=port, debug=False, use_reloader=False)
+                        except:
+                            None
+                    return api
 
                 # posts to an api endpoint
                 elif func == 'POST':
                     
                     # url to post to, defaults to localhost
-                    post_url = self.parse(0, line, f, sp, args)[2]
+                    host = self.parse(0, line, f, sp, args)[2]
                     
                     # port to post to
                     port = self.parse(1, line, f, sp, args)[2]
@@ -1042,9 +1062,15 @@ class Interpreter:
                     
                     # data to post
                     data = self.parse(3, line, f, sp, args)[2]
-                                        
-                    # post to endpoint
-                    response = requests.post(url=('http://' + post_url + ':' + str(port) + path), json=data)
+
+                    # if local network
+                    if host == '0.0.0.0':
+                        response = requests.post(url=('http://127.0.0.1:' + str(port) + path), json=data)
+                    
+                    # if localhost
+                    else:
+                        # post to endpoint
+                        response = requests.post(url=('http://' + host + ':' + str(port) + path), json=data)
                     
                     # get response
                     return response.json()
@@ -1053,7 +1079,7 @@ class Interpreter:
                 elif func == 'GET':
                         
                     # url to get from, defaults to localhost
-                    get_url = self.parse(0, line, f, sp, args)[2]
+                    host = self.parse(0, line, f, sp, args)[2]
                         
                     # port to get from
                     port = self.parse(1, line, f, sp, args)[2]
@@ -1061,9 +1087,14 @@ class Interpreter:
                     # path after url
                     path = self.parse(2, line, f, sp, args)[2]
                                             
-                    # get from endpoint
-                    response = requests.get(url=('http://' + get_url + ':' + str(port) + path))
-                                        
+                    # if local network
+                    if host == '0.0.0.0':
+                        response = requests.get(url=('http://127.0.0.1:' + str(port) + path))
+                    
+                    # if localhost
+                    else:
+                        response = requests.get(url=('http://' + host + ':' + str(port) + path))
+                    
                     # get response
                     return response.json()
                 
@@ -1071,7 +1102,7 @@ class Interpreter:
                 elif func == 'DELETE':
                     
                     # url to delete from, defaults to localhost
-                    delete_url = self.parse(0, line, f, sp, args)[2]
+                    host = self.parse(0, line, f, sp, args)[2]
                     
                     # port to delete from
                     port = self.parse(1, line, f, sp, args)[2]
@@ -1079,22 +1110,27 @@ class Interpreter:
                     # path after url
                     path = self.parse(2, line, f, sp, args)[2]
                     
-                    # delete from endpoint
-                    response = requests.delete(url=('http://' + delete_url + ':' + str(port) + path))
+                    if host == '0.0.0.0':
+                        response = requests.delete(url=('http://127.0.0.1:' + str(port) + path))
+                    else:
+                        # delete from endpoint
+                        response = requests.delete(url=('http://' + host + ':' + str(port) + path))
                     
                     return response.json()
                     
-                    
-                # starts an http server
-                elif func == 'server':
-                    return
 
                 # determines if the system is windows or not
                 elif func == 'windows':
                     return os.name == 'nt'
-                    
                 
-
+                # determines if system is linux    
+                elif func == 'linux':
+                    return os.name == 'posix'
+                
+                # determines if system is mac
+                elif func == 'mac':
+                    return sys.platform == 'darwin'
+                
                 # simulates function closure
                 elif func == 'end':
                     method = self.methods[self.loggedmethod[-1]]
@@ -1477,6 +1513,11 @@ class Interpreter:
 
     def thread_split(self, line):
         self.interpret(line)
+
+    # splits a process
+    def process_split(self, line):
+        inter = Interpreter()
+        return inter.interpret(line)
 
     def var_exists(self, varname):
         if varname in self.vars:
