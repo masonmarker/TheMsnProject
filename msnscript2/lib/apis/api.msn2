@@ -15,6 +15,11 @@ class('api', =>(
     var('init_data', None)
 ))
 
+# network api
+var('api_network', api(?network?, 5000, '/', {}))
+
+# local api
+var('api_local', api(?localhost?, 5000, '/', {}))
 
 # gets from an api endpoint
 ~ api_get(__api__) -> response

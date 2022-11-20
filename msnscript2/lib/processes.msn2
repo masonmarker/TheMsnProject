@@ -1,0 +1,18 @@
+# library for process management
+#
+# author : Mason Marker
+# date : 11/18/2022
+
+
+# serialization
+var('__process_count', 0)
+
+# starts a process from the code in the file at the path passed
+~ start_process(path) -> name
+-- var('name', 'process' + str(?__process_count?))
+
+# process() takes a path to a .msn2 file to execute
+-- private(thread(?name?, process(?path?)))
+-- add('__process_count', 1)
+
+

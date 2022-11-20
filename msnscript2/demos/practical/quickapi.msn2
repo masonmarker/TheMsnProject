@@ -4,6 +4,10 @@
 # author : Mason Marker
 # date : 11/17/2022
 
+# fresh console
+if (windows(), console('cls'), console('clear'))
+
+
 # imports api data structure
 import ('lib/apis/api.msn2')
 
@@ -11,11 +15,11 @@ import ('lib/apis/api.msn2')
 import ('lib/user.msn2')
 
 # construct an api object
-var('local', api(?localhost?, ?http_default_flask_port?, '/stuff', {}))
+var('local', api(?localhost?, 5000, '/stuff', {}))
+
 
 # 'local' now holds the information of an api endpoint, 
 # lib/apis/api.msn2 contains methods for practical manipulation of this object
-
 
 
 
@@ -51,9 +55,12 @@ private(print(
     api_post(?local?, {'entry2': {'name': 'john', 'age': 34}})
 ))
 
+private(print(
+    'DELETE() says',
+    api_delete(?local?)
+))
 
-
-
+assert(<< |api_get(?local?)| == {} >>)
 
 # offers command line injection
 private(shell('usershell'))

@@ -7,6 +7,10 @@
 # localhost
 var('localhost', '127.0.0.1')
 
+# network
+# broadcasts on all of the executing machine's network interfaces
+var('network', '0.0.0.0')
+
 # default http post
 var('http_default_port', 8000)
 

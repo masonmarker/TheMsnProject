@@ -1,0 +1,80 @@
+# driver for a small multiprocessing program
+# demonstrates how to multiprocess with MSNScript2
+#
+# author : Mason Marker
+# date : 11/18/2022
+
+# fresh console
+if (windows(), console('cls'), console('clear'))
+
+# imports syntax to start a new process
+import ('lib/processes.msn2')
+
+# imports simple getting and posting
+import ('lib/apis/api.msn2')
+
+
+
+# starts the first endpoint
+private(start_process('demos/multiproc/endpoint1.msn2'))
+
+# location of the first endpoint
+var('ep1', api_local.copy())
+
+
+
+# starts the second endpoint
+private(start_process('demos/multiproc/endpoint2.msn2'))
+
+# give time for processes to start before prompting command injection
+sleep(1)
+
+# location of the second endpoint
+var('ep2', api_local.copy())
+ep2.port(5001)
+
+
+
+
+
+var('serial', 0)
+var('serial2', 0)
+
+# methods for overseer
+~ post5000() -> response
+-- var('response', api_post(?ep1?, {?serial?: ?serial?}))
+-- add('serial', 1)
+
+~ post5001() -> response
+-- var('response', api_post(?ep2?, {?serial2?: ?serial2?}))
+-- add('serial2', 1)
+
+~ get5000() -> response
+-- var('response', api_get(?ep1?))
+
+~ get5001() -> response
+-- var('response', api_get(?ep2?))
+
+~ delete5000() -> response
+-- var('response', api_delete(?ep1?))
+
+~ delete5001() -> response
+-- var('response', api_delete(?ep2?))
+
+
+# access to a shell to interact with the endpoints
+import ('lib/user.msn2')
+
+print('\nopen one of the paths serving in an internet browser!')
+print('as an overseer, you have power over the two api endpoints just created,')
+print('type one of the following commands to interact with them:\n')
+
+print('post5000()')
+print('post5001()')
+print('get5000()')
+print('get5001()')
+print('delete5000()')
+print('delete5001()\n')
+
+
+shell('overseer')
