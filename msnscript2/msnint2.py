@@ -4,6 +4,8 @@
 
 import os
 import math
+import shutil
+import signal
 import openai
 import webbrowser
 import time
@@ -17,6 +19,9 @@ import ast
 import logging
 import socket
 import sys
+
+
+
 
 import subprocess
 
@@ -36,6 +41,12 @@ class Var:
     def __eq__(self, other):
         if isinstance(other, Var):
             return other.name == self.name
+    
+# global vars
+lock = threading.Lock()
+auxlock = threading.Lock()
+
+
 
 # interprets MSNScript2, should create a new interpreter for each execution iteration
 class Interpreter:
@@ -158,6 +169,8 @@ class Interpreter:
 
     # interprets a line    
     def interpret(self, line, block=None):
+        global lock
+        global auxlock
         if self.breaking:
             return
         try:
@@ -208,6 +221,7 @@ class Interpreter:
 
         evaluation = None
         func = ''
+        objfunc = ''
         obj = ''
         context = ''
         s = 0
@@ -231,11 +245,7 @@ class Interpreter:
             if c == '.':
                 obj = func
                 func = ''
-                continue
-
-            if c == ':':
-                context = func
-                func == ''
+                objfunc = ''
                 continue
 
             # method creation
@@ -298,24 +308,24 @@ class Interpreter:
 
                 # clean function for handling
                 func = func.strip()
-
+                objfunc = objfunc.strip()
                 # class attribute / method access
                 if obj in self.vars:
                     try:
                         object = self.vars[obj].value
                     except:
                         object = self.vars[obj]
-                    if func in object:
+                    if objfunc in object:
                         if args[0][0] == '':
-                            return object[func]
+                            return object[objfunc]
                         
                         # parameter provided, wants to set attribute
                         param = self.parse(0, line, f, sp, args)[2]
 
-                        self.vars[obj].value[func] = param
+                        self.vars[obj].value[objfunc] = param
                         return param
                     
-                    if func == 'copy':
+                    if objfunc == 'copy':
                         return object.copy()
 
 
@@ -362,7 +372,6 @@ class Interpreter:
                         if not assertion:
                             err = self.err("assertion error", "", args[0][0])
                             self.logg(err, line)
-                            print (err)
                             return False
 
                     return True
@@ -480,107 +489,238 @@ class Interpreter:
                 # performs file-specific operations
                 elif obj == 'file':
                     
+                    # creates a file
+                    if objfunc == 'create':
+                        lock.acquire()
+                        line, as_s, filename = self.parse(0, line, f, sp, args)
+                        open(filename, 'w').close()
+                        lock.release()
+                        return True
+                    
                     # reads text from a file
-                    if func == 'read':
-                        f = open(evals[0], "r")
-                        return f.read()
+                    if objfunc == 'read':
+                        lock.acquire()
+                        file = open(self.parse(0, line, f, sp, args)[2], "r")
+                        contents = file.read()
+                        file.close()
+                        lock.release()
+                        return contents
                     
                     # writes to a file
-                    if func == 'write':
-                        f = open(evals[0], "w")
-                        f.write(evals[1])
-                        return evals[1]
+                    if objfunc == 'write':
+                        lock.acquire()
+                        file = open(self.parse(0, line, f, sp, args)[2], "w")
+                        towrite = self.parse(1, line, f, sp, args)[2]
+                        file.write(towrite)
+                        file.close()
+                        lock.release()
+                        return towrite
+                    
+                    # writes the argument as code
+                    if objfunc == 'writemsn':
+                        lock.acquire()
+                        file = open(self.parse(0, line, f, sp, args)[2], "w")
+                        towrite = args[1][0]
+                        file.write(towrite)
+                        lock.release()
+                        return towrite
+                    
+                    # clears a file of all text
+                    if objfunc == 'clear':
+                        lock.acquire()
+                        file = open(self.parse(0, line, f, sp, args)[2], "w")
+                        file.write("")
+                        file.close()
+                        lock.release()
+                        return True
                     
                     # appends to a file 
-                    if func == 'append':
-                        f = open(evals[0], "a")
-                        f.write(evals[1])
-                        return evals[1]
-                    if func == 'delete':
-                        os.remove(evals[0])
-                        return evals[0]
-                    if func == 'create':
-                        f = open(evals[0], "w")
-                        f.write("")
-                        return evals[0]
-                    if func == 'exists':
-                        return os.path.exists(evals[0])
-                    if func == 'rename':
-                        os.rename(evals[0], evals[1])
-                        return evals[1]
-                    if func == 'list':
-                        return os.listdir(evals[0])
-                    if func == 'isdir':
-                        return os.path.isdir(evals[0])
-                    if func == 'isfile':
-                        return os.path.isfile(evals[0])
-                    if func == 'path':
-                        return os.path.abspath(evals[0])
-                    if func == 'size':
-                        return os.path.getsize(evals[0])
-                    if func == 'created':
-                        return os.path.getctime(evals[0])
-                    if func == 'modified':
-                        return os.path.getmtime(evals[0])
-
-
+                    if objfunc == 'append':
+                        lock.acquire()
+                        file = open(self.parse(0, line, f, sp, args)[2], "a")
+                        towrite = self.parse(1, line, f, sp, args)[2]
+                        file.write(towrite)
+                        file.close()
+                        lock.release()
+                        return towrite
+                    
+                    # deletes a file
+                    if objfunc == 'delete':
+                        lock.acquire()
+                        deleting = self.parse(0, line, f, sp, args)[2]
+                        os.remove(deleting)
+                        lock.release()
+                        return deleting
+                    
+                    # renames a file
+                    if objfunc == 'rename':
+                        lock.acquire()
+                        old = self.parse(0, line, f, sp, args)[2]
+                        new = self.parse(1, line, f, sp, args)[2]
+                        os.rename(old, new)
+                        lock.release()
+                        return new
+                    
+                    # copies a file
+                    if objfunc == 'copy':
+                        lock.acquire()
+                        old = self.parse(0, line, f, sp, args)[2]
+                        new = self.parse(1, line, f, sp, args)[2]
+                        shutil.copy(old, new)
+                        lock.release()
+                        return new
+                    
+                    # moves a file
+                    if objfunc == 'move':
+                        lock.acquire()
+                        old = self.parse(0, line, f, sp, args)[2]
+                        new = self.parse(1, line, f, sp, args)[2]
+                        shutil.move(old, new)
+                        lock.release()
+                        return new
+                    
+                    # determines if a file exists
+                    if objfunc == 'exists':
+                        lock.acquire()
+                        exists = os.path.exists(self.parse(0, line, f, sp, args)[2])
+                        lock.release()
+                        return exists
+                    
+                    # determines if a file is a directory
+                    if objfunc == 'isdir':
+                        lock.acquire()
+                        isdir = os.path.isdir(self.parse(0, line, f, sp, args)[2])
+                        lock.release()
+                        return isdir
+                    
+                    # determines if a file is a file
+                    if objfunc == 'isfile':
+                        lock.acquire()
+                        isfile = os.path.isfile(self.parse(0, line, f, sp, args)[2])
+                        lock.release()
+                        return isfile
+                    
+                    # lists files in a directory
+                    if objfunc == 'listdir':
+                        lock.acquire()
+                        try:
+                            listdir = os.listdir(self.parse(0, line, f, sp, args)[2])
+                            lock.release()
+                            return listdir
+                        except FileNotFoundError:
+                            
+                            # directory doesn't exist
+                            lock.release()
+                            return None
+                    
+                    # makes a directory
+                    if objfunc == 'mkdir':
+                        lock.acquire()
+                        try:
+                            made = os.mkdir(self.parse(0, line, f, sp, args)[2])
+                            lock.release()
+                            return made
+                        except FileExistsError:
+                            lock.release()
+                            return False
+                            
+                        
+                    
+                    # removes a directory
+                    if objfunc == 'rmdir':
+                        lock.acquire()
+                        try:
+                            rm = os.rmdir(self.parse(0, line, f, sp, args)[2])
+                            lock.release()
+                            return rm
+                        except FileNotFoundError:
+                            lock.release()
+                            return None
+                                        
+                    # gets the current working directory
+                    if objfunc == 'getcwd':
+                        lock.acquire()
+                        cwd = os.getcwd()
+                        lock.release()
+                        return cwd
+                    
+                    # gets the size of a file
+                    if objfunc == 'getsize':
+                        lock.acquire()
+                        size = os.path.getsize(self.parse(0, line, f, sp, args)[2])
+                        lock.release()
+                        return size
+                        
+                    # deletes all files and directories within a directory
+                    if objfunc == 'emptydir':
+                        lock.acquire()
+                        directory = self.parse(0, line, f, sp, args)[2]
+                        try:
+                            for file in os.listdir(directory):
+                                try:
+                                    os.remove(os.path.join(directory, file))
+                                except PermissionError:
+                                    shutil.rmtree(os.path.join(directory, file))
+                            lock.release()
+                            return directory
+                        except FileNotFoundError:
+                            
+                            # directory doesn't exist
+                            lock.release()
+                            return None
+                    
+                        
+                    # math operations
                     elif obj == 'math':
-                        if func == 'sin':
-                            return math.sin(float(evals[0]))
-                        if func == 'cos':
-                            return math.cos(float(evals[0]))
-                        if func == 'tan':
-                            return math.tan(float(evals[0]))
-                        if func == 'asin':
-                            return math.asin(float(evals[0]))
-                        if func == 'acos':
-                            return math.acos(float(evals[0]))
-                        if func == 'atan':
-                            return math.atan(float(evals[0]))
-                        if func == 'atan2':
-                            return math.atan2(float(evals[0]), float(evals[1]))
-                        if func == 'sinh':
-                            return math.sinh(float(evals[0]))
-                        if func == 'cosh':
-                            return math.cosh(float(evals[0]))
-                        if func == 'tanh':
-                            return math.tanh(float(evals[0]))
-                        if func == 'asinh':
-                            return math.asinh(float(evals[0]))
-                        if func == 'acosh':
-                            return math.acosh(float(evals[0]))
-                        if func == 'atanh':
-                            return math.atanh(float(evals[0]))
-                        if func == 'degrees':
-                            return math.degrees(float(evals[0]))
-                        if func == 'radians':
-                            return math.radians(float(evals[0]))
-                        if func == 'exp':
-                            return math.exp(float(evals[0]))
-                        if func == 'expm1':
-                            return math.expm1(float(evals[0]))
-                        if func == 'log':
-                            return math.log(float(evals[0]))
-                        if func == 'log1p':
-                            return math.log1p(float(evals[0]))
-                        if func == 'log2':
-                            return math.log2(float(evals[0]))
-                        if func == 'log10':
-                            return math.log10(float(evals[0]))
-                        if func == 'pow':
-                            return math.pow(float(evals[0]), float(evals[1]))
-                        if func == 'sqrt':
-                            return math.sqrt(float(evals[0]))
-                        if func == 'ceil':
-                            return math.ceil(float(evals[0]))
-                        if func == 'floor':
-                            return math.floor(float(evals[0]))
-                        if func == 'fabs':
-                            return math.fabs(float(evals[0]))
-                        if func == 'factorial':
-                            return math.factorial(float(evals[0]))
-
-
+                        if objfunc == 'abs':
+                            return abs(self.parse(0, line, f, sp, args)[2])
+                        elif objfunc == 'ceil':
+                            return math.ceil(self.parse(0, line, f, sp, args)[2])
+                        elif objfunc == 'floor':
+                            return math.floor(self.parse(0, line, f, sp, args)[2])
+                        elif objfunc == 'round':
+                            return round(self.parse(0, line, f, sp, args)[2])
+                        elif objfunc == 'sqrt':
+                            return math.sqrt(self.parse(0, line, f, sp, args)[2])
+                        elif objfunc == 'pow':
+                            return math.pow(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
+                        elif objfunc == 'log':
+                            return math.log(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
+                        elif objfunc == 'log10':
+                            return math.log10(self.parse(0, line, f, sp, args)[2])
+                        elif objfunc == 'log2':
+                            return math.log2(self.parse(0, line, f, sp, args)[2])
+                        elif objfunc == 'exp':
+                            return math.exp(self.parse(0, line, f, sp, args)[2])
+                        elif objfunc == 'sin':
+                            return math.sin(self.parse(0, line, f, sp, args)[2])
+                        elif objfunc == 'cos':
+                            return math.cos(self.parse(0, line, f, sp, args)[2])
+                        elif objfunc == 'tan':
+                            return math.tan(self.parse(0, line, f, sp, args)[2])
+                        elif objfunc == 'asin':
+                            return math.asin(self.parse(0, line, f, sp, args)[2])
+                        elif objfunc == 'acos':
+                            return math.acos(self.parse(0, line, f, sp, args)[2])
+                        elif objfunc == 'atan':
+                            return math.atan(self.parse(0, line, f, sp, args)[2])
+                        elif objfunc == 'atan2':
+                            return math.atan2(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
+                        elif objfunc == 'degrees':
+                            return math.degrees(self.parse(0, line, f, sp, args)[2])
+                        elif objfunc == 'radians':
+                            return math.radians(self.parse(0, line, f, sp, args)[2])
+                            
+                # gets the parent context
+                elif func == 'parent':
+                    return self.parent
+                
+                # gets the booting context
+                elif func == 'boot':
+                    while self.parent != None:
+                        self = self.parent
+                    return self
+                
                 # sets an index of an array
                 # first argument is the variable to modify
                 # second is the index to modify
@@ -747,6 +887,10 @@ class Interpreter:
                 elif func == "sleep":
                     return time.sleep(self.parse(0, line, f, sp, args)[2])
 
+                # returns this interpreter
+                elif func == 'me':
+                    return self.me()
+
                 # provides a representation of the current environment
                 elif func == 'env':
                     should_print_s = args[0][0]
@@ -776,6 +920,10 @@ class Interpreter:
                 elif func == '-':
                     line, as_s, string = self.parse(0, line, f, sp, args)
                     return self.interpret(string)
+
+                # returns the MSNScript2 passed as a string
+                elif func == 'async':
+                    return args[0][0]
 
                 # gets the current time
                 elif func == 'now':
@@ -826,8 +974,9 @@ class Interpreter:
                     # path to the process to run
                     path = self.parse(0, line, f, sp, args)[2]
                     
-                    return subprocess.run (args=['python', 'msn2.py', path], shell=True)
-                
+                    sub = subprocess.run (args=['python', 'msn2.py', path], shell=True)
+                    self.processes[path] = sub
+                    return sub
 
                 # gets the pid of the working process
                 elif func == 'pid':
@@ -843,15 +992,31 @@ class Interpreter:
                     thread.start()
                     return True
 
+                # acquires the global lock
+                elif func == 'acquire':
+                    return auxlock.acquire()
+                
+                # releases the global lock
+                elif func == 'release':
+                    return auxlock.release()
+                    
+
                 # joins the current working thread with the thread name specified
                 elif func == 'join':
-                    self.thread_by_name(self.parse(0, line, f, sp, args)[2]).join()
+                    
+                    for i in range(len(args)):
+                        name = self.parse(i, line, f, sp, args)[2]
+                        thread = self.thread_by_name(name)
+                        while thread == None:
+                            None
+                        thread.join()
                     return True
                 
                 # exits the working thread
-                elif func == 'exit':
-                    exit()
+                elif func == 'stop':
                     
+                    return os._exit(0)
+                            
                 # tries the first argument, if it fails, code falls to the catch/except block
                 # there is no finally implementation
                 elif func == 'try':
@@ -1038,12 +1203,12 @@ class Interpreter:
                         
                         # if internal
                         app.run(host=host, port=port, debug=False, use_reloader=False)
+                        
                     except:
                         # if external
-                        
                         try:
                             if __name__ == '__main__':
-                                app.run(host=host, port=port, debug=False, use_reloader=False)
+                                app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
                         except:
                             None
                     return api
@@ -1210,11 +1375,11 @@ class Interpreter:
                     name = self.parse(0, line, f, sp, args)[2]
 
                     # current working object
-                    obj = self.vars[name].value
+                    o = self.vars[name].value
 
                     # get attribute to pull
                     attr = self.parse(1, line, f, sp, args)[2]
-                    return obj[attr]
+                    return o[attr]
 
                 # sets an attribute of an instance of a class
                 elif func == 'setattr':
@@ -1223,7 +1388,7 @@ class Interpreter:
                     name = self.parse(0, line, f, sp, args)[2]
 
                     # current working object
-                    obj = self.vars[name].value
+                    o = self.vars[name].value
 
                     # name of attribute to set
                     attr = self.parse(1, line, f, sp, args)[2]
@@ -1232,7 +1397,7 @@ class Interpreter:
                     val = self.parse(2, line, f, sp, args)[2]
 
                     # set the value
-                    obj[attr] = val
+                    o[attr] = val
                     return val
 
 
@@ -1265,7 +1430,7 @@ class Interpreter:
                     return
                 
                 # quicker conditional operator as functional prefix
-                elif func[0] == '?':
+                elif len(func) > 0 and func[0] == '?':
                     func = func[1:]
                     ret = None
                     if self.interpret(func):
@@ -1426,7 +1591,11 @@ class Interpreter:
                             if arg == '"log"':
                                 self.log = ''    
                     
-            func += c
+            if obj != '':
+                objfunc += c
+            else:
+                func += c
+
         
         try:
             line = self.replace_vars2(line)
@@ -1456,7 +1625,13 @@ class Interpreter:
         return line
 
     def thread_by_name(self, name):
-        return self.env_by_name(name)[0]
+        try:
+            # thread exists
+            return self.env_by_name(name)[0]
+        except:
+            
+            # thread does not exist (yet)
+            return None
 
     def env_by_name(self, name):
         for threadname in self.threads.keys():
@@ -1836,6 +2011,10 @@ class Interpreter:
                             evaluation = new
             return evaluation
 
+    def me(self):
+        return str(self).replace(' ', '').replace('<', '').replace('>', '').replace('Interpreter', '')
+
+
     def string(self, string):
         strn = ''
         isv = False
@@ -1870,8 +2049,6 @@ class Interpreter:
         except:
             None
         return array
-
-
 
     class Method:
             def __init__(self, name, interpreter):
