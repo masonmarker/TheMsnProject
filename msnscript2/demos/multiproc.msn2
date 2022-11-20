@@ -1,0 +1,93 @@
+# demonstrates multiprocessesing with most efficient
+# methods in the processes library
+# 
+# shows how processes can be created and manipulated in an 
+# asynchronous manner regarding api endpoints
+
+# fresh console
+if (windows(), console('cls'), console('clear'))
+
+# imported mainly for use of fork() and process_cleanup()
+# see lib/processes.msn2 for more information
+import ('lib/processes.msn2')
+
+
+
+# cleans aany processes leftover from the previous execution
+clean_processes()
+
+# forks the current process into an asynchronous process instructed to
+# interpret the second code block passed
+fork('p1', async(=>(
+        import ('lib/apis/api.msn2'),
+        private(api_start(?api_network?))
+)))
+
+fork('p2', async(=>(
+        import ('lib/apis/api.msn2'),
+        api_network.port(5001),
+        private(api_start(?api_network?))
+)))
+
+fork('p3', async(=>(
+        import ('lib/apis/api.msn2'),
+        api_network.port(5002),
+        private(api_start(?api_network?)),
+)))
+
+
+# for api structure in boot context
+import ('lib/apis/api.msn2')
+
+# local network on 5000/
+var('ep1', api_network.copy())
+
+# local network on 5001/
+var('ep2', api_network.copy())
+ep2.port(5001)
+
+# local network on 5002/
+var('ep3', api_network.copy())
+ep3.port(5002)
+
+
+# asserts get is correct
+assert(equals(api_get(?ep1?), {}))
+assert(equals(api_get(?ep2?), {}))
+assert(equals(api_get(?ep3?), {}))
+
+
+# asserts posting functionality
+assert(equals(api_post(?ep1?, {'endpoint1': {}}),  {'endpoint1': {}}))
+assert(equals(api_post(?ep2?, {'endpoint2': {}}), {'endpoint2': {}}))
+assert(equals(api_post(?ep3?, {'endpoint3': {5:2}}), {'endpoint3': {'5':2}}))
+
+
+# asserts get is correct
+assert(equals(api_get(?ep1?), {'endpoint1': {}}))
+assert(equals(api_get(?ep2?), {'endpoint2': {}}))
+assert(equals(api_get(?ep3?), {'endpoint3': {'5':2}}))
+
+assert(equals(api_delete(?ep1?), {}))
+assert(equals(api_delete(?ep2?), {}))
+assert(equals(api_delete(?ep3?), {}))
+
+
+
+# usershell import
+import ('lib/user.msn2')
+shell('overseer')
+
+# terminates all thread and process trees, including boot
+# also cleans process tree
+
+# the line below would join all processes before cleaning the file system,
+# without ending the entire program
+
+# the issue here is the fact that Flask endpoints will not join until
+# this MSNScript2 program has ended, so we use stop() instead
+# process_cleanup(['p1', 'p2'])
+
+
+# stops all threads and processes
+# stop()

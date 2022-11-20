@@ -24,3 +24,4 @@ for methodname, Method in interpreter.methods.items():
 
 print("\nlog:")
 print (interpreter.log)
+

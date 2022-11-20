@@ -19,7 +19,7 @@ import ('lib/apis/api.msn2')
 private(start_process('demos/multiproc/endpoint1.msn2'))
 
 # location of the first endpoint
-var('ep1', api_local.copy())
+var('ep1', api_network.copy())
 
 
 
@@ -30,7 +30,7 @@ private(start_process('demos/multiproc/endpoint2.msn2'))
 sleep(1)
 
 # location of the second endpoint
-var('ep2', api_local.copy())
+var('ep2', api_network.copy())
 ep2.port(5001)
 
 

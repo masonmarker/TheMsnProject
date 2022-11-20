@@ -10,9 +10,10 @@ import sys
 # filename is the first argument
 filename = sys.argv[1]
 
+extension = filename[filename.rindex('.'):]
 
 # verify file type
-if filename[filename.index('.'):] != '.msn2':
+if extension != '.msn2':
     print("Error: file type not supported")
     exit()
 
