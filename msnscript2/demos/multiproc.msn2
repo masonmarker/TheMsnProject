@@ -13,11 +13,13 @@ import ('lib/processes.msn2')
 
 
 
-# cleans aany processes leftover from the previous execution
+# cleans any processes leftover from the previous execution
 clean_processes()
 
 # forks the current process into an asynchronous process instructed to
 # interpret the second code block passed
+# a fork() call cannot be made within another fork() call
+# in MSNScript2, there do not exist nested processes
 fork('p1', async(=>(
         import ('lib/apis/api.msn2'),
         private(api_start(?api_network?))
