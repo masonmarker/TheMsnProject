@@ -1,0 +1,82 @@
+# driver
+#
+# hosts a server on ports 5000-5004 (inc) to the executors private network.
+#
+# author : Mason Marker
+# date : 11/20/2022
+
+# fresh console
+if (windows(), console('cls'), console('clear'))
+
+
+
+
+# driver needs project-specific resources
+import ('lib/processes.msn2')
+
+
+# clean processes from previous execution if not already cleaned
+clean_processes()
+
+
+for (0, 5, 'i', =>(
+    fork(cat('p', str(?i?)), async(=>(
+        private(=>(
+
+            # imports resources
+            import ('projects/server/resources.msn2'),
+            
+            # creates this endpoint
+            var('this', api(api_network.host(), 5000 + ?i?, api_network.path(), api_network.init_data())),
+
+            # key for this endpoint
+            private(exportas('key', process_key_for(?i?))),
+
+            # main api endpoint, performs a calculation
+            if (equals(this.port(), 5000), =>(
+
+                private(api_start(?this?)),
+
+                # user methods do not have to be private considering variable usage within the method
+                # will not intertwine with outer variables
+                msg(this.port(), 'ready'),
+            ), 
+            if(equals(this.port(), 5001), =>(
+                msg(this.port(), 'ready'),
+
+                msg(this.port(), 'exiting')
+            ), 
+            if(equals(this.port(), 5002), =>(
+                msg(this.port(), 'ready'),
+
+                msg(this.port(), 'exiting')
+            ), 
+            if(equals(this.port(), 5003), =>(
+                msg(this.port(), 'ready'),
+
+
+                msg(this.port(), 'exiting')
+            ), 
+
+            # user shell process
+            if(equals(this.port(), 5004), =>(
+                
+                # starts user api endpoint
+                private(api_start(?this?)),
+
+                # imports a usershell
+                import('lib/user.msn2'),
+                msg(this.port(), 'ready'),
+
+                shell('user [5004]'),
+
+            ))))))
+            
+
+        ))
+    )))
+))
+
+
+
+
