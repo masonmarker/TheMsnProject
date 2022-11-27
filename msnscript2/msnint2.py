@@ -19,6 +19,7 @@ import ast
 import logging
 import socket
 import sys
+from json.decoder import JSONDecodeError
 
 
 
@@ -757,7 +758,7 @@ class Interpreter:
                     # second argument (required)
                     second = self.parse(1, line, f, sp ,args)[2]
                     
-                    cat = first + second
+                    cat = str(first) + str(second)
                     
                     # concatinate rest of arguments
                     for i in range(2, len(args)):
@@ -1254,15 +1255,13 @@ class Interpreter:
                                             
                     # if local network
                     if host == '0.0.0.0':
-                        response = requests.get(url=('http://127.0.0.1:' + str(port) + path))
+                        return requests.get(url=('http://127.0.0.1:' + str(port) + path)).json()
                     
                     # if localhost
                     else:
-                        response = requests.get(url=('http://' + host + ':' + str(port) + path))
-                    
-                    # get response
-                    return response.json()
-                
+                        return requests.get(url=('http://' + host + ':' + str(port) + path)).json()
+
+                            
                 # deletes from an api endpoint
                 elif func == 'DELETE':
                     
@@ -1483,9 +1482,6 @@ class Interpreter:
                         else:
                             webbrowser.open(evals[0])
                         return evals[0]
-
-                
-                    
 
                     # retrieve the variable passed
                     elif func == "get":
