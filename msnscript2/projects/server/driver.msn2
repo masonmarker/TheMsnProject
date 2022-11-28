@@ -18,7 +18,7 @@ import ('lib/processes.msn2')
 # clean processes from previous execution if not already cleaned
 clean_processes()
 
-
+# starts 5 processes
 for (0, 5, 'i', =>(
     fork(cat('p', str(?i?)), async(=>(
         private(=>(
@@ -32,47 +32,33 @@ for (0, 5, 'i', =>(
             # key for this endpoint
             private(exportas('key', process_key_for(?i?))),
 
-            # main api endpoint, performs a calculation
+            # main endpoint, performs mathematical evaluation of a math expression
+            # as a string
             if (equals(this.port(), 5000), =>(
+                private(msg(this.port(), 'starting...'))
+            )),
+            if (equals(this.port(), 5001), =>(
+                private(msg(this.port(), 'starting...'))
+            )),
+            if (equals(this.port(), 5002), =>(
+                private(msg(this.port(), 'starting...'))
 
-                private(api_start(?this?)),
-
-                # user methods do not have to be private considering variable usage within the method
-                # will not intertwine with outer variables
-                msg(this.port(), 'ready'),
-            ), 
-            if(equals(this.port(), 5001), =>(
-                msg(this.port(), 'ready'),
-
-                msg(this.port(), 'exiting')
-            ), 
-            if(equals(this.port(), 5002), =>(
-                msg(this.port(), 'ready'),
-
-                msg(this.port(), 'exiting')
-            ), 
-            if(equals(this.port(), 5003), =>(
-                msg(this.port(), 'ready'),
-
-
-                msg(this.port(), 'exiting')
-            ), 
-
-            # user shell process
-            if(equals(this.port(), 5004), =>(
+            )),
+            if (equals(this.port(), 5003), =>(
+                private(msg(this.port(), 'starting...'))
                 
-                # starts user api endpoint
-                private(api_start(?this?)),
+            )),
 
-                # imports a usershell
-                import('lib/user.msn2'),
-                msg(this.port(), 'ready'),
+            # user shell
+            if (equals(this.port(), 5004), =>(
 
-                shell('user [5004]'),
+                # user command injection
+                import ('lib/user.msn2'),
 
-            ))))))
-            
+                private(msg(this.port(), 'starting...')),
 
+                shell('|5004| overseer')                
+            ))          
         ))
     )))
 ))
