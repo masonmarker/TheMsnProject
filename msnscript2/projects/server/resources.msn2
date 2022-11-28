@@ -20,7 +20,7 @@ import ('lib/processes.msn2')
 ~ msg(port, message) -> _
     -- print(cat('|', ?port?, '| ', ?message?))
 
-~ req(process_key, message, ) -> response
+~ req(process_key, message) -> response
     -- var('response', api_post(?key?, {?process_key?: ?message?}))
 
 

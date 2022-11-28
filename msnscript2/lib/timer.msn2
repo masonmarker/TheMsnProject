@@ -1,0 +1,18 @@
+# timer class
+# 
+# used to compute duration of code segments post execution 
+#
+# author : Mason Marker
+# date : 11/27/2022
+
+# time at which the timer had been started
+var('__timer_start', -1)
+
+# starts the timer
+~ timer_start() -> start_time
+    -- var('__timer_start', now())
+    -- var('start_time', ?__timer_start?)
+
+# computes the runtime of the current timer
+~ timer_runtime() -> runtime
+    -- var('runtime', << |now()| - |?__timer_start?| >>)

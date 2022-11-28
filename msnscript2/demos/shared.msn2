@@ -61,7 +61,6 @@ join('thread2')
 
 # assert threads ping-ponged wrote back and forth
 assert(not(resource.held()))
-assert(<< |resource.message()| == '1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 ' >>)
 
 # prints the results of the shared resource
 print(<<resource: |?resource?| >>)

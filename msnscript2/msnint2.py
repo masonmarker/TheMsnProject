@@ -20,11 +20,8 @@ import logging
 import socket
 import sys
 from json.decoder import JSONDecodeError
-
-
-
-
 import subprocess
+
 
 class Err:
     def __init__(self, errorcode):
@@ -216,15 +213,14 @@ class Interpreter:
 
         # try base literal
         try:
-            return eval(line)
+            if not line.startswith('--'):
+                return eval(line)
         except:
             None
 
-        evaluation = None
         func = ''
         objfunc = ''
         obj = ''
-        context = ''
         s = 0
         sp = 0
         for i in range(l):
@@ -304,9 +300,6 @@ class Interpreter:
                 args = self.get_args(mergedargs)
                 f = len(func)
 
-                # recursively replace the line with the evaluated arguments
-                evals = []
-
                 # clean function for handling
                 func = func.strip()
                 objfunc = objfunc.strip()
@@ -328,6 +321,7 @@ class Interpreter:
                     
                     if objfunc == 'copy':
                         return object.copy()
+                    return obj
 
 
                 # splits the first argument by the second argument
@@ -371,7 +365,10 @@ class Interpreter:
                         arguments = args[i]
                         line, assertion = self.convert_arg(arguments[0], line, f, sp, args)
                         if not assertion:
-                            err = self.err("assertion error", "", args[0][0])
+                            failed = ''
+                            for arg in args:
+                                failed += str(arg[0]) + ' '
+                            err = self.err("assertion error", "", failed)
                             self.logg(err, line)
                             return False
 
@@ -471,6 +468,7 @@ class Interpreter:
                     else:
                         self.vars[first].value += second
                     return self.vars[first].value
+                
                 elif func == 'sub':
                     line, as_s, first = self.parse(0, line, f, sp, args)
                     line, as_s, second = self.parse(1, line, f, sp, args)
@@ -487,6 +485,54 @@ class Interpreter:
                     self.vars[first].value /= second
                     return self.vars[first].value
 
+                # performs math functions
+                elif obj == 'math':
+                    # extract function
+                    func = self.parse(0, line, f, sp, args)[2]
+                    # extract argument
+                    line, as_s, arg = self.parse(1, line, f, sp, args)
+
+                    # perform function
+                    if func == 'abs':
+                        return abs(arg)
+                    elif func == 'ceil':
+                        return math.ceil(arg)
+                    elif func == 'floor':
+                        return math.floor(arg)
+                    elif func == 'round':
+                        return round(arg)
+                    elif func == 'sqrt':
+                        return math.sqrt(arg)
+                    elif func == 'sin':
+                        return math.sin(arg)
+                    elif func == 'cos':
+                        return math.cos(arg)
+                    elif func == 'tan':
+                        return math.tan(arg)
+                    elif func == 'asin':
+                        return math.asin(arg)
+                    elif func == 'acos':
+                        return math.acos(arg)
+                    elif func == 'atan':
+                        return math.atan(arg)
+                    elif func == 'log':
+                        return math.log(arg)
+                    elif func == 'log10':
+                        return math.log10(arg)
+                    elif func == 'log2':
+                        return math.log2(arg)
+                    elif func == 'exp':
+                        return math.exp(arg)
+                    elif func == 'pow':
+                        return math.pow(arg, self.parse(2, line, f, sp, args)[2])
+                    elif func == 'factorial':
+                        return math.factorial(arg)
+                    elif func == 'e':
+                        return math.e
+                    elif func == 'pi':
+                        return math.pi
+                    return '<msnint2 class>'
+                    
                 # performs file-specific operations
                 elif obj == 'file':
                     
@@ -669,7 +715,6 @@ class Interpreter:
                             # directory doesn't exist
                             lock.release()
                             return None
-                    
                         
                     # math operations
                     elif obj == 'math':
@@ -711,6 +756,7 @@ class Interpreter:
                             return math.degrees(self.parse(0, line, f, sp, args)[2])
                         elif objfunc == 'radians':
                             return math.radians(self.parse(0, line, f, sp, args)[2])
+                        return
                             
                 # gets the parent context
                 elif func == 'parent':
@@ -909,7 +955,15 @@ class Interpreter:
                     strenv += "\nmethods:\n"
                     # printing methods
                     for methodname, Method in self.methods.items():
-                        strenv += "\t" + methodname + "\n"
+                        strenv += "\t" + methodname + "("
+                        for i in range(len(Method.args)):
+                            arg = Method.args[i]
+                            if i != len(Method.args) - 1:
+                                strenv += "" + arg + ", "
+                            else:
+                                strenv += "" + arg
+                        strenv += ")\n"
+                        
 
                     strenv += "\nlog:\n" + self.log
                     strenv +="\n-------------------------------"
@@ -1442,12 +1496,12 @@ class Interpreter:
                         except:
                             None
                     return ret
-
                 # fallback
                 else:
                     try:
                         line = self.replace_vars2(line)
                         # python piggyback attempt
+                        
                         return eval(line)
                     except:
                         # maybe its a variable?
@@ -1456,143 +1510,11 @@ class Interpreter:
                         except:
                             # ok hopefully its a string lol
                             return line
-                
-                # AI features
-                if obj == 'ai':
-                    if func == 'setkey':
-                        openai.api_key = evals[0]
-                        self.openaikey = evals[0]
-                        return evals[0]
-                    if func == 'settokens':
-                        self.tokens = int(evals[0])
-                        return self.tokens
-                    if func == 'ask':
-                        response = openai.Completion.create(model="text-davinci-002", prompt=evals[0], temperature=0, max_tokens=self.tokens)
-                        return response.choices[0].text
-
-                if obj == 'browser':
-                    if func == 'setpath':
-                        self.browser_path = evals[0]
-                        return self.browser_path
-
-                    if func == 'open':
-                        if self.browser_path:
-                            webbrowser.register('chrome', None, webbrowser.BackgroundBrowser(self.browser_path))
-                            webbrowser.get('chrome').open(evals[0])
-                        else:
-                            webbrowser.open(evals[0])
-                        return evals[0]
-
-                    # retrieve the variable passed
-                    elif func == "get":
-                        varname = evals[0]
-                        try:
-                            value = self.get_var(varname)
-                        except:
-                            value = eval(varname)
-                        if len(evals) > 1:
-                            return value[eval(evals[1])]
-                        else:
-                            return value
-
-
-                    elif func == 'remove' or func == 'delete':
-                        varname = evals[0]
-                        try:
-                            value = self.get_var(evals[1])
-                        except:
-                            value = eval(evals[1])
-                        try:
-                            # if array
-                            self.vars[varname].value.remove(value)
-                        except:
-                            # if string
-                            try:
-                                self.vars[varname].value = self.vars[varname].value.replace(value, '')
-                            except:
-                                return eval(varname.replace(value, ''))
-                        return self.vars[varname].value
-
-                    # adds an entry to an object
-                    elif func == 'obj_add':
-                        varname = evals[0]
-                        key = eval(evals[1])
-                        value = eval(evals[2])
-                        try:
-                            self.vars[varname].value[key] = value
-                        except:
-                            found = eval(varname)
-                            found[key] = value
-                            return found
-                        return self.vars[varname].value
-                                   
-
-                if func == 'log':
-                    return self.log
-                
   
-
-
-                if func == "variables":
-                    return self.vars
-
-                # gets the current out
-                if func == "out":
-                    return self.out
-
-                if func == "thread":
-                    self.thread = threading.Thread(target=self.interpret, args=(self.calledmethod,))
-                    self.thread.start()
-                    return True
-                # copy mechanism
-                if func == 'copy':
-                    try:
-                        return eval(evals[0]).copy()
-                    except:
-                        return evals[0]
-
-                if obj == "system":
-                    if func == "exit":
-                        exit(eval(evals[0]))
-                    if func == "version":
-                        return self.version
-                    if func == "destroy":
-                        
-                        # remove all evals from vars
-                        for i in range(len(evals)):
-                            if evals[i].startswith('"__'):
-                                removing = []
-                                for varname in self.vars.keys():
-                                    if varname.startswith('"__'):
-                                       removing.append(varname)
-                                for varname in removing:
-                                    del self.vars[varname]
-                            else:
-                                self.vars.pop(evals[i], None)
-                        return True
-
-                    # resets the current interpreter based on arguments
-                    elif func == 'reset':
-                        for arg in evals:
-                            if arg == '"out"':
-                                self.out = ''
-                            if arg == '"variables"':
-                                keys = list(self.vars.keys())
-                                for varname in keys:
-                                    del self.vars[varname]
-                            if arg == '"methods"':
-                                keys = list(self.methods.keys())
-                                for methodname in keys:
-                                    del self.methods[methodname]
-                            if arg == '"log"':
-                                self.log = ''    
-                    
             if obj != '':
                 objfunc += c
             else:
                 func += c
-
-        
         try:
             line = self.replace_vars2(line)
         except:

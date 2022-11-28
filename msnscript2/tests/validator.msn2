@@ -1,0 +1,90 @@
+# validates integrity of the current MSNScript2 interpreter
+#
+# author : Mason Marker
+# date : 11/27/2022
+
+
+
+
+
+# ------------------ SETUP ------------------
+
+# imports operating system specific 'clear' console command
+import ('lib/os.msn2')
+
+# imports timing capabilities
+import ('lib/timer.msn2')
+
+# clear console
+clear()
+
+# start
+print('[+] validating MSNScript2 integrity...')
+
+
+
+# -------------------------------------------
+
+
+# testing variables
+var('a', 1)
+var('b', 2)
+var('c', 3)
+var('d', 4)
+var('e', 5)
+var('f', 6)
+
+
+# ------------------ VARIABLES ------------------
+
+# tests basic variable functions
+~ test_var() -> _
+
+    -- print('[+] testing variables...')
+
+    # asserts all variables exist in this context
+    -- assert(exists('a'), exists('b'), exists('c'), exists('d'), exists('e'), exists('f'))
+
+    # asserts that variables are being set correctly
+    -- assert(?a? == 1, ?b? == 2, ?c? == 3, ?d? == 4, ?e? == 5, ?f? == 6)
+
+    # asserts that variables are compared correctly
+    -- assert(?a? < ?b?, ?b? < ?c?, ?c? < ?d?, ?d? < ?e?, ?e? < ?f?)
+
+    # asserts that variables are being modified correctly
+    -- var('a', 2)
+    -- var('b', 3)
+    -- var('c', 4)
+    -- var('d', 5)
+    -- var('e', 6)
+    -- var('f', 7)
+
+    -- assert(?a? == 2, ?b? == 3, ?c? == 4, ?d? == 5, ?e? == 6, ?f? == 7)
+
+    -- var('_', True)
+
+
+# -------------------------------------------
+
+
+
+
+# tests basic math functions   
+~ test_math() -> _
+
+    # asserts addition works correctly
+    -- assert(1 + 1 == 2, 2 + 2 == 4, 3 + 3 == 6, 4 + 4 == 8, 5 + 5 == 10, 6 + 6 == 12)
+
+
+
+# start the timer
+timer_start()
+
+# running tests
+test_var()
+test_math()
+
+
+# ends the timer and prints finishing environment
+print('[+] fin in', <<|timer_runtime()|s>>)
+env(True)
