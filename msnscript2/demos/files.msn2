@@ -11,8 +11,6 @@
 var('path', './hello/world.txt')
 
 
-
-
 # creates a directory
 file.mkdir("./hello")
 

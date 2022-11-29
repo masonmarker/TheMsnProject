@@ -8,18 +8,19 @@
 
 # make clean
 ~ make_clean() -> __
--- console('rm -f main')
+    -- console('rm -f main')
 
 # clears the console
 ~ clear() -> __
--- console('clear')
+    -- console('clear')
 
 # compiles the user program in the directory specified
 ~ main() ->__
--- console('gcc demos/practical/cfiles/main.c -o main')
+    -- console('gcc demos/practical/cfiles/main.c -o main')
 
+# executes the binary file
 ~ run() -> __
--- console('./main')
+    -- console('./main')
 
 # simulates a run of 'make all'
 ~ all()->__
@@ -35,3 +36,4 @@ clear()
 make_clean()
 make()
 run()
+make_clean()

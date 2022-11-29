@@ -4,7 +4,7 @@
 # date : 11/10/2022
 
 # fresh console
-console('clear')
+if (windows(), console('cls'), console('clear'))
 
 # simulates a semaphore, not the same semaphore structure as in /lib
 var('sem',1)

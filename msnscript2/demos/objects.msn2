@@ -4,7 +4,7 @@
 
 
 # fresh console
-console('clear')
+if (windows(), console('cls'), console('clear'))
 
 # creates a template class
 # all resources and methods created in the class

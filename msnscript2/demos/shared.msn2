@@ -4,7 +4,7 @@
 # date : 11/10/2022
 
 # fresh console
-console('clear')
+if (windows(), console('cls'), console('clear'))
 
 # import semaphore as shared resource
 import ('lib/semaphore.msn2')

@@ -1,0 +1,18 @@
+# used specifically as an msnint2 line by line interpreter in the console
+#
+# author : Mason Marker
+# date : 11/23/2022
+
+# fresh console
+if (windows(), console('cls'), console('clear'))
+
+# user shell mechanism
+import ('lib/user.msn2')
+
+
+
+print('MSNScript version', version())
+print('---------------------')
+
+private(shell(''))
+

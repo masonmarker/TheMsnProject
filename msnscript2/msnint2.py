@@ -486,6 +486,10 @@ class Interpreter:
                     self.vars[first].value /= second
                     return self.vars[first].value
 
+                # gets the MSNScript version of this interpreter
+                elif func == 'version':
+                    return self.version
+
                 # performs file-specific operations
                 elif obj == 'file':
                     
@@ -669,48 +673,6 @@ class Interpreter:
                             lock.release()
                             return None
                     
-                        
-                    # math operations
-                    elif obj == 'math':
-                        if objfunc == 'abs':
-                            return abs(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'ceil':
-                            return math.ceil(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'floor':
-                            return math.floor(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'round':
-                            return round(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'sqrt':
-                            return math.sqrt(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'pow':
-                            return math.pow(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
-                        elif objfunc == 'log':
-                            return math.log(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
-                        elif objfunc == 'log10':
-                            return math.log10(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'log2':
-                            return math.log2(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'exp':
-                            return math.exp(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'sin':
-                            return math.sin(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'cos':
-                            return math.cos(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'tan':
-                            return math.tan(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'asin':
-                            return math.asin(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'acos':
-                            return math.acos(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'atan':
-                            return math.atan(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'atan2':
-                            return math.atan2(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
-                        elif objfunc == 'degrees':
-                            return math.degrees(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'radians':
-                            return math.radians(self.parse(0, line, f, sp, args)[2])
-                            
                 # gets the parent context
                 elif func == 'parent':
                     return self.parent
