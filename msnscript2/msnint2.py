@@ -19,11 +19,9 @@ import ast
 import logging
 import socket
 import sys
-
-
-
-
+from json.decoder import JSONDecodeError
 import subprocess
+
 
 class Err:
     def __init__(self, errorcode):
@@ -40,7 +38,7 @@ class Var:
     # determines equality of another Var
     def __eq__(self, other):
         if isinstance(other, Var):
-            return other.name == self.name
+            return other.name == self.name 
     
 # global vars
 lock = threading.Lock()
@@ -215,15 +213,14 @@ class Interpreter:
 
         # try base literal
         try:
-            return eval(line)
+            if not line.startswith('--'):
+                return eval(line)
         except:
             None
 
-        evaluation = None
         func = ''
         objfunc = ''
         obj = ''
-        context = ''
         s = 0
         sp = 0
         for i in range(l):
@@ -303,14 +300,13 @@ class Interpreter:
                 args = self.get_args(mergedargs)
                 f = len(func)
 
-                # recursively replace the line with the evaluated arguments
-                evals = []
-
                 # clean function for handling
                 func = func.strip()
                 objfunc = objfunc.strip()
                 # class attribute / method access
                 if obj in self.vars:
+                    vname = obj
+                    var = self.get_var(vname)
                     try:
                         object = self.vars[obj].value
                     except:
@@ -325,8 +321,56 @@ class Interpreter:
                         self.vars[obj].value[objfunc] = param
                         return param
                     
-                    if objfunc == 'copy':
+                    elif objfunc == 'copy':
                         return object.copy()
+                
+                    # literal specific methods
+                    
+                    # array based functions
+                    elif isinstance(object, list):
+
+                        # adds all arguments to the first argument which should be a variable name
+                        # as a string
+                        if objfunc == 'push':
+                            for i in range(len(args)):
+                                self.vars[vname].value.append(self.parse(i, line, f, sp, args)[2])
+                            return self.vars[vname].value
+
+                        # inserts all values at an index
+                        if objfunc == 'insert':
+                            
+                            # index to insert
+                            index = self.parse(0, line, f, sp, args)[2]
+                            
+                            # inserts the rest of the arguments, one at a time
+                            for i in range(len(args)):
+                                self.vars[vname].value.insert(index, self.parse(i, line, f, sp, args)[2])
+                            return self.vars[vname].value
+                        
+                        # removes a certain amount of all arguments supplied
+                        if objfunc == 'removen':
+                            count = self.parse(0, line, f, sp, args)[2]
+                            
+                            # removes count amount of the rest of the arguments from the object
+                            for i in range(1, len(args)):
+                                for j in range(count):
+                                    del var[var.index(self.parse(i, line, f, sp, args)[2])]
+                            return object
+
+                        # removes all occurances of each argument from the list
+                        if objfunc == 'remove':
+                            for i in range(len(args)):
+                                while self.parse(i, line, f, sp, args)[2] in var:
+                                    del var[var.index(self.parse(i, line, f, sp, args)[2])]
+                            return object
+                        
+                    # if the object is a string
+                    elif isinstance(object, str):
+                        
+                        if objfunc == 'add':
+                            for i in range(len(args)):
+                                self.vars[vname].value += self.parse(i, line, f, sp, args)[2]
+                            return self.vars[vname].value
 
 
                 # splits the first argument by the second argument
@@ -370,7 +414,10 @@ class Interpreter:
                         arguments = args[i]
                         line, assertion = self.convert_arg(arguments[0], line, f, sp, args)
                         if not assertion:
-                            err = self.err("assertion error", "", args[0][0])
+                            failed = ''
+                            for arg in args:
+                                failed += str(arg[0]) + ' '
+                            err = self.err("assertion error", "", failed)
                             self.logg(err, line)
                             return False
 
@@ -470,12 +517,13 @@ class Interpreter:
                     else:
                         self.vars[first].value += second
                     return self.vars[first].value
+                
                 elif func == 'sub':
                     line, as_s, first = self.parse(0, line, f, sp, args)
                     line, as_s, second = self.parse(1, line, f, sp, args)
                     self.vars[first].value -= second
                     return self.vars[first].value
-                elif func == 'mult':
+                elif func == 'mul':
                     line, as_s, first = self.parse(0, line, f, sp, args)
                     line, as_s, second = self.parse(1, line, f, sp, args)
                     self.vars[first].value *= second
@@ -485,11 +533,74 @@ class Interpreter:
                     line, as_s, second = self.parse(1, line, f, sp, args)
                     self.vars[first].value /= second
                     return self.vars[first].value
-
+                    
                 # gets the MSNScript version of this interpreter
                 elif func == 'version':
                     return self.version
 
+                    
+
+                # performs math functions
+                elif obj == 'math':
+                    # extract function
+                    func = self.parse(0, line, f, sp, args)[2]
+                    # extract argument
+                    line, as_s, arg = self.parse(1, line, f, sp, args)
+
+                    # perform function
+                    if objfunc == 'abs':
+                        return abs(arg)
+                    elif objfunc == 'ceil':
+                        return math.ceil(arg)
+                    elif objfunc == 'floor':
+                        return math.floor(arg)
+                    elif objfunc == 'round':
+                        return round(arg)
+                    elif objfunc == 'sqrt':
+                        return math.sqrt(arg)
+                    elif objfunc == 'sin':
+                        return math.sin(arg)
+                    elif objfunc == 'cos':
+                        return math.cos(arg)
+                    elif objfunc == 'tan':
+                        return math.tan(arg)
+                    elif objfunc == 'asin':
+                        return math.asin(arg)
+                    elif objfunc == 'acos':
+                        return math.acos(arg)
+                    elif objfunc == 'atan':
+                        return math.atan(arg)
+                    elif objfunc == 'log':
+                        return math.log(arg)
+                    elif objfunc == 'log10':
+                        return math.log10(arg)
+                    elif objfunc == 'log2':
+                        return math.log2(arg)
+                    elif objfunc == 'exp':
+                        return math.exp(arg)
+                    elif objfunc == 'pow':
+                        return math.pow(arg, self.parse(2, line, f, sp, args)[2])
+                    elif objfunc == 'factorial':
+                        return math.factorial(arg)
+                    elif objfunc == 'e':
+                        return math.e
+                    elif objfunc == 'pi':
+                        return math.pi
+                    return '<msnint2 class>'
+                    
+                # performs object based operations
+                elif obj == 'var':
+                    
+                    # determines if all variables passed are equal
+                    if objfunc == 'equals':
+                        firstvar = self.vars[self.parse(0, line, f, sp, args)[2]].value
+                        for i in range(1, len(args)):
+                            if firstvar != self.vars[self.parse(i, line, f, sp, args)[2]].value:
+                                return False
+                        return True
+                        
+                    
+                
                 # performs file-specific operations
                 elif obj == 'file':
                     
@@ -672,7 +783,7 @@ class Interpreter:
                             # directory doesn't exist
                             lock.release()
                             return None
-                    
+                            
                 # gets the parent context
                 elif func == 'parent':
                     return self.parent
@@ -719,7 +830,7 @@ class Interpreter:
                     # second argument (required)
                     second = self.parse(1, line, f, sp ,args)[2]
                     
-                    cat = first + second
+                    cat = str(first) + str(second)
                     
                     # concatinate rest of arguments
                     for i in range(2, len(args)):
@@ -870,7 +981,15 @@ class Interpreter:
                     strenv += "\nmethods:\n"
                     # printing methods
                     for methodname, Method in self.methods.items():
-                        strenv += "\t" + methodname + "\n"
+                        strenv += "\t" + methodname + "("
+                        for i in range(len(Method.args)):
+                            arg = Method.args[i]
+                            if i != len(Method.args) - 1:
+                                strenv += "" + arg + ", "
+                            else:
+                                strenv += "" + arg
+                        strenv += ")\n"
+                        
 
                     strenv += "\nlog:\n" + self.log
                     strenv +="\n-------------------------------"
@@ -1216,15 +1335,13 @@ class Interpreter:
                                             
                     # if local network
                     if host == '0.0.0.0':
-                        response = requests.get(url=('http://127.0.0.1:' + str(port) + path))
+                        return requests.get(url=('http://127.0.0.1:' + str(port) + path)).json()
                     
                     # if localhost
                     else:
-                        response = requests.get(url=('http://' + host + ':' + str(port) + path))
-                    
-                    # get response
-                    return response.json()
-                
+                        return requests.get(url=('http://' + host + ':' + str(port) + path)).json()
+
+                            
                 # deletes from an api endpoint
                 elif func == 'DELETE':
                     
@@ -1405,12 +1522,12 @@ class Interpreter:
                         except:
                             None
                     return ret
-
                 # fallback
                 else:
                     try:
                         line = self.replace_vars2(line)
                         # python piggyback attempt
+                        
                         return eval(line)
                     except:
                         # maybe its a variable?
@@ -1419,146 +1536,11 @@ class Interpreter:
                         except:
                             # ok hopefully its a string lol
                             return line
-                
-                # AI features
-                if obj == 'ai':
-                    if func == 'setkey':
-                        openai.api_key = evals[0]
-                        self.openaikey = evals[0]
-                        return evals[0]
-                    if func == 'settokens':
-                        self.tokens = int(evals[0])
-                        return self.tokens
-                    if func == 'ask':
-                        response = openai.Completion.create(model="text-davinci-002", prompt=evals[0], temperature=0, max_tokens=self.tokens)
-                        return response.choices[0].text
-
-                if obj == 'browser':
-                    if func == 'setpath':
-                        self.browser_path = evals[0]
-                        return self.browser_path
-
-                    if func == 'open':
-                        if self.browser_path:
-                            webbrowser.register('chrome', None, webbrowser.BackgroundBrowser(self.browser_path))
-                            webbrowser.get('chrome').open(evals[0])
-                        else:
-                            webbrowser.open(evals[0])
-                        return evals[0]
-
-                
-                    
-
-                    # retrieve the variable passed
-                    elif func == "get":
-                        varname = evals[0]
-                        try:
-                            value = self.get_var(varname)
-                        except:
-                            value = eval(varname)
-                        if len(evals) > 1:
-                            return value[eval(evals[1])]
-                        else:
-                            return value
-
-
-                    elif func == 'remove' or func == 'delete':
-                        varname = evals[0]
-                        try:
-                            value = self.get_var(evals[1])
-                        except:
-                            value = eval(evals[1])
-                        try:
-                            # if array
-                            self.vars[varname].value.remove(value)
-                        except:
-                            # if string
-                            try:
-                                self.vars[varname].value = self.vars[varname].value.replace(value, '')
-                            except:
-                                return eval(varname.replace(value, ''))
-                        return self.vars[varname].value
-
-                    # adds an entry to an object
-                    elif func == 'obj_add':
-                        varname = evals[0]
-                        key = eval(evals[1])
-                        value = eval(evals[2])
-                        try:
-                            self.vars[varname].value[key] = value
-                        except:
-                            found = eval(varname)
-                            found[key] = value
-                            return found
-                        return self.vars[varname].value
-                                   
-
-                if func == 'log':
-                    return self.log
-                
   
-
-
-                if func == "variables":
-                    return self.vars
-
-                # gets the current out
-                if func == "out":
-                    return self.out
-
-                if func == "thread":
-                    self.thread = threading.Thread(target=self.interpret, args=(self.calledmethod,))
-                    self.thread.start()
-                    return True
-                # copy mechanism
-                if func == 'copy':
-                    try:
-                        return eval(evals[0]).copy()
-                    except:
-                        return evals[0]
-
-                if obj == "system":
-                    if func == "exit":
-                        exit(eval(evals[0]))
-                    if func == "version":
-                        return self.version
-                    if func == "destroy":
-                        
-                        # remove all evals from vars
-                        for i in range(len(evals)):
-                            if evals[i].startswith('"__'):
-                                removing = []
-                                for varname in self.vars.keys():
-                                    if varname.startswith('"__'):
-                                       removing.append(varname)
-                                for varname in removing:
-                                    del self.vars[varname]
-                            else:
-                                self.vars.pop(evals[i], None)
-                        return True
-
-                    # resets the current interpreter based on arguments
-                    elif func == 'reset':
-                        for arg in evals:
-                            if arg == '"out"':
-                                self.out = ''
-                            if arg == '"variables"':
-                                keys = list(self.vars.keys())
-                                for varname in keys:
-                                    del self.vars[varname]
-                            if arg == '"methods"':
-                                keys = list(self.methods.keys())
-                                for methodname in keys:
-                                    del self.methods[methodname]
-                            if arg == '"log"':
-                                self.log = ''    
-                    
             if obj != '':
                 objfunc += c
             else:
                 func += c
-
-        
         try:
             line = self.replace_vars2(line)
         except:
@@ -1626,6 +1608,7 @@ class Interpreter:
             errmsg =  "[-] " + err + " : " + msg + " : " + line
         self.out += errmsg + "\n"
         self.log += errmsg + "\n"
+        print (errmsg)
         return errmsg
     
     def __del__(self):
