@@ -3,7 +3,7 @@
 # date : 11/8/2022
 
 # fresh console
-console('clear')
+if (windows(), console('cls'), console('clear'))
 
 
 # system-specific requirements

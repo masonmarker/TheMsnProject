@@ -57,4 +57,4 @@ DELETE('127.0.0.1', 5000, '/')
 print(GET('127.0.0.1', 5000, '/'))
 
 # terminate program and endpoint
-<<os._exit(0)>>
+stop()
