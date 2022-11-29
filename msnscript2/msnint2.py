@@ -305,6 +305,8 @@ class Interpreter:
                 objfunc = objfunc.strip()
                 # class attribute / method access
                 if obj in self.vars:
+                    vname = obj
+                    var = self.get_var(vname)
                     try:
                         object = self.vars[obj].value
                     except:
@@ -319,9 +321,56 @@ class Interpreter:
                         self.vars[obj].value[objfunc] = param
                         return param
                     
-                    if objfunc == 'copy':
+                    elif objfunc == 'copy':
                         return object.copy()
-                    return obj
+                
+                    # literal specific methods
+                    
+                    # array based functions
+                    elif isinstance(object, list):
+
+                        # adds all arguments to the first argument which should be a variable name
+                        # as a string
+                        if objfunc == 'push':
+                            for i in range(len(args)):
+                                self.vars[vname].value.append(self.parse(i, line, f, sp, args)[2])
+                            return self.vars[vname].value
+
+                        # inserts all values at an index
+                        if objfunc == 'insert':
+                            
+                            # index to insert
+                            index = self.parse(0, line, f, sp, args)[2]
+                            
+                            # inserts the rest of the arguments, one at a time
+                            for i in range(len(args)):
+                                self.vars[vname].value.insert(index, self.parse(i, line, f, sp, args)[2])
+                            return self.vars[vname].value
+                        
+                        # removes a certain amount of all arguments supplied
+                        if objfunc == 'removen':
+                            count = self.parse(0, line, f, sp, args)[2]
+                            
+                            # removes count amount of the rest of the arguments from the object
+                            for i in range(1, len(args)):
+                                for j in range(count):
+                                    del var[var.index(self.parse(i, line, f, sp, args)[2])]
+                            return object
+
+                        # removes all occurances of each argument from the list
+                        if objfunc == 'remove':
+                            for i in range(len(args)):
+                                while self.parse(i, line, f, sp, args)[2] in var:
+                                    del var[var.index(self.parse(i, line, f, sp, args)[2])]
+                            return object
+                        
+                    # if the object is a string
+                    elif isinstance(object, str):
+                        
+                        if objfunc == 'add':
+                            for i in range(len(args)):
+                                self.vars[vname].value += self.parse(i, line, f, sp, args)[2]
+                            return self.vars[vname].value
 
 
                 # splits the first argument by the second argument
@@ -474,7 +523,7 @@ class Interpreter:
                     line, as_s, second = self.parse(1, line, f, sp, args)
                     self.vars[first].value -= second
                     return self.vars[first].value
-                elif func == 'mult':
+                elif func == 'mul':
                     line, as_s, first = self.parse(0, line, f, sp, args)
                     line, as_s, second = self.parse(1, line, f, sp, args)
                     self.vars[first].value *= second
@@ -484,6 +533,8 @@ class Interpreter:
                     line, as_s, second = self.parse(1, line, f, sp, args)
                     self.vars[first].value /= second
                     return self.vars[first].value
+                    
+                    
 
                 # performs math functions
                 elif obj == 'math':
@@ -493,46 +544,59 @@ class Interpreter:
                     line, as_s, arg = self.parse(1, line, f, sp, args)
 
                     # perform function
-                    if func == 'abs':
+                    if objfunc == 'abs':
                         return abs(arg)
-                    elif func == 'ceil':
+                    elif objfunc == 'ceil':
                         return math.ceil(arg)
-                    elif func == 'floor':
+                    elif objfunc == 'floor':
                         return math.floor(arg)
-                    elif func == 'round':
+                    elif objfunc == 'round':
                         return round(arg)
-                    elif func == 'sqrt':
+                    elif objfunc == 'sqrt':
                         return math.sqrt(arg)
-                    elif func == 'sin':
+                    elif objfunc == 'sin':
                         return math.sin(arg)
-                    elif func == 'cos':
+                    elif objfunc == 'cos':
                         return math.cos(arg)
-                    elif func == 'tan':
+                    elif objfunc == 'tan':
                         return math.tan(arg)
-                    elif func == 'asin':
+                    elif objfunc == 'asin':
                         return math.asin(arg)
-                    elif func == 'acos':
+                    elif objfunc == 'acos':
                         return math.acos(arg)
-                    elif func == 'atan':
+                    elif objfunc == 'atan':
                         return math.atan(arg)
-                    elif func == 'log':
+                    elif objfunc == 'log':
                         return math.log(arg)
-                    elif func == 'log10':
+                    elif objfunc == 'log10':
                         return math.log10(arg)
-                    elif func == 'log2':
+                    elif objfunc == 'log2':
                         return math.log2(arg)
-                    elif func == 'exp':
+                    elif objfunc == 'exp':
                         return math.exp(arg)
-                    elif func == 'pow':
+                    elif objfunc == 'pow':
                         return math.pow(arg, self.parse(2, line, f, sp, args)[2])
-                    elif func == 'factorial':
+                    elif objfunc == 'factorial':
                         return math.factorial(arg)
-                    elif func == 'e':
+                    elif objfunc == 'e':
                         return math.e
-                    elif func == 'pi':
+                    elif objfunc == 'pi':
                         return math.pi
                     return '<msnint2 class>'
                     
+                # performs object based operations
+                elif obj == 'var':
+                    
+                    # determines if all variables passed are equal
+                    if objfunc == 'equals':
+                        firstvar = self.vars[self.parse(0, line, f, sp, args)[2]].value
+                        for i in range(1, len(args)):
+                            if firstvar != self.vars[self.parse(i, line, f, sp, args)[2]].value:
+                                return False
+                        return True
+                        
+                    
+                
                 # performs file-specific operations
                 elif obj == 'file':
                     
@@ -1582,6 +1646,7 @@ class Interpreter:
             errmsg =  "[-] " + err + " : " + msg + " : " + line
         self.out += errmsg + "\n"
         self.log += errmsg + "\n"
+        print (errmsg)
         return errmsg
     
     def __del__(self):
