@@ -13,7 +13,7 @@
 
 
 # fresh console
-console('clear')
+if (windows(), console('cls'), console('clear'))
 
 # main return buffer
 var('main_return', None)

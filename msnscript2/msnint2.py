@@ -38,7 +38,7 @@ class Var:
     # determines equality of another Var
     def __eq__(self, other):
         if isinstance(other, Var):
-            return other.name == self.name
+            return other.name == self.name 
     
 # global vars
 lock = threading.Lock()
@@ -306,7 +306,10 @@ class Interpreter:
                 # class attribute / method access
                 if obj in self.vars:
                     vname = obj
-                    var = self.get_var(vname)
+                    try:
+                        var = self.get_var(vname)
+                    except:
+                        var = self.vars[vname]
                     try:
                         object = self.vars[obj].value
                     except:
@@ -543,6 +546,10 @@ class Interpreter:
                     self.vars[first].value /= second
                     return self.vars[first].value
                     
+                # gets the MSNScript version of this interpreter
+                elif func == 'version':
+                    return self.version
+
                     
 
                 # performs math functions
@@ -668,7 +675,10 @@ class Interpreter:
                     if objfunc == 'delete':
                         lock.acquire()
                         deleting = self.parse(0, line, f, sp, args)[2]
-                        os.remove(deleting)
+                        try:
+                            os.remove(deleting)
+                        except:
+                            None
                         lock.release()
                         return deleting
                     
@@ -751,7 +761,7 @@ class Interpreter:
                             rm = os.rmdir(self.parse(0, line, f, sp, args)[2])
                             lock.release()
                             return rm
-                        except FileNotFoundError:
+                        except OSError:
                             lock.release()
                             return None
                                         
@@ -777,8 +787,8 @@ class Interpreter:
                             for file in os.listdir(directory):
                                 try:
                                     os.remove(os.path.join(directory, file))
-                                except PermissionError:
-                                    shutil.rmtree(os.path.join(directory, file))
+                                except:
+                                    shutil.rmtree(os.path.join(directory, file), ignore_errors=True)
                             lock.release()
                             return directory
                         except FileNotFoundError:
@@ -1106,9 +1116,10 @@ class Interpreter:
                     
                     # path to the process to run
                     path = self.parse(0, line, f, sp, args)[2]
-                    
+                
+                    # runs the process
                     sub = subprocess.run (args=['python', 'msn2.py', path], shell=True)
-                    self.processes[path] = sub
+                    self.processes[path] = sub 
                     return sub
 
                 # gets the pid of the working process

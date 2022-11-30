@@ -1,18 +1,19 @@
+installing dependencies
+
+there are only a few pip installs tbh, just for flask servers and such,
+all of them are in dependencies.txt
+
+
+
 starting a .msn2 script:
 
     - you can only run programs from /msnscript2
 
-       if functional: $ msn2 script.msn2
-       else: $ python msn2.py script.msn2
+       if it works you can use: $ msn2 script.msn2 script2.msn2
+       else: $ python msn2.py script.msn2 script2.msn2
 
 it is suggested that when editing a .msn2 file that you switch VS Code's Language Mode to CoffeeScript!!
 to do this, under VS Code's language mode tab, configure file association of .msn2 as CoffeeScript
-
-
-executing user programs:
-
-command line:
-    python msn2.py location_of_.msn2_file
 
 
     

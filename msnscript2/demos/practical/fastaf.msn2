@@ -50,8 +50,8 @@ POST('127.0.0.1', 5000, '/', =>(
 # gets from localhost
 print(GET('127.0.0.1', 5000, '/'))
 
-# deletes at localhost
-DELETE('127.0.0.1', 5000, '/')
+# # deletes at localhost
+# DELETE('127.0.0.1', 5000, '/')
 
 # gets from localhost
 print(GET('127.0.0.1', 5000, '/'))
