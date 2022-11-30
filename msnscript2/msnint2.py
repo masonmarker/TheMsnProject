@@ -325,6 +325,7 @@ class Interpreter:
                         return object.copy()
                 
                     # literal specific methods
+                    # the isinstance branches below indicate DESCTRUCTIVE methods!
                     
                     # array based functions
                     elif isinstance(object, list):
@@ -372,6 +373,14 @@ class Interpreter:
                                 self.vars[vname].value += self.parse(i, line, f, sp, args)[2]
                             return self.vars[vname].value
 
+                    # if the object is a dictionary
+                    elif isinstance(object, dict):
+                        
+                        # sets a dictionary at an index
+                        if objfunc == 'set':
+                            index = self.parse(0, line, f, sp, args)[2]
+                            self.vars[vname].value[index] = self.parse(1, line, f, sp, args)[2]
+                            return self.vars[vname].value
 
                 # splits the first argument by the second argument
                 if func == 'split':
@@ -594,7 +603,7 @@ class Interpreter:
                             if firstvar != self.vars[self.parse(i, line, f, sp, args)[2]].value:
                                 return False
                         return True
-                        
+                    return '<msnint2 class>'
                     
                 
                 # performs file-specific operations
@@ -734,8 +743,6 @@ class Interpreter:
                         except FileExistsError:
                             lock.release()
                             return False
-                            
-                        
                     
                     # removes a directory
                     if objfunc == 'rmdir':
@@ -779,48 +786,55 @@ class Interpreter:
                             # directory doesn't exist
                             lock.release()
                             return None
-                        
-                    # math operations
-                    elif obj == 'math':
-                        if objfunc == 'abs':
-                            return abs(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'ceil':
-                            return math.ceil(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'floor':
-                            return math.floor(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'round':
-                            return round(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'sqrt':
-                            return math.sqrt(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'pow':
-                            return math.pow(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
-                        elif objfunc == 'log':
-                            return math.log(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
-                        elif objfunc == 'log10':
-                            return math.log10(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'log2':
-                            return math.log2(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'exp':
-                            return math.exp(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'sin':
-                            return math.sin(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'cos':
-                            return math.cos(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'tan':
-                            return math.tan(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'asin':
-                            return math.asin(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'acos':
-                            return math.acos(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'atan':
-                            return math.atan(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'atan2':
-                            return math.atan2(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
-                        elif objfunc == 'degrees':
-                            return math.degrees(self.parse(0, line, f, sp, args)[2])
-                        elif objfunc == 'radians':
-                            return math.radians(self.parse(0, line, f, sp, args)[2])
-                        return
+
+                # performs math operations
+                elif obj == 'math':
+                    if objfunc == 'add':
+                        return self.parse(0, line, f, sp, args)[2] + self.parse(1, line, f, sp, args)[2]
+                    
+                    if objfunc == 'subtract':
+                        return self.parse(0, line, f, sp, args)[2] - self.parse(1, line, f, sp, args)[2]
+                    
+                    if objfunc == 'multiply':
+                        return self.parse(0, line, f, sp, args)[2] * self.parse(1, line, f, sp, args)[2]
+                    
+                    if objfunc == 'divide':
+                        return self.parse(0, line, f, sp, args)[2] / self.parse(1, line, f, sp, args)[2]
+                    
+                    if objfunc == 'power':
+                        return self.parse(0, line, f, sp, args)[2] ** self.parse(1, line, f, sp, args)[2]
+                    
+                    if objfunc == 'root':
+                        return self.parse(0, line, f, sp, args)[2] ** (1 / self.parse(1, line, f, sp, args)[2])
+                    
+                    if objfunc == 'mod':
+                        return self.parse(0, line, f, sp, args)[2] % self.parse(1, line, f, sp, args)[2]
+                    
+                    if objfunc == 'floor':
+                        return math.floor(self.parse(0, line, f, sp, args)[2])
+                    
+                    if objfunc == 'ceil':
+                        return math.ceil(self.parse(0, line, f, sp, args)[2])
+                    
+                    if objfunc == 'round':
+                        return round(self.parse(0, line, f, sp, args)[2])
+                    
+                    if objfunc == 'abs':
+                        return abs(self.parse(0, line, f, sp, args)[2])
+                    
+                    if objfunc == 'sin':
+                        return math.sin(self.parse(0, line, f, sp, args)[2])
+                    
+                    if objfunc == 'cos':
+                        return math.cos(self.parse(0, line, f, sp, args)[2])
+                    
+                    if objfunc == 'tan':
+                        return math.tan(self.parse(0, line, f, sp, args)[2])
+                    
+                    if objfunc == 'asin':
+                        return math.asin(self.parse(0, line, f, sp, args)[2])
+                    return '<msnint2 class>'
+                    
                             
                 # gets the parent context
                 elif func == 'parent':

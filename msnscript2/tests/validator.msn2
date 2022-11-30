@@ -146,6 +146,42 @@ var('f', 6)
     -- assert(?a? ** ?a? == 4, ?b? ** ?b? == 27, ?c? ** ?c? == 256, ?d? ** ?d? == 3125, ?e? ** ?e? == 46656, ?f? ** ?f? == 823543)
     -- assert(?a? // ?a? == 1, ?b? // ?b? == 1, ?c? // ?c? == 1, ?d? // ?d? == 1, ?e? // ?e? == 1, ?f? // ?f? == 1)
 
+    # working with floats
+    -- var('a', 2.0)
+    -- var('b', 3.0)
+    -- var('c', 4.0)
+    -- var('d', 5.0)
+    -- var('e', 6.0)
+    -- var('f', 7.0)
+
+    # asserts the same for variables
+    -- assert(?a? + ?a? == 4.0, ?b? + ?b? == 6.0, ?c? + ?c? == 8.0, ?d? + ?d? == 10.0, ?e? + ?e? == 12.0, ?f? + ?f? == 14.0)
+    -- assert(?a? - ?a? == 0.0, ?b? - ?b? == 0.0, ?c? - ?c? == 0.0, ?d? - ?d? == 0.0, ?e? - ?e? == 0.0, ?f? - ?f? == 0.0)
+    -- assert(?a? * ?a? == 4.0, ?b? * ?b? == 9.0, ?c? * ?c? == 16.0, ?d? * ?d? == 25.0, ?e? * ?e? == 36.0, ?f? * ?f? == 49.0)
+    -- assert(?a? / ?a? == 1.0, ?b? / ?b? == 1.0, ?c? / ?c? == 1.0, ?d? / ?d? == 1.0, ?e? / ?e? == 1.0, ?f? / ?f? == 1.0)
+    -- assert(?a? % ?a? == 0.0, ?b? % ?b? == 0.0, ?c? % ?c? == 0.0, ?d? % ?d? == 0.0, ?e? % ?e? == 0.0, ?f? % ?f? == 0.0)
+    -- assert(?a? ** ?a? == 4.0, ?b? ** ?b? == 27.0, ?c? ** ?c? == 256.0, ?d? ** ?d? == 3125.0, ?e? ** ?e? == 46656.0, ?f? ** ?f? == 823543.0)
+    -- assert(?a? // ?a? == 1.0, ?b? // ?b? == 1.0, ?c? // ?c? == 1.0, ?d? // ?d? == 1.0, ?e? // ?e? == 1.0, ?f? // ?f? == 1.0)
+
+    # working with negative numbers and larger decimals
+    -- var('a', -2.532)
+    -- var('b', -3.123)
+    -- var('c', -4.123)
+    -- var('d', -5.123)
+    -- var('e', -6.123)
+    -- var('f', -7.123)
+
+    # asserts the same for variables
+    -- assert(?a? + ?a? == -5.064, ?b? + ?b? == -6.246, ?c? + ?c? == -8.246, ?d? + ?d? == -10.246, ?e? + ?e? == -12.246, ?f? + ?f? == -14.246)
+    -- assert(?a? - ?a? == 0.0, ?b? - ?b? == 0.0, ?c? - ?c? == 0.0, ?d? - ?d? == 0.0, ?e? - ?e? == 0.0, ?f? - ?f? == 0.0)
+    -- assert(equals(round(?a? * ?a?), 6))
+    -- assert(equals(round(?b? * ?b?), 10))
+    -- assert(equals(round(?c? * ?c?), 17))
+    -- assert(equals(round(?d? * ?d?), 26))
+    -- assert(equals(round(?e? * ?e?), 37))
+    -- assert(equals(round(?f? * ?f?), 51))
+
+    -- assert(?a? / ?a? == 1.0, ?b? / ?b? == 1.0, ?c? / ?c? == 1.0, ?d? / ?d? == 1.0, ?e? / ?e? == 1.0, ?f? / ?f? == 1.0)
 
     -- var('_', True)
 # -------------------------------------------
@@ -202,14 +238,9 @@ var('f', 6)
 
     -- a.add('\n')
 
-    # when working with special characters, you cannot use 
+    # when working with special characters, you cannot use ?? syntax
     -- var('checker', 'hello how are you?\n')
     -- assert(var.equals('a', 'checker'))
-
-
-    -- env(True)
-
-
 
     -- var('_', True)
 
@@ -263,12 +294,161 @@ var('f', 6)
 
     -- assert(?a? == [4, 5, 6, 7, 8, 9, 10])
 
+    -- var('_', True)
+
+# -------------------------------------------
 
 
 
+# ------------------ COMPLEX STUFF ------------------
 
 
+~ test_complex() -> _
 
+    -- print('[+] testing complex...')
+    -- var('_', assert(
+        assert(assert(True), assert(not(False))),
+        assert(assert(<< not |False| >>), not(not(True))),
+        assert(True and True, assert(True)),
+        assert(assert(True), assert(True), assert(=>(
+            var('z', -1),
+            add('z', 1),
+            ?z? == 0
+        ))),
+        assert(True or False),
+        assert(3 != 3 or 5 != 1, [1, 2, 3] == [1, 2, 3]),
+        assert(
+            True,
+            assert(assert(not False), assert(True)),
+            assert(True),
+            not False,
+
+            # inline function syntax => ()
+            # takes any amount of instructions separated by commas
+            # can be used in place of any argument or instruction
+            # returns the return value of the last instruction to => ()
+            => (
+                var('map', {'name': 'mason', 'age': 20}),
+                ?map?['name'] == 'mason' and ?map?['age'] == 20
+            ),
+            => (
+                var('a', False),
+                ?a? or True
+            ),
+
+            True,
+            assert(True),
+            not(not(True))
+        ),
+        assert(True),
+        assert(assert(True), assert(True))
+    ))
+    -- var('_', True)
+
+
+# ------------------ ACTUAL STUFF HAPPENING : THREADS ------------------
+
+
+# semaphore support
+import ('lib/semaphore.msn2')
+
+# tests thread subroutines
+~ test_threads() -> _
+
+    -- print('[+] testing threads...')
+
+    -- thread('t1', =>(
+        var('count', 0),
+        for (0, 10, 'i', =>(
+            add('count', 1)
+        )),
+        assert(?count? == 10)
+    ))
+
+    # joins with newly created thread
+    -- join('t1')
+
+    # assert count is 10
+    -- assert(?count? == 10)
+
+    # testing semaphores
+    # main thread grabs the semaphore before the new
+    # thread is created
+    -- var('sem', semaphore(True, ''))
+    -- var('a', 0)
+
+    # creates a new thread
+    -- thread('t2', =>(
+
+        # wait for the resource to be unlocked
+        wait(not(sem.held())),
+
+        # perform work
+        add('a', 1),
+
+        # release the semaphore
+        sem.held(False)
+
+    ))
+
+    -- assert(sem.held())
+    -- assert(equals(sem.message(), ''))
+
+    # give the thread the semaphore
+    -- sem.held(False)
+
+    # offer the resource to the thread
+    -- sleep(0.00001)
+
+    # waits for the thread to give up the semaphore
+    -- wait(not(sem.held()))
+
+    # assert the thread released the semaphore
+    -- assert(not(sem.held()))
+
+    # assert that the work was finished
+    -- assert(?a? == 1)
+
+
+    -- var('_', True)
+
+
+# multiprocessing support
+import ('lib/processes.msn2')
+
+# rid processes from previous execution
+clean_processes()
+
+~ test_processes() -> _ 
+
+    -- print('[+] testing processes...')
+
+    # creates a new process
+    # second argument to fork() must be async() to save
+    # the block of code for use by the newly created process
+    -- fork('process1', async(=>(
+
+        # process performs work
+        var('forkvar', 0),
+        assert(exists('forkvar')),
+        for (0, 10, 'i', =>(
+            add('forkvar', 1)
+        )),
+        assert(?forkvar? == 10)
+    )))
+
+    # joins with the process
+    # same syntax as threads because fork() is a user method imported from lib/processes.msn2
+    # thats starts the process from a new thread
+    -- join('process1')
+    
+    -- assert(not(exists('forkvar')))
+
+
+    -- var('_', True)
+
+
+# ------------------ ACTUAL STUFF HAPPENING : MULTIPROCESSING ------------------
 
 # start the timer
 timer_start()
@@ -276,11 +456,17 @@ timer_start()
 
 # runs tests in their own private environment
 # a private block inherits copies of all variables and methods from the parent context
-private(test_var())
-private(test_math())
-private(test_strings())
-private(test_arrays())
-
+private(assert(test_var()))
+private(assert(test_math()))
+private(assert(test_strings()))
+private(assert(test_arrays()))
+private(assert(test_complex()))
+private(assert(test_threads()))
+private(assert(test_processes()))
 
 # ends the timer and prints finishing boot environment
-print('[+] fin in', <<|timer_runtime()|s>>)
+print('[+] fin in', cat(timer_runtime(), 's'))
+
+
+# ends any stray processes or threads
+stop()
