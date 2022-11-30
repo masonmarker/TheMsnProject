@@ -3,10 +3,10 @@
 # date : 11/7/2022
 
 # fresh console
-console('clear')
+if (windows(), console('cls'), console('clear'))
 
 # prepare statistics
-import('lib/2x/timer.msn2')
+import('lib/timer.msn2')
 
 
 # working variable

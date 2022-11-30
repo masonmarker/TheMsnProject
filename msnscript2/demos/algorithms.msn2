@@ -3,7 +3,7 @@
 # date : 11/13/2022
 
 # fresh console
-console('clear')
+if (windows(), console('cls'), console('clear'))
 
 # import timer for speed testing
 import ('lib/timer.msn2')
