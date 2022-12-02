@@ -294,9 +294,86 @@ var('f', 6)
 
     -- assert(?a? == [4, 5, 6, 7, 8, 9, 10])
 
+    # assert contains (<<>> python fallback)
+    -- assert(<< 4 in |?a?| and 5 in |?a?| and 6 in |?a?| and 7 in |?a?| and 8 in |?a?| and 9  in |?a?| and 10 in |?a?| >>)
+    -- assert(<< 1 not in |?a?| and 2 not in |?a?| and 3 not in |?a?| >>)
+
     -- var('_', True)
 
 # -------------------------------------------
+
+# ------------------ CLASSES ------------------
+~ test_classes() -> _
+
+    -- print('[+] testing classes...')
+
+    # declares a class called 'person' with two attributes
+    -- class('person', =>(
+        var('name', 'unknown'),
+        var('age', -1)
+    ))
+
+    # creates an instance of a class
+    -- var('joe', person('joe', 20))
+
+    -- assert(exists('joe'))
+
+    # assert vars were set
+    -- assert(equals(joe.name(), 'joe'))
+    -- assert(equals(joe.age(), 20))
+
+    # set attributes of a class
+    -- joe.name('joseph')
+    -- joe.age(21)
+
+    # reassert
+    -- assert(equals(joe.name(), 'joseph'))
+    -- assert(equals(joe.age(), 21))
+
+    # copy of a person
+    -- var('joe2', joe.copy())
+
+    # assert that joe2 is a copy of joe
+    -- assert(equals(joe2.name(), 'joseph'))
+    -- assert(equals(joe2.age(), 21))
+
+    # assert that joe2 is not joe
+    -- joe2.name('joe2')
+    -- joe2.age(22)
+
+    -- assert(equals(joe2.name(), 'joe2'))
+    -- assert(equals(joe2.age(), 22))
+
+    -- assert(not(equals(joe.name(), 'joe2')))
+    -- assert(not(equals(joe.age(), 22)))
+
+    # create a family
+    -- class('family', =>(
+        var('members', [])
+    ))
+
+    -- var('fam', family([]))
+
+    -- fam.members(=>(
+        var('curr', fam.members()),
+        curr.push(?joe?),
+        ?curr?
+    ))
+
+    -- fam.members(=>(
+        var('curr', fam.members()),
+        curr.push(?joe2?),
+        ?curr?
+    ))
+
+    -- assert(equals(?fam?['members'][0]['name'], 'joseph'))
+    -- assert(equals(?fam?['members'][0]['age'], 21))
+    -- assert(equals(?fam?['members'][1]['name'], 'joe2'))
+    -- assert(equals(?fam?['members'][1]['age'], 22))
+
+    -- assert(equals(fam.members(), [?joe?, ?joe2?]))
+
+    -- var('_', True)
 
 
 
@@ -341,8 +418,9 @@ var('f', 6)
             not(not(True))
         ),
         assert(True),
-        assert(assert(True), assert(True))
-    ))
+        assert(assert(True), assert(True))))
+
+
     -- var('_', True)
 
 
@@ -413,11 +491,21 @@ import ('lib/semaphore.msn2')
     -- var('_', True)
 
 
+# -------------------------------------------
+
+
+
+
+# ------------------ ACTUAL STUFF HAPPENING : MULTIPROCESSING ------------------
+
 # multiprocessing support
 import ('lib/processes.msn2')
 
-# rid processes from previous execution
-clean_processes()
+# process naming serialization
+import ('lib/serial.msn2')
+
+# prepare serialization variable
+serial_open('p')
 
 ~ test_processes() -> _ 
 
@@ -448,7 +536,170 @@ clean_processes()
     -- var('_', True)
 
 
-# ------------------ ACTUAL STUFF HAPPENING : MULTIPROCESSING ------------------
+    # test 2
+
+    -- var('a', 0)
+
+    # starts two processes that perform work
+    -- for(0, 2, 'i', =>(
+        fork(?i?, async(=>(
+
+            # process specific variables
+            var('a', 0),
+            var('b', 0),
+            var('c', 0),
+            assert(exists('a'), exists('b'), exists('c')),
+
+            # if process 0
+            if (?i? == 0, =>(
+
+                # assert the variables exists
+                assert(exists('a'), exists('b'), exists('c')),
+                assert(not(exists('d')), not(exists('e')), not(exists('f'))),
+
+                # modify the variables
+                add('a', 1),
+                add('b', 1),
+                add('c', 1),
+
+                # assert the variables were modified
+                assert(?a? == 1, ?b? == 1, ?c? == 1),
+
+                print('[+] p0 finished')
+            ), 
+
+            # else if process 1
+            =>(
+                # same as 0
+                assert(exists('a'), exists('b'), exists('c')),
+                assert(not(exists('d')), not(exists('e')), not(exists('f'))),
+                add('a', 10),
+                add('b', 10),
+                add('c', 10),
+                assert(?a? == 10, ?b? == 10, ?c? == 10),
+                print('[+] p1 finished')
+            ))
+        )))
+    ))
+
+    # joins with the first process created
+    -- join(0)
+
+# -------------------------------------------
+
+
+
+
+# ------------------ ACTUAL STUFF HAPPENING : ENDPOINTS ------------------
+
+var('terminate', False)
+
+
+# hosting an endpoint
+~ test_endpoints() -> _
+
+    # endpoints should reside in a new process
+    -- fork('ep1', async(=>(
+        
+        # starts a new endpoint on localhost:5000 on a new thread
+        thread('t', ENDPOINT('127.0.0.1', 5000, '/', {})),
+
+        # waits for a signal to end the process, with a 0.05s interval
+        wait(equals(GET('127.0.0.1', 5000, '/'), {'leave': 1}), sleep(0.05)),
+
+        stop()
+    )))
+    
+    # wait for endpoint to become active
+    -- wait(equals(GET('127.0.0.1', 5000, '/'), {}), sleep(0.05))
+
+    # assert endpoint is responsive
+    -- assert(equals(GET('127.0.0.1', 5000, '/'), {}))
+
+    # asserts post is working
+    -- assert(equals(POST('127.0.0.1', 5000, '/', {'a': 1}), {'a': 1}))
+
+    # asserts get is working
+    -- assert(equals(GET('127.0.0.1', 5000, '/'), {'a': 1}))
+
+    
+
+    
+
+    -- assert(equals(DELETE('127.0.0.1', 5000, '/'), {}))
+    -- assert(equals(POST('127.0.0.1', 5000, '/', {'leave': 1}), {'leave': 1}))
+
+    # this should be the last test listed, 
+    # and the last test to finish, 
+    # so stop() ends the validator program
+    -- print('[+] shutting down validator and endpoint...')
+
+    # ends the timer and prints finishing boot environment
+    -- print('[+] fin in', cat(timer_runtime(), 's'))
+
+
+    -- import('lib/processes.msn2')
+    -- clean_processes()
+    -- stop()
+
+
+# ------------------ RANDOMNESS ------------------
+
+# random implementation
+~ test_random() -> _
+
+    -- print(random())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # start the timer
 timer_start()
@@ -456,17 +707,13 @@ timer_start()
 
 # runs tests in their own private environment
 # a private block inherits copies of all variables and methods from the parent context
-private(assert(test_var()))
-private(assert(test_math()))
-private(assert(test_strings()))
-private(assert(test_arrays()))
-private(assert(test_complex()))
-private(assert(test_threads()))
+thread('vars', private(assert(test_var())))
+thread('math', private(assert(test_math())))
+thread('strings', private(assert(test_strings())))
+thread('arrays', private(assert(test_arrays())))
+thread('classes', private(assert(test_classes())))
+thread('complex', private(assert(test_complex())))
+thread('threads', private(assert(test_threads())))
+
 private(assert(test_processes()))
-
-# ends the timer and prints finishing boot environment
-print('[+] fin in', cat(timer_runtime(), 's'))
-
-
-# ends any stray processes or threads
-stop()
+private(thread('tep', test_endpoints()))
