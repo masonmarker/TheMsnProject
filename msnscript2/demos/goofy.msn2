@@ -1,0 +1,24 @@
+# demonstrates odd ways of doing things that work for some reason
+# 
+# author : Mason Marker
+# date : 12/01/2022
+
+# os specific console usage
+import ('lib/os.msn2')
+
+clear()
+
+assert(equals(5, =>(
+    var('a', 0),
+    var('a', =>(
+        var('b', 0),
+        add('b', 1)
+        ?b?
+    ))
+
+    
+
+
+
+    ?a?
+)))

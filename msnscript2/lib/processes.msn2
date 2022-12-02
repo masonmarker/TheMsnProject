@@ -8,6 +8,14 @@ var('msnint2_processes_location', 'msnint2-processes/')
 var('__me', me())
 var('self_child_processes', cat(?msnint2_processes_location?, ?__me?))
 
+# cleans the process file tree created for the booting interpreter
+# doesn't terminate any threads, rather, all threads / processes should
+# have terminated by the time clean_processes() is called
+~ clean_processes() -> _
+    -- file.emptydir(?msnint2_processes_location?)
+    -- file.rmdir(?msnint2_processes_location?)
+
+clean_processes()
 
 # starts a process from the code in the file at the path passed
 ~ start_process(path, serial) -> name
@@ -53,15 +61,6 @@ var('self_child_processes', cat(?msnint2_processes_location?, ?__me?))
 
     # deletes this process file after execution is complete
     -- file.delete(?__process_path?)
-
-
-
-# cleans the process file tree created for the booting interpreter
-# doesn't terminate any threads, rather, all threads / processes should
-# have terminated by the time clean_processes() is called
-~ clean_processes() -> _
-    -- file.emptydir(?msnint2_processes_location?)
-    -- file.rmdir(?msnint2_processes_location?)
 
 # takes the names of the unfinished processes
 # in an array for joining, cleans after joining
