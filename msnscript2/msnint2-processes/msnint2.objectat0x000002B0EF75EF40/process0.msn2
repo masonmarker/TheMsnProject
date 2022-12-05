@@ -1,1 +1,0 @@
-=>(thread('t', ENDPOINT('127.0.0.1', 5000, '/', {})),wait(equals(GET('127.0.0.1', 5000, '/'), {'leave': 1}), sleep(0.05)),stop())

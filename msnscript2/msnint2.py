@@ -5,21 +5,17 @@
 import os
 import math
 import shutil
-import signal
 import openai
-import webbrowser
+import random
 import time
 import threading
 import time
 import requests
 from flask import Flask, request
-from flask_restful import Resource, Api, reqparse
-import pandas as pd
-import ast
+from flask_restful import Resource, Api
 import logging
 import socket
 import sys
-from json.decoder import JSONDecodeError
 import subprocess
 
 
@@ -101,6 +97,11 @@ class Interpreter:
             if line.startswith("::") or line.startswith("#"):
                 self.current_line += 1
                 continue
+
+            elif line.startswith('<<<'):
+                print(line)
+                self.interpret_msnscript_1(line)
+
             else:
 
                 # aggregate syntax !{} (not recommended for most cases)
@@ -206,6 +207,12 @@ class Interpreter:
                 return eval(line)
             except:
                 return line
+
+        # msn1 fallback
+        if line[0] == '@':
+            line = line[1:]
+            print(line)
+            return self.interpret_msnscript_1(line)
 
         if line[0] == '*':
             line = self.replace_vars(line[1:])
@@ -550,7 +557,32 @@ class Interpreter:
                 elif func == 'version':
                     return self.version
 
-                    
+                # random capabilities
+                elif func == 'random':
+                    # gets a random number between 0 and 1
+                    if len(args) == 1:
+
+                        arg = self.parse(0, line, f, sp, args)[2]
+
+                        return random.random()
+
+                    # random number in range
+                    elif len(args) == 2:
+                        arg = self.parse(0, line, f, sp, args)[2]
+                        arg2 = self.parse(1, line, f, sp, args)[2]
+
+                        return (random.random() * (arg2 - arg)) + arg
+
+                    # random int in range
+                    elif len(args) == 3:
+                        arg = self.parse(0, line, f, sp, args)[2]
+                        arg2 = self.parse(1, line, f, sp, args)[2]
+
+                        return math.floor((random.random() * (arg2 - arg)) + arg)
+
+
+                    return '<msnint2 class>'
+
 
                 # performs math functions
                 elif obj == 'math':
@@ -1117,10 +1149,20 @@ class Interpreter:
                     # path to the process to run
                     path = self.parse(0, line, f, sp, args)[2]
                 
-                    # runs the process
-                    sub = subprocess.run (args=['python', 'msn2.py', path], shell=True)
-                    self.processes[path] = sub 
-                    return sub
+                    # if windows:
+                    if os.name == 'nt':
+                    
+                        # runs the process
+                        sub = subprocess.run (args=['python', 'msn2.py', path], shell=True)
+                        self.processes[path] = sub 
+                        return sub
+
+                    # if linux
+                    elif os.name == 'posix':
+                        
+                        return None
+                    return None
+
 
                 # gets the pid of the working process
                 elif func == 'pid':
@@ -1807,7 +1849,7 @@ class Interpreter:
             c = line[i]
             if c != ' ':
                 if c == '+' and line[i + 1] == '=':
-                    variable = '"' + element + '"'
+                    variable = element
                     element = ''
                     for j in range(i + 2, len(line)):
                         element += line[j]
@@ -1824,28 +1866,28 @@ class Interpreter:
                                 
                     return self.vars[variable].value
                 elif c == '-' and line[i + 1] == '=':
-                    variable = '"' + element + '"'
+                    variable = element
                     element = ''
                     for j in range(i + 2, len(line)):
                         element += line[j]
                     self.vars[variable].value -= self.evaluate(element, 'number')
                     return self.vars[variable].value
                 elif c == '*' and line[i + 1] == '=':
-                    variable = '"' + element + '"'
+                    variable = element
                     element = ''
                     for j in range(i + 2, len(line)):
                         element += line[j]
                     self.vars[variable].value *= self.evaluate(element, 'number')
                     return self.vars[variable].value
                 elif c == '/' and line[i + 1] == '=':
-                    variable = '"' + element + '"'
+                    variable = element
                     element = ''
                     for j in range(i + 2, len(line)):
                         element += line[j]
                     self.vars[variable].value /= self.evaluate(element, 'number')
-                    return self.vars[variable].value
+                    return self.varsVar[variable].value
                 elif c == '=':
-                    variable = '"' + element + '"'
+                    variable = element
                     element = ''
                     string = False
                     array = False
@@ -1875,7 +1917,7 @@ class Interpreter:
                         times = self.loop(element)
                         first = times[0]
                         last = times[1]
-                        optvar = '"' + times[2] + '"'
+                        optvar = times[2]
                         try:
                             first = self.vars[first].value
                         except: 
@@ -1997,7 +2039,7 @@ class Interpreter:
             try:
                 return eval(new)
             except:
-                return eval('"' + new + '"')
+                return eval(str(new))
         elif type == 'string':
             return self.string(postop)
         elif type == 'array':
@@ -2032,8 +2074,8 @@ class Interpreter:
         except KeyError:
             None
 
-        if isv and '"' not in string:
-            string = '"' + string + '"'
+        # if isv and '"' not in string:
+        #     string = '"' + string + '"'
         try:
             strn = eval(string);
         except:

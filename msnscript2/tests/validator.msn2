@@ -15,6 +15,22 @@ import ('lib/os.msn2')
 # imports timing capabilities
 import ('lib/timer.msn2')
 
+# test specific accounting
+var('thread_count', 0)
+
+
+# accumulates the thread count for private contexts
+~ add_threads() -> _
+    -- add('thread_count', << len(vars()['self'].threads) >>)
+
+~ add_and_export() -> _
+    -- add('thread_count', << len(vars()['self'].threads) >>)
+    -- export('thread_count')
+
+# prints thread count
+~ print_threads() -> _
+    -- print('[+] created', ?thread_count?, 'threads')
+
 # clear console
 clear()
 
@@ -375,6 +391,7 @@ var('f', 6)
 
     -- var('_', True)
 
+# -------------------------------------------
 
 
 # ------------------ COMPLEX STUFF ------------------
@@ -420,6 +437,70 @@ var('f', 6)
         assert(True),
         assert(assert(True), assert(True))))
 
+        -- assert(=>(
+            assert(True, True, True, not False, 5 in [5]),
+            assert(3 not in {'name': 'joe'}, True, not False, <<|True|>>),
+            assert(<<'key' in {'key':4}.keys() >>,
+            <<|not(False)|>>,
+            <<True>>,
+            <<not False>>,
+            True,
+            not False,
+            [{}, {}, {-5238595.34958259283:0}] in [[{}, {}, {-5238595.34958259283:0}], 'hello', -34534.623452345],
+            True,
+            << isinstance(52348238423.52348234, float) >>,
+            << isinstance(-1919191.23287342837423, float) >>,
+            << isinstance(5, int) >>,
+            << isinstance(-523, int) >>,
+            << isinstance([], list) >>,
+            << isinstance({}, dict) >>,
+            << isinstance('hello', str) >>
+            ),
+            assert(True, True, 4 == 4, -1214823.52983429 > -34928349823.482),
+            assert("mason" in "my name is mason", "hello" in "  wef39i23 hello  "),
+            assert(6+3==9,10==10,True,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
+            assert(1, 1, 1, 1, 1, not 0, not(0)),
+            assert(True),
+            =>(
+                True
+            ),
+            not(False),
+
+            assert(=>(=>(=>(=>(=>(=>(=>(
+                1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+            )))))))),
+
+            =>(assert(True), assert(True), True),
+            =>(assert(True, True, assert(assert(True), True))),
+            =>(assert(not(exists('foiajweofi')))),
+            =>(<<|=>(assert(1, 1))|>>),
+            =>(assert(<<1>>), <<0+1-1+1>>),
+            =>(
+                var('string', '
+                    hello, this is a note.
+
+                    [1, 2, 3, 4, 5]   |  | !@#$%^&*())!@#$%^&*()_)(*&^%$#@
+                    n\t\n\t\t\\rr\t\\nt\\tr\t\\yn\y\
+                '),
+                'hello' in ?string? and 
+                'this is a note.' in ?string? and
+                '[1, 2, 3, 4, 5]' in ?string?
+            ),
+            1,
+            =>(
+                not False
+            ),
+            1,
+            1 >= 1,
+            'mason'[::-1] == 'nosam',
+            ',,,{}][][]{}{}][][][()()()@#$%^&*()'==',,,{}][][]{}{}][][][()()()@#$%^&*()',
+            =>(1)
+            =>(assert(1, 1, 1, 1, 1, 1))
+
+
+
+        ))
+
 
     -- var('_', True)
 
@@ -460,11 +541,13 @@ import ('lib/semaphore.msn2')
 
         # wait for the resource to be unlocked
         wait(not(sem.held())),
+        sem.held(True),
 
         # perform work
         add('a', 1),
 
         # release the semaphore
+        sem.message('finished'),
         sem.held(False)
 
     ))
@@ -475,11 +558,8 @@ import ('lib/semaphore.msn2')
     # give the thread the semaphore
     -- sem.held(False)
 
-    # offer the resource to the thread
-    -- sleep(0.00001)
-
-    # waits for the thread to give up the semaphore
-    -- wait(not(sem.held()))
+    # waits for the thread to write a message to the semaphore
+    -- wait(equals(sem.message(), 'finished'))
 
     # assert the thread released the semaphore
     -- assert(not(sem.held()))
@@ -487,6 +567,9 @@ import ('lib/semaphore.msn2')
     # assert that the work was finished
     -- assert(?a? == 1)
 
+    # joins threads to avoid thread counting errors
+    -- join('t1')
+    -- join('t2')
 
     -- var('_', True)
 
@@ -557,6 +640,8 @@ serial_open('p')
                 assert(exists('a'), exists('b'), exists('c')),
                 assert(not(exists('d')), not(exists('e')), not(exists('f'))),
 
+
+
                 # modify the variables
                 add('a', 1),
                 add('b', 1),
@@ -607,6 +692,7 @@ var('terminate', False)
         # waits for a signal to end the process, with a 0.05s interval
         wait(equals(GET('127.0.0.1', 5000, '/'), {'leave': 1}), sleep(0.05)),
 
+        # stops the forked process
         stop()
     )))
     
@@ -622,11 +708,10 @@ var('terminate', False)
     # asserts get is working
     -- assert(equals(GET('127.0.0.1', 5000, '/'), {'a': 1}))
 
-    
-
-    
-
+    # asserts deletion is working
     -- assert(equals(DELETE('127.0.0.1', 5000, '/'), {}))
+
+    # stops the endpoint's host process
     -- assert(equals(POST('127.0.0.1', 5000, '/', {'leave': 1}), {'leave': 1}))
 
     # this should be the last test listed, 
@@ -637,18 +722,95 @@ var('terminate', False)
     # ends the timer and prints finishing boot environment
     -- print('[+] fin in', cat(timer_runtime(), 's'))
 
-
+    # imports clean_processes()
     -- import('lib/processes.msn2')
+
+    # cleans processes
     -- clean_processes()
+
+    -- add_threads()
+
+    # includes the thread that launched the endpoints tests
+    -- add('thread_count', 1)
+
+    # prints accounting information
+    -- print_threads()
+
+    # stops the program, as server endpoints can only be 
     -- stop()
+
+# -------------------------------------------
+
+
 
 
 # ------------------ RANDOMNESS ------------------
 
-# random implementation
+# random implementation includes
+# a single system call 'random()'
 ~ test_random() -> _
 
-    -- print(random())
+    -- print('[+] testing random...')
+
+    # runs tests multiple times for random function
+    -- for (0, 100, 'i', =>(
+
+        # random() with 0-1 arguments returns a float between
+        # 0-1
+        var('r', random()),
+        assert(?r? < 1 and ?r? >= 0),
+
+        # random() with 2 arguments returns a range between the
+        # two values passed
+        var('r2', random(1, 2)),
+        assert(?r2? < 3 and ?r2? >= 1),
+
+        var('r3', random(0, 100)),
+        assert(?r3? < 100 and ?r3? >= 0),
+
+        # a random() with 3 arguments automatically
+        # defaults the return value to an integer,
+        # effectively permitting float and integer random
+        # capabilities from random()
+        var('r4', random(0, 100, <<>>)),
+
+        # asserts the value is an integer with python fallback
+        assert(<< isinstance(|?r4?|, int) >>),
+        assert(?r4? < 100 and ?r4? >= 0),
+
+        # creates an array of random values with python fallback
+        var('r5', <<[|random()|,|random(0, 10)|,|random(0, 10, '')|]>>),
+
+        # assert type of random
+        assert(<< isinstance(|?r5?[0]|, float) >>, not(<< isinstance(|?r5?[0]|, int) >>)),
+        assert(<< isinstance(|?r5?[1]|, float) >>, not(<< isinstance(|?r5?[1]|, int) >>)),
+        assert(<< isinstance(|?r5?[2]|, int) >>, not(<< isinstance(|?r5?[2]|, float) >>)),
+
+        # assert range of random
+        assert(?r5?[0] < 1 and ?r5?[0] >= 0),
+        assert(?r5?[1] < 10 and ?r5?[1] >= 0),
+        assert(?r5?[2] < 10 and ?r5?[2] >= 0)
+    ))
+
+    -- var('_', True)
+    
+# -------------------------------------------
+
+
+# tests '@' syntax to msnscript1 fallback functionality
+~ test_msn1_fallback() -> _
+    
+    # preceeding a LINE with '@' indicates an msn1 fallback request
+    -- @ integer = 1
+
+    # assert the fallback worked
+    -- assert(exists('integer'))
+    -- assert(?integer? == 1)
+
+
+
+
+    -- var('_', True)
 
 
 
@@ -658,62 +820,75 @@ var('terminate', False)
 
 
 
+# ---------------------------------------------- RUNNING TESTS ----------------------------------------------
 
 
+# runs tests in their own private environment
+# a private block inherits copies of all variables and methods from the parent context
+~ run_tests() -> _
+
+    # cleans processes for next iteration
+    -- clean_processes()
+
+    # runs basic tests
+    # runs each test on a new thread    
+    -- thread('vars', private(assert(test_var())))
+
+    -- thread('math', private(assert(test_math()))) 
+    -- thread('strings', private(assert(test_strings())))
+    -- thread('arrays', private(assert(test_arrays())))
+    -- thread('classes', private(assert(test_classes())))
+    -- thread('complex', private(assert(test_complex())))
+    -- thread('random', private(assert(test_random())))
+    -- thread('msn1', private(assert(test_msn1_fallback())))
+    
+    -- private(=>(
+        
+        # runs thread based test
+        assert(test_threads()),
+
+        # counts threads created in this context
+        add_and_export()
+    ))
+
+    # tests processes, currently only implemented for windows
+    -- if (windows(), =>(
+
+        # processes testing
+        private(=>(
+            assert(test_processes()),
+            add_and_export()
+        )),
+
+        private(thread('tep', test_endpoints()))
+    )),
+    
+    # adds threads that launch the tests
+    -- add_threads()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    -- var('_', True)
 
 
 
 # start the timer
 timer_start()
 
+# iteration count
+var('iterations', 10)
 
-# runs tests in their own private environment
-# a private block inherits copies of all variables and methods from the parent context
-thread('vars', private(assert(test_var())))
-thread('math', private(assert(test_math())))
-thread('strings', private(assert(test_strings())))
-thread('arrays', private(assert(test_arrays())))
-thread('classes', private(assert(test_classes())))
-thread('complex', private(assert(test_complex())))
-thread('threads', private(assert(test_threads())))
+# launches the tests multiple times to ensure integrity
+for (0, ?iterations?, 'i', =>(
+    print('--- iteration', ?i? + 1, '---'),
+    assert(run_tests()),
+    print('------------------')
+))
 
-private(assert(test_processes()))
-private(thread('tep', test_endpoints()))
+# prints accounting information
+print_threads()
+
+# completes the validator
+print('[+] fin in', cat(timer_runtime(), 's'))
+
+# stops the validator
+stop()
