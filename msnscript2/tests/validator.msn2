@@ -627,6 +627,8 @@ serial_open('p')
     -- for(0, 2, 'i', =>(
         fork(?i?, async(=>(
 
+            print('[+] testing process', cat(?i?, '...')),
+
             # process specific variables
             var('a', 0),
             var('b', 0),
@@ -650,7 +652,6 @@ serial_open('p')
                 # assert the variables were modified
                 assert(?a? == 1, ?b? == 1, ?c? == 1),
 
-                print('[+] p0 finished')
             ), 
 
             # else if process 1
@@ -662,7 +663,6 @@ serial_open('p')
                 add('b', 10),
                 add('c', 10),
                 assert(?a? == 10, ?b? == 10, ?c? == 10),
-                print('[+] p1 finished')
             ))
         )))
     ))
@@ -692,14 +692,14 @@ var('terminate', False)
         thread('t', ENDPOINT('127.0.0.1', 5000, '/', {})),
 
         # waits for a signal to end the process, with a 0.05s interval
-        wait(equals(GET('127.0.0.1', 5000, '/'), {'leave': 1}), sleep(0.05)),
+        wait(equals(GET('127.0.0.1', 5000, '/'), {'leave': 1}), sleep(0.5)),
 
         # stops the forked process
         stop()
     )))
     
     # wait for endpoint to become active
-    -- wait(equals(GET('127.0.0.1', 5000, '/'), {}), sleep(0.05))
+    -- wait(equals(GET('127.0.0.1', 5000, '/'), {}), sleep(0.5))
 
     # assert endpoint is responsive
     -- assert(equals(GET('127.0.0.1', 5000, '/'), {}))
@@ -770,9 +770,9 @@ var('terminate', False)
         var('r3', random(0, 100)),
         assert(?r3? < 100 and ?r3? >= 0),
 
-        # a random() with 3 arguments automatically
+        # a random() with 3 arguments
         # defaults the return value to an integer,
-        # effectively permitting float and integer random
+        # effectively implementing float and integer random
         # capabilities from random()
         var('r4', random(0, 100, <<>>)),
 
@@ -931,6 +931,7 @@ var('terminate', False)
     -- ? not ?a? (assert(False))
 
     # no () can exist between ? and its blocks in ()
+    # --v----------------v
     -- ?  << not True >>  (assert(False), assert(True))
 
     -- ? 0 (assert(False))
@@ -938,10 +939,90 @@ var('terminate', False)
 
 # -------------------------------------------
 
+# ------------------ DEFINING SYNTAX ------------------
+
+# the system call syntax() is used to define new syntax
+# syntax() takes three arguments
+# the created syntax will exist in all contexts across all threads
+# 
+# it is safe to choose unique tokens to avoid naming conflicts
+#
+# first argument indicates the token surrounding a block of text in an MSNScript2 argument, this block of text
+# does not need to conform to MSNScript2 / Python syntax
+#
+# second argument stores the internals surrounded by the token specified
+# as the first argument
+#
+# third argument is what should be returned according to the line confined within the new token
+#
+~ test_user_syntax() -> _
+    
+    -- print('[+] testing user syntax...')
+
+    # defines a new syntax for the '!!!' token
+    -- syntax('!!!', 'line', =>(
+        assert(exists('line')),
+        assert(?line? == ' 5 + 2 - 6 * 2 '),
+        assert(<< |eval(?line?)| == -5 >>),
+    ))
+
+    # demonstrating the syntax
+    -- !!! 5 + 2 - 6 * 2 !!!
+
+    # creating a new syntax
+    -- syntax('goof', 'line', =>(
+        @ a = 1000,
+        1
+    ))
+
+    # asserting syntax
+    -- assert(goofgoof, exists('a'), ?a? == 1000)
+    -- assert(goof, goofgoof, =>(goof))
+
+
+    # more practical implementations
+
+    # defines and writes to a single local storage by which programs can communicate
+    -- syntax('LOCAL', 'line', =>(
+        file.mkdir('localstorage'),
+        file.create('localstorage/local.txt'),
+        file.write('localstorage/local.txt', ?line?),
+        file.read('localstorage/local.txt')
+    ))
+
+    # asserts the write was correct
+    -- assert(<< |LOCAL 5729348570234 LOCAL| == ' 5729348570234 ' >>)
+    -- assert(<< |LOCAL hello! LOCAL| == ' hello! ' >>)
+    -- assert(<< |LOCAL this is some text LOCAL| == ' this is some text ' >>)
+
+    # more advanced syntax
+    -- syntax('$$', 'line', =>(
+        var('arr', []),
+        var('insides', between('---', ?line?)),
+        each(?insides?, 'line2', =>(
+            arr.push(?line2?)
+        )),
+        ?arr?
+    ))
+
+    --  =>(
+        $$ 
+            ---hello, how are you?---
+            ---34234543---
+            ----5489302543259543---
+        $$
+    )
+
+
+    -- @ _ = 1
+
+
+
 
 
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
 
+@ tests_ran = 0
 
 # runs tests in their own private environment
 # a private block inherits copies of all variables and methods from the parent context
@@ -962,6 +1043,7 @@ var('terminate', False)
     -- thread('msn1', private(assert(test_msn1_fallback())))
     -- thread('loops', private(assert(test_simple_loops())))
     -- thread('cond', private(assert(test_simple_cond())))
+    -- private(assert(test_user_syntax()))
 
     -- private(=>(
         
@@ -973,21 +1055,21 @@ var('terminate', False)
     ))
 
     # tests processes, currently only implemented for windows
-    -- if (windows(), =>(
+    -- if (<< |windows()| and not |?tests_ran?| >>, =>(
 
         # processes testing
         private(=>(
             assert(test_processes()),
             add_and_export()
-        )),
+        ))
 
-        private(thread('tep', test_endpoints()))
+      #  private(thread('tep', test_endpoints()))
     )),
     
     # adds threads that launch the tests
     -- add_threads()
 
-
+    -- @ tests_ran = 1
     -- var('_', True)
 
 
@@ -996,7 +1078,7 @@ var('terminate', False)
 timer_start()
 
 # iteration count
-var('iterations', 10)
+var('iterations', 7)
 
 # launches the tests multiple times to ensure integrity
 for (0, ?iterations?, 'i', =>(

@@ -35,10 +35,20 @@ class Var:
     def __eq__(self, other):
         if isinstance(other, Var):
             return other.name == self.name 
+
+
+
+
     
 # global vars
 lock = threading.Lock()
 auxlock = threading.Lock()
+
+# user defined syntax
+syntax = {}
+
+
+
 
 
 
@@ -180,13 +190,13 @@ class Interpreter:
         if line == '':
             return
 
-        if line[0] == '<' and line[1] == '<':
+        if line.startswith('<<'):
 
             # parse all text in the line for text surrounded by %
             funccalls = []
             infunc = False
             func = ''
-            for i in range(0, line.index('>>')):
+            for i in range(0, line.rindex('>>')):
                 if line[i] == '|' and not infunc:
                     infunc = True
                 elif line[i] == '|' and infunc:
@@ -206,6 +216,30 @@ class Interpreter:
                 return eval(line)
             except:
                 return line
+
+        # user defined syntax
+        for key in syntax:
+            if line.startswith(key):
+
+                # get everything between after syntax and before next index of syntax
+                # or end of line
+                inside = line[len(key):line.rindex(key)]
+                
+                # variable name
+                invarname = syntax[key][0]
+                
+                # function to be run
+                function = syntax[key][1]
+                
+                # store the in between for the user function
+                self.vars[invarname] = Var(invarname, inside)
+                
+                # run the syntax
+                ret = self.interpret(function)
+                
+                # remove the syntax variable
+                del self.vars[invarname]
+                return ret
 
         # msn1 fallback
         if line[0] == '@':
@@ -278,7 +312,7 @@ class Interpreter:
                     return self.loggedmethod[-1]
             
             # method-specific line reached
-            elif c=='-' and line[i + 1] == '-':
+            elif line.startswith('--'):
                 line = line[i + 2:]
                 try:
                     if not self.methods[self.loggedmethod[-1]].ended:
@@ -395,7 +429,28 @@ class Interpreter:
                     to_split = self.parse(0, line, f, sp, args)[2]               
                     splitting_by = self.parse(1, line, f, sp, args)[2]     
                     return to_split.split(splitting_by)
+                
+                # obtains text between the first argument of the second argument
+                if func == 'between':
                     
+                    # surrounding token
+                    surrounding = self.parse(0, line, f, sp, args)[2]
+                    
+                    # string to analyze
+                    string = self.parse(1, line, f, sp, args)[2]
+                    
+                    funccalls = []
+                    try:
+                        while string.count(surrounding) > 1:
+                            string = string[string.index(surrounding) + len(surrounding):]
+                            funccalls.append(string[:string.index(surrounding)])
+                            string = string[string.index(surrounding) + len(surrounding):]
+                    except: 
+                        None
+                        
+                    return funccalls
+                        
+                
                 # creates / sets a variable
                 if func == 'var':
   
@@ -629,6 +684,22 @@ class Interpreter:
                     elif objfunc == 'pi':
                         return math.pi
                     return '<msnint2 class>'
+                    
+                # defines new syntax, see tests/validator.msn2 for documentation
+                elif func == 'syntax':
+                    
+                    # gets the syntax token
+                    token = self.parse(0, line, f, sp, args)[2]
+                    
+                    # gets the variable name of the between
+                    between = self.parse(1, line, f, sp, args)[2]
+                    
+                    # function that should be executed when the syntax is found
+                    function = args[2][0]
+                    
+                    syntax[token] = [between, function]
+                    
+                    return [token, between, function]
                     
                 # performs object based operations
                 elif obj == 'var':
