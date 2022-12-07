@@ -99,7 +99,6 @@ class Interpreter:
                 continue
 
             elif line.startswith('<<<'):
-                print(line)
                 self.interpret_msnscript_1(line)
 
             else:
@@ -211,7 +210,6 @@ class Interpreter:
         # msn1 fallback
         if line[0] == '@':
             line = line[1:]
-            print(line)
             return self.interpret_msnscript_1(line)
 
         if line[0] == '*':
@@ -1885,7 +1883,7 @@ class Interpreter:
                     for j in range(i + 2, len(line)):
                         element += line[j]
                     self.vars[variable].value /= self.evaluate(element, 'number')
-                    return self.varsVar[variable].value
+                    return self.vars[variable].value
                 elif c == '=':
                     variable = element
                     element = ''
@@ -2082,7 +2080,7 @@ class Interpreter:
             None
         try:
             for var in self.vars:
-                strn = strn.replace("{" + var + "}", str(self.vars[var]))
+                strn = strn.replace("{" + var + "}", str(self.vars[var].value))
             for method in self.methods.keys():
                 toprint = ''
                 body = self.methods[method].body
