@@ -683,6 +683,8 @@ var('terminate', False)
 # hosting an endpoint
 ~ test_endpoints() -> _
 
+    -- print ('[+] testing endpoints')
+
     # endpoints should reside in a new process
     -- fork('ep1', async(=>(
         
@@ -797,9 +799,16 @@ var('terminate', False)
 # -------------------------------------------
 
 
+# ------------------ MSN1 FALLBACK ------------------
+
+# msn1 fallback can be used for a better ease when
+# operating on variables as depicted in this test
+
 # tests '@' syntax to msnscript1 fallback functionality
 ~ test_msn1_fallback() -> _
     
+    -- print('[+] testing msn1 fallback...')
+
     # preceeding a LINE with '@' indicates an msn1 fallback request
     -- @ integer = 1
 
@@ -807,16 +816,127 @@ var('terminate', False)
     -- assert(exists('integer'))
     -- assert(?integer? == 1)
 
+    # testing increment
+    -- @ integer+= 1
+    -- assert(?integer? == 2)
 
+    # testing decrement
+    -- @ integer-=1
+    -- assert(?integer? == 1)
 
+    # testing * and /
+    --@integer*=3
+    -- assert(?integer? == 3)
 
+    -- @ integer /= 3
+    -- assert(?integer? == 1)
+
+    # testing other things
+    -- @ integer = integer + integer
+    -- assert(?integer? == 2)
+
+    -- @integer2 = integer
+    -- assert(exists('integer2'), ?integer2? == ?integer?)
+
+    --@ string = "hello this is a string"
+    -- assert(?string? == 'hello this is a string')
+    
+    --@ string += " yes"
+    -- assert(?string? == "hello this is a string yes")
+
+    # primal msn1 loop mechanism
+    -- @ integer = 0
+    -- @ {0:5:i} integer += i
+    -- assert(?integer? == 10)
+
+    # primate msn1 conditional mechanism
+    --@ integer=0
+    -- assert(not(?integer?))
+
+    # arrays and objects
+    --@ array = [1, -2, 3] 
+    --@ array2 = ["string", 453.4234, -231.67345, ["0"]]
+    --@ object = {'obj': [8, '!'], 'key': 'value'}
+
+    -- assert(?array? == [1, -2, 3])
+    -- assert(?array2? == ["string", 453.4234, -231.67345, ["0"]])
+    -- assert(?object? == {'obj': [8, '!'], 'key': 'value'})
+
+    
     -- var('_', True)
 
+# -------------------------------------------
 
 
 
+# ------------------ SIMPLE LOOPS ------------------
 
 
+
+# simple loops are written as functions with the below syntax
+# two integers, and an index variable before the loop's block arguments within the ()
+# the arguments to the simple loop between the || cannot be anything but an integer
+
+# tests another loop approach
+~ test_simple_loops() -> _
+
+    -- print('[+] testing simple loops...')
+
+    -- @ a = 0
+
+    # simple loop syntax
+    -- 0|2|i (add('a', 1))
+
+    -- assert(?a? == 2)
+
+    -- @ a = 0
+    --0|5|i(add('a', ?i?))
+    -- assert(?a? == 10)
+
+    -- @ a = 0
+    -- 0 | 3 | i (add('a', 1))
+    -- assert(?a? == 3)
+
+    # brute test
+    --@a=0
+    --     5    |   2 |_(add(   'a', 1))
+    -- assert(1 , ?a? == 3)
+    
+    --@a=0
+
+    # nested simple loops
+    -- 2 | 6 | i    (1|4|j  (add('a', 1)))
+    -- assert(?a? == 12)
+
+    # uses msn1 fallback to simplify returning process, see returning tests for returning requirements
+    -- @ _ = 1
+
+# -------------------------------------------
+
+# ------------------ SIMPLE CONDITIONALS ------------------
+
+# simpler conditional implementation
+# ? syntax is a function, meaning it requires (true_block, false_block) for a block to execute
+# the argument to ? cannot be a function itself
+~ test_simple_cond() -> _
+    -- print('[+] testing simple cond...')
+    
+    # assert syntax is functional
+    -- ? True (assert(True), assert(False))
+    -- ? False (assert(False), assert(True))
+
+    # slightly more advanced variations
+    -- @ a = 1
+    -- ? ?a? (assert(True), assert(False))
+    -- ? not ?a? (assert(False))
+
+    # no () can exist between ? and its blocks in ()
+    -- ?  << not True >>  (assert(False), assert(True))
+
+    -- ? 0 (assert(False))
+    -- @_=1
+
+# -------------------------------------------
 
 
 
@@ -833,7 +953,6 @@ var('terminate', False)
     # runs basic tests
     # runs each test on a new thread    
     -- thread('vars', private(assert(test_var())))
-
     -- thread('math', private(assert(test_math()))) 
     -- thread('strings', private(assert(test_strings())))
     -- thread('arrays', private(assert(test_arrays())))
@@ -841,7 +960,9 @@ var('terminate', False)
     -- thread('complex', private(assert(test_complex())))
     -- thread('random', private(assert(test_random())))
     -- thread('msn1', private(assert(test_msn1_fallback())))
-    
+    -- thread('loops', private(assert(test_simple_loops())))
+    -- thread('cond', private(assert(test_simple_cond())))
+
     -- private(=>(
         
         # runs thread based test
