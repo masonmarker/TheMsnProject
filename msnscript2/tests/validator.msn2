@@ -1005,19 +1005,68 @@ var('terminate', False)
         ?arr?
     ))
 
-    --  =>(
-        $$ 
-            ---hello, how are you?---
-            ---34234543---
-            ----5489302543259543---
-        $$
+    # demonstrates the new syntax
+    -- var('array', $$ ---5--- ---3--- ---0---   $$)
+    -- var('array', << [int(i) for i in |?array?|] >>)
+    -- assert(?array? == [5, 3, 0])    
+
+    
+    # pretend global variable
+    -- @ a = 0
+
+    # defines a new syntax to make an increment of a variable easier
+    -- syntax('++', 'line', =>(
+        @ a += 1
+    ))
+
+    # assert functionality
+    -- assert(?a? == 0)
+    -- ++
+    -- assert(?a? == 1)
+    -- 0|10|_(++)
+    -- assert(?a? == 11)
+    -- ? True (=>(++, =>(
+        0|5|_ (++)
+    )))
+    -- assert(?a? == 17)
+    
+    # paired user syntax tags still act as a single call to that syntax
+    -- =>(
+        ++
+        ++
     )
 
+    -- assert(?a? == 18)
+    
+    -- @ _ = 1
+# -------------------------------------------
+
+# ------------------ COMPLEX 2 ------------------
+
+~ test_complex2() -> _
+
+    -- print('[+] testing complex 2...')
+
+    -- @ is_error = 0
+
+    # defines new syntax for asserting
+    -- syntax('!!', 'line', =>(
+        var('insides', between('??', ?line?)),
+        var('first', ?insides?[0]),
+        each(?insides?, 'el', =>(
+            if (not(equals(?first?, ?el?)), var('is_error', True), var('is_error', False))
+        ))
+    ))
+
+    -- !! ??0?? ??1?? !!
+    -- assert(?is_error?)
+    -- !! ??'hello'?? ?'hello'?   !!
+    -- assert(not(?is_error?))
 
     -- @ _ = 1
 
 
-
+# -------------------------------------------
 
 
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
@@ -1043,6 +1092,9 @@ var('terminate', False)
     -- thread('msn1', private(assert(test_msn1_fallback())))
     -- thread('loops', private(assert(test_simple_loops())))
     -- thread('cond', private(assert(test_simple_cond())))
+    -- thread('complex2', private(assert(test_complex2())))
+
+    # test is not run on another thread to avoid file reading conflicts
     -- private(assert(test_user_syntax()))
 
     -- private(=>(
