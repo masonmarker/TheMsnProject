@@ -47,7 +47,8 @@ auxlock = threading.Lock()
 # user defined syntax
 syntax = {}
 
-
+# current lines
+lines_ran = []
 
 
 
@@ -104,11 +105,11 @@ class Interpreter:
 
         for line in self.lines:
             line = line.strip()
+            lines_ran.append(line)
             if line.startswith("::") or line.startswith("#"):
                 self.current_line += 1
                 continue
-            
-            
+        
             else:
 
                 # aggregate syntax !{} (not recommended for most cases)
@@ -153,7 +154,6 @@ class Interpreter:
                             self.interpret(inter)
                             break
                         multiline += c
-                                    
                 else:
                     self.interpret(line)
                 
@@ -218,25 +218,8 @@ class Interpreter:
         # user defined syntax
         for key in syntax:
             if line.startswith(key):
-
-                # get everything between after syntax and before next index of syntax
-                # or end of line
-                inside = line[len(key):line.rindex(key)]
-                
-                # variable name
-                invarname = syntax[key][0]
-                
-                # function to be run
-                function = syntax[key][1]
-                
-                # store the in between for the user function
-                self.vars[invarname] = Var(invarname, inside)
-                
-                # run the syntax
-                ret = self.interpret(function)
-                
-                return ret
-
+                return self.run_syntax(key, line)
+            
         # msn1 fallback
         if line[0] == '@':
             line = line[1:]
@@ -491,6 +474,10 @@ class Interpreter:
 
                     return True
 
+                # gets an amount of lines executed before the working line
+                elif func == 'before':
+                    return lines_ran[len(lines_ran) - self.parse(0, line, f, sp, args)[2]:]
+
                 # conditional logic
                 elif func == 'if':
                     # if condition and blocks arguments              
@@ -693,9 +680,7 @@ class Interpreter:
                     # function that should be executed when the syntax is found
                     function = args[2][0]
                     
-                    syntax[token] = [between, function]
-                    
-                    return [token, between, function]
+                    return self.add_syntax(token, between, function)
                 
                 # obtains the args of the first argument passed as if it were an 
                 elif func == 'args':
@@ -1727,7 +1712,32 @@ class Interpreter:
             except:
                 return None
 
-        
+    # adds a new program wide syntax
+    def add_syntax(self, token, between, function):                    
+        syntax[token] = [between, function]
+        return [token, between, function]
+
+    def run_syntax(self, key, line):
+                # get everything between after syntax and before next index of syntax
+                # or end of line
+                inside = line[len(key):line.rindex(key)]
+                
+                # variable name
+                invarname = syntax[key][0]
+                
+                # function to be run
+                function = syntax[key][1]
+                
+                # store the in between for the user function
+                self.vars[invarname] = Var(invarname, inside)
+                
+                # run the syntax
+                ret = self.interpret(function)
+
+                return ret
+
+
+
     def replace_vars2(self, line):
         for varname, var in self.vars.items():
                 try:
