@@ -1123,11 +1123,11 @@ var('terminate', False)
     -- thread('arrays', private(assert(test_arrays())))
     -- thread('classes', private(assert(test_classes())))
     -- thread('complex', private(assert(test_complex())))
+    -- thread('complex2', private(assert(test_complex2())))
     -- thread('random', private(assert(test_random())))
     -- thread('msn1', private(assert(test_msn1_fallback())))
     -- thread('loops', private(assert(test_simple_loops())))
     -- thread('cond', private(assert(test_simple_cond())))
-    -- thread('complex2', private(assert(test_complex2())))
 
     # test is not run on another thread to avoid file reading conflicts
     -- private(assert(test_user_syntax()))
