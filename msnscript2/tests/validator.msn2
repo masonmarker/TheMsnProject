@@ -611,12 +611,7 @@ import ('lib/processes.msn2')
     
     -- assert(not(exists('forkvar')))
 
-
-    -- var('_', True)
-
-
     # test 2
-
     -- var('a', 0)
 
     # starts two processes that perform work
@@ -666,6 +661,7 @@ import ('lib/processes.msn2')
     # joins with the first process created
     -- join(0)
 
+    -- var('_', True)
 # -------------------------------------------
 
 
@@ -840,7 +836,7 @@ var('terminate', False)
     --@ string += " yes"
     -- assert(?string? == "hello this is a string yes")
 
-    # primal msn1 loop mechanism
+    # primal msn1 loop mechanism, similar to simple loop syntax
     -- @ integer = 0
     -- @ {0:5:i} integer += i
     -- assert(?integer? == 10)
@@ -858,7 +854,28 @@ var('terminate', False)
     -- assert(?array2? == ["string", 453.4234, -231.67345, ["0"]])
     -- assert(?object? == {'obj': [8, '!'], 'key': 'value'})
 
-    
+    # @ to msn2 fallback
+    # use || to specific an msn2 function to be evaluated within the @ syntax
+
+    -- @ a = |3|
+    -- assert(?a? == 3)
+
+    -- @ a = |3 + 3|
+    -- assert(?a? == 6)
+
+    -- @ a = |assert(True)|
+    -- assert(?a?)
+
+    -- @ a += |False|
+    -- assert(?a?)
+
+    # more advanced usage
+    -- @ a = |assert(True)|+|assert(True, True, assert(1, =>(1, []==[])))| * 5 - 1
+    -- assert(?a? == 5)
+
+    -- @ a = |max([1, 2, 3, 4, 5])|
+    -- assert(?a? == 5)
+
     -- var('_', True)
 
 # -------------------------------------------
@@ -1075,20 +1092,6 @@ var('terminate', False)
     -- print('[+] testing complex 2...')
 
     -- @ is_error = 0
-
-    # redefines the previous assertion syntax
-    -- syntax('!!', 'line', =>(
-        var('insides', between('??', ?line?)),
-        var('first', ?insides?[0]),
-        each(?insides?, 'el', =>(
-            if (not(equals(?first?, ?el?)), var('is_error', True), var('is_error', False))
-        ))
-    ))
-
-    -- !! ??0?? ??1?? !!
-    -- assert(?is_error?)
-    -- !! ??'hello'?? ?'hello'?   !!
-    -- assert(not(?is_error?))
 
     # effectively defines a new global variable _PI that no longer requires 
     # being surrounded by ??

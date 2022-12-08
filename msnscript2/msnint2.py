@@ -107,10 +107,8 @@ class Interpreter:
             if line.startswith("::") or line.startswith("#"):
                 self.current_line += 1
                 continue
-
-            elif line.startswith('<<<'):
-                self.interpret_msnscript_1(line)
-
+            
+            
             else:
 
                 # aggregate syntax !{} (not recommended for most cases)
@@ -155,9 +153,10 @@ class Interpreter:
                             self.interpret(inter)
                             break
                         multiline += c
+                                    
                 else:
-                    self.interpret(line)
-
+                    
+                            self.interpret(line)
                 
 
             self.current_line += 1
@@ -1913,6 +1912,24 @@ class Interpreter:
         return args
 
     def interpret_msnscript_1(self, line):
+        
+        # parse all text in the line for text surrounded by %
+        funccalls = []
+        infunc = False
+        func = ''
+        for i in range(0, len(line)):
+            if line[i] == '|' and not infunc:
+                infunc = True
+            elif line[i] == '|' and infunc:
+                infunc = False
+                funccalls.append(func)
+                func = ''
+            elif infunc:
+                func += line[i]
+            
+        # for each instance of an msn2 reference    
+        for call in funccalls:
+            line = line.replace('|' + call + '|', str(self.interpret(call)))
         element = ''
         variable = ''
 
@@ -1962,7 +1979,7 @@ class Interpreter:
                     element = ''
                     string = False
                     array = False
-                    for j in range(i+1, len(line)):   
+                    for j in range(i+1, len(line)):
                         if line[j] == '"':
                             string = True
                         if line[j] == '[':
@@ -2104,7 +2121,10 @@ class Interpreter:
         
     def evaluate(self, postop, type):
         new = postop
-        
+        try:
+            return eval(new)
+        except:
+            None
         if type == 'number':
             new = self.replace_vars(new) 
             try:
@@ -2130,6 +2150,7 @@ class Interpreter:
                             evaluation = eval(new)
                         except:
                             evaluation = new
+            
             return evaluation
 
     def me(self):
