@@ -1,0 +1,66 @@
+# demonstrates MSNScript2's capability to create new language syntax
+#
+# author : Mason Marker
+# date : 12/8/2022
+
+# imports clear()
+import ('lib/os.msn2')
+
+# serialization
+import ('lib/serial.msn2')
+
+# clears the console
+clear()
+
+# creates a new system wide syntax, see tests/validator.msn2 for documentation
+# prints a line in the form of a message
+syntax('!', 'bt', =>(
+    print('[+]', ?bt?)
+))
+
+# opens a new serialized variable for thread naming
+serial_open('thread')
+
+# starts the line on a new thread
+syntax('/t', 'line', =>(
+
+    # name the thread
+    var('__name', serial_next('thread')),
+
+    # start the thread
+    thread(?__name?, -(?line?)),
+
+    # thread has been started
+    print('[+] thread started:', ?__name?),
+
+    ?__name?
+))
+
+
+# executes the code surrounded by the t tags as a thread
+/t  =>(assert(1, True, not(False)))  /t
+
+# /t can play the role of a static method with single tags
+# though practically unneccessary in this situation
+/t
+/t
+
+
+# using user syntax across multiple lines
+
+=>(
+    /t 
+    =>(
+        assert(1, 1, True, =>(
+            assert(assert(True))
+        ))
+    )
+    /t
+)
+
+
+
+# using new syntax to create multi line support
+
+
+
