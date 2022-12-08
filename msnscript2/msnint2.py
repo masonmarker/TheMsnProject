@@ -237,8 +237,6 @@ class Interpreter:
                 # run the syntax
                 ret = self.interpret(function)
                 
-                # remove the syntax variable
-                del self.vars[invarname]
                 return ret
 
         # msn1 fallback
@@ -700,7 +698,11 @@ class Interpreter:
                     syntax[token] = [between, function]
                     
                     return [token, between, function]
-                    
+                
+                # obtains the args of the first argument passed as if it were an 
+                elif func == 'args':
+                    None
+                  
                 # performs object based operations
                 elif obj == 'var':
                     
