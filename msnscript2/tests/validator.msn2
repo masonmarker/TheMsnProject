@@ -36,6 +36,7 @@ clear()
 
 # -------------------------------------------
 
+print('[+] starting, do not crtl + c / v')
 
 # testing variables
 var('a', 1)
@@ -584,12 +585,7 @@ import ('lib/semaphore.msn2')
 # multiprocessing support
 import ('lib/processes.msn2')
 
-# process naming serialization
-import ('lib/serial.msn2')
-
-# prepare serialization variable
-serial_open('p')
-
+# MSNScript2 is capable of multiprocessing, follow the documentation below
 ~ test_processes() -> _ 
 
     -- print('[+] testing processes...')
@@ -945,7 +941,8 @@ var('terminate', False)
 # syntax() takes three arguments
 # the created syntax will exist in all contexts across all threads
 # 
-# it is safe to choose unique tokens to avoid naming conflicts
+# it is safe and highly recommended to choose unique tokens to avoid symbolic / naming conflicts within 
+# base MSNScript2 syntax
 #
 # first argument indicates the token surrounding a block of text in an MSNScript2 argument, this block of text
 # does not need to conform to MSNScript2 / Python syntax
@@ -996,24 +993,51 @@ var('terminate', False)
     -- assert(<< |LOCAL this is some text LOCAL| == ' this is some text ' >>)
 
     # more advanced syntax
-    -- syntax('$$', 'line', =>(
-        var('arr', []),
-        var('insides', between('---', ?line?)),
+    # creates an array out of all things surrounded by '---'
+    # when inside the user defined context
+    -- syntax('$', 'line', =>(
+        var('____', []),
+        var('insides', between('-', ?line?)),
         each(?insides?, 'line2', =>(
-            arr.push(?line2?)
+            ____.push(?line2?)
         )),
-        ?arr?
+        ?____? 
     ))
 
-    --  =>(
-        $$ 
-            ---hello, how are you?---
-            ---34234543---
-            ----5489302543259543---
-        $$
+    # create quicker assertion syntax
+    -- syntax('!!', 'line', =>(
+        each(split(?line?, '--'), 'line2', =>(
+            if(not(-(?line2?)), print('[-] assertion failed: ' + ?line?)),
+        ))
+    ))
+
+    # demonstrating new syntax
+    -- .. !! -- True -- 1 -- [1, 2, 3, 4] == [1, 2, 3, 4] -- assert(assert(True)) !!
+
+    # using =>() to invoke multiline interpretation
+    -- =>(
+        !!
+        True
+        --
+        True
+        --
+        # we use th previous syntax to form an array
+        equals($ -1- -2- -9- $, ['1', '2', '9'])
+        !!
     )
 
+    # we use the new syntax to define an array of strings,
+    # we then return this array to the python fallback mechanism (<<>>)
+    # where we rely on Python to perform list comprehension to bring the integers
+    # out of each string element
+    -- assert(equals(var('array', << [int(i) for i in |$ -1- -2- -3- -4- -5- $|] >>), [1, 2, 3, 4, 5]))
+    -- assert(?array? == [1, 2, 3, 4, 5])
 
+    # effectively defines a new global variable _PI that no longer requires 
+    # being surrounded by ??
+    -- syntax('_PI', '__unused', 3.14)
+    -- assert(not(equals(_PI, 3.15)), assert(equals(_PI, 3.14)))
+    
     -- @ _ = 1
 
 
