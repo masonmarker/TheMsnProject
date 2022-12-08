@@ -155,8 +155,7 @@ class Interpreter:
                         multiline += c
                                     
                 else:
-                    
-                            self.interpret(line)
+                    self.interpret(line)
                 
 
             self.current_line += 1
