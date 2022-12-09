@@ -945,7 +945,7 @@ var('terminate', False)
 
     # no () can exist between ? and its blocks in ()
     # --v----------------v
-    -- ?  << not True >>  (assert(False), assert(True))
+    -- ? 0 (assert(False), assert(True))
 
     -- ? 0 (assert(False))
     -- @_=1
@@ -1091,18 +1091,69 @@ var('terminate', False)
 
     -- print('[+] testing complex 2...')
 
-    -- @ is_error = 0
 
-    # effectively defines a new global variable _PI that no longer requires 
-    # being surrounded by ??
-    -- syntax('_PI', '__unused', 3.14)
-    -- assert(not(equals(_PI, 3.15)), assert(equals(_PI, 3.14)))
-    
     -- @ _ = 1
 
 
 # -------------------------------------------
 
+# ------------------ TESTS MACROS ------------------
+
+# imports serialization for thread naming
+import('lib/serial.msn2')
+
+# opens a new serialization variable
+serial_open('thread')
+
+# MSNScript2 has both the ability to create new syntax as well as new macros
+#
+# macros are similar to syntax, however they are confined to a single line.
+# any text after the macro will be passed to the macro function,
+# where the user should handle the return value
+~ test_macros() -> _
+
+    -- print('[+] testing macros...')
+
+    # defines a new macro to create a thread, returning its name
+    # any line of code preceeded with a ':' will 
+    # be executed on a new thread
+    -- macro(':', 'line', =>(
+        @ name = |serial_next('thread')|,
+        thread(?name?, -(?line?)),
+        ?name?
+    ))
+
+    # demonstrates the new macro
+    -- : assert(True, 1, not(False))
+    
+    # creates a thread on a new context that runs an assertion
+    -- : new(=>(
+        assert(not(exists('a')), not(exists('b')), not(exists('c'))),
+        assert(True, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+    ))
+
+    # macros working together
+    # creating subthread
+    -- : : =>(
+        @ v = 3,
+        assert(exists('v'), ?v? == 3),
+    )
+
+    # quicker assertion
+    -- macro('!', 'line', assert(-(?line?)))
+
+    -- =>(! True, !not(False))
+
+    -- ! not False
+
+    # creates a few threads that make some assertions
+    -- : : : =>(!True, !1, !not 0)
+
+
+    -- @ _ = 1
+
+
+# -------------------------------------------
 
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
 
@@ -1128,6 +1179,12 @@ var('terminate', False)
     -- thread('msn1', private(assert(test_msn1_fallback())))
     -- thread('loops', private(assert(test_simple_loops())))
     -- thread('cond', private(assert(test_simple_cond())))
+
+    # macros testing
+    -- thread('macros', private(=>(
+        assert(test_macros()),
+        add_and_export()
+    )))
 
     # test is not run on another thread to avoid file reading conflicts
     -- private(assert(test_user_syntax()))
