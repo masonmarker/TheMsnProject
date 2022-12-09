@@ -50,6 +50,8 @@ syntax = {}
 # current lines
 lines_ran = []
 
+# user defined macros
+macros = {}
 
 
 
@@ -225,6 +227,29 @@ class Interpreter:
             line = line[1:]
             return self.interpret_msnscript_1(line)
 
+        # user defined macro
+        for token in macros:
+            if line.startswith(token):
+                
+                # variable name
+                varname = macros[token][1]
+                
+                # function to execute
+                function = macros[token][2]
+                
+                val = line[len(token):]
+                                
+                # store extended for user defined syntax
+                self.vars[varname] = Var(varname, val)
+
+                # if the macro returns a value instead of executing a function
+                if len(macros[token]) == 4:
+                    return macros[token][3]
+                    
+                # execute function
+                return self.interpret(function)
+                
+
         if line[0] == '*':
             line = self.replace_vars(line[1:])
             return self.interpret(line)
@@ -251,11 +276,7 @@ class Interpreter:
             if c == ' ' and s == 0:
                 sp += 1
                 continue
-            
-            if c == '<':
-                s += 1
-            elif c == '>':
-                s -= 1
+        
 
             if c == '.':
                 obj = func
@@ -392,6 +413,29 @@ class Interpreter:
                         if objfunc == 'add':
                             for i in range(len(args)):
                                 self.vars[vname].value += self.parse(i, line, f, sp, args)[2]
+                            return self.vars[vname].value
+                        
+                        if objfunc == 'split':
+                            return self.vars[vname].value.split(self.parse(0, line, f, sp, args)[2])
+
+                        # replaces all instances of the first argument with the second argument
+                        if objfunc == 'replace':
+                            
+                            # what to replace
+                            replacing = self.parse(0, line, f, sp, args)[2]
+                            
+                            # replacing with
+                            wth = self.parse(1, line, f, sp, args)[2]
+                            
+                            # replaces all instances of replacing with wth
+                            self.vars[vname].value = self.vars[vname].value.replace(replacing, wth)
+                            
+                            # returns the new string
+                            return self.vars[vname].value
+                           
+                        # strips the value at the variable name 
+                        if objfunc == 'strip':
+                            self.vars[vname].value = self.vars[vname].value.strip()
                             return self.vars[vname].value
 
                     # if the object is a dictionary
@@ -588,6 +632,18 @@ class Interpreter:
                     line, as_s, second = self.parse(1, line, f, sp, args)
                     self.vars[first].value /= second
                     return self.vars[first].value
+                
+                # appends to an array variable
+                elif func == 'append':        
+                    
+                    # varname
+                    varname = self.parse(0, line, f, sp, args)[2]    
+                    
+                    # value to append
+                    value = self.parse(1, line, f, sp, args)[2]
+                    
+                    self.vars[varname].value.append(value)
+                    return value    
                     
                 # gets the MSNScript version of this interpreter
                 elif func == 'version':
@@ -667,6 +723,8 @@ class Interpreter:
                     elif objfunc == 'pi':
                         return math.pi
                     return '<msnint2 class>'
+                   
+                   
                     
                 # defines new syntax, see tests/validator.msn2 for documentation
                 elif func == 'syntax':
@@ -681,6 +739,24 @@ class Interpreter:
                     function = args[2][0]
                     
                     return self.add_syntax(token, between, function)
+                
+                # defines a new macro
+                elif func == 'macro':
+                    
+                    token = self.parse(0, line, f, sp, args)[2]
+                    
+                    varname = self.parse(1, line, f, sp, args)[2]
+                    
+                    code = args[2][0]
+                    
+                    macros[token] = [token, varname, code]
+                    
+                    # 4th argument offered as a return value from that macro
+                    # as opposed to a block of code
+                    if len(args) == 4:
+                        macros[token].append(self.parse(3, line, f, sp, args)[2])
+                        
+                    return macros[token]
                 
                 # obtains the args of the first argument passed as if it were an 
                 elif func == 'args':
@@ -697,6 +773,15 @@ class Interpreter:
                                 return False
                         return True
                     return '<msnint2 class>'
+                
+                # gets the value of a variable
+                elif func == 'val':
+                    
+                    # gets the variable name
+                    varname = self.parse(0, line, f, sp, args)[2]
+                    
+                    # returns the value of the variable
+                    return self.vars[varname].value
                     
                 
                 # performs file-specific operations
@@ -1572,7 +1657,10 @@ class Interpreter:
                     try: 
                         return eval(str(self.vars[method.returns[0]].value))
                     except:
-                        return str(self.vars[method.returns[0]].value)
+                        try:
+                            return str(self.vars[method.returns[0]].value)
+                        except:
+                            return str(self.vars[method.returns[0]])
                 
                 # object instance requested
                 elif func in self.vars:
@@ -1731,10 +1819,7 @@ class Interpreter:
                 # store the in between for the user function
                 self.vars[invarname] = Var(invarname, inside)
                 
-                # run the syntax
-                ret = self.interpret(function)
-
-                return ret
+                return self.interpret(function)
 
 
 
@@ -1870,7 +1955,6 @@ class Interpreter:
             except:
                 None
 
-            
             if c == '[':
                 a += 1
             if c == ']':
@@ -1881,19 +1965,20 @@ class Interpreter:
             if c == ')':
                 p -= 1
 
-            if c == '{':
-                b += 1
-            if c == '}':
-                b -= 1
+            if not self.in_string(s, s2):
+                if c == '{':
+                    b += 1
+                if c == '}':
+                    b -= 1
 
-            if not indouble and c == '"':
+            if not indouble and not s2 > 0 and c == '"':
                 s += 1
                 indouble = True
             elif indouble and c == '"':
                 s -= 1
                 indouble = False
 
-            if not insingle and c == "'":
+            if not insingle and not s > 0 and c == "'":
                 s2 += 1
                 insingle = True
             elif insingle and c == "'":
@@ -1919,6 +2004,9 @@ class Interpreter:
                 args.append([arg, start, start + len(arg)])
             arg += c
         return args
+
+    def in_string(self, s, s2):
+        return s > 0 or s2 > 0
 
     def interpret_msnscript_1(self, line):
         

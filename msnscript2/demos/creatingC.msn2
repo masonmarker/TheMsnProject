@@ -1,0 +1,98 @@
+# demonstrates MSNScript2's ease of ability to create and emulate another language
+#
+# C made a loop lol (C->Python->MSNScript2->C)
+#
+# author : Mason Marker
+# date : 12/8/2022
+
+import('lib/os.msn2')
+clear()
+
+
+
+# functions
+@funcdefs=[]
+
+# emulating C functions
+~ printf(__string)->__string
+    -- print(?__string?)
+~ fwrite(path, text)->text
+    -- file.create(?path?)
+    -- file.write(?path?, ?text?)
+~ fread(path)->read
+    -- var('read', file.read(?path?))
+
+# include macro (we cannot use the preceeding # of the include 
+# because that indicates a comment in MSNScript2)
+macro('include', '__m_file', =>(
+
+    # we need to use the system call val() to extract a complex value of a variable
+    import(-(val('__m_file')))
+))
+
+# creates a function and its return value
+macro('int main() {', 'funcdef', =>(
+
+    # log the function
+    funcdefs.push([?funcdef?])
+))
+
+# does nothing, created to avoid runtime errors
+macro('}', '__unused',)
+
+# creates new syntax to set a variable
+macro('define', '__def', =>(
+
+    # prepares the variable definition
+    __def.replace('"', ''),
+    __def.strip(),
+
+    # prepare to create the new variable
+    @vn = '',
+    @val = '',
+    @at_value = 0,
+
+    # using val() for complex return values
+    each( val ('__def'), 'char', =>(
+        if (not(?at_value?), =>(
+            if (?char? == ' ',  @at_value = 1),
+            if (?char? != ' ', vn.add(?char?))
+        ), val.add(?char?))
+    )),
+
+    print('[+] creating variable:', ?vn?, 'with value:', ?val?),
+    var('__name', 'C' + ?vn?),
+    var(?__name?, ?val?),
+
+    # creates a new macro that will replace the variable name specified
+    # with the value stored
+    # note that macro can take a fourth argument in place of the third
+    # to return a specific value as opposed to running a block of code
+    macro(?vn?, '__unused', None , ?val? )  
+))
+
+
+# --------------------- we now in C lol ---------------------
+
+# serialization library
+include "lib/serial.msn2"
+
+define WELCOME "hello from a C program!"
+define MAX 10
+define MIN 0
+define PATH "localstorage/local.txt"
+define TEXT "test write"
+
+int main() {
+
+    # C's notorious printf()
+    printf(WELCOME)
+
+    # its humble fwrite()
+    fwrite(PATH, TEXT)
+
+    # and its subtle fread()
+    assert(equals(fread(PATH), TEXT))
+}
+
+# -----------------------------------------------------------
