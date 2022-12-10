@@ -1157,13 +1157,54 @@ serial_open('thread')
 
 # tests the concept of postmacros, which in turn create a new syntax that should exist
 # at the end of any single line of code
+# when a line is succeeded by a postmacro token, a function
+# will be invoked on the line preceeding the postmacro
+# this function is defined by the user
+# 
+# similarly to macros, if a 4th argument is added, the third
+# argument as a function is ignored and a value is returned instead
 ~ test_postmacros()->_
     
     -- print('[+] testing postmacros...')
 
-    # creates a post macro
-    -- postmacro()
- 
+    # creates a post macro for a more English approach to asserting
+    # i guess you could call it questioning lol
+    -- postmacro('??', 'line', =>(
+        assert(-(?line?))
+    ))
+
+    # demonstrates the postmacro
+    -- True??
+    -- not False and True ??
+    -- assert(True, 1, 1)??
+
+    # 4th argument added
+    -- postmacro('_PI_', '__unused', None, 3.14)
+    -- assert(equals(_PI_, 3.14), not(equals(5.123, _PI_)))
+    
+    # floors a number
+    -- postmacro('VVV', '__expression', =>(
+       math.floor(-(?__expression?))
+    ))
+
+    # ceils a number
+    -- postmacro('^^^', '__expression', =>(
+        math.ceil(-(?__expression?))
+    ))
+
+    # divides a number by 2
+    -- postmacro('BY2', '__expression', =>(
+        << |-(?__expression?)| / 2 >>
+    ))
+
+    -- assert(equals(3, 3.438732 VVV))
+    -- assert(.438275^^^)
+    -- assert(1.43254394382743928VVV)
+
+    -- assert(equals(4 BY2, 2), 2 BY2)
+
+    -- assert(equals())
+
     @ _ = 1
 
 

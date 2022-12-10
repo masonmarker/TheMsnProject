@@ -255,6 +255,10 @@ class Interpreter:
         # user defined post macro
         for token in postmacros:
             if line.endswith(token):
+
+                # if the macro returns a value instead of executing a function
+                if len(postmacros[token]) == 4:
+                    return postmacros[token][3]
                 varname = postmacros[token][1]
                 function = postmacros[token][2]
                 val = line[0:len(line) - len(token)]
@@ -689,10 +693,9 @@ class Interpreter:
 
                 # performs math functions
                 elif obj == 'math':
-                    # extract function
-                    func = self.parse(0, line, f, sp, args)[2]
+
                     # extract argument
-                    line, as_s, arg = self.parse(1, line, f, sp, args)
+                    line, as_s, arg = self.parse(0, line, f, sp, args)
 
                     # perform function
                     if objfunc == 'abs':
@@ -726,7 +729,7 @@ class Interpreter:
                     elif objfunc == 'exp':
                         return math.exp(arg)
                     elif objfunc == 'pow':
-                        return math.pow(arg, self.parse(2, line, f, sp, args)[2])
+                        return math.pow(arg, self.parse(1, line, f, sp, args)[2])
                     elif objfunc == 'factorial':
                         return math.factorial(arg)
                     elif objfunc == 'e':
@@ -780,6 +783,10 @@ class Interpreter:
                     
                     postmacros[token] = [token, varname, code]
                         
+                    # same as macro
+                    if len(args) == 4:
+                        postmacros[token].append(self.parse(3, line, f, sp, args)[2])
+
                     return postmacros[token]
                     
                 
