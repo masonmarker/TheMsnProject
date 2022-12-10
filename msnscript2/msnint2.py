@@ -53,6 +53,9 @@ lines_ran = []
 # user defined macros
 macros = {}
 
+# user defined post macros
+# aka macros that are defined that the end of a line
+postmacros = {}
 
 
 # interprets MSNScript2, should create a new interpreter for each execution iteration
@@ -248,7 +251,15 @@ class Interpreter:
                     
                 # execute function
                 return self.interpret(function)
-                
+        
+        # user defined post macro
+        for token in postmacros:
+            if line.endswith(token):
+                varname = postmacros[token][1]
+                function = postmacros[token][2]
+                val = line[0:len(line) - len(token)]
+                self.vars[varname] = Var(varname, val)
+                return self.interpret(function)
 
         if line[0] == '*':
             line = self.replace_vars(line[1:])
@@ -757,6 +768,20 @@ class Interpreter:
                         macros[token].append(self.parse(3, line, f, sp, args)[2])
                         
                     return macros[token]
+                
+                # creates a macro that should be declared at the end of a line
+                elif func == 'postmacro':
+                    
+                    token = self.parse(0, line, f, sp, args)[2]
+                    
+                    varname = self.parse(1, line, f, sp, args)[2]
+                    
+                    code = args[2][0]
+                    
+                    postmacros[token] = [token, varname, code]
+                        
+                    return postmacros[token]
+                    
                 
                 # obtains the args of the first argument passed as if it were an 
                 elif func == 'args':
