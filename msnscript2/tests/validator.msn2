@@ -1151,9 +1151,22 @@ serial_open('thread')
 
 
     -- @ _ = 1
-
-
 # -------------------------------------------
+
+# ------------------ TESTS POSTMACROS ------------------
+
+# tests the concept of postmacros, which in turn create a new syntax that should exist
+# at the end of any single line of code
+~ test_postmacros()->_
+    
+    -- print('[+] testing postmacros...')
+
+    # creates a post macro
+    -- postmacro()
+ 
+    @ _ = 1
+
+
 
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
 
@@ -1186,9 +1199,11 @@ serial_open('thread')
         add_and_export()
     )))
 
+    # tests post macro functionality
+    -- private(assert(test_postmacros()))
+
     # test is not run on another thread to avoid file reading conflicts
     -- private(assert(test_user_syntax()))
-
     -- private(=>(
         
         # runs thread based test
