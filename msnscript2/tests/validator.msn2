@@ -1203,9 +1203,14 @@ serial_open('thread')
 
     -- assert(equals(4 BY2, 2), 2 BY2)
 
-    -- assert(equals())
+    # postmacros can be chained, similarly to macros
+    -- assert(equals(4 BY2 BY2, 1))
 
-    @ _ = 1
+    # using multiple postmacros
+    # divides by 2, then floors
+    -- assert(equals(9 BY2 VVV, 4))
+
+    -- @ _ = 1
 
 
 
