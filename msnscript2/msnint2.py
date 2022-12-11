@@ -421,7 +421,16 @@ class Interpreter:
                                 while self.parse(i, line, f, sp, args)[2] in var:
                                     del var[var.index(self.parse(i, line, f, sp, args)[2])]
                             return object
+                    
+                        # gets a sorted copy of this array
+                        if objfunc == 'sorted':
+                            return sorted(self.vars[vname])
                         
+                        # sorts this array
+                        if objfunc == 'sort':
+                            self.vars[vname].value.sort()
+                            return self.vars[vname].value
+                    
                     # if the object is a string
                     elif isinstance(object, str):
                         
@@ -452,6 +461,12 @@ class Interpreter:
                         if objfunc == 'strip':
                             self.vars[vname].value = self.vars[vname].value.strip()
                             return self.vars[vname].value
+
+                        if objfunc == 'self':
+                            try:
+                                return self.vars[vname].value
+                            except:
+                                return self.vars[vname]
 
                     # if the object is a dictionary
                     elif isinstance(object, dict):
@@ -487,7 +502,6 @@ class Interpreter:
                         None
                         
                     return funccalls
-                        
                 
                 # creates / sets a variable
                 if func == 'var':
@@ -812,10 +826,16 @@ class Interpreter:
                     # gets the variable name
                     varname = self.parse(0, line, f, sp, args)[2]
                     
-                    # returns the value of the variable
-                    return self.vars[varname].value
+                    try:
+                        return self.vars[varname].value
+                    except:
+                        return self.vars[varname]
                     
-                
+                # gets a sorted version of the array 
+                elif func == 'sorted':
+                    return sorted(self.parse(0, line, f, sp, args)[2])
+                    
+                    
                 # performs file-specific operations
                 elif obj == 'file':
                     
