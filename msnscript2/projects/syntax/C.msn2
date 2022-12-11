@@ -14,22 +14,41 @@ clear()
 @funcdefs=[]
 
 # emulating C functions
-~ printf(first, __string)->__printedchars
-    -- print(?__string?)
-    -- var('__printedchars', len(?__string?))
+~ printf(first, __printing)->__printedchars
+
+    # logs the printing string
+    -- var('__printing', val('__printing'))
+
+    # replaces newlines with a %
+    -- __printing.replace('\n', '%')
+
+    # splits by newline
+    -- var('__split', split(?__printing?, '%'))
+    
+    # prints according to newline specifications
+    -- if (<< len(|?__split?|) < 2 >>, << print(
+        |?__printing?|, end="") >>,  for(0, <<len(|?__split?|)-1>>, '__i', print(?__split?[?__i?])))
+
+    # returns length of printed string
+    -- var('__printedchars', len(?__printing?))
 
 ~ fwrite(path, text)->text
     -- file.create(?path?)
     -- file.write(?path?, ?text?)
 ~ fread(path)->read
     -- var('read', file.read(?path?))
+~ strcat(__string1, __string2)->__cat
+    -- var('__cat', cat(?__string1?, val('__string2')))
 
 # include macro (we cannot use the preceeding # of the include 
 # because that indicates a comment in MSNScript2)
 macro('include', '__m_file', =>(
 
+    # evaluates the path provided
+    var('__ev', -(val('__m_file'))),
+    
     # we need to use the system call val() to extract a complex value of a variable
-    import(-(val('__m_file')))
+    import(?__ev?)
 ))
 
 # macros created to assert no errors when evaluating
@@ -60,6 +79,10 @@ macro('define', '__def', =>(
 
     # strip value and evaluate according to the type contained in the value string 
     vl.strip(),
+    
+    # rid of any post semicolon
+    if (<< |?vl?|.endswith(';') >>, var('vl', << |?vl?|[0:len(|?vl?|)-1] >>)),
+
     if (?vl? != 'None' and ?vl? != None, =>(
         var('__ev', -(?vl?)),
         if (?__ev? != None, var('vl', ?__ev?))
@@ -74,39 +97,72 @@ macro('define', '__def', =>(
     macro(?vn?, '__unused', None , ?vl?)
 ))
 
+# executes the preceeding line
+postmacro(';', '__line', -(val('__line')))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # --------------------- we now in C lol ---------------------
 
 # serialization library
-include "lib/serial.msn2"
+include "lib/serial.msn2";
 
-define WELCOME "hello from a C program!"
-define MAX 10
-define MIN 0
-define PATH "localstorage/local.txt"
-define TEXT "test write"
+# global variable definition macros
+define WELCOME "hello from a C program!";
+define MAX 10;
+define MIN 0;
+define PATH "localstorage/local.txt";
+define TEXT "test write";
 
+# main program
 int main() {
 
-    # C's notorious printf()
-    printf("%s", WELCOME)
+    assert(equals(printf("%s", "\n"), 1));
+
+    # C's notorious printf() working in unison with its infamous strcat()
+    assert(equals(printf("%s", strcat(WELCOME, "\n")), 24));
+
 
     # assertions, note the conformity to C's possible syntax given
     # a function declaration for assert(), not(), and equals()
-    assert(equals(MAX, 10))
-    assert(not(equals(MAX, 11)))
+    assert(equals(MAX, 10));
+    assert(not(equals(MAX, 11)));
+    assert(equals(0, MIN));
+    assert(not(equals(1, MIN)));
+    assert(not(equals(MAX, MIN)));
+    assert(equals(MAX, MAX));
 
-    assert(equals(0, MIN))
-    assert(not(equals(1, MIN)))
-    assert(not(equals(MAX, MIN)))
-    assert(equals(MAX, MAX))
+
+    # opens a serialized variable
+    serial_open("1");
+
+    # utilizing the included library for serialization
+    assert(equals(serial_next("1"), 1));
+    assert(equals(serial_next("1"), 2));
+    assert(equals(serial_next("1"), 3));
+    assert(equals(serial_next("1"), 4));
 
     # its humble fwrite()
-    fwrite(PATH, TEXT)
+    fwrite(PATH, TEXT);
 
     # and its subtle fread()
-    assert(equals(fread(PATH), TEXT))
+    assert(equals(fread(PATH), TEXT));
 }
+
 
 # -----------------------------------------------------------

@@ -1209,6 +1209,7 @@ serial_open('thread')
     # using multiple postmacros
     # divides by 2, then floors
     -- assert(equals(9 BY2 VVV, 4))
+    -- assert(equals(6.234^^^ BY2 VVV, 3))
 
     -- @ _ = 1
 

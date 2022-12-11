@@ -1,0 +1,27 @@
+# resources for a minimalist language syntax
+# 
+# author : Mason Marker
+# date : 12/10/2022
+
+
+# postmacro for a cleaner assertion
+postmacro('??', '__asserting', assert(-(?__asserting?)))
+
+# macro for printing syntax
+macro('prt', '__printing', =>(
+    print(?__printing?)
+)) 
+
+# macro for sorting an array
+macro('sort', '__expression', =>(
+    sorted(-(?__expression?))
+))
+
+
+
+
+
+
+# clears the screen and prepares for new language execution
+import('lib/os.msn2')
+clear()
