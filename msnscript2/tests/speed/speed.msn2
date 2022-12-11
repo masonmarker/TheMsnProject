@@ -1,0 +1,17 @@
+# tests execution speed of MSNScript2. 
+#
+# author : Mason Marker
+# date : 12/11/2022
+
+# timing capabilities
+import ('lib/timer.msn2')
+
+# tests the speed of the timer itself
+~ test_timer()->_
+    -- print('[+] testing timer...')
+
+    -- @ times=[]
+    -- for(0, 100, 'i', =>(
+        
+    ))
+    -- timer_start()
