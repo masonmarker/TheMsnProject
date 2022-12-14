@@ -1110,6 +1110,8 @@ serial_open('thread')
 # macros are similar to syntax, however they are confined to a single line.
 # any text after the macro will be passed to the macro function,
 # where the user should handle the return value
+#
+# macro arguments should be literals in most cases
 ~ test_macros() -> _
 
     -- print('[+] testing macros...')

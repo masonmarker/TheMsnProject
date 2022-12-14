@@ -247,7 +247,7 @@ class Interpreter:
 
                 # if the macro returns a value instead of executing a function
                 if len(macros[token]) == 4:
-                    return macros[token][3]
+                    return self.interpret(macros[token][3])
                     
                 # execute function
                 return self.interpret(function)
@@ -394,6 +394,10 @@ class Interpreter:
                                 self.vars[vname].value.append(self.parse(i, line, f, sp, args)[2])
                             return self.vars[vname].value
 
+                        # gets the average of this array
+                        elif objfunc == 'avg':
+                            return sum(self.vars[vname].value) / len(self.vars[vname].value)
+
                         # inserts all values at an index
                         if objfunc == 'insert':
                             
@@ -424,7 +428,7 @@ class Interpreter:
                     
                         # gets a sorted copy of this array
                         if objfunc == 'sorted':
-                            return sorted(self.vars[vname])
+                            return sorted(self.vars[vname].value)
                         
                         # sorts this array
                         if objfunc == 'sort':
@@ -440,7 +444,11 @@ class Interpreter:
                             return self.vars[vname].value
                         
                         if objfunc == 'split':
-                            return self.vars[vname].value.split(self.parse(0, line, f, sp, args)[2])
+                            arg = self.parse(0, line, f, sp, args)[2]
+                            try:
+                                return self.vars[vname].value.split(arg)
+                            except:
+                                return self.vars[vname].split(arg)
 
                         # replaces all instances of the first argument with the second argument
                         if objfunc == 'replace':
@@ -461,6 +469,10 @@ class Interpreter:
                         if objfunc == 'strip':
                             self.vars[vname].value = self.vars[vname].value.strip()
                             return self.vars[vname].value
+
+                        # obtains a stripped version of itself
+                        if objfunc == 'stripped':
+                            return self.vars[vname].value.strip()
 
                         if objfunc == 'self':
                             try:
@@ -550,6 +562,15 @@ class Interpreter:
                 # gets an amount of lines executed before the working line
                 elif func == 'before':
                     return lines_ran[len(lines_ran) - self.parse(0, line, f, sp, args)[2]:]
+
+                # trace capabilities
+                elif obj == 'trace':
+                    if objfunc == 'before':
+                        return lines_ran[len(lines_ran) - self.parse(0, line, f, sp, args)[2]:]
+                    if objfunc == 'this':
+                        return lines_ran[-1]
+                    return '<msnint2 class>'
+
 
                 # conditional logic
                 elif func == 'if':
