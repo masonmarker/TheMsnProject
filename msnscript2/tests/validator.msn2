@@ -1212,7 +1212,17 @@ serial_open('thread')
     -- assert(equals(6.234^^^ BY2 VVV, 3))
 
     -- @ _ = 1
+# -------------------------------------------
 
+# ------------------ TESTS HTML ------------------
+
+# tests html functions
+~ test_html()->_
+    -- print('[+] testing html')
+
+    -- @_=1
+
+# -------------------------------------------
 
 
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
@@ -1239,6 +1249,7 @@ serial_open('thread')
     -- thread('msn1', private(assert(test_msn1_fallback())))
     -- thread('loops', private(assert(test_simple_loops())))
     -- thread('cond', private(assert(test_simple_cond())))
+    -- thread('html', private(assert(test_html())))
 
     # macros testing
     -- thread('macros', private(=>(

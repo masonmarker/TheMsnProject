@@ -18,6 +18,9 @@ import socket
 import sys
 import subprocess
 
+# web scraping
+from bs4 import BeautifulSoup 
+
 
 class Err:
     def __init__(self, errorcode):
@@ -704,7 +707,26 @@ class Interpreter:
 
                     return '<msnint2 class>'
 
-
+                # html parsing simplified
+                elif obj == 'html':
+                    
+                    url = self.parse(0, line, f, sp, args)[2]
+                
+                    # creates a BeautifulSoup object of a url
+                    if objfunc == 'soup':
+                        
+                        response = requests.get(url)
+                        return BeautifulSoup(response.content, 'html5lib')
+                    
+                    # scrapes all html elements from a url
+                    if objfunc == 'scrape':
+                        all_elem = self.html_all_elements(url)
+                    
+                        
+                        return None
+                
+                
+                
                 # performs math functions
                 elif obj == 'math':
 
@@ -1068,7 +1090,10 @@ class Interpreter:
                         return math.asin(self.parse(0, line, f, sp, args)[2])
                     return '<msnint2 class>'
                     
-                            
+                # gets the type of the first argument passed
+                elif func == 'type':
+                    return type(self.parse(0, line, f, sp, args)[2])
+                 
                 # gets the parent context
                 elif func == 'parent':
                     return self.parent
@@ -2244,6 +2269,19 @@ class Interpreter:
         if op == '>=':
             return firsteval >= lasteval
         return False
+
+    # scrapes all html elements from a URL
+    def html_all_elements(self, url):
+        
+        # obtains a response from the URL
+        response = requests.get(url)
+        
+        soup = BeautifulSoup(response.content, 'html5lib')
+        
+        # obtains all html elements
+        return soup.find_all()
+        
+        
 
     def loop(self, section):
         first = ''
