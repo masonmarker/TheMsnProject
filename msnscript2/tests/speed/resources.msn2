@@ -1,0 +1,62 @@
+import ('lib/timer.msn2')
+import ('lib/os.msn2')
+clear()
+
+# average timer runtime, subtracted from speed computations after they're made
+@ timer_off = None
+@ iterations = 100
+
+# factors in timer offset to the runtime being analyzed
+~ normalize(__number)->__normalized
+
+    # subtracts timer offset and time to execute macro
+    -- var('__number', ?__number? - ?timer_off?)
+    -- if (?__number? < 0, var('__normalized', 0), var('__normalized', ?__number?))
+
+# prints a test result
+~ print_result(__msg, __rt)->_
+    -- print('[*]', ?__msg?, ':', cat(?__rt?, 's'))
+
+# tests the speed of the timer itself
+~ set_off()->_
+    -- @ times=[]
+    -- for(0, ?iterations?, 'i', =>(
+        timer_start(),
+        var('rt', timer_runtime()),
+        times.push(?rt?)   
+    ))
+
+    -- @timer_off = |times.avg()|
+    -- print_result('timer setup (factored into below runtimes)', times.avg())
+
+# runs a timer given an async block of code
+~ run_timer(__msg, __code) -> __rt
+    -- @ times = []
+    -- for (0, ?iterations?, 'i', =>(
+        timer_start(),
+        -(?__code?),
+        var('end', normalize(timer_runtime())),
+        times.push(?end?)
+    ))
+
+    -- private(print_result(?__msg?, times.avg()))
+
+# test macros for ease of testing
+macro ('RESET', '__unused', @test_sort_arr=[10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
+
+# test macro, runs the line of code 100 times and obtains the average runtime
+# then prints formatted result of the test
+macro ('TEST', '__line', =>(
+    var('__split', split(?__line?, ':::')),
+    var('message', ?__split?[0]),
+    message.strip(),
+    run_timer(-(?message?), ?__split?[1])
+))
+
+macro('DIVIDER', '__unused', print('---------------------------------------'))
+
+# computes and sets the timer's runtime offset that should be applied to a test
+set_off()
+
+# a common resource to use amongst tests
+@ common = {'person': {'name': 'unknown', 'age': 45, 'children': [{'name': 'unknown', 'age': 3}]}}

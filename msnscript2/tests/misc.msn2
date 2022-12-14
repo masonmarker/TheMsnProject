@@ -1,0 +1,47 @@
+
+
+
+
+import ('lib/os.msn2')
+import ('lib/semaphore.msn2')
+clear()
+
+print('M: acquiring a')
+var('a', semaphore(True, ''))
+
+print('M: acquiring b')
+var('b', semaphore(True, ''))
+
+
+
+thread('T1', =>(
+    print('T1: waiting'),
+    wait(not(a.held())),
+    a.held(True),
+    print('T1: EEEE'),
+    a.held(False),
+    sleep(0.01),
+    print('T1: FFFF')
+))
+
+print('M: AAAA')
+
+thread('T2', =>(
+    print('T2: waiting'),
+    wait(not(b.held())),
+    b.held(True),
+    print('T2: EEEE'),
+    b.held(False),
+    sleep(0.01),
+    print('T2: FFFF')
+))
+
+print('M: BBBB')
+
+b.held(False)
+sleep(0.01)
+print('M: CCCC')
+
+a.held(False)
+sleep(0.01)
+print('M: DDDD')
