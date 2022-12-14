@@ -1,0 +1,14 @@
+# demonstrates web scraping capabilities
+#
+# author : Mason Marker
+# date : 12/14/2022
+
+# specifically for clearing the console
+import ('lib/os.msn2')
+clear()
+
+var('elements', html.scrape("http://www.values.com/inspirational-quotes"))
+
+# env(True)
+
+
