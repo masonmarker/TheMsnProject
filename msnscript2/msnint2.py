@@ -50,6 +50,9 @@ auxlock = threading.Lock()
 # user defined syntax
 syntax = {}
 
+# user defined enclosing syntax
+enclosed = {}
+
 # current lines
 lines_ran = []
 
@@ -254,7 +257,7 @@ class Interpreter:
                     
                 # execute function
                 return self.interpret(function)
-        
+
         # user defined post macro
         for token in postmacros:
             if line.endswith(token):
@@ -271,6 +274,19 @@ class Interpreter:
         if line[0] == '*':
             line = self.replace_vars(line[1:])
             return self.interpret(line)
+
+        # invoking user defined enclosing syntax
+        for key in enclosed:
+
+            start = enclosed[key][0]
+            end = enclosed[key][1]
+            if line.startswith(start) and line.endswith(end):
+                block = enclosed[key][3]
+                varname = enclosed[key][2]
+                val = line[len(start):len(line) - len(end)]
+                self.vars[varname] = Var(varname, val)
+                return self.interpret(block)
+                
 
         # try base literal
         try:
@@ -817,8 +833,7 @@ class Interpreter:
                         return math.pi
                     return '<msnint2 class>'
                    
-                   
-                    
+                                    
                 # defines new syntax, see tests/validator.msn2 for documentation
                 elif func == 'syntax':
                     
@@ -833,6 +848,22 @@ class Interpreter:
                     
                     return self.add_syntax(token, between, function)
                 
+                # creates a new enclosed syntax that should execute the block
+                # specified on the line by which it was created
+                elif func == 'enclosedsyntax':
+
+                    start = self.parse(0, line, f, sp, args)[2]
+                    end = self.parse(1, line, f, sp, args)[2]
+                    varname = self.parse(2, line, f, sp, args)[2]
+
+                    index = str(start) + 'msnint2_reserved' + str(end)
+
+                    enclosed[index] = [start, end, varname, block]
+
+                    if len(args) == 4:
+                        enclosed[index].append(self.parse(3, line, f, sp, args)[2])
+                    return enclosed[index]
+
                 # defines a new macro
                 elif func == 'macro':
                     

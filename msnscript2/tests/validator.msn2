@@ -1226,6 +1226,28 @@ serial_open('thread')
 
 # ------------------ TESTS HTML ------------------
 
+# tests integrity of an enclosing syntax
+~ test_enclosing() -> _
+
+    -- print('[+] testing enclosing syntax...')
+
+    # creates an enclosing macro surrounded by the start and end token,
+    # invoked by preceeding a line with a '(', similarly to the previous
+    # macro, postmacro, and syntax definitions
+    -- enclosedsyntax('(', ')', '__line', =>(
+        print(?__line?)
+    ))
+
+    -- (hello how are you)
+
+
+    -- @ _ = 1
+
+# -------------------------------------------
+
+
+# ------------------ TESTS HTML ------------------
+
 # tests html functions
 ~ test_html()->_
     -- print('[+] testing html')
@@ -1260,6 +1282,8 @@ serial_open('thread')
     -- thread('loops', private(assert(test_simple_loops())))
     -- thread('cond', private(assert(test_simple_cond())))
     -- thread('html', private(assert(test_html())))
+    -- thread('enclosing', private(assert(test_enclosing())))
+
 
     # macros testing
     -- thread('macros', private(=>(
