@@ -488,23 +488,40 @@ class Interpreter:
                         
                         # allows for repetitive setting on a multiple indexed dictionary
                         if objfunc == 'set':
+                            self.vars[vname].value[self.parse(0, line, f, sp ,args)[2]] = self.parse(1, line, f, sp, args)[2]
+                            return self.vars[vname].value
+                        
+                        # first argument is what to set, should be called to_set
+                        # rest of the arguments are the indices at which to index the object and set to_set
+                        if objfunc == 'setn':
                             
-                            # element to set
+                            # what to set
                             to_set = self.parse(0, line, f, sp, args)[2]
                             
-                            # initial location
-                            location = self.parse(1, line, f, sp, args)[2]
+                            # the rest of the arguments are the indices
+                            # example: dict.setn('im being set', 'index1', 'index2', 'index3', ...)
+                            # should equal: dict['index1']['index2']['index3'] = 'im being set'
                             
-                            for i in range(2, len(args)):
+                            # the object to set
+                            obj = self.vars[vname].value
+
+                            # iterates through the indices
+                            for i in range(1, len(args)):
                                     
-                                # location to set
-                                location = self.parse(i, line, f, sp, args)[2]
+                                    # if the index is the last one
+                                    if i == len(args) - 1:
+                                        
+                                        # sets the index to to_set
+                                        obj[self.parse(i, line, f, sp, args)[2]] = to_set
                                     
-                            # sets the location to the element
-                            self.vars[vname].value[location] = to_set
+                                    # if the index is not the last one
+                                    else:
+                                        
+                                        # sets the object to the index
+                                        obj = obj[self.parse(i, line, f, sp, args)[2]]
+
+                            # returns the object
                             return self.vars[vname].value
-                        return object
-                            
 
 
                 # splits the first argument by the second argument
@@ -712,7 +729,18 @@ class Interpreter:
                     
                     self.vars[varname].value.append(value)
                     return value    
+                
+                # gets at the index specified
+                elif func == '->':
                     
+                    # array
+                    array = self.parse(0, line, f, sp, args)[2]
+                    
+                    # index
+                    index = self.parse(1, line, f, sp, args)[2]
+                    
+                    return array[index]
+                
                 # gets the MSNScript version of this interpreter
                 elif func == 'version':
                     return self.version
@@ -763,9 +791,7 @@ class Interpreter:
                             # separate attributes by tag
                             if elem.name not in obj_to_add:
                                 obj_to_add[elem.name] = []
-                            obj_to_add[elem.name].append(elem.attrs)
-
-                        
+                            obj_to_add[elem.name].append(elem)
                         return obj_to_add
                 
                 

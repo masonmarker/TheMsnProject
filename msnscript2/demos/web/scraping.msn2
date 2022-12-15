@@ -7,11 +7,20 @@
 import ('lib/os.msn2')
 clear()
 
-# creates an instance of an html class
-var('elements', html.from("http://www.values.com/inspirational-quotes"))
+@url='http://www.values.com/inspirational-quotes'
+print('[+] scraping from', ?url?)
 
-assert(equals(elements.url(), 'http://www.values.com/inspirational-quotes'))
+# creates an instance of an html class
+var('elements', html.from(?url?))
+
+# retaining and obtaining element's url
+assert(<< isinstance(|elements.url()|, str) >>)
+assert(equals(elements.url(), ?url?))
+
+# getting elements of the page
+assert(<< isinstance(|elements.div()|, list) >>)
+
+print(->(elements.div(), 0))
 
 # env(True)
-
 
