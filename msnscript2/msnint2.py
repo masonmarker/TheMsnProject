@@ -486,11 +486,26 @@ class Interpreter:
                     # if the object is a dictionary
                     elif isinstance(object, dict):
                         
-                        # sets a dictionary at an index
+                        # allows for repetitive setting on a multiple indexed dictionary
                         if objfunc == 'set':
-                            index = self.parse(0, line, f, sp, args)[2]
-                            self.vars[vname].value[index] = self.parse(1, line, f, sp, args)[2]
+                            
+                            # element to set
+                            to_set = self.parse(0, line, f, sp, args)[2]
+                            
+                            # initial location
+                            location = self.parse(1, line, f, sp, args)[2]
+                            
+                            for i in range(2, len(args)):
+                                    
+                                # location to set
+                                location = self.parse(i, line, f, sp, args)[2]
+                                    
+                            # sets the location to the element
+                            self.vars[vname].value[location] = to_set
                             return self.vars[vname].value
+                        return object
+                            
+
 
                 # splits the first argument by the second argument
                 if func == 'split':
@@ -740,11 +755,18 @@ class Interpreter:
                         return BeautifulSoup(response.content, 'html5lib')
                     
                     # scrapes all html elements from a url
-                    if objfunc == 'scrape':
-                        all_elem = self.html_all_elements(url)
-                        print(all_elem.pop(0).head)
+                    if objfunc == 'from':
                         
-                        return None
+                        obj_to_add = {'url': url}
+                        all_elem = self.html_all_elements(url)
+                        for elem in all_elem:
+                            # separate attributes by tag
+                            if elem.name not in obj_to_add:
+                                obj_to_add[elem.name] = []
+                            obj_to_add[elem.name].append(elem.attrs)
+
+                        
+                        return obj_to_add
                 
                 
                 

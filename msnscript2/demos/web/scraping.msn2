@@ -8,7 +8,9 @@ import ('lib/os.msn2')
 clear()
 
 # creates an instance of an html class
-var('elements', html.scrape("http://www.values.com/inspirational-quotes"))
+var('elements', html.from("http://www.values.com/inspirational-quotes"))
+
+assert(equals(elements.url(), 'http://www.values.com/inspirational-quotes'))
 
 # env(True)
 

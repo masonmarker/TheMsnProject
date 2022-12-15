@@ -264,7 +264,7 @@ var('f', 6)
 # -------------------------------------------
 
 
-# ------------------ ARRAYS ------------------
+# ------------------ ARRAYS AND DICTIONARIES ------------------
 
 ~ test_arrays() -> _
 
@@ -314,6 +314,14 @@ var('f', 6)
     # assert contains (<<>> python fallback)
     -- assert(<< 4 in |?a?| and 5 in |?a?| and 6 in |?a?| and 7 in |?a?| and 8 in |?a?| and 9  in |?a?| and 10 in |?a?| >>)
     -- assert(<< 1 not in |?a?| and 2 not in |?a?| and 3 not in |?a?| >>)
+
+    # indexing dictionaries
+    -- @dict = { 'a': 1, 'b': [0, [4, 3]], 'c': 3, 'd': 4, 'e': {'key': 'value'}, 'f': 6 }
+    -- assert(?dict?['a'] == 1)
+
+    # WIP
+    # -- dict.set(1, 'b', 0)
+
 
     -- var('_', True)
 
