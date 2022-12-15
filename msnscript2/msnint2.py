@@ -742,7 +742,7 @@ class Interpreter:
                     # scrapes all html elements from a url
                     if objfunc == 'scrape':
                         all_elem = self.html_all_elements(url)
-                    
+                        print(all_elem.pop(0).head)
                         
                         return None
                 
