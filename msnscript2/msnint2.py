@@ -40,6 +40,14 @@ class Var:
             return other.name == self.name 
 
 
+# creates an ai model 
+# creates and returns a custom ai model
+def ai_response(model, prompt, creativity):
+    return openai.Completion.create(
+        model=model,
+        prompt=prompt,
+        temperature=creativity
+    ).choices[0].text
 
 
     
@@ -62,6 +70,20 @@ macros = {}
 # user defined post macros
 # aka macros that are defined that the end of a line
 postmacros = {}
+
+# OpenAI model presets
+models = {
+    
+    # standard model, answers questions will little to no creativity
+    'basic': {'model': 'text-davinci-003', 'creativity': 0},
+    
+    # creative model, answers questions with creativity
+    'creative': {'model': 'text-davinci-003', 'creativity': 0.5},
+    
+    # advanced model, answers questions with high creativity
+    'advanced': {'model': 'text-davinci-003', 'creativity': 1}
+    
+}
 
 
 # interprets MSNScript2, should create a new interpreter for each execution iteration
@@ -401,6 +423,7 @@ class Interpreter:
                     elif objfunc == 'copy':
                         return object.copy()
                 
+                
                     # literal specific methods
                     # the isinstance branches below indicate DESCTRUCTIVE methods!
                     
@@ -505,23 +528,40 @@ class Interpreter:
                         
                         # allows for repetitive setting on a multiple indexed dictionary
                         if objfunc == 'set':
+                            self.vars[vname].value[self.parse(0, line, f, sp ,args)[2]] = self.parse(1, line, f, sp, args)[2]
+                            return self.vars[vname].value
+                        
+                        # first argument is what to set, should be called to_set
+                        # rest of the arguments are the indices at which to index the object and set to_set
+                        if objfunc == 'setn':
                             
-                            # element to set
+                            # what to set
                             to_set = self.parse(0, line, f, sp, args)[2]
                             
-                            # initial location
-                            location = self.parse(1, line, f, sp, args)[2]
+                            # the rest of the arguments are the indices
+                            # example: dict.setn('im being set', 'index1', 'index2', 'index3', ...)
+                            # should equal: dict['index1']['index2']['index3'] = 'im being set'
                             
-                            for i in range(2, len(args)):
+                            # the object to set
+                            obj = self.vars[vname].value
+
+                            # iterates through the indices
+                            for i in range(1, len(args)):
                                     
-                                # location to set
-                                location = self.parse(i, line, f, sp, args)[2]
+                                    # if the index is the last one
+                                    if i == len(args) - 1:
+                                        
+                                        # sets the index to to_set
+                                        obj[self.parse(i, line, f, sp, args)[2]] = to_set
                                     
-                            # sets the location to the element
-                            self.vars[vname].value[location] = to_set
+                                    # if the index is not the last one
+                                    else:
+                                        
+                                        # sets the object to the index
+                                        obj = obj[self.parse(i, line, f, sp, args)[2]]
+
+                            # returns the object
                             return self.vars[vname].value
-                        return object
-                            
 
 
                 # splits the first argument by the second argument
@@ -729,7 +769,18 @@ class Interpreter:
                     
                     self.vars[varname].value.append(value)
                     return value    
+                
+                # gets at the index specified
+                elif func == '->':
                     
+                    # array
+                    array = self.parse(0, line, f, sp, args)[2]
+                    
+                    # index
+                    index = self.parse(1, line, f, sp, args)[2]
+                    
+                    return array[index]
+                
                 # gets the MSNScript version of this interpreter
                 elif func == 'version':
                     return self.version
@@ -774,17 +825,34 @@ class Interpreter:
                     # scrapes all html elements from a url
                     if objfunc == 'from':
                         
-                        obj_to_add = {'url': url}
+                        obj_to_add = []
                         all_elem = self.html_all_elements(url)
-                        for elem in all_elem:
-                            # separate attributes by tag
-                            if elem.name not in obj_to_add:
-                                obj_to_add[elem.name] = []
-                            obj_to_add[elem.name].append(elem.attrs)
-
-                        
+                        for elem in all_elem:                            
+                            obj_to_add.append({'tag': elem.name, 'attrs': elem.attrs, 'text': elem.text} )
                         return obj_to_add
                 
+                
+                # ai specific usage
+                elif obj == 'ai':
+                    
+                    # verify existence of openai api key
+                    if not openai.api_key:
+                        try:
+                            openai.api_key = os.environ['OPENAI_API_KEY']
+                        except:
+                            raise Exception('OpenAI API key not found. Please set your OPENAI_API_KEY environment variable to your OpenAI API key.')
+                    
+                    # asks openai model a question
+                    # simple ai, see top of file for definition
+                    if objfunc == 'basic':
+                        
+                        # generates an ai response with the basic model
+                        return ai_response(models['basic']['model'], self.parse(0, line, f, sp, args)[2], models['basic']['creativity'])
+                    return '<msnint2 class>'
+                        
+                                            
+
+                        
                 
                 
                 # performs math functions
@@ -2418,7 +2486,6 @@ class Interpreter:
     def me(self):
         return str(self).replace(' ', '').replace('<', '').replace('>', '').replace('Interpreter', '')
 
-
     def string(self, string):
         strn = ''
         isv = False
@@ -2514,4 +2581,7 @@ class Interpreter:
         def delete(self):
             self.make_api({})
             return self.response
+
+
+
 

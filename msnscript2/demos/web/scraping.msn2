@@ -7,11 +7,15 @@
 import ('lib/os.msn2')
 clear()
 
-# creates an instance of an html class
-var('elements', html.from("http://www.values.com/inspirational-quotes"))
+@url='http://www.values.com/inspirational-quotes'
+print('[+] scraping from', ?url?)
 
-assert(equals(elements.url(), 'http://www.values.com/inspirational-quotes'))
+# creates an html object
+var('elements', html.from(?url?))
+
+# WIPWIPWIPWIPWIP
+
+
 
 # env(True)
-
 
