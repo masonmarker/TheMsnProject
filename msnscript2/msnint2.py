@@ -40,6 +40,14 @@ class Var:
             return other.name == self.name 
 
 
+# creates an ai model 
+# creates and returns a custom ai model
+def ai_response(model, prompt, creativity):
+    return openai.Completion.create(
+        model=model,
+        prompt=prompt,
+        temperature=creativity
+    ).choices[0].text
 
 
     
@@ -59,6 +67,20 @@ macros = {}
 # user defined post macros
 # aka macros that are defined that the end of a line
 postmacros = {}
+
+# OpenAI model presets
+models = {
+    
+    # standard model, answers questions will little to no creativity
+    'basic': {'model': 'text-davinci-003', 'creativity': 0},
+    
+    # creative model, answers questions with creativity
+    'creative': {'model': 'text-davinci-003', 'creativity': 0.5},
+    
+    # advanced model, answers questions with high creativity
+    'advanced': {'model': 'text-davinci-003', 'creativity': 1}
+    
+}
 
 
 # interprets MSNScript2, should create a new interpreter for each execution iteration
@@ -383,6 +405,7 @@ class Interpreter:
                     
                     elif objfunc == 'copy':
                         return object.copy()
+                
                 
                     # literal specific methods
                     # the isinstance branches below indicate DESCTRUCTIVE methods!
@@ -785,15 +808,34 @@ class Interpreter:
                     # scrapes all html elements from a url
                     if objfunc == 'from':
                         
-                        obj_to_add = {'url': url}
+                        obj_to_add = []
                         all_elem = self.html_all_elements(url)
-                        for elem in all_elem:
-                            # separate attributes by tag
-                            if elem.name not in obj_to_add:
-                                obj_to_add[elem.name] = []
-                            obj_to_add[elem.name].append(elem)
+                        for elem in all_elem:                            
+                            obj_to_add.append({'tag': elem.name, 'attrs': elem.attrs, 'text': elem.text} )
                         return obj_to_add
                 
+                
+                # ai specific usage
+                elif obj == 'ai':
+                    
+                    # verify existence of openai api key
+                    if not openai.api_key:
+                        try:
+                            openai.api_key = os.environ['OPENAI_API_KEY']
+                        except:
+                            raise Exception('OpenAI API key not found. Please set your OPENAI_API_KEY environment variable to your OpenAI API key.')
+                    
+                    # asks openai model a question
+                    # simple ai, see top of file for definition
+                    if objfunc == 'basic':
+                        
+                        # generates an ai response with the basic model
+                        return ai_response(models['basic']['model'], self.parse(0, line, f, sp, args)[2], models['basic']['creativity'])
+                    return '<msnint2 class>'
+                        
+                                            
+
+                        
                 
                 
                 # performs math functions
@@ -2412,7 +2454,6 @@ class Interpreter:
     def me(self):
         return str(self).replace(' ', '').replace('<', '').replace('>', '').replace('Interpreter', '')
 
-
     def string(self, string):
         strn = ''
         isv = False
@@ -2508,4 +2549,7 @@ class Interpreter:
         def delete(self):
             self.make_api({})
             return self.response
+
+
+
 
