@@ -278,11 +278,12 @@ class Interpreter:
         # invoking user defined enclosing syntax
         for key in enclosed:
 
-            start = enclosed[key][0]
-            end = enclosed[key][1]
+            start = enclosed[key][0][0]
+            end = enclosed[key][0][1]
             if line.startswith(start) and line.endswith(end):
-                block = enclosed[key][3]
-                varname = enclosed[key][2]
+                varname = enclosed[key][1]
+                block = enclosed[key]
+                print(varname, block)
                 val = line[len(start):len(line) - len(end)]
                 self.vars[varname] = Var(varname, val)
                 return self.interpret(block)
