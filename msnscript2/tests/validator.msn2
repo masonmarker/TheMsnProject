@@ -320,8 +320,27 @@ var('f', 6)
     -- assert(?dict?['a'] == 1)
 
     # WIP
-    # -- dict.set(1, 'b', 0)
+    -- dict.setn(999, 'e', 'key')   
+    -- assert(?dict?['e']['key'] == 999)
 
+    -- dict.setn(999, 'b', 1, 1)
+    -- assert(?dict?['b'][1][1] == 999)
+
+    -- dict.setn(999, 'b', 1)
+    -- assert(?dict?['b'][1] == 999)
+
+    -- dict.setn(999, 'b')
+    -- assert(?dict?['b'] == 999)
+
+    -- dict.setn(999, 'a')
+    -- assert(?dict?['a'] == 999)
+    -- dict.setn(999, 'f')
+    -- assert(?dict?['f'] == 999)
+
+    # deep dictionary operations
+    -- @deep={'1':{'2':{'3':{'4':{}}}}}
+    -- deep.setn(999, '1', '2', '3', '4', '5')
+    -- assert(?deep?['1']['2']['3']['4']['5'] == 999)
 
     -- var('_', True)
 
