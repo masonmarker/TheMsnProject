@@ -1,0 +1,10 @@
+# demonstrates asking a question
+#
+# author : Mason Marker
+# date : 12/16/2022
+
+# specifically for clearing the console
+import ('lib/os.msn2')
+clear()
+
+print(ai.basic('hello!'))
