@@ -33,6 +33,7 @@ import ('lib/syntax/msn2plus.msn2')
 
     -- print('[+] testing vars...')
 
+    # @ usage defined and demonstrated in tests/validator.msn2
     # creating variables
     -- @ v = 3
     -- @ v2 = [1, 2, 3, 4, 5]
@@ -42,9 +43,8 @@ import ('lib/syntax/msn2plus.msn2')
     -- v == 3 ??
     -- equals(?v2?, sorted([5, 4, 3, 2, 1])) ??
     -- not(equals(?v3?, {'key': ['3423', [], 6, 5, 4, 3, 'aowjfoiawejf']}))??
-
-    # @ usage defined and demonstrated in tests/validator.msn2
-
+    -- equals(^v^, 3) ??
+    
     
 
     -- @ _ = 3

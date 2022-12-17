@@ -68,6 +68,9 @@ macros = {}
 # aka macros that are defined that the end of a line
 postmacros = {}
 
+# user defined inline syntax
+inlines = {}
+
 # OpenAI model presets
 models = {
     
@@ -318,12 +321,11 @@ class Interpreter:
         # invoking user defined enclosing syntax
         for key in enclosed:
 
-            start = enclosed[key][0][0]
-            end = enclosed[key][0][1]
+            start = enclosed[key][0]
+            end = enclosed[key][1]
             if line.startswith(start) and line.endswith(end):
-                varname = enclosed[key][1]
-                block = enclosed[key]
-                print(varname, block)
+                varname = enclosed[key][2]
+                block = enclosed[key][3]
                 val = line[len(start):len(line) - len(end)]
                 self.vars[varname] = Var(varname, val)
                 return self.interpret(block)
@@ -934,10 +936,10 @@ class Interpreter:
 
                     index = str(start) + 'msnint2_reserved' + str(end)
 
-                    enclosed[index] = [start, end, varname, block]
+                    enclosed[index] = [start, end, varname, args[3][0]]
 
-                    if len(args) == 4:
-                        enclosed[index].append(self.parse(3, line, f, sp, args)[2])
+                    if len(args) == 5:
+                        enclosed[index].append(self.parse(4, line, f, sp, args)[2])
                     return enclosed[index]
 
                 # defines a new macro
@@ -974,11 +976,27 @@ class Interpreter:
                         postmacros[token].append(self.parse(3, line, f, sp, args)[2])
 
                     return postmacros[token]
-                    
                 
-                # obtains the args of the first argument passed as if it were an 
-                elif func == 'args':
-                    None
+                # creates an inline syntax that allows for value replacement
+                # within a line
+                # this is different from the above system calls because this
+                # syntax is invoked and returned as a value which will replace
+                # the invocation within the line
+                # arguments are the same as enclosedsyntax
+                elif func == 'inlinesyntax':
+                    start = self.parse(0, line, f, sp, args)[2]
+                    end = self.parse(1, line, f, sp, args)[2]
+                    varname = self.parse(2, line, f, sp, args)[2]
+
+                    index = str(start) + 'msnint2_reserved' + str(end)
+
+                    inlines[index] = [start, end, varname, args[3][0]]
+
+                    if len(args) == 5:
+                        inlines[index].append(self.parse(4, line, f, sp, args)[2])
+                    return inlines[index]
+                    
+
                   
                 # performs object based operations
                 elif obj == 'var':
