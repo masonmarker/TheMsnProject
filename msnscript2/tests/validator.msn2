@@ -1244,7 +1244,7 @@ serial_open('thread')
     -- @ _ = 1
 # -------------------------------------------
 
-# ------------------ TESTS HTML ------------------
+# ------------------ TESTS ENCLOSING SYNTAX ------------------
 
 # tests integrity of an enclosing syntax
 ~ test_enclosing() -> _
@@ -1254,11 +1254,13 @@ serial_open('thread')
     # creates an enclosing macro surrounded by the start and end token,
     # invoked by preceeding a line with a '(', similarly to the previous
     # macro, postmacro, and syntax definitions
-    # -- enclosedsyntax('(', ')', '__line', =>(
-    #     print(?__line?)
-    # ))
 
-  #  -- (hello how are you)
+    # SAFELY extracts a variable's value
+    -- enclosedsyntax('^', '^', '__line', val(val('__line')))
+
+    -- @v = 'hello\n how are you?'
+
+    -- assert(equals(^v^, 'hello\n how are you?'))
 
 
     -- @ _ = 1

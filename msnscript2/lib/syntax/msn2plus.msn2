@@ -7,3 +7,8 @@
 
 # assertions
 postmacro('??', '__line', assert(-(val('__line'))))
+
+
+
+# utilizing variables
+enclosedsyntax('^', '^', '__varname', val(val('__varname')))
