@@ -1,1 +1,70 @@
 # demonstrates the most optimal uses of macros, postmacros and enclosed
+# 
+# author : Mason Marker
+# date : 12/17/2022
+
+import('lib/os.msn2')
+clear()
+
+import ('lib/syntax/msn2plus.msn2')
+
+
+# ------- ASSERTIONS -------
+
+# tests new assertion syntax '??'
+~ test_assert() -> _
+
+    -- print('[+] testing assert...')
+
+    -- True ??
+    -- not False??
+    --1??
+    -- not 0 ??
+    -- assert(1)??
+    -- 3 + 2 == 5 ??
+    -- equals(4, 4) ??
+    -- @ _ = 1
+# --------------------------
+
+# ------- VARIABLES -------
+
+# tests optimal variable syntax
+~ test_vars() -> _
+
+    -- print('[+] testing vars...')
+
+    # creating variables
+    -- @ v = 3
+    -- @ v2 = [1, 2, 3, 4, 5]
+    -- @ v3 = {'key': ['3423', [], 6, 5, 4, 3]}
+    
+    # assertions
+    -- v == 3 ??
+    -- equals(?v2?, sorted([5, 4, 3, 2, 1])) ??
+    -- not(equals(?v3?, {'key': ['3423', [], 6, 5, 4, 3, 'aowjfoiawejf']}))??
+
+    # @ usage defined and demonstrated in tests/validator.msn2
+
+    
+
+    -- @ _ = 3
+
+# --------------------------
+
+
+
+# executes each test on a new thread
+~ run_tests() -> _
+
+    -- thread('assert', private(assert(test_assert())))
+    -- thread('vars', private(assert(test_vars())))
+
+
+# executing tests
+for (0, @it=5, 'i', =>(
+    print(cat('----- [+] iteration ', ?i? + 1, '-----')),
+    run_tests(),
+    print('--------------------------------')
+))
+
+print('[*] interpreted', trace.len(), 'instructions')

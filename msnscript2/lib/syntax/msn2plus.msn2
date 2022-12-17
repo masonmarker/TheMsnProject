@@ -1,0 +1,9 @@
+# optimal syntax library
+#
+# author : Mason Marker
+# date : 12/17/2022
+
+
+
+# assertions
+postmacro('??', '__line', assert(-(val('__line'))))

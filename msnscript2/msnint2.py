@@ -61,9 +61,6 @@ syntax = {}
 # user defined enclosing syntax
 enclosed = {}
 
-# current lines
-lines_ran = []
-
 # user defined macros
 macros = {}
 
@@ -84,6 +81,13 @@ models = {
     'advanced': {'model': 'text-davinci-003', 'creativity': 1}
     
 }
+
+
+# accounting information
+lines_ran = []
+total_ints = 0
+
+
 
 
 # interprets MSNScript2, should create a new interpreter for each execution iteration
@@ -208,8 +212,11 @@ class Interpreter:
 
     # interprets a line    
     def interpret(self, line, block=None):
+        global total_ints
         global lock
         global auxlock
+        total_ints += 1
+
         if self.breaking:
             return
         try:
@@ -220,6 +227,17 @@ class Interpreter:
         cont = False
         if line == '':
             return
+
+        # method-specific line reached
+        if line.startswith('--'):
+            line = line[2:]
+            try:
+                if not self.methods[self.loggedmethod[-1]].ended:
+                    self.methods[self.loggedmethod[-1]].add_body(line)
+            except:
+                None
+            return
+
 
         if line.startswith('<<'):
 
@@ -368,16 +386,6 @@ class Interpreter:
                     self.methods[self.loggedmethod[-1]].add_return(returnvariable)
                     return self.loggedmethod[-1]
             
-            # method-specific line reached
-            elif line.startswith('--'):
-                line = line[i + 2:]
-                try:
-                    if not self.methods[self.loggedmethod[-1]].ended:
-                        self.methods[self.loggedmethod[-1]].add_body(line)
-                except:
-                    None
-                return
-
             # interpreting a function
             elif c == '(':
 
@@ -634,16 +642,15 @@ class Interpreter:
 
                     return True
 
-                # gets an amount of lines executed before the working line
-                elif func == 'before':
-                    return lines_ran[len(lines_ran) - self.parse(0, line, f, sp, args)[2]:]
 
                 # trace capabilities
                 elif obj == 'trace':
                     if objfunc == 'before':
                         return lines_ran[len(lines_ran) - self.parse(0, line, f, sp, args)[2]:]
                     if objfunc == 'this':
-                        return lines_ran[-1]
+                        return lines_ran[-1] 
+                    if objfunc == 'len':
+                        return total_ints
                     return '<msnint2 class>'
 
 
