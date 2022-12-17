@@ -27,9 +27,10 @@ var('thread_count', 0)
     -- add('thread_count', << len(vars()['self'].threads) >>)
     -- export('thread_count')
 
-# prints thread count
+# prints accounting information
 ~ print_threads() -> _
     -- print('[+] created', ?thread_count?, 'threads')
+    -- print('[+] interpreted', trace.len(), 'lines')
 
 # clear console
 clear()
@@ -1253,11 +1254,11 @@ serial_open('thread')
     # creates an enclosing macro surrounded by the start and end token,
     # invoked by preceeding a line with a '(', similarly to the previous
     # macro, postmacro, and syntax definitions
-    -- enclosedsyntax('(', ')', '__line', =>(
-        print(?__line?)
-    ))
+    # -- enclosedsyntax('(', ')', '__line', =>(
+    #     print(?__line?)
+    # ))
 
-    -- (hello how are you)
+  #  -- (hello how are you)
 
 
     -- @ _ = 1
@@ -1359,6 +1360,8 @@ for (0, ?iterations?, 'i', =>(
 
 # prints accounting information
 print_threads()
+
+
 
 # completes the validator
 print('[+] fin in', cat(timer_runtime(), 's'))
