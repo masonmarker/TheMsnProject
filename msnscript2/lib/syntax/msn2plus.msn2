@@ -20,14 +20,6 @@ postmacro('??', '__line', assert(-(val('__line'))))
 
 # utilizing variables
 enclosedsyntax('^', '^', '__varname', val(val('__varname')))
-enclosedsyntax('<2>', '<2>', '__line', =>(
-    var('__token', '%'),
-    var('__bt', between(?__token?, val('__line'))),
-    each(val('__bt'), '__subline', =>(
-        __line.replace(cat(?token?, val('__subline'), ?token?), str(-(val('__subline'))), 1)
-    )),
-    -(val('__line'))
-))
 
 
 # threads
