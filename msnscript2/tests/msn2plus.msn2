@@ -40,24 +40,56 @@ import ('lib/syntax/msn2plus.msn2')
     -- @ v3 = {'key': ['3423', [], 6, 5, 4, 3]}
     
     # assertions
-    -- v == 3 ??
+    -- ?v? == 3 ??
     -- equals(?v2?, sorted([5, 4, 3, 2, 1])) ??
     -- not(equals(?v3?, {'key': ['3423', [], 6, 5, 4, 3, 'aowjfoiawejf']}))??
     -- equals(^v^, 3) ??
-    
-    
 
     -- @ _ = 3
 
 # --------------------------
 
+# ------- MULTIPROGRAMMING -------
 
+~ test_multi() -> _
+
+    -- print('[+] testing multiprogramming...')
+
+    # new syntax to start threads and processes
+
+    # starts a new thread called 't0' that makes an assertion
+    -- /t assert(1)
+
+    -- @v=0
+    # next thread is 't1' and so on...
+    -- var('name', /t 0|1000|__unused (@v+=1))
+    -- join(?name?)
+
+    -- assert(?v? == 1000)
+    -- @ _ = 1
+
+# --------------------------
+
+# ------- MSN2 EMBEDDING -------
+
+# enables embedding of msn2 code in msn2 code
+~ test_msn2embed() -> _
+    -- print('[+] testing msn2 embedding...')
+
+    -- <2> %%  %print('hello')% <2>
+
+
+    -- @_ = 1
+
+# --------------------------
 
 # executes each test on a new thread
 ~ run_tests() -> _
 
     -- thread('assert', private(assert(test_assert())))
     -- thread('vars', private(assert(test_vars())))
+    -- thread('embed', private(assert(test_msn2embed())))
+    -- private(assert(test_multi()))
 
 
 # executing tests
