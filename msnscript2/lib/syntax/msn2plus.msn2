@@ -3,7 +3,15 @@
 # author : Mason Marker
 # date : 12/17/2022
 
+# imports
+import('lib/serial.msn2')
+import('lib/processes.msn2')
 
+# setup
+serial_open('msn2plus_thread')
+serial_open('msn2plus_processes')
+
+# multi language evaluation
 
 # assertions
 postmacro('??', '__line', assert(-(val('__line'))))
@@ -12,3 +20,21 @@ postmacro('??', '__line', assert(-(val('__line'))))
 
 # utilizing variables
 enclosedsyntax('^', '^', '__varname', val(val('__varname')))
+enclosedsyntax('<2>', '<2>', '__line', =>(
+    var('__token', '%'),
+    var('__bt', between(?__token?, val('__line'))),
+    each(val('__bt'), '__subline', =>(
+        __line.replace(cat(?token?, val('__subline'), ?token?), str(-(val('__subline'))), 1)
+    )),
+    -(val('__line'))
+))
+
+
+# threads
+
+# starts a thread with an ardered name 't0, t1..'
+macro('/t', '__line', =>(
+    var('__name', cat('t', serial_next('msn2plus_thread'))),
+    thread(?__name?, -(val('__line'))),
+    ?__name?
+))

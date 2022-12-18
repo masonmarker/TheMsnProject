@@ -512,8 +512,11 @@ class Interpreter:
                             # replacing with
                             wth = self.parse(1, line, f, sp, args)[2]
                             
-                            # replaces all instances of replacing with wth
-                            self.vars[vname].value = self.vars[vname].value.replace(replacing, wth)
+                            if len(args) == 2:
+                                # replaces all instances of replacing with wth
+                                self.vars[vname].value = self.vars[vname].value.replace(replacing, wth)
+                            elif len(args) == 3:
+                                self.vars[vname].value = self.vars[vname].value.replace(replacing, wth, self.parse(2, line, f, sp, args)[2])
                             
                             # returns the new string
                             return self.vars[vname].value
