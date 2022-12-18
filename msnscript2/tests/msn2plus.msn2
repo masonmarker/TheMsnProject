@@ -76,7 +76,7 @@ import ('lib/syntax/msn2plus.msn2')
 ~ test_msn2embed() -> _
     -- print('[+] testing msn2 embedding...')
 
-    -- <2> %%  %print('hello')% <2>
+    -- <2> print(%print('hello')%) <2>
 
 
     -- @_ = 1

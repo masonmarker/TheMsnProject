@@ -244,7 +244,7 @@ class Interpreter:
 
         if line.startswith('<<'):
 
-            # parse all text in the line for text surrounded by %
+            # parse all text in the line for text surrounded by |
             funccalls = []
             infunc = False
             func = ''
@@ -268,6 +268,38 @@ class Interpreter:
                 return eval(line)
             except:
                 return line
+
+        # embedded MSN2 interpretation macro
+        if line.startswith('<2>'):
+            # parse all text in the line for text surrounded by %
+            funccalls = []
+            infunc = False
+            func = ''
+            for i in range(3, line.rindex('<2>')):
+                if line[i] == '%' and not infunc:
+                    infunc = True
+                elif line[i] == '%' and infunc:
+                    infunc = False
+                    funccalls.append(func)
+                    func = ''
+                elif infunc:
+                    func += line[i]
+
+            # for each msn2 evaluation
+            for function in funccalls:
+                ret = self.interpret(function)
+                if isinstance(ret, str):
+                    line = line.replace('%' + function + '%', '"' + str(ret) + '"')
+                else:
+                    line = line.replace('%' + function + '%', str(ret))
+            line = line[3:-3]
+            try:
+                return self.interpret(line)
+            except:
+                try:
+                    return eval(line)
+                except:
+                    return line
 
         # user defined syntax
         for key in syntax:
@@ -986,6 +1018,8 @@ class Interpreter:
                 # syntax is invoked and returned as a value which will replace
                 # the invocation within the line
                 # arguments are the same as enclosedsyntax
+                #
+                # WIPWIPWIPWIPWIP
                 elif func == 'inlinesyntax':
                     start = self.parse(0, line, f, sp, args)[2]
                     end = self.parse(1, line, f, sp, args)[2]
@@ -998,7 +1032,6 @@ class Interpreter:
                     if len(args) == 5:
                         inlines[index].append(self.parse(4, line, f, sp, args)[2])
                     return inlines[index]
-                    
 
                   
                 # performs object based operations
