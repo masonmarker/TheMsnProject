@@ -206,6 +206,7 @@ class Interpreter:
         varnames = list(self.vars.keys())
         varnames = sorted(varnames, key=len, reverse=True)
         for varname in varnames:
+            
             try:
                 boo = boo.replace(varname, str(self.get_var(eval('"' + varname + '"'))))
             except:
@@ -230,6 +231,15 @@ class Interpreter:
         cont = False
         if line == '':
             return
+
+        # new variable setting and modification syntax as of 12/20/2022
+        # iterates to the first '=' sign, capturing the variable name in the
+        # process
+        # msn1 fallback
+        if line[0] == '@':
+            line = line[1:]
+            return self.interpret_msnscript_1(line)
+        
 
         # method-specific line reached
         if line.startswith('--'):
@@ -305,11 +315,6 @@ class Interpreter:
         for key in syntax:
             if line.startswith(key):
                 return self.run_syntax(key, line)
-            
-        # msn1 fallback
-        if line[0] == '@':
-            line = line[1:]
-            return self.interpret_msnscript_1(line)
 
         # user defined macro
         for token in macros:
@@ -352,7 +357,6 @@ class Interpreter:
 
         # invoking user defined enclosing syntax
         for key in enclosed:
-
             start = enclosed[key][0]
             end = enclosed[key][1]
             if line.startswith(start) and line.endswith(end):
@@ -452,35 +456,88 @@ class Interpreter:
                         object = self.vars[obj].value
                     except:
                         object = self.vars[obj]
-                    if objfunc in object:
-                        if args[0][0] == '':
-                            return object[objfunc]
-                        
-                        # parameter provided, wants to set attribute
-                        param = self.parse(0, line, f, sp, args)[2]
-
-                        self.vars[obj].value[objfunc] = param
-                        return param
                     
-                    elif objfunc == 'copy':
+                    try:
+                        if objfunc in object:
+                            if args[0][0] == '':
+                                return object[objfunc]
+                            
+                            # parameter provided, wants to set attribute
+                            param = self.parse(0, line, f, sp, args)[2]
+
+                            self.vars[obj].value[objfunc] = param
+                            return param
+                    except:
+                        None
+                    if objfunc == 'copy':
                         return object.copy()
                 
-                
+
                     # literal specific methods
                     # the isinstance branches below indicate DESCTRUCTIVE methods!
-                    
+
+
+                    # integer specific functions
+                    elif isinstance(object, int) or isinstance(object, float):
+                        
+                        # increases the value of the variable by 1
+                        if objfunc == '++':
+                            self.vars[vname].value += 1
+                            return self.vars[vname].value
+
+                        elif objfunc == '--':
+                            self.vars[vname].value -= 1
+                            return self.vars[vname].value
+
+                        elif objfunc == 'add':
+                            self.vars[vname].value += self.parse(0, line, f, sp, args)[2]
+                            return self.vars[vname].value
+
+                        elif objfunc == 'sub':
+                            self.vars[vname].value -= self.parse(0, line, f, sp, args)[2]
+                            return self.vars[vname].value
+                        
+                        elif objfunc == 'mul':
+                            self.vars[vname].value *= self.parse(0, line, f, sp, args)[2]
+                            return self.vars[vname].value
+
+                        elif objfunc == 'div':
+                            self.vars[vname].value /= self.parse(0, line, f, sp, args)[2]
+                            return self.vars[vname].value
+                        
+                        # test if the value is greater than the argument
+                        elif objfunc == 'greater':
+                            return self.vars[vname].value > self.parse(0, line, f, sp, args)[2]
+
+                        # tests if the value is less than the argument
+                        elif objfunc == 'less':
+                            return self.vars[vname].value < self.parse(0, line, f, sp, args)[2]
+                        
+                        # tests if the value is greater than or equal to the argument
+                        elif objfunc == 'greaterequal':
+                            return self.vars[vname].value >= self.parse(0, line, f, sp, args)[2]
+
+                        # tests if the value is less than or equal to the argument
+                        elif objfunc == 'lessequal':
+                            return self.vars[vname].value <= self.parse(0, line, f, sp, args)[2]
+
+                                        
                     # array based functions
                     elif isinstance(object, list):
 
                         # adds all arguments to the first argument which should be a variable name
                         # as a string
-                        if objfunc == 'push':
+                        if objfunc == 'push' or objfunc == 'append' or objfunc == 'add':
                             for i in range(len(args)):
                                 self.vars[vname].value.append(self.parse(i, line, f, sp, args)[2])
                             return self.vars[vname].value
 
+                        # getting at an index
+                        elif objfunc == 'get':
+                            return self.vars[vname].value[self.parse(0, line, f, sp, args)[2]]
+
                         # gets the average of this array
-                        elif objfunc == 'avg':
+                        elif objfunc == 'avg' or objfunc == 'average':
                             return sum(self.vars[vname].value) / len(self.vars[vname].value)
 
                         # inserts all values at an index
@@ -519,6 +576,10 @@ class Interpreter:
                         if objfunc == 'sort':
                             self.vars[vname].value.sort()
                             return self.vars[vname].value
+
+                        # gets the length of the array
+                        if objfunc == 'len':
+                            return len(self.vars[vname].value)
                     
                     # if the object is a string
                     elif isinstance(object, str):
@@ -607,6 +668,21 @@ class Interpreter:
 
                             # returns the object
                             return self.vars[vname].value
+                        
+                        # recursively gets a value in a dictionary
+                        if objfunc == 'get':
+                            
+                            # the object to get from
+                            obj = self.vars[vname].value
+                                
+                            # iterates through the indices
+                            for i in range(len(args)):
+                                    
+                                # sets the object to the index
+                                obj = obj[self.parse(i, line, f, sp, args)[2]]
+                                
+                            # returns the object
+                            return obj
 
 
                 # splits the first argument by the second argument
@@ -634,6 +710,10 @@ class Interpreter:
                         None
                         
                     return funccalls
+                
+                # gets the sum of the first argument
+                if func == 'sum':
+                    return sum(self.parse(0, line, f, sp, args)[2])
                 
                 # creates / sets a variable
                 if func == 'var':
@@ -735,7 +815,7 @@ class Interpreter:
                     line, as_s, start = self.parse(0, line, f, sp, args)
                     line, as_s, end = self.parse(1, line, f, sp, args)
                     line, as_s, loopvar = self.parse(2, line, f, sp, args)
-
+                    self.vars[loopvar] = Var(loopvar, start)
                     # regular iteration
                     if start < end:
                         for i in range(start, end):
@@ -828,6 +908,29 @@ class Interpreter:
                 # gets the MSNScript version of this interpreter
                 elif func == 'version':
                     return self.version
+
+                # destroys a function or variable
+                elif func == 'destroy':
+                    varname = self.parse(0, line, f, sp, args)[2]
+                    
+                    # deletes all variables or methods that start with '__'
+                    if varname == '__':
+                        for key in list(self.vars):
+                            if key.startswith('__'):
+                                del self.vars[key]
+                        for key in list(self.methods):
+                            if key.startswith('__'):
+                                del self.methods[key]
+                        return True
+                        
+                    if varname in self.vars:
+                        del self.vars[varname]
+                        
+                    elif varname in self.methods:
+                        del self.methods[varname]
+                        
+                    
+                    return True
 
                 # random capabilities
                 elif func == 'random':
@@ -970,7 +1073,6 @@ class Interpreter:
                     varname = self.parse(2, line, f, sp, args)[2]
 
                     index = str(start) + 'msnint2_reserved' + str(end)
-
                     enclosed[index] = [start, end, varname, args[3][0]]
 
                     if len(args) == 5:
@@ -1535,8 +1637,7 @@ class Interpreter:
                         inter.vars[vname] = entry
                     for mname, entry in self.methods.items():
                         inter.methods[mname] = entry
-                    inter.execute(block_s)
-                    return inter
+                    return inter.interpret(block_s)
 
                 # breaks out of the working context
                 elif func == 'break':
@@ -2236,14 +2337,14 @@ class Interpreter:
             except:
                 None
 
-            if c == '[':
+            if c == '[' and not s2 > 0 and not s > 0:
                 a += 1
-            if c == ']':
+            if c == ']' and not s2 > 0 and not s > 0:
                 a -= 1
 
-            if c == '(':
+            if c == '(' and not s2 > 0 and not s > 0:
                 p += 1
-            if c == ')':
+            if c == ')' and not s2 > 0 and not s > 0:
                 p -= 1
 
             if not self.in_string(s, s2):
@@ -2322,13 +2423,13 @@ class Interpreter:
 
                     # if element is a number
                     if isinstance(element, float) or isinstance(element, int):
-                        self.vars[variable].value += self.evaluate(element, 'number')
+                        self.vars[variable].value += self.interpret(element)
                     # if element is a string
                     elif isinstance(element, str):
                         try:
-                            self.vars[variable].value += self.evaluate(element, 'string')
+                            self.vars[variable].value += self.interpret(element)
                         except:
-                            self.vars[variable].value += self.evaluate(element, 'number')
+                            self.vars[variable].value += self.interpret(element)
                                 
                     return self.vars[variable].value
                 elif c == '-' and line[i + 1] == '=':
@@ -2336,21 +2437,21 @@ class Interpreter:
                     element = ''
                     for j in range(i + 2, len(line)):
                         element += line[j]
-                    self.vars[variable].value -= self.evaluate(element, 'number')
+                    self.vars[variable].value -= self.interpret(element)
                     return self.vars[variable].value
                 elif c == '*' and line[i + 1] == '=':
                     variable = element
                     element = ''
                     for j in range(i + 2, len(line)):
                         element += line[j]
-                    self.vars[variable].value *= self.evaluate(element, 'number')
+                    self.vars[variable].value *= self.interpret(element)
                     return self.vars[variable].value
                 elif c == '/' and line[i + 1] == '=':
                     variable = element
                     element = ''
                     for j in range(i + 2, len(line)):
                         element += line[j]
-                    self.vars[variable].value /= self.evaluate(element, 'number')
+                    self.vars[variable].value /= self.interpret(element)
                     return self.vars[variable].value
                 elif c == '=':
                     variable = element
@@ -2363,12 +2464,7 @@ class Interpreter:
                         if line[j] == '[':
                             array = True                     
                         element += line[j]
-                    if string:
-                        self.vars[variable] = Var(variable, self.evaluate(element, 'string'))
-                    elif array:
-                        self.vars[variable] = Var(variable, self.evaluate(element, 'array'))
-                    else:
-                        self.vars[variable] = Var(variable, self.evaluate(element, 'number'))
+                    self.vars[variable] = Var(variable, self.interpret(element)) 
                     return self.vars[variable].value
                 
                 elif "{" in element and "}" in element:

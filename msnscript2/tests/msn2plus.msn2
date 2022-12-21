@@ -70,25 +70,11 @@ import ('lib/syntax/msn2plus.msn2')
 
 # --------------------------
 
-# ------- MSN2 EMBEDDING -------
-
-# enables embedding of msn2 code in msn2 code
-~ test_msn2embed() -> _
-    -- print('[+] testing msn2 embedding...')
-
-    -- <2> print(%print('hello')%) <2>
-
-
-    -- @_ = 1
-
-# --------------------------
-
 # executes each test on a new thread
 ~ run_tests() -> _
 
-    -- thread('assert', private(assert(test_assert())))
-    -- thread('vars', private(assert(test_vars())))
-    -- thread('embed', private(assert(test_msn2embed())))
+    -- /t private(assert(test_assert()))
+    -- /t private(assert(test_vars()))
     -- private(assert(test_multi()))
 
 

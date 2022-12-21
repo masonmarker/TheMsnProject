@@ -1,0 +1,536 @@
+# demonstrates how to use the base language, and to build upon the base language
+# to create a personalized coding experience
+#
+# this tutorial / demonstration utilizes the safest features of the base language
+#
+# run this program from /msnscript2 with 'python msn2.py TUTORIAL\suggestedusage.msn2'
+#
+# see tests/validator.msn2 fro a MASSIVE increase in syntax detail
+#
+#
+# author : Mason Marker
+# date : 12/20/2022
+
+
+# to import files, file path is relative to the user's cwd
+import ('lib/os.msn2')
+
+# more relevant and optimal syntax for variable extraction with '^^'
+# and thread ease of use with '/t'
+import ('lib/syntax/msn2plus.msn2')
+
+
+# using an imported method to clear the console
+clear()
+
+
+
+
+# printing to the console
+print('[+] beginning', 'tutorial')
+
+
+# setting variables
+var('var1', 1)
+
+# asserting that statement(s) are not 0
+assert(1, True, not False, not 0, not(0), assert(1), ^var1^)
+
+# boolean assertions
+assert(5 != 4, 4 == 4, 3==3, 7>=3, 2>=2, 5<=7, 5<=5)
+
+# assertions with variables
+assert(equals(^var1^, 1))
+
+
+
+
+# alternate variable setting
+@var1 += 3
+assert(equals(^var1^, 4))
+
+@var1 = 3
+assert(equals(^var1^, 3))
+
+@var1 -= 1
+assert(equals(^var1^, 2))
+
+@var1 *= 2
+assert(equals(^var1^, 4))
+
+@var1 /= 2
+assert(equals(^var1^, 2))
+
+
+# msn2 instruction insertion with '|'
+@var1 = sorted([5, 4, 3, 2, 1])
+assert(equals(^var1^, [1, 2, 3, 4, 5]))
+
+
+var('var1', 0)
+
+# directly destructive variable manipulation with functions
+assert(equals(var1.++(), 1))
+assert(equals(^var1^, 1))
+assert(equals(var1.--(), 0))
+assert(equals(^var1^, 0))
+
+@ string='hello\nthis is a string'
+assert(equals(^string^, 'hello\nthis is a string'))
+
+@ string = ''
+assert(equals(^string^, ''))
+
+@ string = 'hello'
+assert(equals(^string^, 'hello'))
+
+@string += '\nthis is a string' 
+assert(equals(^string^, 'hello\nthis is a string'))
+
+# function based approach
+string.replace('\n', ' ')
+assert(equals(^string^, 'hello this is a string'))
+
+string.replace('i', '', 2)
+assert(equals(^string^, 'hello ths s a string'))
+
+string.add('!')
+assert(equals(^string^, 'hello ths s a string!'))
+
+
+
+# conditionals
+if (1, assert(1), assert(0))
+if (0, assert(0), assert(1))
+if (1, assert(1))
+
+? True (assert(1), assert(0))
+? False(assert(0), assert(1))
+
+? 1 (assert(1))
+?0(,assert(1))
+
+# loops
+var('var1', 0)
+for (0, 5, 'i', @var1 += ^i^)
+assert(equals(^var1^, 10))
+
+# start_arg|end_arg|loop_arg loops cannot have arguments iunvoving a '('
+var('var1', 0)
+0|5|i (@var1 += ^i^)
+assert(equals(^var1^, 10))
+
+
+# any line ending in '(' will continue until the next line ending in ')'
+# this is useful for long lines of code
+
+assert(
+    True,
+    not False, 
+    True,
+    not(False),
+    1)
+
+assert (
+    1
+)
+
+# inline function syntax
+# allows for a sequence of instructions and a return instruction from within the '=>()' syntax
+# the return instruction is the last instruction in the sequence
+
+# the following function returns the sum of the first 10 integers
+var('_sum', =>(
+    var('_sum', 0), 
+    for (0, 10, 'i', @_sum += ^i^),
+    ^_sum^
+))  
+
+assert(equals(^_sum^, 45))
+
+
+# shortening the process into 1 line
+assert(equals(var('_sum', =>(var('_sum', 0), for (0, 10, 'i', @_sum += ^i^), ^_sum^)), 45))
+
+
+# without a variable
+assert(equals(=>(var('_sum', 0), for (0, 10, 'i', @_sum += ^i^), ^_sum^), 45))
+
+# with simple loops
+assert(equals(=>(var('_sum', 0), 0|10|i (@_sum += ^i^), ^_sum^), 45))
+
+# with a python system call fallback to range() and sum() (most optimal)
+assert(equals(sum(range(0, 10)), 45))
+
+# using python fallback
+assert(sum(range(0, 10)) == 45)
+
+# with each syntax
+assert(equals(=>(
+    var('_sum', 0),
+    each(range(0, 10), 'el', @_sum += ^el^),
+    ^_sum^
+), 45))
+
+# with each syntax  
+assert(equals(=>(
+    var('_sum', 0),
+    each(range(0, 10), 'el', add('_sum', ^el^)),
+    ^_sum^
+), 45))
+
+
+# creating a macro for assertions
+postmacro('??', '__line', assert(-(^__line^)))
+
+# more optimal approach
+sum(range(0, 10)) == 45 ??
+
+# enclosing syntax to make a range faster
+enclosedsyntax('rng[', ']', '__line', =>(
+    var('__split', __line.split(':')),
+    << list(range(int(|^__split^|[0]), int(|^__split^|[1]))) >>
+))
+
+# more optimal approach
+equals(sum(rng[0:10]), 45) ??
+
+
+# this is a user defined function that can be used in the same way as the built in functions
+# function definition starts with a '~' , a body line starts with '--'
+# the user function should set the return value 
+#
+# nested functions are not supported WIPWIPWIPWIPWIPWIP
+#
+# equals method with less characters
+~ eq(__arg1, __arg2) -> __result
+    -- var('__result', equals(^__arg1^, ^__arg2^))
+
+# more optimal approach
+eq(sum(rng[0:10]), 45) ??
+
+# macro for obtaining the sum of a range
+enclosedsyntax('rsum[', ']', '__line', =>(
+    var('__split', __line.split(':')),
+    << sum(range(int(|^__split^|[0]), int(|^__split^|[1]))) >>
+))
+
+# more optimal approach with rsum[]
+eq(rsum[0:10], 45) ??
+eq(rsum[0:100], 4950) ??
+eq(rsum[0:1000], 499500) ??
+eq(rsum[0:10000], 49995000) ??
+
+# -------------------- MSN2 OBJECTS --------------------
+
+# you can call methods on virtually all types of basic data types 
+# being those in Python. 
+# example:
+var('n', 4)
+n.++()
+eq(^n^, 5)??
+
+# you can also call methods on objects
+var('d', {'key': {'key2': 'p4ssw\n0rd'}})
+
+# indexing a dictionary
+eq(d.get('key', 'key2'), 'p4ssw\n0rd') ??
+
+# changing a dictionary
+d.setn('n3wp4ssw0rd', 'key', 'key2')
+eq(d.get('key', 'key2'), 'n3wp4ssw0rd') ??
+
+
+# defining an msn2 class
+# person class with two attributes
+class('person', =>(
+    @name='',
+    @age=-1
+))
+
+# creating an instance of the class
+var('me', person('mason', 21))
+eq(me.name(), 'mason') ??   
+eq(me.age(), 21) ??
+
+# resetting attributes
+me.name('mason2')
+me.age(22)
+eq(me.name(), 'mason2') ??
+eq(me.age(), 22) ??
+
+# -------------------- MORE COMPLEX TASKS --------------------
+
+
+# starting a thread
+
+# starts a thread with the name 'thread_1' and the instructions 'assert(1)'
+thread('thread_1', 1??)
+
+# joins with the thread
+join('thread_1')
+
+# starting a thread with imported msn2plus syntax
+var('n', /t 1??)
+join(^n^)
+
+# starting two threads that communicate with each other
+# tests this process across 5 iterations
+
+0|5|_ (=>(
+    @can_continue=0,
+    @t2_done=0,
+    @work=0,
+    /t =>(
+        wait(^t2_done^),
+        @can_continue=1
+    ),
+
+    /t =>(       
+        0|10|_ (@work+=1),
+        @t2_done=1 
+    ),
+
+    eq(^work^, 10) ??,
+    wait(^can_continue^)
+))
+
+eq(^work^, 10) ??
+
+
+
+
+
+# -------------------- python fallback <<>> --------------------
+
+# importing ips
+import('lib/apis/api.msn2')
+
+# obtaining local ip
+var('ip', api_local.host())
+
+# use '||' to insert a line of msn2 code into a line of Python code, then returning the
+# evaluated Python code
+#
+# this allows for Pythonically syntactical capabilities in msn2
+# ------------------------------------V----V---------------
+var('ip_split', << [int(el) for el in |^ip^|.split('.')] >>)
+eq(^ip_split^, [127, 0, 0, 1]) ??
+
+
+# optimizing with a user defined function
+~ to_int(__string_array) -> __result
+    -- var('__result', << [int(el) for el in |^__string_array^|] >>)
+
+@ip_split=0
+var('ip_split', to_int(ip.split('.')))  
+eq(^ip_split^, [127, 0, 0, 1]) ??
+
+
+# -------------------- MORE MACROS --------------------
+
+# optimizing assertion syntax for clearer tests
+macro('TEST', '__line', =>(
+    var('__split', __line.split('AND')),
+
+    # making assertion
+    if(not(equals(-(->(^__split^, 0)), -(->(^__split^, 1)))), =>(
+
+        # printing error messagef
+        print('[-] assertion failed :', ->(^__split^, 0), '==', ->(^__split^, 1))
+    ))
+))
+
+# clean test case syntax
+TEST ^ip_split^ AND [127, 0, 0, 1]
+TEST 54 AND 54
+TEST {'key': 'value'} AND {'key': 'value'}
+TEST [1, 2, 3] AND [1, 2, 3]
+TEST 1 AND 1
+TEST 'string' AND 'string'
+TEST 1.0 AND 1.0
+TEST 1.0 AND 1
+TEST 1 AND 1.0
+
+# testing classes
+TEST person('mason', 21) AND person('mason', 21)   
+
+# complex testing
+TEST 1?? AND True ??
+TEST 5 == 3 AND False
+
+# testing functions
+TEST to_int(ip.split('.')) AND [127, 0, 0, 1]
+TEST 'hello'.split('l') AND ['he', '', 'o']
+TEST 1 AND 5+4-4-4
+TEST =>(@v=1, ^v^) AND =>(
+    @arr = [1, 2, 3, 4, 5],
+    eq(sum(^arr^), 15) ??
+)
+
+# -------------------- PROCESSES --------------------
+
+# launching processes has been simplified into a couple lines:
+
+# import processing library
+import('lib/processes.msn2')
+
+# clean processes from previous runs (optional but recommended)
+clean_processes()
+
+# launch a process with imported fork()
+# second argument as code for process to run
+# second argument must be async()
+fork('p1', async(=>(
+
+    # user created macros aren't available in the new process
+
+    # code to be launched in a separate process
+    # this process will be launched in a separate thread
+    assert(1),
+
+    @processvar=1,
+    assert(equals(val('processvar'), 1)),
+)))
+
+# joins with the process
+join('p1')
+
+# asserts code was ran in another process
+not(exists('processvar')) ??
+
+# putting a thread to sleep
+
+# importing timer
+import ('lib/timer.msn2')
+
+timer_start()
+sleep(0.5)
+
+# reverting to classic assert
+assert(<< |timer_runtime()| >= 0.5 >>)
+
+# -------------------- MSN2 INSERTION --------------------
+
+# with <2> surrounding tags, you can insert msn2 code into msn2 code
+# example:
+
+# uses classic assertion to maintain interpretation authority over <2> tags
+# postmacro '??' would not function correctly in this scenario
+assert(<2> %timer_runtime()% >= 0.5 <2>)
+
+
+# -------------------- MSN2 ADVANTAGES --------------------
+
+# simple advantages of the language involve simplicity of completing tasks
+# within code. For example, the following code is a simple example of how
+# msn2 can be used to extract email information from a str:
+
+# extracting the name, domain, and extension from an email
+
+@email = 'johndoe123@outlook.com'
+@email2 = 'samtaylor321@gmail.com'
+@email3 = 'billsalmson@bros.com'
+
+# creates an email object
+~ email_from(__email) -> __result
+    -- var('__sp', __email.split('@'))
+    -- var('__result', << {'name': |->(^__sp^, 0)|, 'domain': |->(split(->(^__sp^, 1), '.'), 0)|} >>) 
+
+var('em1', email_from(^email^))
+var('em2', email_from(^email2^))
+var('em3', email_from(^email3^))
+
+TEST em1.name() AND 'johndoe123'
+TEST em1.domain() AND 'outlook'
+
+TEST em2.name() AND 'samtaylor321'
+TEST em2.domain() AND 'gmail'
+
+TEST em3.name() AND 'billsalmson'
+TEST em3.domain() AND 'bros'
+
+
+
+
+# you can destroy variables and user defined methods with the destroy() system call
+
+@v = 4
+exists('v')??
+
+destroy('v')
+not(exists('v'))??
+
+
+
+# destroying '__' will destroy all variables and user defined methods that 
+# start with '__'
+
+~ __ () -> _
+@__v = 4
+exists('__v')??
+destroy('__')
+not(exists('__v'))??
+
+
+
+# -------------------- MSN2 SHIFT TO PROPER VARIABLE SETTING --------------------
+
+# as of 12/20/2022, variable setting and alteration has been shifted to a more proper syntax
+
+assert(@variable = assert(1))
+assert(equals(@variable+=assert(1)))
+
+assert(equals(^variable^, 2))
+
+
+# working with complex variables
+@v = {'key': '\n\t\rhello\t\n\r', 'key2': -4532.543523, 'key3': [1, 2, 3, 4, 5]}
+assert(equals(^v^, {'key': '\n\t\rhello\t\n\r', 'key2': -4532.543523, 'key3': [1, 2, 3, 4, 5]}))
+
+
+# advanced setting of a variable
+
+@ v = =>(
+    @ array = [1, 2, 3, 4, 5],
+    array.avg()
+)
+
+TEST ^v^ AND 3.0
+
+@ v = =>(<< |[1, 2, 3]| >>)
+TEST ^v^ AND [1, 2, 3]
+
+
+# -------------------- EXAMPLE PROBLEM --------------------
+
+# create an array of length 9 with random numbers between 1 and the index at
+# which the number is being placed
+# the number should be an integer
+
+@ arr = =>(
+    @__unused = [],
+
+    # adds a random integer between 1 and the index to the array
+    # adds a third argument to the random() function to return an integer
+    for(1, 10, 'i', __unused. push (random(1, ^i^,))),
+    ^__unused^
+)
+
+# assert each element is in bounds
+for(1,arr.len(), 'i', assert(<< 1 <= |arr.get(^i^)| and |arr.get(^i^)| <= |^i^| >>))
+
+# --- OPTIMIZING LOOP FOR THIS CASE --- 
+
+# new EACH syntax involves the element and an index
+macro('EACH ', '__line', =>(
+))
+
+
+
+
+# finishing and printing total instructions executed
+print('[+] interpreted', trace.len(), 'instructions')
+
+# force shutdown everything
+stop()
