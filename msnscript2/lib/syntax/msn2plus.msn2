@@ -9,7 +9,6 @@ import('lib/processes.msn2')
 
 # setup
 serial_open('msn2plus_thread')
-serial_open('msn2plus_processes')
 
 # multi language evaluation
 
@@ -27,6 +26,6 @@ enclosedsyntax('^', '^', '__varname', val(val('__varname')))
 # starts a thread with an ardered name 't0, t1..'
 macro('/t', '__line', =>(
     var('__name', cat('t', serial_next('msn2plus_thread'))),
-    thread(?__name?, -(val('__line'))),
-    ?__name?
+    thread(^__name^, -(val('__line'))),
+    ^__name^
 ))

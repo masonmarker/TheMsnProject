@@ -347,6 +347,28 @@ var('f', 6)
 
 # -------------------------------------------
 
+# ------- MSN2 EMBEDDING -------
+
+# enables embedding of msn2 code in msn2 code
+#
+# <2> ... </2> -> msn2 code
+# any pair of '%' will be replaced with the evaluation of the inner msn2 code
+# <2> %...% </2> -> msn2 code
+#
+# whats inside of the <2> </2> tags will be evaluated and the result will be returned
+~ test_msn2embed() -> _
+    -- print('[+] testing msn2 embedding...')
+
+    -- <2> 1?? <2>
+    -- <2> True?? <2>
+    -- assert(<2>assert(<2>%True%<2>)<2>)
+    -- assert(<2> %assert(1)% == True <2>)
+
+    -- @_ = 1
+
+# --------------------------
+
+
 # ------------------ CLASSES ------------------
 ~ test_classes() -> _
 
@@ -819,94 +841,6 @@ var('terminate', False)
 # -------------------------------------------
 
 
-# ------------------ MSN1 FALLBACK ------------------
-
-# msn1 fallback can be used for a better ease when
-# operating on variables as depicted in this test
-
-# tests '@' syntax to msnscript1 fallback functionality
-~ test_msn1_fallback() -> _
-    
-    -- print('[+] testing msn1 fallback...')
-
-    # preceeding a LINE with '@' indicates an msn1 fallback request
-    -- @ integer = 1
-
-    # assert the fallback worked
-    -- assert(exists('integer'))
-    -- assert(?integer? == 1)
-
-    # testing increment
-    -- @ integer+= 1
-    -- assert(?integer? == 2)
-
-    # testing decrement
-    -- @ integer-=1
-    -- assert(?integer? == 1)
-
-    # testing * and /
-    --@integer*=3
-    -- assert(?integer? == 3)
-
-    -- @ integer /= 3
-    -- assert(?integer? == 1)
-
-    # testing other things
-    -- @ integer = integer + integer
-    -- assert(?integer? == 2)
-
-    -- @integer2 = integer
-    -- assert(exists('integer2'), ?integer2? == ?integer?)
-
-    --@ string = "hello this is a string"
-    -- assert(?string? == 'hello this is a string')
-    
-    --@ string += " yes"
-    -- assert(?string? == "hello this is a string yes")
-
-    # primal msn1 loop mechanism, similar to simple loop syntax
-    -- @ integer = 0
-    -- @ {0:5:i} integer += i
-    -- assert(?integer? == 10)
-
-    # primate msn1 conditional mechanism
-    --@ integer=0
-    -- assert(not(?integer?))
-
-    # arrays and objects
-    --@ array = [1, -2, 3] 
-    --@ array2 = ["string", 453.4234, -231.67345, ["0"]]
-    --@ object = {'obj': [8, '!'], 'key': 'value'}
-
-    -- assert(?array? == [1, -2, 3])
-    -- assert(?array2? == ["string", 453.4234, -231.67345, ["0"]])
-    -- assert(?object? == {'obj': [8, '!'], 'key': 'value'})
-
-    # @ to msn2 fallback
-    # use || to specific an msn2 function to be evaluated within the @ syntax
-
-    -- @ a = |3|
-    -- assert(?a? == 3)
-
-    -- @ a = |3 + 3|
-    -- assert(?a? == 6)
-
-    -- @ a = |assert(True)|
-    -- assert(?a?)
-
-    -- @ a += |False|
-    -- assert(?a?)
-
-    # more advanced usage
-    -- @ a = |assert(True)|+|assert(True, True, assert(1, =>(1, []==[])))| * 5 - 1
-    -- assert(?a? == 5)
-
-    -- @ a = |max([1, 2, 3, 4, 5])|
-    -- assert(?a? == 5)
-
-    -- var('_', True)
-
-# -------------------------------------------
 
 
 
@@ -1267,6 +1201,23 @@ serial_open('thread')
 
 # -------------------------------------------
 
+# ------------------ TESTS ENCLOSING SYNTAX ------------------
+
+# destroy() system call destroys variables or user defined functions (~)
+~ test_destroy() -> _
+
+    -- print('[+] testing destroy...')
+
+    -- @v = 1
+
+    -- assert(exists('v'))
+
+    -- destroy('v')
+
+    -- assert(not(exists('v')))
+
+    -- @ _ = 1
+# -------------------------------------------
 
 # ------------------ TESTS HTML ------------------
 
@@ -1296,16 +1247,16 @@ serial_open('thread')
     -- thread('math', private(assert(test_math()))) 
     -- thread('strings', private(assert(test_strings())))
     -- thread('arrays', private(assert(test_arrays())))
+    -- thread('embed', private(assert(test_msn2embed())))
     -- thread('classes', private(assert(test_classes())))
     -- thread('complex', private(assert(test_complex())))
     -- thread('complex2', private(assert(test_complex2())))
     -- thread('random', private(assert(test_random())))
-    -- thread('msn1', private(assert(test_msn1_fallback())))
     -- thread('loops', private(assert(test_simple_loops())))
     -- thread('cond', private(assert(test_simple_cond())))
     -- thread('html', private(assert(test_html())))
     -- thread('enclosing', private(assert(test_enclosing())))
-
+    -- thread('destroy', private(assert(test_destroy())))
 
     # macros testing
     -- thread('macros', private(=>(
