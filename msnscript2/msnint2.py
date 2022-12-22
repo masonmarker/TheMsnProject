@@ -187,7 +187,7 @@ class Interpreter:
 
                         # end of syntax met                        
                         if p == 0:
-                            multiline += c
+                            multiline += line[i:]
                             inter = multiline
                             multiline = ''
                             inblock = False
@@ -521,7 +521,14 @@ class Interpreter:
                         elif objfunc == 'lessequal':
                             return self.vars[vname].value <= self.parse(0, line, f, sp, args)[2]
 
-                                        
+
+                        # more basic functions
+
+                        # string representation of self
+                        elif objfunc == 'str':
+                            return str(self.vars[vname].value)
+
+
                     # array based functions
                     elif isinstance(object, list):
 
@@ -536,6 +543,11 @@ class Interpreter:
                         elif objfunc == 'get':
                             return self.vars[vname].value[self.parse(0, line, f, sp, args)[2]]
 
+                        # sets at an index
+                        elif objfunc == 'set':
+                            self.vars[vname].value[self.parse(0, line, f, sp, args)[2]] = self.parse(1, line, f, sp, args)[2]
+                            return self.vars[vname].value
+                        
                         # gets the average of this array
                         elif objfunc == 'avg' or objfunc == 'average':
                             return sum(self.vars[vname].value) / len(self.vars[vname].value)
@@ -623,6 +635,11 @@ class Interpreter:
                         if objfunc == 'stripped':
                             return self.vars[vname].value.strip()
 
+                        # parses an integer from the string
+                        if objfunc == 'int':
+                            return int(self.vars[vname].value)
+                        
+                        # obtains itself
                         if objfunc == 'self':
                             try:
                                 return self.vars[vname].value
@@ -684,7 +701,87 @@ class Interpreter:
                             # returns the object
                             return obj
 
+                    # alternative to '~' user defined method syntax
+                # example call:
+                # function('sum')
+                elif func == 'function':
+                    
+                    # obtain the name of the function
+                    fname = self.parse(0, line, f, sp, args)[2]
+                    
+                    # obtain line to be added to the method
+                    block = args[1][0]
+                    
+                    # function arguments
+                    
+                    # return variable name
+                    ret = '__unused'
+                    
+                    # create the new Method
+                    new_method = self.Method(fname, self)
+                    
+                    # add the body
+                    new_method.add_body(block)
+                    new_method.add_return(fname + "__return__")
+                    
+                    # obtain the rest of the arguments as method args
+                    for i in range(2, len(args)):
+                        # adds variable name as an argument
+                        new_method.add_arg(self.parse(i, line, f, sp, args)[2])
+                    self.methods[fname] = new_method
+                    return fname
 
+                # returns a value to a function
+                # first argument is the function to return to
+                # second argument is the value to return
+                elif func == 'ret':
+                    
+                    # function to return to
+                    fname = self.parse(0, line, f, sp, args)[2]
+                    
+                    # value
+                    value = self.parse(1, line, f, sp, args)[2]
+                    
+                    vname = fname + "__return__"
+                    
+                    self.vars[vname].value = value
+
+                # user method execution requested
+                elif func in self.methods.keys():
+                    method = self.methods[func]
+
+                    # create func args 
+                    func_args = []    
+
+                    try:                
+                        for i in range(len(args)):
+                            arguments = args[i]
+                            line, as_s, arg = self.parse(i, line, f, sp, args)
+                            func_args.append(arg)
+                            meth_argname = method.args[i]
+                            self.vars[meth_argname] = Var(meth_argname, arg)
+                    except:
+                        l = len(method.args)
+                        if l != 0:
+                            self.err("bad arg count", f"correct arg count is {l}", line)
+
+                    # create return variable
+                    ret_name = method.returns[0]
+
+                    if ret_name not in self.vars:
+                        self.vars[ret_name] = Var(ret_name, None)
+
+                    # execute method
+                    method.run(func_args, self)
+                    
+                    try: 
+                        return eval(str(self.vars[method.returns[0]].value))
+                    except:
+                        try:
+                            return str(self.vars[method.returns[0]].value)
+                        except:
+                            return str(self.vars[method.returns[0]])
+                
                 # splits the first argument by the second argument
                 if func == 'split':
                     to_split = self.parse(0, line, f, sp, args)[2]               
@@ -727,6 +824,10 @@ class Interpreter:
                     # add / set variable
                     self.vars[varname] = Var(varname, value)
                     return value
+
+                # converts the argument to a list
+                elif func == 'list':
+                    return list(self.parse(0, line, f, sp, args)[2])
 
                 # gets the first argument at the second argument
                 elif func == 'get':
@@ -1618,6 +1719,10 @@ class Interpreter:
                     line, as_s, string = self.parse(0, line, f, sp, args)
                     return self.interpret(string)
 
+                # strips a str
+                elif func == 'strip':
+                    return self.parse(0, line, f, sp, args)[2].strip()
+
                 # returns the MSNScript2 passed as a string
                 elif func == 'async':
                     return args[0][0]
@@ -1634,7 +1739,10 @@ class Interpreter:
                     inter = Interpreter()
                     inter.parent = self
                     for vname, entry in self.vars.items():
-                        inter.vars[vname] = entry
+                        try:
+                            inter.vars[vname] = Var(vname, entry.value)
+                        except:
+                            inter.vars[vname] = Var(vname, entry)
                     for mname, entry in self.methods.items():
                         inter.methods[mname] = entry
                     return inter.interpret(block_s)
@@ -1662,7 +1770,7 @@ class Interpreter:
                 elif func == 'new' or func == 'inherit:none':
                     inter = Interpreter()
                     inter.parent = self
-                    return inter.execute(args[0][0])
+                    return inter.interpret(args[0][0])
 
                 # starts a new process with the first argument as the target
                 elif func == 'process':
@@ -2008,42 +2116,6 @@ class Interpreter:
                     method.ended = True
                     return True
 
-                # user method execution requested
-                elif func in self.methods.keys():
-                    method = self.methods[func]
-
-                    # create func args 
-                    func_args = []    
-
-                    try:                
-                        for i in range(len(args)):
-                            arguments = args[i]
-                            line, as_s, arg = self.parse(i, line, f, sp, args)
-                            func_args.append(arg)
-                            meth_argname = method.args[i]
-                            self.vars[meth_argname] = Var(meth_argname, arg)
-                    except:
-                        l = len(method.args)
-                        if l != 0:
-                            self.err("bad arg count", f"correct arg count is {l}", line)
-
-                    # create return variable
-                    ret_name = method.returns[0]
-
-                    if ret_name not in self.vars:
-                        self.vars[ret_name] = Var(ret_name, None)
-
-                    # execute method
-                    method.run(func_args, self)
-                    
-                    try: 
-                        return eval(str(self.vars[method.returns[0]].value))
-                    except:
-                        try:
-                            return str(self.vars[method.returns[0]].value)
-                        except:
-                            return str(self.vars[method.returns[0]])
-                
                 # object instance requested
                 elif func in self.vars:
 
