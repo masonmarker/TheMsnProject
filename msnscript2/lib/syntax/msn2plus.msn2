@@ -10,19 +10,22 @@ import('lib/processes.msn2')
 # setup
 serial_open('msn2plus_thread')
 
-# multi language evaluation
-
-# assertions
-postmacro('??', '__line', assert(-(val('__line'))))
-
 
 
 # utilizing variables
 enclosedsyntax('^', '^', '__varname', val(val('__varname')))
 
+# assertions
+postmacro('??', '__line', assert(-(val('__line')))) 
+postmacro('??', '__line', =>(
+    @__block = ^__line^,
+    @__ev = -(^__block^),
+    if(not(^__ev^), print('[-] assertion error :', ^__block^)),
+    destroy('__block'),
+    ^__ev^
+))
 
 # threads
-
 # starts a thread with an ardered name 't0, t1..'
 macro('/t', '__line', =>(
     var('__name', cat('t', serial_next('msn2plus_thread'))),

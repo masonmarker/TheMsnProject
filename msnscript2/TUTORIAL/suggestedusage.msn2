@@ -180,9 +180,6 @@ assert(equals(=>(
 ), 45))
 
 
-# creating a macro for assertions
-postmacro('??', '__line', assert(-(^__line^)))
-
 # more optimal approach
 sum(range(0, 10)) == 45 ??
 
@@ -259,6 +256,71 @@ me.age(22)
 eq(me.name(), 'mason2') ??
 eq(me.age(), 22) ??
 
+# ------------------------ CODE ISOLATION ------------------------
+
+# msn2 is divided into interpretation contexts
+# a single context consists of variables and user defined methods
+#
+# you can privately execute code segments with private() or new()
+#
+# private() takes 1 argument, which is the code segment to execute in isolation from
+# the parent context
+# private() inherits copies of the parent context's variables and user-defined methods
+# 
+# new() executes its single code block argument within a new context. 
+# this new context inherits no variables or user defined methods from its parent context
+
+# this variable is public to this context
+@ v = 0
+
+# 'v' is copied into the child context,
+# however the child context cannot reference the parent context's copy of 'v'
+private(=>(
+
+    # assert that v exists
+    exists('v') ??,
+    not(exists('asdf')) ??,
+    not(^v^) ??,
+    @v += 1,
+    ^v^ ??,
+    @priv_var=0,
+    exists('priv_var') ??
+))
+
+# verify code segment was privatized
+exists('v') ??
+not(exists('priv_var')) ??
+eq(^v^, 0) ??
+
+# private returns the return value of its first argument, 
+# which allows for private execution of methods, for example:
+
+~ get_keys(__map) -> __keys
+    -- var('__keys', list(keys(^__map^)))
+
+# private context inherits and executes user function in an isolated environment
+eq(private(get_keys({'key': 'value', 'name': 'joe'})), ['key', 'name']) ??
+
+
+# new() inherits no variables
+
+@ v = 0
+new(=>(
+    not(exists('v')) ??,
+    @newvar = 0
+    exists('newvar') ??
+))
+
+exists('v')
+not(exists('newvar')) ??
+
+
+# why use private() or new() ??
+# code segments need to be isolated if the same method / variable name
+# could possibly be used by another thread simulteneously, 
+# affecting variable values for both method calls
+
+# VVVV   more about threads below   VVVV
 # -------------------- MORE COMPLEX TASKS --------------------
 
 
@@ -327,10 +389,11 @@ var('ip_split', to_int(ip.split('.')))
 eq(^ip_split^, [127, 0, 0, 1]) ??
 
 
+
 # -------------------- MORE MACROS --------------------
 
 # optimizing assertion syntax for clearer tests
-macro('TEST', '__line', =>(
+macro('TEST', '__line', private(=>(
     var('__split', __line.split('AND')),
 
     # making assertion
@@ -339,7 +402,7 @@ macro('TEST', '__line', =>(
         # printing error messagef
         print('[-] assertion failed :', ->(^__split^, 0), '==', ->(^__split^, 1))
     ))
-))
+)))
 
 # clean test case syntax
 TEST ^ip_split^ AND [127, 0, 0, 1]
@@ -375,12 +438,16 @@ TEST =>(@v=1, ^v^) AND =>(
 # import processing library
 import('lib/processes.msn2')
 
+# importing timer
+import ('lib/timer.msn2')
+
 # clean processes from previous runs (optional but recommended)
 clean_processes()
 
 # launch a process with imported fork()
 # second argument as code for process to run
 # second argument must be async()
+timer_start()
 fork('p1', async(=>(
 
     # user created macros aren't available in the new process
@@ -396,13 +463,13 @@ fork('p1', async(=>(
 # joins with the process
 join('p1')
 
+print('[*] 1 process fin in', cat(timer_runtime(), 's'))
+
 # asserts code was ran in another process
 not(exists('processvar')) ??
 
 # putting a thread to sleep
 
-# importing timer
-import ('lib/timer.msn2')
 
 timer_start()
 sleep(0.5)
@@ -522,11 +589,110 @@ for(1,arr.len(), 'i', assert(<< 1 <= |arr.get(^i^)| and |arr.get(^i^)| <= |^i^| 
 
 # --- OPTIMIZING LOOP FOR THIS CASE --- 
 
-# new EACH syntax involves the element and an index
+# new EACH syntax incorporates the element and an index
 macro('EACH ', '__line', =>(
+
+    # extracting tokens
+    @__sp = __line.split(' IN '),
+    @__eachargs = ->(^__sp^, 0),
+    @__sp2 = split(->(^__sp^, 1), ' DO '),
+    @__block = ->(^__sp2^, 1),
+    @__iterable = ->(^__sp2^, 0),
+    @__eachargssp = __eachargs.split(','),
+    @__el_vname = ->(^__eachargssp^, 0),
+    @__ind_vname = ->(^__eachargssp^, 1),
+    __el_vname.strip(),
+    __ind_vname.strip(),
+
+    # perform loop logic
+    @__ind = 0,
+    @__each_ret=None,
+    each(-(^__iterable^), '__EACH_ELEMENT', =>(
+        var(^__el_vname^, ^__EACH_ELEMENT^),
+        var(^__ind_vname^, ^__ind^),
+        @__each_ret = -(^__block^),
+        @__ind+=1
+    )),
+
+    # cleanup macro variables
+    destroy('__sp', '__eachargs', '__sp2', '__block', '__iterable', '__eachargssp', '__el_vname', '__ind_vname', '__ind'),
+
+    ^__each_ret^
 ))
 
 
+# invoking EACH macro to perform each loop with element and index variables
+EACH el, i IN ^arr^ DO assert(<< 1 <= |^el^| and |^el^| <= |^i^| + 1 >>)
+
+
+@map = {}
+
+# str() method on a number gets a string representation of the number
+EACH element, ind IN [1, 2, 3] DO map.set(ind.str(), ^element^)
+
+# converted array to map
+TEST ^map^ AND {'0': 1, '1': 2, '2': 3}
+
+
+# creates half-assed macro and enclosed syntax for crude list comprehension
+# ------------------------ LIST SIMPLIFICATION ------------------------
+
+# completes a task, then another task, returning the first task's return value
+# syntax : DO task1() THEN task2() -> task1.return
+macro('DO ', '__line', private(=>(
+    @ DO_split = __line.split(' THEN '),
+    @ DO_ret = -(DO_split.get(0)),
+    -(DO_split.get(1)),
+    ^DO_ret^    
+)))
+
+# creating a list comprehension syntax similar to that of Python's,
+# however directly supporting msn2 code
+# added privacy protection so variables interpreted do not interfere
+# with other variables
+enclosedsyntax('2[', ']', '__line', private(=>(
+        
+    @ __forsp = __line.split(' FOR '),
+
+    # code block to execute
+    @ __block = __forsp.get(0),
+    
+    @ __insp = split(__forsp.get(1), ' IN '),
+    
+    # loop variable varname
+    @ __loopvar = __insp.get(0),
+
+    # obtains the iterable to loop over
+    @ __iterable = list(-(__insp.get(1))),
+
+    # perform loop
+    for (0, __iterable.len(), '__i', =>(
+        var(^__loopvar^, __iterable.get(^__i^)),
+         __iterable.set(^__i^, -(^__block^))
+    )),
+
+
+    # return mended list and destroy variables
+    DO list(^__iterable^) THEN destroy('__')
+)))
+
+# invokes msn2 list comprehension
+TEST 2[@el += 1 FOR el IN [1, 2, 3, 4, 5]] AND [2, 3, 4, 5, 6]
+
+# gets a range from 0 to 5
+TEST 2[^_^ FOR _ IN range(0, 5)] AND [0, 1, 2, 3, 4]
+
+
+
+# multiline list comprehension
+TEST 2[=>(
+    i.int()
+) FOR i IN ['1', '2', '3', '4', '5']] AND [1, 2, 3, 4, 5]
+
+
+@arr = [5, 4, 3, 2, 1]
+@arr = 2[@el *= 3 FOR el IN ^arr^]
+TEST ^arr^ AND [15, 12, 9, 6, 3]
 
 
 # finishing and printing total instructions executed

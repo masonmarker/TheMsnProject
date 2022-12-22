@@ -17,7 +17,7 @@
     -- var('__vn', '')
     -- var('__vl', '')
     -- var('__at_vl', False)
-    -- each(?__macroline?, '__c', =>(
+    -- each(^__macroline^, '__c', =>(
         if (?__c? == ?__middletoken?, =>(
             var('__vn', ?__vl?),
             var('__vl', ''),
@@ -34,7 +34,9 @@
 
 # executes two arguments as MSNScript2 separated by a token
 ~ macro_args(__middletoken, __macroline)->_
-    -- var('__split', __macroline.split(?__middletoken?))
-    -- @_ = |each(?__split?, '__el', -(?__el?))|
+    -- var('__split', __macroline.split(^__middletoken^))
+    -- __split.set(0, strip(__split.get(0)))
+    -- __split.set(1, strip(__split.get(1)))
+    -- @_ = each(^__split^, '__el', -(^__el^))
 
 

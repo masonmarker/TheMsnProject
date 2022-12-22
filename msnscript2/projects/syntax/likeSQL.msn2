@@ -1,0 +1,21 @@
+# creates a language syntax similar to that of SQL
+# 
+# author : Mason Marker
+# date : 12/20/2022
+
+# clear console
+import ('lib/os.msn2')
+clear()
+
+# import macro creation
+import ('lib/syntax/macrocreation.msn2')
+
+
+
+
+macro('SET ', '__line', print(macro_args(' TO ', ^__line^)))
+
+
+SET v TO [1, 2, 3, 4]
+env(True)
+

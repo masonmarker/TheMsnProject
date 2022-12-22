@@ -1229,6 +1229,29 @@ serial_open('thread')
 
 # -------------------------------------------
 
+# ------------------ TESTS FUNCTION() SYSTEM CALL ------------------
+
+# tests function()
+# implementing function() is an attempt to offer a fully stable way
+# of declaring user methods
+# 
+# function() is a simply a better alternative to '~'
+# the context rules still apply to these functions the same way as '~'
+~ test_function()->_
+
+    -- print('[+] testing functions')
+
+    # creating a new user function
+    # ret() returns to a function
+    -- function('array_sum', ret('array_sum', sum(^__array^)), '__array')
+    
+    # invoking the function is the same
+    -- eq(private(array_sum([1, 2, 3, 4, 5])), 15) ??
+
+
+    -- @ _ = 1
+
+# -------------------------------------------
 
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
 
@@ -1257,6 +1280,7 @@ serial_open('thread')
     -- thread('html', private(assert(test_html())))
     -- thread('enclosing', private(assert(test_enclosing())))
     -- thread('destroy', private(assert(test_destroy())))
+    -- thread('function', private(assert(test_function())))
 
     # macros testing
     -- thread('macros', private(=>(
