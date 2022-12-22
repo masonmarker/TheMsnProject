@@ -731,6 +731,10 @@ class Interpreter:
                     self.methods[fname] = new_method
                     return fname
 
+                # performs modular arithmetic on the two arguments given
+                elif func == 'mod':
+                    return self.parse(0, line, f, sp, args)[2] % self.parse(1, line, f, sp, args)[2]
+
                 # returns a value to a function
                 # first argument is the function to return to
                 # second argument is the value to return

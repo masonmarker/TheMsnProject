@@ -1223,7 +1223,7 @@ serial_open('thread')
 
 # tests html functions
 ~ test_html()->_
-    -- print('[+] testing html')
+    -- print('[+] testing html...')
 
     -- @_=1
 
@@ -1239,15 +1239,23 @@ serial_open('thread')
 # the context rules still apply to these functions the same way as '~'
 ~ test_function()->_
 
-    -- print('[+] testing functions')
+    -- print('[+] testing functions...')
 
     # creating a new user function
-    # ret() returns to a function
+    # ret() returns to a function()
+    # these two system calls work hand in hand
+    
+    # this creates a user function called array_sum() that takes an array,
+    # which is used in the function's context to compute its sum
     -- function('array_sum', ret('array_sum', sum(^__array^)), '__array')
     
     # invoking the function is the same
-    -- eq(private(array_sum([1, 2, 3, 4, 5])), 15) ??
+    -- equals(private(array_sum([1, 2, 3, 4, 5])), 15) ??
 
+    # you can overwrite a function be redeclaring it
+    -- function('array_sum', ret('array_sum', 0), '__array')
+
+    -- equals(private(array_sum(None)), 0) ??
 
     -- @ _ = 1
 
