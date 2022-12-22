@@ -15,14 +15,22 @@ serial_open('msn2plus_thread')
 # utilizing variables
 enclosedsyntax('^', '^', '__varname', val(val('__varname')))
 
+# completes a task, then another task, returning the first task's return value
+# syntax : DO task1() THEN task2() -> task1.return
+macro('DO ', '__line', private(=>(
+    @ DO_split = __line.split(' THEN '),
+    @ DO_ret = -(DO_split.get(0)),
+    -(DO_split.get(1)),
+    destroy('DO_split'),
+    ^DO_ret^    
+)))
+
 # assertions
-postmacro('??', '__line', assert(-(val('__line')))) 
 postmacro('??', '__line', =>(
     @__block = ^__line^,
     @__ev = -(^__block^),
     if(not(^__ev^), print('[-] assertion error :', ^__block^)),
-    destroy('__block'),
-    ^__ev^
+    DO ^__ev^ THEN destroy('__')
 ))
 
 # threads
