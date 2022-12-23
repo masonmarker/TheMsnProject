@@ -1261,6 +1261,42 @@ serial_open('thread')
 
 # -------------------------------------------
 
+# ------------------ TESTS INTERPRETER REDIRECTION ------------------
+
+# interpreter redirection allows for lines of code to be redirected to a redirect()
+# redirect() and stopredirect() are system calls that alter the path of the working 
+# interpreter to a function that would operate on the line instead
+# this will occur until stopredirect() is called
+# 
+# usage:
+# redirect(line_variable_name, block)
+# ****
+# ****
+# ****
+# stopredirect()
+
+# using a different function declaration syntax just as demonstration
+function('test_redirect', =>(
+
+    print('[+] testing redirect...'),
+
+    # for each instruction until MSN2_REDIRECT_STOP, perform an instruction
+    redirect('__line', print((__line))),
+    hello,
+    this is a test,
+    stopredirect(),
+
+    ret('test_redirect', 1)
+))
+
+# -------------------------------------------
+
+
+
+
+
+
+
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
 
 @ tests_ran = 0
@@ -1289,6 +1325,7 @@ serial_open('thread')
     -- thread('enclosing', private(assert(test_enclosing())))
     -- thread('destroy', private(assert(test_destroy())))
     -- thread('function', private(assert(test_function())))
+    -- thread('redirect', private(assert(test_redirect())))
 
     # macros testing
     -- thread('macros', private(=>(

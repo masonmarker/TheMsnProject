@@ -15,7 +15,7 @@ if len(sys.argv) <= 1:
 for i in range(1, len(sys.argv)):
     filename = sys.argv[i]
     
-    # git push request sent
+    # pushes changes to GitHub
     if filename == 'push':
         filename = 'projects/console/git.msn2'
     
