@@ -112,6 +112,8 @@ class Interpreter:
 
         self.current_line = 0
         self.breaking = False
+        self.redirect = None
+        self.redirecting = False
         self.imports = set()
 
         self.thread = None
@@ -145,7 +147,6 @@ class Interpreter:
 
         for line in self.lines:
             line = line.strip()
-            lines_ran.append(line)
             if line.startswith("::") or line.startswith("#"):
                 self.current_line += 1
                 continue
@@ -220,6 +221,7 @@ class Interpreter:
         global lock
         global auxlock
         total_ints += 1
+        lines_ran.append(line)
 
         if self.breaking:
             return
@@ -231,7 +233,13 @@ class Interpreter:
         cont = False
         if line == '':
             return
+            
 
+        # check for redinterpreter redirect request
+        if  self.redirecting:
+            self.redirecting = False
+            self.interpret(self.redirect[1])
+        
         # new variable setting and modification syntax as of 12/20/2022
         # iterates to the first '=' sign, capturing the variable name in the
         # process
@@ -1154,7 +1162,29 @@ class Interpreter:
                         return math.pi
                     return '<msnint2 class>'
                    
-                                    
+                # redirects this interpreter to a function
+                elif func == 'redirect':
+                    
+                    # line variable name 
+                    linevname = self.parse(0, line, f, sp, args)[2]
+                    
+                    # block to run
+                    block = args[1][0]
+                    
+                    self.redirect = [linevname, block]
+                    
+                    self.redirecting = True
+                    return self.redirect
+                    
+                # stops the redirection
+                elif func == 'stopredirect':
+                    self.redirecting = False
+                    if not self.redirect:
+                        self.redirect = None
+                        return False
+                    self.redirect = None
+                    return True
+                       
                 # defines new syntax, see tests/validator.msn2 for documentation
                 elif func == 'syntax':
                     

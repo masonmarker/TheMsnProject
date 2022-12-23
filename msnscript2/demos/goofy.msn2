@@ -5,7 +5,7 @@
 
 # os specific console usage
 import ('lib/os.msn2')
-
+import ('lib/syntax/msn2plus.msn2')
 clear()
 
 
@@ -15,3 +15,23 @@ print([5, 4, 3, 2, 1], 'sorted is' ,<2> sorted(<< %[1, 2, 3, 4, 5]%[::-1] >>)  <
 
 # index of an element in an array
 print('index of 3 in [1, 2, 3, 4, 5] is' , << [1, 2, 3, 4, 5].index(3) >>)
+
+# macro constant
+macro('IM HUNGRY FOR PI', '__unused', 3.14)
+
+assert(equals(IM HUNGRY FOR PI, 3.14))
+
+# triple nested for loop
+@i=0
+0|2|_ (0|2|_ (0|2|_ (i.++())))
+equals(^i^, 8) ??
+
+
+
+
+
+
+
+
+
+

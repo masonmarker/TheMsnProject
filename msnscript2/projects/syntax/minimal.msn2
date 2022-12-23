@@ -3,16 +3,18 @@
 # author : Mason Marker
 # date : 12/10/2022
 
-# import minimalist syntax
+# import new language syntax
 import('projects/syntax/lib/minimal.msn2')
 
 
 
 
-# ------------------- SYNTACTICALLY MINIMAL PROGRAM -------------------
+
+
+# ------------------- MINIMALIST PROGRAM -------------------
 
 # new printing syntax
-prt 'starting minialist program'
+prt '[+] starting minimalist program'
 
 
 # general assertions
@@ -20,44 +22,12 @@ prt 'starting minialist program'
 True??
 'mason' == 'mason' ??
 [1, 2, 3, 4, 5] != {5: '23423'} ??
-4535.543587 == 4535.543587 ??
-'hello' == 'hello' ??
--5432.5435 == -5432.5435 ??
--4532.543 != -432.543 ??
 
-
-# still uses MSNScript2 base syntax for variable assignment
+# MSNScript2 base syntax for variable assignment
 @ v = [6, 4, 2, 4]
 
-# simpler syntax for printing
-prt '[7, 6, 5, 4, 3, 2] sorted is ' | sort [7, 6, 5, 4, 3, 2]
 
-# using variables with get
-prt 'v is ' | get v
-
-# comparisons with macros may eventually need to fall back to MSNScript2 syntax
-equals(get v, [6, 4, 2, 4]) ??
-not(equals(get v, [9, 3, 2])) ??
-
-# new variable definition
-set v to [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-
-# instructions start to become more readable
-add   4   to  v
-add 32  to  v
-add 5 to v
-add 8 to v
-add 'hello' to v
-add [8, 3, {3: [3, 2, 1]}] to v
-
-# does it work? yes, yes it does
-equals(get v, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 4, 32, 5, 8, 'hello', [8, 3, {3: [3, 2, 1]}]]) ??
-
-# issues exist with this specific syntax, for example it may be difficult to use 
-# a macro with a string containing 'to,' as the macro definitions do not account 
-# for this specific case, however this can always be fixed! 
-
+prt sort [7, 6, 5, 4, 3, 2]
 
 
 # ----------------------------------------------------------
