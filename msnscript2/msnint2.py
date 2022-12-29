@@ -114,6 +114,7 @@ class Interpreter:
         self.breaking = False
         self.redirect = None
         self.redirecting = False
+        self.redirect_inside = []
         self.imports = set()
 
         self.thread = None
@@ -150,9 +151,9 @@ class Interpreter:
             if line.startswith("::") or line.startswith("#"):
                 self.current_line += 1
                 continue
-        
-            else:
-
+    
+            else:   
+                                    
                 # aggregate syntax !{} (not recommended for most cases)
                 if line.startswith('!{') and line.endswith('}'):
                     multiline = line[2:-1]
@@ -216,33 +217,40 @@ class Interpreter:
 
 
     # interprets a line    
-    def interpret(self, line, block=None):
+    def interpret(self, line, block={}):
+        
+        # acquiring globals
         global total_ints
         global lock
         global auxlock
+        
+        # accounting
         total_ints += 1
         lines_ran.append(line)
 
+        # interpreter is breaking
         if self.breaking:
             return
+        
+        # strip line for interpretation
         try:
             line = line.strip()
         except:
             return
         l = len(line)
+        
+        # whether the line should immediately continue or not
         cont = False
         if line == '':
             return
-            
 
-        # check for redinterpreter redirect request
-        if  self.redirecting:
-            self.redirecting = False
-            self.interpret(self.redirect[1])
+        # the below conditions interpret a line based on initial appearances
+        # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
         
+
         # new variable setting and modification syntax as of 12/20/2022
         # iterates to the first '=' sign, capturing the variable name in the
-        # process
+        # process (as it should)
         # msn1 fallback
         if line[0] == '@':
             line = line[1:]
@@ -258,7 +266,6 @@ class Interpreter:
             except:
                 None
             return
-
 
         if line.startswith('<<'):
 
@@ -327,7 +334,7 @@ class Interpreter:
         # user defined macro
         for token in macros:
             if line.startswith(token):
-                
+
                 # variable name
                 varname = macros[token][1]
                 
@@ -373,7 +380,12 @@ class Interpreter:
                 val = line[len(start):len(line) - len(end)]
                 self.vars[varname] = Var(varname, val)
                 return self.interpret(block)
-                
+
+        # checks for active Interpreter redirect request
+        if self.redirecting and not 'stopredirect()' in line.replace(' ', ''):
+            _block = self.redirect[1]
+            self.redirect_inside.append([_block, line])   
+            return self.redirect
 
         # try base literal
         try:
@@ -405,7 +417,7 @@ class Interpreter:
                 objfunc = ''
                 continue
 
-            # method creation
+            # basic method creation
             if c == '~':
                     returnvariable = ''
                     self.loggedmethod.append('')
@@ -432,6 +444,8 @@ class Interpreter:
                     self.methods[self.loggedmethod[-1]].add_return(returnvariable)
                     return self.loggedmethod[-1]
             
+            
+            
             # interpreting a function
             elif c == '(':
 
@@ -453,6 +467,7 @@ class Interpreter:
                 # clean function for handling
                 func = func.strip()
                 objfunc = objfunc.strip()
+                            
                 # class attribute / method access
                 if obj in self.vars:
                     vname = obj
@@ -480,10 +495,15 @@ class Interpreter:
                     if objfunc == 'copy':
                         return object.copy()
                 
+                    if objfunc == 'print':
+                        print(object)
+                        return object
+
+                    if objfunc == 'val':
+                        return object
 
                     # literal specific methods
-                    # the isinstance branches below indicate DESCTRUCTIVE methods!
-
+                    # the isinstance branches below indicate mostly  DESCTRUCTIVE methods!
 
                     # integer specific functions
                     elif isinstance(object, int) or isinstance(object, float):
@@ -600,7 +620,22 @@ class Interpreter:
                         # gets the length of the array
                         if objfunc == 'len':
                             return len(self.vars[vname].value)
-                    
+
+                        # gets the index of an item in an array
+                        if objfunc == 'index':
+                            el = self.parse(0, line, f, sp, args)[2]
+                            try:
+                                return self.vars[vname].value.index(el)
+                            except:
+                                return self.vars[vname].index(el)
+
+                        # finds an element in a list
+                        # unlike index(), find returns -1 instead of throwing an
+                        # error
+                        if objfunc == 'find':
+                            return self.vars[vname].value.find(self.parse(0, line, f, sp, args)[2])
+
+
                     # if the object is a string
                     elif isinstance(object, str):
                         
@@ -709,7 +744,35 @@ class Interpreter:
                             # returns the object
                             return obj
 
-                    # alternative to '~' user defined method syntax
+                # the below conditions interpret a line based on initial appearances
+                # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
+                # request for Interpreter redirect to a block of code
+                # the first argument is 
+                if func == 'redirect':
+                    line_vname = self.parse(0, line, f, sp, args)[2]
+                    _block = args[1][0]
+                    
+                    # creates redirect for this interpreter
+                    self.redirect = [line_vname, _block]
+                    self.redirecting = True
+                    return self.redirect
+                        
+                # request for Interpreter redirect cancellation
+                if func == 'stopredirect':
+                    self.redirecting = False
+                    return True
+            
+                # starts the redirection
+                if func == 'startredirect':
+                    ret = None
+                    for _ins in self.redirect_inside:
+                        ins = _ins[0]
+                        _line = _ins[1]
+                        self.vars[self.redirect[0]] = Var(self.redirect[0], _line)
+                        ret = self.interpret(ins)
+                    return ret       
+
+                # alternative to '~' user defined method syntax
                 # example call:
                 # function('sum')
                 elif func == 'function':
@@ -794,6 +857,30 @@ class Interpreter:
                         except:
                             return str(self.vars[method.returns[0]])
                 
+                # creating a list
+                if func == 'from':
+                    arr = []
+                    if args[0][0] == '':
+                        return arr
+                    for i in range(len(args)):
+                        arr.append(self.parse(i, line, f, sp, args)[2])
+                    return arr
+
+                # creates a dictionary from its arguments
+                # every two arguments 
+                # an odd quantity of arguments is impossible
+                if func == 'dictfrom':
+                    d = {}
+                    if args[0][0] == '':
+                        return d
+
+                    # step over arguments in steps of 2
+                    for i in range(0, len(args), 2):
+                        cur = self.parse(i, line, f, sp, args)[2]
+                        nxt = self.parse(i + 1, line, f, sp, args)[2]
+                        d[cur] = nxt
+                    return d
+
                 # splits the first argument by the second argument
                 if func == 'split':
                     to_split = self.parse(0, line, f, sp, args)[2]               
@@ -820,6 +907,18 @@ class Interpreter:
                         
                     return funccalls
                 
+                # determines if the argument passed is of the type specified
+                if func == 'isstr':
+                    return isinstance(self.parse(0, line, f, sp, args)[2], str)
+                elif func == 'islist':
+                    return isinstance(self.parse(0, line, f, sp, args)[2], list)
+                elif func == 'isfloat':
+                    return isinstance(self.parse(0, line, f, sp, args)[2], float)
+                elif func == 'isint':
+                    return isinstance(self.parse(0, line, f, sp, args)[2], int)
+                elif func == 'isdict':
+                    return isinstance(self.parse(0, line, f, sp, args)[2], dict)
+
                 # gets the sum of the first argument
                 if func == 'sum':
                     return sum(self.parse(0, line, f, sp, args)[2])
@@ -979,6 +1078,67 @@ class Interpreter:
                         self.vars[first].value += second
                     return self.vars[first].value
                 
+                # performs basic operations on non-variable values
+                elif obj == 'op':
+
+                    # obtains the first argument
+                    arg1 = self.parse(0, line, f, sp, args)[2]
+
+                    # adding
+                    if objfunc == 'append' or objfunc == 'push' or objfunc == 'add':
+                        
+                        # obtain the argument being added
+                        arg2 = self.parse(1, line, f, sp, args)[2]
+
+                        # first argument is an array
+                        if isinstance(arg1, list):
+                            arg1.append(arg2)
+                            return arg1
+                        # otherwise perform '+'
+                        else:
+                            arg1 += arg2
+                            return arg1
+
+                    # performs subtraction
+                    if objfunc == 'sub':
+                        arg1 = self.parse(0, line, f, sp, args)[2]
+                        arg2 = self.parse(1, line, f, sp, args)[2]
+                        return arg1 - arg2
+                    
+
+                    return '<msnint2 class>'
+
+                # more support for functions
+                elif obj == 'function':
+                    
+                    fname = self.parse(0, line, f, sp, args)[2]
+
+                    # adds a line of code to a function / method's body
+                    if objfunc == 'addbody':
+                        _body = self.parse(1, line, f, sp, args)[2]
+ 
+                        self.methods[fname].add_body(_body)
+                        return fname
+
+                    # adds an argument to a function
+                    if objfunc == 'addarg':
+
+                        arg = self.parse(1, line, f, sp, args)[2]
+
+                        self.methods[fname].add_arg(arg)
+                        return fname
+
+                    # adds a return variable to this function
+                    if objfunc == 'addreturn':
+                        retvar = self.parse(1, line, f, sp, args)[2]
+
+                        self.methods[fname].add_return(retvar)
+                        return fname
+
+                    return '<msnint2 class>'
+
+
+
                 elif func == 'sub':
                     line, as_s, first = self.parse(0, line, f, sp, args)
                     line, as_s, second = self.parse(1, line, f, sp, args)
@@ -1006,7 +1166,7 @@ class Interpreter:
                     
                     self.vars[varname].value.append(value)
                     return value    
-                
+
                 # gets at the index specified
                 elif func == '->':
                     
@@ -1161,29 +1321,7 @@ class Interpreter:
                     elif objfunc == 'pi':
                         return math.pi
                     return '<msnint2 class>'
-                   
-                # redirects this interpreter to a function
-                elif func == 'redirect':
-                    
-                    # line variable name 
-                    linevname = self.parse(0, line, f, sp, args)[2]
-                    
-                    # block to run
-                    block = args[1][0]
-                    
-                    self.redirect = [linevname, block]
-                    
-                    self.redirecting = True
-                    return self.redirect
-                    
-                # stops the redirection
-                elif func == 'stopredirect':
-                    self.redirecting = False
-                    if not self.redirect:
-                        self.redirect = None
-                        return False
-                    self.redirect = None
-                    return True
+                
                        
                 # defines new syntax, see tests/validator.msn2 for documentation
                 elif func == 'syntax':
@@ -1736,9 +1874,9 @@ class Interpreter:
                         for i in range(len(Method.args)):
                             arg = Method.args[i]
                             if i != len(Method.args) - 1:
-                                strenv += "" + arg + ", "
+                                strenv += "" + str(arg) + ", "
                             else:
-                                strenv += "" + arg
+                                strenv += "" + str(arg)
                         strenv += ")\n"
                         
 
@@ -2150,6 +2288,7 @@ class Interpreter:
                     method.ended = True
                     return True
 
+                
                 # object instance requested
                 elif func in self.vars:
 
@@ -2257,6 +2396,7 @@ class Interpreter:
                         except:
                             None
                     return ret
+                
                 # fallback
                 else:
                     try:
@@ -2272,10 +2412,13 @@ class Interpreter:
                             # ok hopefully its a string lol
                             return line
   
+  
             if obj != '':
                 objfunc += c
             else:
                 func += c
+                
+        
         try:
             line = self.replace_vars2(line)
         except:
