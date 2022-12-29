@@ -47,7 +47,7 @@ assert(equals(^var1^, 1))
 
 
 
-# alternate variable setting
+# alternate variable setting with '@' macro
 @var1 += 3
 assert(equals(^var1^, 4))
 
@@ -145,6 +145,8 @@ assert (
 var('_sum', =>(
     var('_sum', 0), 
     for (0, 10, 'i', @_sum += ^i^),
+
+    # using one of the variable value extraction enclosing macros '^^'
     ^_sum^
 ))  
 
@@ -188,6 +190,10 @@ sum(range(0, 10)) == 45 ??
 # enclosing syntax to make a range faster
 enclosedsyntax('rng[', ']', '__line', =>(
     var('__split', __line.split(':')),
+
+    # enclosing syntax <<>> interprets and replaces all msn2 code 
+    # surrounded by || with it's return value, then evaluates the
+    # resulting string as a line of Python
     << list(range(int(|^__split^|[0]), int(|^__split^|[1]))) >>
 ))
 
@@ -230,7 +236,11 @@ n.++()
 eq(^n^, 5)??
 
 # you can also call methods on objects
+# objects in msn2 without msn2 function calls or macros is created with
+# a Pythonic syntax, the exact same of that within Python
 var('d', {'key': {'key2': 'p4ssw\n0rd'}})
+
+# however when creating a dict requring msn2 code, see crtl->f dictfrom()
 
 # indexing a dictionary
 eq(d.get('key', 'key2'), 'p4ssw\n0rd') ??
@@ -257,6 +267,69 @@ me.name('mason2')
 me.age(22)
 eq(me.name(), 'mason2') ??
 eq(me.age(), 22) ??
+
+
+
+
+# ---------------------- CREATION ----------------------
+
+# msn2 has been designed to keep algorithms within a single interpretation,
+# while this interpretation may interpret sub instructions, the algorithm
+# was written with a single broad goal in mind by the programmer
+
+# the system call from() creates an array from its arguments
+
+
+# creating an array
+@ array = from()
+eq((array), []) ??
+
+@ array = from(None)
+eq((array), [None]) ??
+
+@array = from('', 2, 3, 4, '')
+eq((array), ['', 2, 3, 4, '']) ??
+
+
+
+# system call dictfrom() creates a dictionary from its arguments
+# every two arguments are treated as a key-value pair in the creating
+# dictionary
+# an odd quantity of arguments is not possible
+
+
+# creating a dict requiring msn2 code
+@ dict = dictfrom('key', [], 'key2', dictfrom('key', []))
+eq((dict), {'key': [], 'key2': {'key': []}}) ??
+
+# class format {humans: name: [eyecolor, hairtype, age]}
+@class1 = =>({'humans': {'joe': ['green', 'curly', 40]}})
+
+# function that outputs a human with a more appealing format
+function('human_from', ret('human_from', =>(
+    dictfrom(
+        'name', 'joe', 
+
+        # indexing variables is safest with
+        # the indexing system call ->()
+        # macros are used to simplify this indexing technique
+        # farther down in this file
+        'eyecolor', ->(->(class1.humans(), (__name)), 0),
+        'hairtype', ->(->(class1.humans(), (__name)), 1),
+        'age', ->(->(class1.humans(), (__name)), 2))
+)), '__name')
+
+
+# creating a more appealing format of a human
+@ joe = human_from('joe')
+eq((joe), {'name': 'joe', 'hairtype': 'curly', 'eyecolor': 'green', 'age': 40})??
+
+# variable keys can be indexed now
+eq(joe.name(), 'joe') ??
+eq(joe.hairtype(), 'curly')??
+not(eq(joe.hairtype(), 'curlyf')) ??
+eq(joe.eyecolor(), 'green') ??
+eq(joe.age(), 40)??
 
 # ------------------------ CODE ISOLATION ------------------------
 
@@ -315,6 +388,7 @@ new(=>(
 
 exists('v')
 not(exists('newvar')) ??
+
 
 
 # why use private() or new() ??
@@ -772,6 +846,259 @@ in_between(-1, (v), 51) ??
 in_between(50, (v), 50) ??
 in_between(20, (v), 100) ??
 
+
+
+
+# ---- INTERPRETER REDIRECTION ----
+
+# interpreter redirection allows for lines of code to be redirected to a redirect(line_var_name, function)
+# and stopredirect()  system calls that alter the path of the working 
+# interpreter to a function that would operate on the line instead
+# this will occur until stopredirect() is called
+# startredirect() executes each line within the function declared in the most recent redirect()
+# 
+# usage:
+# redirect(line_var_name, function)
+# ****
+# ****
+# ****
+# stopredirect()
+# startredirect()
+
+# other examples than those below can be found in tests/validator.msn2
+
+
+redirect('__line', assert(-((__line))))
+    1
+    not False
+    1
+    True
+stopredirect()
+startredirect()
+
+# this syntax can be simplified for personal need with MSN2 syntax alteration
+
+# simplify redirect definition
+macro('verify:', '__unused', redirect('__line', if(not(-((__line))), =>(
+    print('[-] assertion error : ', (__line))
+))))
+
+# !!! IMPORTANT !!!
+# when requesting that an Interpreter stops its redirection,
+# its important to grasp that only macros have priority
+# over methods AND the check for an active Interpreter redirect request: 'example()'
+# 
+
+# given the above, we simplify the redirection cancellation process as shown
+macro(':fin', '__unused', =>(stopredirect(), startredirect()))
+
+
+
+
+# demonstration of simplified redirection request to an assertion function
+verify:
+    1
+    1
+    'hello' == 'hello'
+:fin
+
+
+verify:
+    True == True
+    1
+    assert(1)
+    1 ??
+    1
+:fin
+
+
+
+# creating an approach to line by line function declaration
+macro('func ', '__funcdec', =>(
+
+    @__sp = __funcdec.split(' : '),
+    @__fname = strip(__sp.get(0)),
+
+    # declares the basics of the new function
+    function((__fname),),
+
+    # add each argument variable to the function
+    each(split(strip(__sp.get(1)), ' '), '__var', =>(
+        function.addarg((__fname), (__var))
+    )),
+
+    # requests for an Interpreter redirect
+    redirect('__funcline', =>(
+        function.addbody((__fname), (__funcline))
+    ))
+))
+
+# declares a function and ends Interpreter redirection
+macro('end', '__unused', =>(stopredirect(), startredirect()))
+
+# demonstrating the simplified redirection of function contruction
+# using the same macro ':fin' to symbolize the end of Interpreter redirection
+
+
+@arr = [1, 2, 3, 4, 5]
+
+# function declaration for finding the index of an element in an array
+func array_index :  __array __element
+
+    # store return variable (for no reason, just testing)
+    var('_ret', __array.index((__element)))
+
+    # return a value to a function
+    ret('array_index', (_ret))
+end
+
+
+# an Interpreter's redirection can be tedious and prove
+# to be a fragile component of the language because of a certain kink
+# in msn2's design:
+#
+# priority handling within the backend accepts macros before recognizing
+# an active Interpreter redirection request. this was implemented to simplify 
+# the redirection cancellation process, being two system calls, 
+# stopredirect() and startredirect() by enabling a getaway mechanism 
+# via macros
+# 
+# this restricts all macros from being used within redirected code
+# including built in @, <<>> and <2><2> and user defined macros/postmacros/
+# syntax and enclosed syntax. this is specifically because macros were developed
+# to interpret multiple instructions as a single, stringed argument.
+# however when an Interpreter is asked to redirect an instruction,
+# and the instruction is a one of the macro types listed above, it will 
+# incorrectly proceed to adhere to the macro's instructions instead of 
+# redirecting the instruction to a block of code, as it was designed. 
+#
+# there is a fix to this issue, being that each macro used within the redirected
+# context should be have a private() block overseeing the logic performed, see below
+# for examples
+#
+# the issue is not the case when a macro is tasked with ending the redirection.
+# as this instruction is not a component of redirected code
+
+
+
+# demonstration
+verify:
+    eq(array_index([1, 2, 3, 4, 5], 1), 0)
+    eq(array_index([1, 2, 3, 4, 5], 2), 1)
+    eq(array_index([1, 2, 3, 4, 5], 3), 2)
+   eq(array_index([1, 2, 3, 4, 5], 4), 3)
+     eq(array_index([1, 2, 3, 4, 5], 5), 4)
+end
+
+
+verify:
+    assert(=>(
+        True
+    ))
+    assert(True)
+    1
+    5 in [5, 4, 3, 2,1]
+end
+
+
+
+# example of safely isolating function variables
+func test_func : __test_func_arg
+    ret('test_func', private(=>(
+        var('test_func_v', []),
+        var('test_func_v2', 1),
+        var('test_func_v3', 2),
+        
+        assert(exists('test_func_v')),
+        assert(exists('test_func_v2')),
+        assert(exists('test_func_v3'))
+    )))
+end
+
+
+# running some tests on the new function with the previously made
+# 'verify:' macro -> redirect
+verify:
+    test_func(0)
+    test_func(1)
+    test_func([])
+    test_func({})
+    test_func('')
+    test_func("")
+    test_func(None)
+
+    # verifies internal function variables were isolated
+    not(exists('test_func_v'))
+    not(exists('test_func_v2'))
+    not(exists('test_func_v3'))
+end
+
+
+
+# new method of indexing a list or dictionary
+macro('IND ', '__line', private(=>(
+    @__INDsp = __line.split(' AT '),
+    __INDsp.remove(' '),
+    @__INDiterable = -(__INDsp.get(0)),
+    if (islist((__iterable)), =>(
+        __INDiterable.get(-(__INDsp.get(1)))
+    ),
+    if (isdict((__iterable)), =>(
+        @__INDindices = split(__INDsp.get(1), ' THEN '),
+        
+        # we do not have a safe indexing solution for n arguments
+        # unless we build a msn2 instruction
+        @__INDtorun = '__INDiterable.get(',
+
+        for (0, len((__INDindices)), '__INDi', =>(
+            @__INDcurr = __INDindices.get((__INDi)),
+            if (not(equals((__INDi), op.sub((__INDi), 1))), 
+            __INDtorun.add(cat((__INDcurr), ',')),
+            __INDtorun.add((__INDcurr)))
+        )),
+
+        # execute the instruction
+        -((__INDtorun))
+    )))
+)))
+
+# newly creating indexing macro token 'IND ' that can repeatedly index a value
+
+# note that the macro exists in a redirected context, it can do this
+# because the interpreted code is privatized and executed on a new Interpreter,
+# while the parent Interpreter continues its redirection as instructed
+
+@arr = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+@login = {'login': {'username': 'joe2342', 'password': '12345'}}
+
+verify:
+
+    # demonstration
+    eq(IND [5, 6, 7, 8] AT 0, 5)  
+      
+
+    # testing indexing with lists
+    eq(IND (arr) AT 0, 1)
+    eq(IND (arr) AT 1, 2)
+    eq(IND (arr) AT 2, 3)
+    eq(IND (arr) AT 3, 4)
+    eq(IND (arr) AT 4, 5)
+    eq(IND (arr) AT 5, 6)
+    eq(IND (arr) AT 6, 7)
+    eq(IND (arr) AT 7, 8)
+    eq(IND (arr) AT 8, 9)
+
+    # testing indexing with dictionaries
+
+    # base language
+    eq(login.get('login', 'username'), 'joe2342')
+
+    # IND macro
+    eq(IND (login) AT 'login' THEN 'username', 'joe2342')
+
+    
+
+end
 
 
 
