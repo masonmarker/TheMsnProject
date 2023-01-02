@@ -131,6 +131,7 @@ class Interpreter:
         self.endpoint_path = 'demos/practical/apidata/apitestdata.csv'
         
         self.processes = {}
+        self.breaking_return = []
 
     # executes stored script
     def execute(self, script):
@@ -230,7 +231,7 @@ class Interpreter:
 
         # interpreter is breaking
         if self.breaking:
-            return
+            return self.breaking_return
         
         # strip line for interpretation
         try:
@@ -248,15 +249,6 @@ class Interpreter:
         # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
         
 
-        # new variable setting and modification syntax as of 12/20/2022
-        # iterates to the first '=' sign, capturing the variable name in the
-        # process (as it should)
-        # msn1 fallback
-        if line[0] == '@':
-            line = line[1:]
-            return self.interpret_msnscript_1(line)
-        
-
         # method-specific line reached
         if line.startswith('--'):
             line = line[2:]
@@ -266,6 +258,15 @@ class Interpreter:
             except:
                 None
             return
+
+        # new variable setting and modification syntax as of 12/20/2022
+        # iterates to the first '=' sign, capturing the variable name in the
+        # process (as it should)
+        # msn1 fallback
+        if line[0] == '@':
+            line = line[1:]
+            return self.interpret_msnscript_1(line)
+    
 
         if line.startswith('<<'):
 
@@ -353,10 +354,8 @@ class Interpreter:
                 # execute function
                 return self.interpret(function)
 
-        # user defined post macro
         for token in postmacros:
             if line.endswith(token):
-
                 # if the macro returns a value instead of executing a function
                 if len(postmacros[token]) == 4:
                     return postmacros[token][3]
@@ -492,6 +491,9 @@ class Interpreter:
                             return param
                     except:
                         None
+                        
+                        
+                    # methods available to all types
                     if objfunc == 'copy':
                         return object.copy()
                 
@@ -501,61 +503,107 @@ class Interpreter:
 
                     if objfunc == 'val':
                         return object
+                    
+                    if objfunc == 'type':
+                        return type(object)
 
-                    # literal specific methods
+                    if objfunc == 'len':
+                        return len(object)
+
+                    if objfunc == 'str':
+                        return str(object)
+                    
+                    if objfunc == 'int':
+                        return int(object)
+                    
+                    if objfunc == 'float':
+                        return float(object)
+                    
+                    if objfunc == 'complex':
+                        return complex(object)
+                    
+                    if objfunc == 'bool':
+                        return bool(object)
+
+                    if objfunc == 'dict':
+                        return dict(object)
+                    
+                    # comparing object types
+                    if objfunc == 'is':
+                        return object is self.parse(0, line, f, sp, args)[2]
+                    
+                    # test if the object is equal to all the parameters
+                    if objfunc == 'equals':
+                        for i in range(len(args)):
+                            if object != self.parse(i, line, f, sp, args)[2]:
+                                return False
+                        return True
+
+                    # variable type specific methods
                     # the isinstance branches below indicate mostly  DESCTRUCTIVE methods!
-
-                    # integer specific functions
-                    elif isinstance(object, int) or isinstance(object, float):
+                    # so be sure to read the code
+                
+                    # number specific functions
+                    if isinstance(object, int) or isinstance(object, float) or isinstance(object, complex):
                         
-                        # increases the value of the variable by 1
-                        if objfunc == '++':
+                        # increases the value of the variable by 1 
+                        if objfunc == '++' or objfunc == 'inc':
                             self.vars[vname].value += 1
                             return self.vars[vname].value
 
-                        elif objfunc == '--':
+                        elif objfunc == '--' or objfunc == 'dec':
                             self.vars[vname].value -= 1
                             return self.vars[vname].value
 
+                        # all of the below methods take any amount of arguments
+                        # and perform the operation on the variable
                         elif objfunc == 'add':
-                            self.vars[vname].value += self.parse(0, line, f, sp, args)[2]
+                            for i in range(len(args)):
+                                self.vars[vname].value += self.parse(i, line, f, sp, args)[2]
                             return self.vars[vname].value
 
                         elif objfunc == 'sub':
-                            self.vars[vname].value -= self.parse(0, line, f, sp, args)[2]
+                            for i in range(len(args)):
+                                self.vars[vname].value -= self.parse(i, line, f, sp, args)[2]
                             return self.vars[vname].value
                         
                         elif objfunc == 'mul':
-                            self.vars[vname].value *= self.parse(0, line, f, sp, args)[2]
+                            for i in range(len(args)):
+                                self.vars[vname].value *= self.parse(i, line, f, sp, args)[2]
                             return self.vars[vname].value
 
                         elif objfunc == 'div':
-                            self.vars[vname].value /= self.parse(0, line, f, sp, args)[2]
+                            for i in range(len(args)):
+                                self.vars[vname].value /= self.parse(i, line, f, sp, args)[2]
                             return self.vars[vname].value
                         
-                        # test if the value is greater than the argument
-                        elif objfunc == 'greater':
-                            return self.vars[vname].value > self.parse(0, line, f, sp, args)[2]
-
-                        # tests if the value is less than the argument
-                        elif objfunc == 'less':
-                            return self.vars[vname].value < self.parse(0, line, f, sp, args)[2]
+                        # all of the below methods should take any amount of arguments
                         
-                        # tests if the value is greater than or equal to the argument
-                        elif objfunc == 'greaterequal':
-                            return self.vars[vname].value >= self.parse(0, line, f, sp, args)[2]
+                        # test if the variable is greater than all arguments
+                        elif objfunc == 'greater' or objfunc == 'greaterthan' or objfunc == 'g':
+                            for i in range(len(args)):
+                                if self.vars[vname].value <= self.parse(i, line, f, sp, args)[2]:
+                                    return False
+                            return True
 
-                        # tests if the value is less than or equal to the argument
-                        elif objfunc == 'lessequal':
+                        elif objfunc == 'less' or objfunc == 'lessthan' or objfunc == 'l':
+                            for i in range(len(args)):
+                                if self.vars[vname].value >= self.parse(i, line, f, sp, args)[2]:
+                                    return False
+                            return True
+                        
+                        elif objfunc == 'greaterequal' or objfunc == 'ge':
+                            for i in range(len(args)):
+                                if self.vars[vname].value < self.parse(i, line, f, sp, args)[2]:
+                                    return False
+                            return True
+
+                        elif objfunc == 'lessequal' or objfunc == 'le':
                             return self.vars[vname].value <= self.parse(0, line, f, sp, args)[2]
 
 
                         # more basic functions
-
-                        # string representation of self
-                        elif objfunc == 'str':
-                            return str(self.vars[vname].value)
-
+                        return self.vars[vname].value
 
                     # array based functions
                     elif isinstance(object, list):
@@ -682,6 +730,12 @@ class Interpreter:
                         if objfunc == 'int':
                             return int(self.vars[vname].value)
                         
+                        # obtains a slice of the string 
+                        if objfunc == 'slice':
+                            return self.vars[vname].value[self.parse(0, line, f, sp, args)[2]:self.parse(1, line, f, sp, args)[2]]
+                        
+                        
+                        
                         # obtains itself
                         if objfunc == 'self':
                             try:
@@ -743,6 +797,20 @@ class Interpreter:
                                 
                             # returns the object
                             return obj
+                        
+                        # gets the keys of this dictionary
+                        if objfunc == 'keys':
+                            return self.vars[vname].value.keys()
+
+                        # gets the values of this dictionary
+                        if objfunc == 'values':
+                            return self.vars[vname].value.values()
+
+                        # gets the items of this dictionary
+                        if objfunc == 'items':
+                            return self.vars[vname].value.items()
+                        
+
 
                 # the below conditions interpret a line based on initial appearances
                 # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
@@ -1084,27 +1152,51 @@ class Interpreter:
                     # obtains the first argument
                     arg1 = self.parse(0, line, f, sp, args)[2]
 
-                    # adding
-                    if objfunc == 'append' or objfunc == 'push' or objfunc == 'add':
+                    # adds all arguments
+                    if objfunc == 'append' or objfunc == 'push' or objfunc == 'add' or objfunc == 'plus' or objfunc == '+' or objfunc == 'concat' or objfunc == 'concatenate' or objfunc == 'join' or objfunc == 'merge' or objfunc == 'sum': 
                         
-                        # obtain the argument being added
-                        arg2 = self.parse(1, line, f, sp, args)[2]
-
-                        # first argument is an array
                         if isinstance(arg1, list):
-                            arg1.append(arg2)
+                            for i in range(1, len(args)):
+                                arg2 = self.parse(i, line, f, sp, args)[2]
+                                arg1.append(arg2)
                             return arg1
-                        # otherwise perform '+'
                         else:
-                            arg1 += arg2
+                            for i in range(1, len(args)):
+                                arg2 = self.parse(i, line, f, sp, args)[2]
+                                arg1 += arg2
                             return arg1
+                        
 
-                    # performs subtraction
-                    if objfunc == 'sub':
-                        arg1 = self.parse(0, line, f, sp, args)[2]
-                        arg2 = self.parse(1, line, f, sp, args)[2]
-                        return arg1 - arg2
+                    # subtracts all arguments
+                    if objfunc == 'sub' or objfunc == 'minus' or objfunc == 'subtract' or objfunc == '-':
+                        for i in range(1, len(args)):
+                            arg2 = self.parse(i, line, f, sp, args)[2]
+                            arg1 -= arg2
+                        return arg1
+
+                    if objfunc == 'mul' or objfunc == 'times' or objfunc == 'x' or objfunc == '*' or objfunc == 'multiply':
+                        for i in range(1, len(args)):
+                            arg2 = self.parse(i, line, f, sp, args)[2]
+                            arg1 *= arg2
+                        return arg1
+
+                    if objfunc == 'div' or objfunc == 'divide' or objfunc == 'over' or objfunc == '/' or objfunc == '÷':
+                        for i in range(1, len(args)):
+                            arg2 = self.parse(i, line, f, sp, args)[2]
+                            arg1 /= arg2
+                        return arg1
                     
+                    if objfunc == 'mod' or objfunc == 'modulo' or objfunc == 'modulus' or objfunc == '%' or objfunc == 'remainder':
+                        for i in range(1, len(args)):
+                            arg2 = self.parse(i, line, f, sp, args)[2]
+                            arg1 %= arg2
+                        return arg1
+
+                    if objfunc == 'pow' or objfunc == 'power' or objfunc == 'exponent' or objfunc == '**':
+                        for i in range(1, len(args)):
+                            arg2 = self.parse(i, line, f, sp, args)[2]
+                            arg1 **= arg2
+                        return arg1
 
                     return '<msnint2 class>'
 
@@ -2951,7 +3043,7 @@ class Interpreter:
                         inter.vars[self.args[i]] = inter.vars[args[i]]
                     except:
                         try: 
-                            inter.vars[self.args[i]] = args[i]
+                            inter.vars[self.args[i]] = Var(self.args[i], args[i])
                         except:
                             inter.vars[self.args[i]] = args[i]
                 for line in self.body:

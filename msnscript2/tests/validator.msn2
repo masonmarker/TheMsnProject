@@ -4,7 +4,8 @@
 # date : 11/27/2022
 
 
-
+# NOTE : ?? SYNTAX SHOULD NOT BE USED IN USER PROGRAMS (your programs)
+# ?? is used in very specific cases to ensure integrity, you should use type specific methods instead
 
 
 # ------------------ SETUP ------------------
@@ -30,7 +31,7 @@ var('thread_count', 0)
 # prints accounting information
 ~ print_threads() -> _
     -- print('[+] created', ?thread_count?, 'threads')
-    -- print('[+] interpreted', trace.len(), 'lines')
+    -- print('[+] interpreted', trace.len(), 'instructions')
 
 # clear console
 clear()
@@ -1134,7 +1135,9 @@ serial_open('thread')
     # creates a post macro for a more English approach to asserting
     # i guess you could call it questioning lol
     -- postmacro('??', 'line', =>(
-        assert(-(?line?))
+        if (not(-(line.val())), print(
+            '[-] assertion error : ', line.val()
+        ))
     ))
 
     # demonstrates the postmacro
@@ -1315,10 +1318,268 @@ function('test_redirect', =>(
 
 # -------------------------------------------
 
+# ------------------ TESTS INTERPRETER REDIRECTION ------------------
+~ test_userfunc_with_args() -> _
+    
+    -- print('[+] testing userfunc with args...')
+    
+    # declaring a user defined function
+    -- function('__test', ret('__test', =>(
+        assert(exists('__arg1')),
+        assert(exists('__arg2')),
+        assert(equals(val('__arg1'), 1)),
+        assert(equals(val('__arg2'), 2)),
+    )), '__arg1', '__arg2')
+
+    # running method privately
+    -- private(__test(1, 2))
 
 
+    # also testing nested user functions
+    -- function('__test2', ret('__test2', =>(
+        assert(exists('__arg1')),
+        assert(exists('__arg2')),
+        assert(equals(val('__arg1'), 3)),
+        assert(equals(val('__arg2'), 4)),
+
+        # we use private() to prevent variable leakage to other contexts that need the same
+        # variable names
+        private(__test(1, 2)),
+        assert(equals(val('__arg1'), 3)),
+        assert(equals(val('__arg2'), 4)),
+    )), '__arg1', '__arg2')
+
+    # running test privately
+    -- private(__test2(3, 4))
+
+    -- @ _ = 1
+
+# -------------------------------------------
+
+# ------------------ TESTING OP CLASS ------------------
+
+# tests the built in op class, used for general functional operations on all types
+# the op class simply performs operations, and does not modify any variables or methods
+#
+# a benefit of using the op class is the fact that there are many method names that
+# perform the same operation, allowing the programming to forget the specific syntax to focus on other problems
+#
+# every method in the op class takes any amount of arguments, and returns the result of the operation
+~ test_op() -> _
+
+    -- print('[+] testing op class...')
+
+    -- @v = 1
+
+    # testing add on numbers
+    -- assert(equals(op.add(?v?, 4), 5))
+
+    # testing different names for the same operation
+    -- assert(equals(op.add(?v?, 4), op.plus(?v?, 4)))
+    -- assert(equals(op.add(?v?, 4), op.sum(?v?, 4)))
+    -- assert(equals(op.add(?v?, 4), op.+(?v?, 4)))
 
 
+    # testing add on strings
+    -- assert(equals(op.add(str(?v?), '4'), '14'))
+    -- assert(equals(op.add(str(?v?), '4'), op.plus(str(?v?), '4')))
+    -- assert(equals(op.add(str(?v?), '4'), op.sum(str(?v?), '4')))
+    -- assert(equals(op.add(str(?v?), '4'), op.+(str(?v?), '4')))
+    -- assert(equals(op.add(str(?v?), '4'), op.concat(str(?v?), '4')))
+
+    # testing add on lists
+    -- assert(equals(op.add([5], 4, 3), [5, 4, 3]))
+    -- assert(equals(op.add([5], 4, 3), op.plus([5], 4, 3)))
+    -- assert(equals(op.add([5], 4, 3), op.sum([5], 4, 3)))
+
+    # testing recommended choice of method name for all other operations
+    -- assert(equals(op.sub(?v?, 4), -3))
+    -- assert(equals(op.mul(?v?, 4), 4))
+    -- assert(equals(op.div(?v?, 4), 0.25))
+    -- assert(equals(op.mod(?v?, 4), 1))
+    -- assert(equals(op.pow(?v?, 4), 1))
+
+    # testing with any amount of arguments
+    -- assert(equals(op.add(1, 2, 3, 4, 5), 15))
+    -- assert(equals(op.add(1, 2, 3, 4, 5), op.plus(1, 2, 3, 4, 5)))
+
+    # testing sub with any amount of arguments
+    -- assert(equals(op.sub(1, 2, 3, 4, 5), -13))
+    -- assert(equals(op.sub(1, 2, 3, 4, 5), op.minus(1, 2, 3, 4, 5)))
+
+    # testing mul with any amount of arguments
+    -- assert(equals(op.mul(1, 2, 3, 4, 5), 120))
+    -- assert(equals(op.mul(1, 2, 3, 4, 5), op.times(1, 2, 3, 4, 5)))
+
+    # testing div with any amount of arguments that results in a whole number
+    -- assert(equals(op.div(16, 2, 2, 2), 2))
+    -- assert(equals(op.div(16, 2, 2, 2), op.divide(16, 2, 2, 2)))
+
+    # testing div with any amount of arguments that results in a decimal
+    -- assert(equals(op.div(16, 3, 2, 2), 1.3333333333333333))
+    -- assert(equals(op.div(16, 3, 2, 2), op.divide(16, 3, 2, 2)))
+
+    # testing mod with any amount of arguments that results in 1
+    -- assert(equals(op.mod(16, 3, 2, 2), 1))
+
+    # testing pow with any amount of arguments
+    -- assert(equals(op.pow(2, 2, 2), 16))
+
+    -- @_ = 1
+
+# -------------------------------------------
+
+# ------------------ TESTING ALL TYPE METHODS ------------------
+
+# all types share certain methods, this test demonstrates those methods
+# certain methods cannot and should not be used on certain types
+# ex: integer.copy() will not work and should not be
+# used (integer.val()), however array.copy() will
+~ test_global_methods() -> _ 
+
+    -- print('[+] testing global methods...')
+
+    -- @v = [1, 2, 3, 4]
+
+    # testing copy()
+    -- @v2 = v.copy()
+    -- equals(v.val(), v2.val()) ??
+
+    # testing len()
+    -- equals(v.len(), 4) ??
+
+    # testing val()
+    -- equals(v.val(), [1, 2, 3, 4]) ??
+
+    # test casting methods
+    -- equals(v.str(), '[1, 2, 3, 4]') ??
+
+    -- @ string = 'hello world'
+
+    # calling str() is like calling str(string.val()) and is essentially the same as calling string.val()
+    # with extra, unnecessary steps
+    -- equals(string.str(), 'hello world') ??
+
+    -- @ string = '[3, 4, 5, 65]'
+
+    # testing -() explicitly
+    # interprets msn2 code as a string
+    -- equals(-(string.val()), [3, 4, 5, 65]) ??
+
+    # finally, an equals method for all types
+    # equals(), like the system call, takes any amount of arguments
+    -- string.equals('[3, 4, 5, 65]') ??
+
+    # extract the value from the string
+    -- @ array = -(string.val())
+
+    # lists, like all other types, have an equals method
+    -- array.equals([3, 4, 5, 65]) ??
+
+    # test with floats
+    -- @ float = 45.432
+    -- equals(float.str(), '45.432') ??
+
+    -- float.equals(45.432) ??
+
+    # test with dictionaries
+    -- @ dict = { 'a': 1, 'b': 2, 'c': 3 }
+    -- equals(dict.str(), "{'a': 1, 'b': 2, 'c': 3}") ??
+
+    -- dict.equals({ 'a': 1, 'b': 2, 'c': 3 }, dictfrom('a', 1, 'b', 2, 'c', 3)) ??
+
+    -- @_ = 1
+# -------------------------------------------
+
+# ------------------ TESTING INTEGER METHODS ------------------
+~ test_int_methods() -> _
+
+    -- print('[+] testing integer methods...')
+
+    -- @ int = 5
+    -- @ int2 = 10
+
+    # testing increment
+    -- int.inc()
+    -- equals(int.val(), 6) ??
+
+    # testing decrement
+    -- int.dec()
+    -- equals(int.val(), 5) ??
+
+    # testing add
+    -- equals(int.add(int2.val()), 15) ??
+    
+    -- @int = 0
+
+    -- @integer = 0
+
+    # testing add with any amount of arguments
+    -- equals(integer.add(1, 2, 3, 4, 5), 15) ??
+
+    # number comparison methods
+    
+    -- integer.equals(15) ??
+
+    # testing a dictionary
+    -- @ dictionary = {}
+    -- dictionary.equals({}) ??
+    -- not(dictionary.equals({ 'a': 1 })) ??
+
+    # test greater and its aliases, greaterthan and g
+    -- integer.greater(14) ??
+    -- not(integer.greater(15)) ??
+
+    -- integer.greaterthan(14) ??
+    -- not(integer.greaterthan(15)) ??
+
+    -- integer.g(14) ??
+    -- not(integer.g(15)) ??
+
+    # test less and its aliases, lessthan and l
+    -- integer.less(16) ??
+    -- not(integer.less(15)) ??
+
+    -- integer.lessthan(16) ??
+    -- not(integer.lessthan(15)) ??
+
+    -- integer.l(16) ??
+    -- not(integer.l(15)) ??
+
+    # test greater or equal and its aliases, greaterequal and ge
+    -- integer.greaterequal(15) ??
+    -- not(integer.greaterequal(16)) ??
+
+    -- integer.ge(15) ??
+    -- not(integer.ge(16)) ??
+
+    # test less or equal and its aliases, lessequal and le
+    -- integer.lessequal(15) ??
+    -- not(integer.lessequal(14)) ??
+
+    -- integer.le(15) ??
+    -- not(integer.le(14)) ??
+
+    # testing comparisons with many arguments
+
+    -- integer.greater(11, 12, 13, 14) ??
+    -- not(integer.greater(11, 12, 13, 14, 15)) ??
+
+    -- integer.greaterthan(11, 12, 13, 14) ??
+    -- not(integer.greaterthan(11, 12, 13, 14, 15)) ??
+
+    -- integer.g(11, 12, 13, 14) ??
+    -- not(integer.g(11, 12, 13, 14, 15)) ??
+
+    # tests extra dictionary methods
+
+    -- @ dict = { 'a': 1, 'b': 2, 'c': 3 }
+
+    -- equals(list(dict.keys()), ['a', 'b', 'c']) ??
+    
+    -- equals(list(dict.values()), [1, 2, 3]) ??
+
+    -- @ _ = 1
 
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
 
@@ -1349,6 +1610,13 @@ function('test_redirect', =>(
     -- thread('destroy', private(assert(test_destroy())))
     -- thread('function', private(assert(test_function())))
     -- thread('redirect', private(assert(test_redirect())))
+    -- thread('userfunc_with_args', private(assert(test_userfunc_with_args())))
+    -- thread('op', private(assert(test_op())))
+    
+    # tests post macro functionality
+    -- private(assert(test_postmacros()))
+    -- thread('global_methods', private(assert(test_global_methods())))
+    -- thread('int_methods', private(assert(test_int_methods())))
 
     # macros testing
     -- thread('macros', private(=>(
@@ -1356,8 +1624,6 @@ function('test_redirect', =>(
         add_and_export()
     )))
 
-    # tests post macro functionality
-    -- private(assert(test_postmacros()))
 
     # test is not run on another thread to avoid file reading conflicts
     -- private(assert(test_user_syntax()))

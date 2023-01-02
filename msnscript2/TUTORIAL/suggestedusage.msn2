@@ -15,14 +15,18 @@
 
 
 # to import files, file path is relative to the user's cwd
+# import() can be placed anywhere, as it is treated as a system call
+# importing a file simply executes the msn2 code within the file specified
+# in this context
 import ('lib/os.msn2')
 
+# importing syntax additions
 # more relevant and optimal syntax for variable extraction with '^^' and '()'
 # and thread ease of use with '/t'
 import ('lib/syntax/msn2plus.msn2')
 
 
-# using an imported method to clear the console
+# using an imported method from actual path '../os.msn2' to clear the console
 clear()
 
 
@@ -389,7 +393,29 @@ new(=>(
 exists('v')
 not(exists('newvar')) ??
 
+# breaking out of a private context
+# system call break() allows for an immediate Interpreter redirect to the parent context
+# break() is used to break out of a private() or new() context
+# break() takes any amount of arguments as an array of return values to the private()
+# or new() call
+# 
+# example:
 
+private(=>(
+    for(0, 100, 'i', if (i.greater(50), =>(
+
+        # exports variable 'i' to the parent context
+        export('i'),
+
+        # breaks out of the private context
+        break()
+    )))
+))
+
+eq((i), 51) ??
+
+# see farther below in this file for a break() simplification technique
+# via macros
 
 # why use private() or new() ??
 # code segments need to be isolated if the same method / variable name
@@ -1035,70 +1061,37 @@ end
 
 
 
-# new method of indexing a list or dictionary
-macro('IND ', '__line', private(=>(
-    @__INDsp = __line.split(' AT '),
-    __INDsp.remove(' '),
-    @__INDiterable = -(__INDsp.get(0)),
-    if (islist((__iterable)), =>(
-        __INDiterable.get(-(__INDsp.get(1)))
-    ),
-    if (isdict((__iterable)), =>(
-        @__INDindices = split(__INDsp.get(1), ' THEN '),
-        
-        # we do not have a safe indexing solution for n arguments
-        # unless we build a msn2 instruction
-        @__INDtorun = '__INDiterable.get(',
+# breaking simplification with new syntax
 
-        for (0, len((__INDindices)), '__INDi', =>(
-            @__INDcurr = __INDindices.get((__INDi)),
-            if (not(equals((__INDi), op.sub((__INDi), 1))), 
-            __INDtorun.add(cat((__INDcurr), ',')),
-            __INDtorun.add((__INDcurr)))
-        )),
+# sometimes, breaking needs variables returned for use by the parent context.
+# this requires an export() call, we can simplify this with a user defined method
 
-        # execute the instruction
-        -((__INDtorun))
-    )))
-)))
+# reverting to the original user definition syntax for demonstration
+~ leave(__vars)->_
+    -- each((__vars), '__var', export((__var)))
+    -- break()
 
-# newly creating indexing macro token 'IND ' that can repeatedly index a value
+# execute for loop in isolation 
+private(=>(
+    @a = ['a', 'b'],
+    # leave() now returns the variables requested while breaking
+    # out of the private context
+    for (0, 100, 'i', if (i . greater(75), leave(['i', 'a'])))
+))
 
-# note that the macro exists in a redirected context, it can do this
-# because the interpreted code is privatized and executed on a new Interpreter,
-# while the parent Interpreter continues its redirection as instructed
+TEST (i) AND 76
+TEST (a) AND ['a', 'b']
 
-@arr = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-@login = {'login': {'username': 'joe2342', 'password': '12345'}}
 
-verify:
 
-    # demonstration
-    eq(IND [5, 6, 7, 8] AT 0, 5)  
-      
+# -------------------- SIMPLIFYING PROCESS CREATION --------------------
 
-    # testing indexing with lists
-    eq(IND (arr) AT 0, 1)
-    eq(IND (arr) AT 1, 2)
-    eq(IND (arr) AT 2, 3)
-    eq(IND (arr) AT 3, 4)
-    eq(IND (arr) AT 4, 5)
-    eq(IND (arr) AT 5, 6)
-    eq(IND (arr) AT 6, 7)
-    eq(IND (arr) AT 7, 8)
-    eq(IND (arr) AT 8, 9)
+macro('process', '__processline', =>(
 
-    # testing indexing with dictionaries
+    # tries to import process specific methods
+    import('processes.msn2'),
 
-    # base language
-    eq(login.get('login', 'username'), 'joe2342')
-
-    # IND macro
-    eq(IND (login) AT 'login' THEN 'username', 'joe2342')
-
-    
-
-end
+))
 
 
 
