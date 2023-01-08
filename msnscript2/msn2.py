@@ -18,6 +18,9 @@ for i in range(1, len(sys.argv)):
     # pushes changes to GitHub
     if filename == 'push':
         filename = 'projects/console/git.msn2'
+    elif filename == 'test':
+        filename = 'tests/misc.msn2'
+    
     
     extension = filename[filename.rindex('.'):]
 

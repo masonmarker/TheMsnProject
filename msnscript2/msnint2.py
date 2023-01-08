@@ -336,6 +336,10 @@ class Interpreter:
         for token in macros:
             if line.startswith(token):
 
+                # if the macro returns a value instead of executing a function
+                if len(macros[token]) == 4:
+                    return macros[token][3]
+
                 # variable name
                 varname = macros[token][1]
                 
@@ -346,10 +350,6 @@ class Interpreter:
                                 
                 # store extended for user defined syntax
                 self.vars[varname] = Var(varname, val)
-
-                # if the macro returns a value instead of executing a function
-                if len(macros[token]) == 4:
-                    return self.interpret(macros[token][3])
                     
                 # execute function
                 return self.interpret(function)
@@ -374,6 +374,8 @@ class Interpreter:
             start = enclosed[key][0]
             end = enclosed[key][1]
             if line.startswith(start) and line.endswith(end):
+                if len(enclosed[key]) == 5:
+                    return enclosed[key][4]
                 varname = enclosed[key][2]
                 block = enclosed[key][3]
                 val = line[len(start):len(line) - len(end)]
@@ -538,6 +540,25 @@ class Interpreter:
                             if object != self.parse(i, line, f, sp, args)[2]:
                                 return False
                         return True
+
+                    # obtains a slice of the iterable 
+                    if objfunc == 'slice':
+                        return self.vars[vname].value[self.parse(0, line, f, sp, args)[2]:self.parse(1, line, f, sp, args)[2]]
+                    
+                    # performs a function for each element in the iterable
+                    if objfunc == 'each':
+
+                        # get the variable name
+                        varname = self.parse(0, line, f, sp, args)[2]
+
+                        # get the function
+                        func = args[1][0]
+
+                        for i in range(len(object)):
+                            self.vars[varname] = Var(varname, object[i])
+                            self.interpret(func)
+                        del self.vars[varname]
+                        return object
 
                     # variable type specific methods
                     # the isinstance branches below indicate mostly  DESCTRUCTIVE methods!
@@ -730,12 +751,6 @@ class Interpreter:
                         if objfunc == 'int':
                             return int(self.vars[vname].value)
                         
-                        # obtains a slice of the string 
-                        if objfunc == 'slice':
-                            return self.vars[vname].value[self.parse(0, line, f, sp, args)[2]:self.parse(1, line, f, sp, args)[2]]
-                        
-                        
-                        
                         # obtains itself
                         if objfunc == 'self':
                             try:
@@ -819,6 +834,7 @@ class Interpreter:
                 if func == 'redirect':
                     line_vname = self.parse(0, line, f, sp, args)[2]
                     _block = args[1][0]
+                    self.redirect_inside = []
                     
                     # creates redirect for this interpreter
                     self.redirect = [line_vname, _block]
@@ -828,6 +844,7 @@ class Interpreter:
                 # request for Interpreter redirect cancellation
                 if func == 'stopredirect':
                     self.redirecting = False
+                
                     return True
             
                 # starts the redirection
@@ -866,7 +883,11 @@ class Interpreter:
                     # obtain the rest of the arguments as method args
                     for i in range(2, len(args)):
                         # adds variable name as an argument
-                        new_method.add_arg(self.parse(i, line, f, sp, args)[2])
+                        # if any function specific argument is None, break
+                        val = self.parse(i, line, f, sp, args)[2]
+                        if val == None:
+                            break
+                        new_method.add_arg(val)
                     self.methods[fname] = new_method
                     return fname
 
@@ -888,6 +909,7 @@ class Interpreter:
                     vname = fname + "__return__"
                     
                     self.vars[vname].value = value
+                    return value
 
                 # user method execution requested
                 elif func in self.methods.keys():
@@ -987,9 +1009,12 @@ class Interpreter:
                 elif func == 'isdict':
                     return isinstance(self.parse(0, line, f, sp, args)[2], dict)
 
-                # gets the sum of the first argument
+                # gets the sum of all arguments
                 if func == 'sum':
-                    return sum(self.parse(0, line, f, sp, args)[2])
+                    total = 0
+                    for i in range(len(args)):
+                        total += sum(self.parse(i, line, f, sp, args)[2])
+                    return total
                 
                 # creates / sets a variable
                 if func == 'var':
@@ -1007,13 +1032,6 @@ class Interpreter:
                 # converts the argument to a list
                 elif func == 'list':
                     return list(self.parse(0, line, f, sp, args)[2])
-
-                # gets the first argument at the second argument
-                elif func == 'get':
-                    
-                    getting_from = self.parse(0, line, f, sp, args)[2]
-                    index = self.parse(1, line, f, sp, args)[2]
-                    return eval(getting_from[index])
 
                 # determines if a variable exists or not
                 elif func == 'exists':
@@ -1226,6 +1244,38 @@ class Interpreter:
 
                         self.methods[fname].add_return(retvar)
                         return fname
+
+                    if objfunc == 'getbody':
+                        return self.methods[fname].body
+                    
+                    if objfunc == 'getargs':
+                        return self.methods[fname].args
+                    
+                    if objfunc == 'getreturn':
+                        return self.methods[fname].returns[0]
+
+                    # removes a function from the working context
+                    if objfunc == 'destroy':
+                        self.methods.pop(fname)
+                        return fname
+                    
+                    # simulates an execution of a function
+                    if objfunc == 'run':
+                        
+                        # form a string that is msn2 of the user defined function
+                        
+                        args_str = ''
+                        for i in range(1, len(args)):
+                            arg = self.parse(i, line, f, sp, args)[2]
+                            if i != len(args) - 1:
+                                args_str += str(arg) + ', '
+                            else:
+                                args_str += str(arg)
+                        
+                        inst = fname + '(' + args_str + ')'
+                        return self.interpret(inst)
+                        
+                        
 
                     return '<msnint2 class>'
 
@@ -1713,53 +1763,53 @@ class Interpreter:
                             lock.release()
                             return None
 
-                # performs math operations
-                elif obj == 'math':
-                    if objfunc == 'add':
-                        return self.parse(0, line, f, sp, args)[2] + self.parse(1, line, f, sp, args)[2]
+                # # performs math operations
+                # elif obj == 'math':
+                #     if objfunc == 'add':
+                #         return self.parse(0, line, f, sp, args)[2] + self.parse(1, line, f, sp, args)[2]
                     
-                    if objfunc == 'subtract':
-                        return self.parse(0, line, f, sp, args)[2] - self.parse(1, line, f, sp, args)[2]
+                #     if objfunc == 'subtract':
+                #         return self.parse(0, line, f, sp, args)[2] - self.parse(1, line, f, sp, args)[2]
                     
-                    if objfunc == 'multiply':
-                        return self.parse(0, line, f, sp, args)[2] * self.parse(1, line, f, sp, args)[2]
+                #     if objfunc == 'multiply':
+                #         return self.parse(0, line, f, sp, args)[2] * self.parse(1, line, f, sp, args)[2]
                     
-                    if objfunc == 'divide':
-                        return self.parse(0, line, f, sp, args)[2] / self.parse(1, line, f, sp, args)[2]
+                #     if objfunc == 'divide':
+                #         return self.parse(0, line, f, sp, args)[2] / self.parse(1, line, f, sp, args)[2]
                     
-                    if objfunc == 'power':
-                        return self.parse(0, line, f, sp, args)[2] ** self.parse(1, line, f, sp, args)[2]
+                #     if objfunc == 'power':
+                #         return self.parse(0, line, f, sp, args)[2] ** self.parse(1, line, f, sp, args)[2]
                     
-                    if objfunc == 'root':
-                        return self.parse(0, line, f, sp, args)[2] ** (1 / self.parse(1, line, f, sp, args)[2])
+                #     if objfunc == 'root':
+                #         return self.parse(0, line, f, sp, args)[2] ** (1 / self.parse(1, line, f, sp, args)[2])
                     
-                    if objfunc == 'mod':
-                        return self.parse(0, line, f, sp, args)[2] % self.parse(1, line, f, sp, args)[2]
+                #     if objfunc == 'mod':
+                #         return self.parse(0, line, f, sp, args)[2] % self.parse(1, line, f, sp, args)[2]
                     
-                    if objfunc == 'floor':
-                        return math.floor(self.parse(0, line, f, sp, args)[2])
+                #     if objfunc == 'floor':
+                #         return math.floor(self.parse(0, line, f, sp, args)[2])
                     
-                    if objfunc == 'ceil':
-                        return math.ceil(self.parse(0, line, f, sp, args)[2])
+                #     if objfunc == 'ceil':
+                #         return math.ceil(self.parse(0, line, f, sp, args)[2])
                     
-                    if objfunc == 'round':
-                        return round(self.parse(0, line, f, sp, args)[2])
+                #     if objfunc == 'round':
+                #         return round(self.parse(0, line, f, sp, args)[2])
                     
-                    if objfunc == 'abs':
-                        return abs(self.parse(0, line, f, sp, args)[2])
+                #     if objfunc == 'abs':
+                #         return abs(self.parse(0, line, f, sp, args)[2])
                     
-                    if objfunc == 'sin':
-                        return math.sin(self.parse(0, line, f, sp, args)[2])
+                #     if objfunc == 'sin':
+                #         return math.sin(self.parse(0, line, f, sp, args)[2])
                     
-                    if objfunc == 'cos':
-                        return math.cos(self.parse(0, line, f, sp, args)[2])
+                #     if objfunc == 'cos':
+                #         return math.cos(self.parse(0, line, f, sp, args)[2])
                     
-                    if objfunc == 'tan':
-                        return math.tan(self.parse(0, line, f, sp, args)[2])
+                #     if objfunc == 'tan':
+                #         return math.tan(self.parse(0, line, f, sp, args)[2])
                     
-                    if objfunc == 'asin':
-                        return math.asin(self.parse(0, line, f, sp, args)[2])
-                    return '<msnint2 class>'
+                #     if objfunc == 'asin':
+                #         return math.asin(self.parse(0, line, f, sp, args)[2])
+                #     return '<msnint2 class>'
                     
                 # gets the type of the first argument passed
                 elif func == 'type':
@@ -1836,7 +1886,7 @@ class Interpreter:
                 elif func == 'and':
                     first = self.parse(0, line, f, sp, args)[2]
                     for i in range(1, len(args)):
-                        if not first and self.parse(i, line, f, sp ,args)[2]:
+                        if first and not self.parse(i, line, f, sp ,args)[2]:
                             return False
                     return True
 
@@ -1969,7 +2019,35 @@ class Interpreter:
                                 strenv += "" + str(arg) + ", "
                             else:
                                 strenv += "" + str(arg)
-                        strenv += ")\n"
+                        # add body line count
+                        strenv += ") : " + str(len(Method.body)) + " inst\n"
+                        
+                    # printing macros
+                    strenv += "\nmacros:\n\t"
+                    
+                    # adding regular macros
+                    if len(macros) > 0:
+                        strenv += "premacros:\n\t\t"
+                        for macro in macros:
+                            strenv += macro + "\n\t\t"
+                    
+                    if len(postmacros) > 0:
+                        strenv += "\n\tpostmacros:\n\t\t"
+                        for macro in postmacros:
+                            strenv += macro + "\n\t\t"
+                       
+                    if len(syntax) > 0: 
+                        strenv += "\n\tsyntax:\n\t\t"
+                        for macro in syntax:
+                            strenv += macro + "\n\t\t"
+
+                    if len(enclosed) > 0:
+                        strenv += "\n\tenclosedsyntax:\n\t\t"
+                        for macro in enclosed:
+                            strenv += macro + "\n\t\t"
+                        
+                    
+                        
                         
 
                     strenv += "\nlog:\n" + self.log
@@ -2161,9 +2239,8 @@ class Interpreter:
                 # sends a command to the console, console type depends on
                 # executors software of course
                 elif func == 'console':
-                    ins_s = args[0][0]
-                    line, to_run = self.convert_arg(ins_s, line, f, sp, args)
-                    os.system(to_run)
+                    for i in range(len(args)):
+                        os.system(self.parse(i, line, f, sp, args)[2])
                     return True
 
                 # performs a get request to an http server

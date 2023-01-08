@@ -982,13 +982,13 @@ end
 # an Interpreter's redirection can be tedious and prove
 # to be a fragile component of the language because of a certain kink
 # in msn2's design:
-#
+
 # priority handling within the backend accepts macros before recognizing
 # an active Interpreter redirection request. this was implemented to simplify 
 # the redirection cancellation process, being two system calls, 
 # stopredirect() and startredirect() by enabling a getaway mechanism 
 # via macros
-# 
+
 # this restricts all macros from being used within redirected code
 # including built in @, <<>> and <2><2> and user defined macros/postmacros/
 # syntax and enclosed syntax. this is specifically because macros were developed
@@ -997,11 +997,11 @@ end
 # and the instruction is a one of the macro types listed above, it will 
 # incorrectly proceed to adhere to the macro's instructions instead of 
 # redirecting the instruction to a block of code, as it was designed. 
-#
+
 # there is a fix to this issue, being that each macro used within the redirected
 # context should be have a private() block overseeing the logic performed, see below
 # for examples
-#
+
 # the issue is not the case when a macro is tasked with ending the redirection.
 # as this instruction is not a component of redirected code
 
