@@ -1,57 +1,7 @@
 
 console('cls')
 
-# creating a protected for loop mechanism
-macro('loop ', '__loopdef', =>(
-
-    # obtain the loop parameters
-    @ __loopthings = -(__loopdef.val()),
-
-    # create a looping function
-    function('__recloop',),
-
-    # redirect loop context to a new function
-    redirect('__rline', function.addbody('__recloop', __rline.val()))
+assert(equals(=>(
+    @v1=1, @v2=2, @r=math.add(v1.val(), v2.val()), print(v1.val(), '+', v2.val(), '=', r.val()), r.val()), 
+    3
 ))
-
-# loop closure
-macro('endloop', '__unused', =>(
-
-    # close and interpret redirection
-    stopredirect(), 
-    startredirect(), 
-
-    # now that the loop body is closed, perform the loop in an isolated context
-    private(for(__loopthings.get(0), __loopthings.get(1), __loopthings.get(2), 
-        __recloop()
-    ))
-))
-
-# invoke the loop macro
-loop from(0, 3, 'i')
-    print(i.val(), ": Hello, World!")
-    print(i.val(), ": Goodbye, World!")
-endloop
-
-# reversing a list
-@ list = [1, 2, 3, 4, 5]
-@ cp = list.copy()
-
-# invoking the loop macro
-loop from(0, list.len(), 'i')
-
-    # reversing the list
-    list.set(i.val(), cp.get(op.sub(op.sub(list.len(), i.val()), 1)))
-
-    # we are in a private context, so we can use private variables
-    var('priv', 0)
-    assert(exists('priv'))
-endloop
-
-assert (
-    list.equals([5, 4, 3, 2, 1]), 
-    not(list.equals([1, 2, 3, 4, 5])),
-
-    # private context variables do not exist outside of the context
-    not(exists('priv'))
-)
