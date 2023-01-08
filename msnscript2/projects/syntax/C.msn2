@@ -23,8 +23,8 @@ clear()
     -- __printing.replace('\n', '%')
 
     # splits by newline
-    -- var('__split', split(?__printing?, '%'))
-    
+    -- var('__split', __printing.split('%'))
+
     # prints according to newline specifications
     -- if (<< len(|?__split?|) < 2 >>, << print(
         |?__printing?|, end="") >>,  for(0, <<len(|?__split?|)-1>>, '__i', print(?__split?[?__i?])))
