@@ -1411,59 +1411,6 @@ class Interpreter:
                         # generates an ai response with the basic model
                         return ai_response(models['basic']['model'], self.parse(0, line, f, sp, args)[2], models['basic']['creativity'])
                     return '<msnint2 class>'
-                        
-                                            
-
-                        
-                
-                
-                # performs math functions
-                elif obj == 'math':
-
-                    # extract argument
-                    line, as_s, arg = self.parse(0, line, f, sp, args)
-
-                    # perform function
-                    if objfunc == 'abs':
-                        return abs(arg)
-                    elif objfunc == 'ceil':
-                        return math.ceil(arg)
-                    elif objfunc == 'floor':
-                        return math.floor(arg)
-                    elif objfunc == 'round':
-                        return round(arg)
-                    elif objfunc == 'sqrt':
-                        return math.sqrt(arg)
-                    elif objfunc == 'sin':
-                        return math.sin(arg)
-                    elif objfunc == 'cos':
-                        return math.cos(arg)
-                    elif objfunc == 'tan':
-                        return math.tan(arg)
-                    elif objfunc == 'asin':
-                        return math.asin(arg)
-                    elif objfunc == 'acos':
-                        return math.acos(arg)
-                    elif objfunc == 'atan':
-                        return math.atan(arg)
-                    elif objfunc == 'log':
-                        return math.log(arg)
-                    elif objfunc == 'log10':
-                        return math.log10(arg)
-                    elif objfunc == 'log2':
-                        return math.log2(arg)
-                    elif objfunc == 'exp':
-                        return math.exp(arg)
-                    elif objfunc == 'pow':
-                        return math.pow(arg, self.parse(1, line, f, sp, args)[2])
-                    elif objfunc == 'factorial':
-                        return math.factorial(arg)
-                    elif objfunc == 'e':
-                        return math.e
-                    elif objfunc == 'pi':
-                        return math.pi
-                    return '<msnint2 class>'
-                
                        
                 # defines new syntax, see tests/validator.msn2 for documentation
                 elif func == 'syntax':
@@ -1764,52 +1711,52 @@ class Interpreter:
                             return None
 
                 # # performs math operations
-                # elif obj == 'math':
-                #     if objfunc == 'add':
-                #         return self.parse(0, line, f, sp, args)[2] + self.parse(1, line, f, sp, args)[2]
+                elif obj == 'math':
+                    if objfunc == 'add':
+                        return self.parse(0, line, f, sp, args)[2] + self.parse(1, line, f, sp, args)[2]
                     
-                #     if objfunc == 'subtract':
-                #         return self.parse(0, line, f, sp, args)[2] - self.parse(1, line, f, sp, args)[2]
+                    if objfunc == 'subtract':
+                        return self.parse(0, line, f, sp, args)[2] - self.parse(1, line, f, sp, args)[2]
                     
-                #     if objfunc == 'multiply':
-                #         return self.parse(0, line, f, sp, args)[2] * self.parse(1, line, f, sp, args)[2]
+                    if objfunc == 'multiply':
+                        return self.parse(0, line, f, sp, args)[2] * self.parse(1, line, f, sp, args)[2]
                     
-                #     if objfunc == 'divide':
-                #         return self.parse(0, line, f, sp, args)[2] / self.parse(1, line, f, sp, args)[2]
+                    if objfunc == 'divide':
+                        return self.parse(0, line, f, sp, args)[2] / self.parse(1, line, f, sp, args)[2]
                     
-                #     if objfunc == 'power':
-                #         return self.parse(0, line, f, sp, args)[2] ** self.parse(1, line, f, sp, args)[2]
+                    if objfunc == 'power':
+                        return self.parse(0, line, f, sp, args)[2] ** self.parse(1, line, f, sp, args)[2]
                     
-                #     if objfunc == 'root':
-                #         return self.parse(0, line, f, sp, args)[2] ** (1 / self.parse(1, line, f, sp, args)[2])
+                    if objfunc == 'root':
+                        return self.parse(0, line, f, sp, args)[2] ** (1 / self.parse(1, line, f, sp, args)[2])
                     
-                #     if objfunc == 'mod':
-                #         return self.parse(0, line, f, sp, args)[2] % self.parse(1, line, f, sp, args)[2]
+                    if objfunc == 'mod':
+                        return self.parse(0, line, f, sp, args)[2] % self.parse(1, line, f, sp, args)[2]
                     
-                #     if objfunc == 'floor':
-                #         return math.floor(self.parse(0, line, f, sp, args)[2])
+                    if objfunc == 'floor':
+                        return math.floor(self.parse(0, line, f, sp, args)[2])
                     
-                #     if objfunc == 'ceil':
-                #         return math.ceil(self.parse(0, line, f, sp, args)[2])
+                    if objfunc == 'ceil':
+                        return math.ceil(self.parse(0, line, f, sp, args)[2])
                     
-                #     if objfunc == 'round':
-                #         return round(self.parse(0, line, f, sp, args)[2])
+                    if objfunc == 'round':
+                        return round(self.parse(0, line, f, sp, args)[2])
                     
-                #     if objfunc == 'abs':
-                #         return abs(self.parse(0, line, f, sp, args)[2])
+                    if objfunc == 'abs':
+                        return abs(self.parse(0, line, f, sp, args)[2])
                     
-                #     if objfunc == 'sin':
-                #         return math.sin(self.parse(0, line, f, sp, args)[2])
+                    if objfunc == 'sin':
+                        return math.sin(self.parse(0, line, f, sp, args)[2])
                     
-                #     if objfunc == 'cos':
-                #         return math.cos(self.parse(0, line, f, sp, args)[2])
+                    if objfunc == 'cos':
+                        return math.cos(self.parse(0, line, f, sp, args)[2])
                     
-                #     if objfunc == 'tan':
-                #         return math.tan(self.parse(0, line, f, sp, args)[2])
+                    if objfunc == 'tan':
+                        return math.tan(self.parse(0, line, f, sp, args)[2])
                     
-                #     if objfunc == 'asin':
-                #         return math.asin(self.parse(0, line, f, sp, args)[2])
-                #     return '<msnint2 class>'
+                    if objfunc == 'asin':
+                        return math.asin(self.parse(0, line, f, sp, args)[2])
+                    return '<msnint2 class>'
                     
                 # gets the type of the first argument passed
                 elif func == 'type':
