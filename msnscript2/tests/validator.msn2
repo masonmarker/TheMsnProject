@@ -1580,6 +1580,244 @@ function('test_redirect', =>(
     -- equals(list(dict.values()), [1, 2, 3]) ??
 
     -- @ _ = 1
+# -------------------------------------------
+
+
+# ------------------ TESTING GLOBAL METHODS ------------------
+~ test_more_global_methods() -> _
+
+    -- print('[+] testing more global methods...')
+
+    # testing each 
+
+    -- @ sum = 0
+
+    -- @ v = [1, 2, 3, 4]
+    -- v.each('e', sum.add(e.val()))
+    -- sum.equals(10) ??
+
+
+    # obtaining a slice
+    -- @ slice = v.slice(0, 2)
+    -- slice.equals([1, 2]) ??
+
+    # obtaining a slice of a string
+    -- @ string = 'hello world'
+    -- @ slice = string.slice(0, 5)
+    -- slice.equals('hello') ??
+
+
+    # testing map
+    -- @ v = [5, 4, 3, 2, 1]
+    -- v.map('el', el.add(1))
+    -- v.equals([6, 5, 4, 3, 2]) ??
+
+    # testing map with a dictionary
+    -- @ dict = { 'a': 1, 'b': 2, 'c': 3 }
+
+    # the map function on a dictionary can prove to be powerful
+    # for each iteration of map(), the key and value pair are set to a variable
+    # the key and value pair can be accessed by the variables 'k' and 'v'
+    # the values of temporary variables 'k' and 'v' can be changed in the function
+    # the values of the dictionary are changed to the values of the temporary variables
+
+    # does nothing to 'k' and 'v'
+    -- dict.map('k', 'v', =>())
+    -- dict.equals({ 'a': 1, 'b': 2, 'c': 3 })??
+
+    # increases the value by 1
+    -- dict.map('k', 'v', v.inc())
+    -- dict.equals({ 'a': 2, 'b': 3, 'c': 4 })??
+
+    # changes both the key and the value
+    -- dict.map('k', 'v', =>(
+        @ k = 'd',
+        @ v = 5
+    ))
+
+    -- dict.equals({ 'd': 5 }) ??
+
+
+    # testing setting of string character
+    -- @ string = 'hello world'
+    -- string.set(0, 'H')
+    -- string.equals('Hello world') ??
+
+    # reversing a string
+    -- string.reverse()
+    -- string.equals('dlrow olleH') ??
+    -- not(string.equals('Hello world')) ??
+
+    # reversing an array
+    -- @ v = [1, 2, 3, 4, 5]
+    -- v.reverse()
+    -- v.equals([5, 4, 3, 2, 1]) ??
+    -- not(v.equals([]))
+
+    # indexing an iterable faster
+    -- @v = {'hello': {'key': {'key2': 'password'}}}
+
+    # use -> to continue indexing after '.'
+    -- equals(v.hello -> key->key2(), 'password') ??
+
+    # add an argument to invoke a setting method
+    # instead of a getting method
+    # returns what was set
+    -- equals(v.hello->key ->key2('new_password'), 'new_password') ??
+    -- equals(v. hello -> key-> key2(), 'new_password') ??
+
+    # -> should not be used with lists, use .get() instead
+
+
+    -- @ _ = 1
+# -------------------------------------------
+
+
+
+# ------------------ '() -->' macro ------------------
+
+# the '() -->' macro allows for a repetitive function call on a variable
+# the '() -->' macro ONLY works with DESTRUCTIVE methods,
+# as its purpose is to repetitively alter a variable
+~ test_paren_macro() -> _
+
+    -- print('[+] testing () built in macro...')
+
+    # testing '() then' containedmacro
+    -- @ v = 1
+
+    # calls these variable methods in sequence
+    # basically does v.add(1).add(2).sub(1)
+    -- () v.add(1)-->add(2)-->sub(1) 
+    -- v.equals(3) ??
+
+
+    # testing on a string
+    -- @ string = 'hello!'
+    -- () string.upper() --> reverse()
+    -- string.equals('!OLLEH') ??
+
+    # testing on a list
+    -- @ v = [1, 2, 3, 4, 5]
+    -- () v.append(6) -->  reverse()
+    -- v.equals([6, 5, 4, 3, 2, 1]) ??
+
+
+    # testing on a dictionary
+    -- @ dict = { 'a': 1, 'b': 2, 'c': 3 }
+    -- () dict.set('d', 4) --> set('e', 5)
+    -- dict.equals({ 'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5 }) ??
+
+    # obtaining its return value
+    -- @ bro = @bro2 = @bro3 = 10
+    -- equals(()bro .++() --> ++() --> ++(), 13) ??
+    -- bro.equals(13) ??
+    -- bro2.equals(10) ??
+    -- bro3.equals(10) ??
+
+    # testing on a float
+    -- @ float = -3.5
+
+    # 3.5 --> 3 --> 3 --> -3
+    -- () float.abs() --> floor() --> ceil() --> neg()
+    -- float.equals(-3) ??
+
+    # testing again on a string
+    -- @ string = 'Hello, World!'
+    -- () string.cut (0, 5) --> upper() --> reverse()
+    -- string.equals('OLLEH') ??
+
+    -- @ _ = 1
+
+# -------------------------------------------
+
+
+
+# ------------------ TESTING RANDOM STUFF ------------------
+
+# this is a test that implements some random things
+~ test_other_stuff() -> _
+
+    -- print('[+] testing other stuff...')
+
+    # directly utilizing Python's imports
+    # pre-imported math class
+    -- @ v1 = @v2 = <<math.ceil(|3 + 0.5|)>>
+    -- and(v1.equals(4), v2.equals(4)) ??
+
+    # creating an iterative quicksort
+    -- function ('quicksort', =>(
+        
+        @ size = ?high? - ?low? + 1,
+        @ stack = << [0] * (|?size?|) >>,
+        
+        # top of the stack
+        @ top = -1,
+
+        # initializing the stack
+        top.++(),
+        stack.set(?top?, ?low?),
+        top.++(),
+        stack.set(?top?, ?high?),
+
+        while(top.greaterequal(0), =>(
+
+            @high = stack.get(?top?),
+            top.--(),
+            @ low = stack.get(?top?),
+            top.--(),
+
+            # obtain the partition
+            @ pt = =>(
+                @ i = ?low? - 1,
+                @ x = arr.get(?high?),
+
+                for (?low?, ?high?, 'j', =>(
+                    if (x.greaterequal(arr.get(?j?)), =>(
+                        i.++(),
+                        arr.set(?i?, arr.get(?j?)),
+                        arr.set(?j?, arr.get(?i?))
+                    ))
+                )),
+
+                arr.set(?i? + 1, arr.get(?high?)),
+                arr.set(?high?, arr.get(?i? + 1)),
+                ?i? + 1
+            ),
+
+            if (low.less(?pt? - 1), =>(
+                top.++(),
+                stack.set(?top?, ?low?),
+                top.++(),
+                stack.set(?top?, ?pt? - 1)
+            )),
+
+            if (high.greater(?pt? + 1), =>(
+                top.++(),
+                stack.set(?top?, ?pt? + 1),
+                top.++(),
+                stack.set(?top?, ?high?)
+            )),
+
+            ret('quicksort', arr.val())
+        ))
+    ), 'arr', 'low', 'high')
+
+    -- @ a = [5, 4, 3, 2, 1]
+    -- @ b = quicksort(a.val(), 0, op.sub(a.len(), 1))
+    -- b.print()
+
+
+    -- @ _ = 1
+
+
+
+
+
+
+# -------------------------------------------
+# -------------------------------------------
+
 
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
 
@@ -1612,7 +1850,10 @@ function('test_redirect', =>(
     -- thread('redirect', private(assert(test_redirect())))
     -- thread('userfunc_with_args', private(assert(test_userfunc_with_args())))
     -- thread('op', private(assert(test_op())))
-    
+    -- thread('globalmethods', private(assert(test_more_global_methods())))
+    -- thread('paren_macro', private(assert(test_paren_macro())))
+    -- thread("other_stuff", private(assert(test_other_stuff())))
+
     # tests post macro functionality
     -- private(assert(test_postmacros()))
     -- thread('global_methods', private(assert(test_global_methods())))

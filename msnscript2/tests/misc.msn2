@@ -1,7 +1,11 @@
 
 console('cls')
 
-assert(equals(=>(
-    @v1=1, @v2=2, @r=math.add(v1.val(), v2.val()), print(v1.val(), '+', v2.val(), '=', r.val()), r.val()), 
-    3
+@ html = html.from('https://www.ratemyprofessors.com/campusRatings.jsp?sid=457')
+
+
+each(html.val(), 'element', =>(
+    try(if (equals(element.get('attrs', 'class'), 'OverallRating__Number-y66epv-3 dXoyqn'), 
+        print(element.get('text'))
+    ))
 ))
