@@ -327,6 +327,36 @@ class Interpreter:
                 except:
                     return line
 
+        # offers a way to repetively call methods on a variable
+        if line.startswith('()'):
+            line = line[2:]
+            
+            # split line by --> macro
+            line = line.split('-->')
+            ret = None
+            varname = ''
+            
+            # iterate to the first '.', this will be the literal or variable name
+            for i in range(len(line[0])):
+                if line[0][i] != ' ':
+                    if line[0][i] == '.':
+                        break
+                    varname += line[0][i]
+            
+            if varname in self.vars:                    
+                # interpret the first instruction
+                ret = self.interpret(line[0])
+                
+                # interpret the rest of the instructions prefixed with the variable name and '.'
+                for i in range(1, len(line)):
+                    ret = self.interpret(varname + "." + line[i])
+            else:
+                
+                self.vars[varname]
+                
+            return ret
+            
+
         # user defined syntax
         for key in syntax:
             if line.startswith(key):
@@ -495,6 +525,28 @@ class Interpreter:
                         None
                         
                         
+                    # continuously accesses a key
+                    if '->' in objfunc:
+                        keys = objfunc.split('->')
+                        
+                        # no arguments given
+                        if args[0][0] == '':
+                            # get the value on this object at the keys
+                            for key in keys:
+                                try:
+                                    object = object[eval(key)]
+                                except:
+                                    object = object[key]
+                             
+                        # argument given to set   
+                        else:
+                            to_set = self.parse(0, line, f, sp, args)[2]
+                            for key in keys[:-1]:
+                                object = object[key]
+                            object[keys[-1]] = to_set
+                            return to_set
+                        return object
+                    
                     # methods available to all types
                     if objfunc == 'copy':
                         return object.copy()
@@ -559,6 +611,11 @@ class Interpreter:
                             self.interpret(func)
                         del self.vars[varname]
                         return object
+                    
+                    # reverses the iterable
+                    if objfunc == 'reverse':
+                        self.vars[vname].value = self.vars[vname].value[::-1]
+                        return self.vars[vname].value                    
 
                     # variable type specific methods
                     # the isinstance branches below indicate mostly  DESCTRUCTIVE methods!
@@ -596,6 +653,38 @@ class Interpreter:
                         elif objfunc == 'div':
                             for i in range(len(args)):
                                 self.vars[vname].value /= self.parse(i, line, f, sp, args)[2]
+                            return self.vars[vname].value
+                        
+                        # computes the absolute value of the number
+                        elif objfunc == 'abs':
+                            self.vars[vname].value = abs(self.vars[vname].value)
+                            return self.vars[vname].value
+                        
+                        # rounds this number to the nearest place specified by the first argument
+                        elif objfunc == 'round':
+                            
+                            # decimal place
+                            decplace = self.parse(0, line, f, sp, args)[2]
+                            
+                            # round to the nearest decimal place
+                            if args[0][0] != '':
+                                self.vars[vname].value = round(self.vars[vname].value, decplace)
+
+                            else:
+                                self.vars[vname].value = round(self.vars[vname].value)
+                            return self.vars[vname].value
+                        
+                        elif objfunc == 'floor':
+                            self.vars[vname].value = math.floor(self.vars[vname].value)
+                            return self.vars[vname].value
+                        
+                        elif objfunc == 'ceil':
+                            self.vars[vname].value = math.ceil(self.vars[vname].value)
+                            return self.vars[vname].value
+                        
+                        # negates the value, if positive the value becomes negative and vice versa
+                        elif objfunc == 'neg':
+                            self.vars[vname].value = -self.vars[vname].value
                             return self.vars[vname].value
                         
                         # all of the below methods should take any amount of arguments
@@ -703,7 +792,22 @@ class Interpreter:
                         # error
                         if objfunc == 'find':
                             return self.vars[vname].value.find(self.parse(0, line, f, sp, args)[2])
+                        
+                        
+                        # performs a function for each element in the iterable
+                        # map() is a destructive method
+                        if objfunc == 'map':
+                            # get the variable name
+                            varname = self.parse(0, line, f, sp, args)[2]
 
+                            # get the function
+                            func = args[1][0]
+
+                            for i in range(len(object)):
+                                self.vars[varname] = Var(varname, object[i])
+                                object[i] = self.interpret(func)
+                            del self.vars[varname]
+                            return object
 
                     # if the object is a string
                     elif isinstance(object, str):
@@ -747,16 +851,45 @@ class Interpreter:
                         if objfunc == 'stripped':
                             return self.vars[vname].value.strip()
 
-                        # parses an integer from the string
-                        if objfunc == 'int':
-                            return int(self.vars[vname].value)
-                        
                         # obtains itself
                         if objfunc == 'self':
                             try:
                                 return self.vars[vname].value
                             except:
                                 return self.vars[vname]
+                            
+                        # sets a character in this string
+                        if objfunc == 'set':
+                            
+                            # index to set
+                            index = self.parse(0, line, f, sp, args)[2]
+                            
+                            # what to set it to
+                            to_set = self.parse(1, line, f, sp, args)[2]
+                            
+                            # create a new string with the new character
+                            self.vars[vname].value = self.vars[vname].value[:index] + to_set + self.vars[vname].value[index + 1:]
+                            
+                            # returns the new string
+                            return self.vars[vname].value
+                        
+                        # gets a character in this string
+                        if objfunc == 'get':
+                            return self.vars[vname].value[self.parse(0, line, f, sp, args)[2]]
+                                                
+                        # uppercases the string
+                        if objfunc == 'upper':
+                            self.vars[vname].value = self.vars[vname].value.upper()
+                            return self.vars[vname].value
+                        
+                        # lowercases the string
+                        if objfunc == 'lower':
+                            self.vars[vname].value = self.vars[vname].value.lower()
+                            
+                        # cuts a string to the two indices passed
+                        if objfunc == 'cut':
+                            self.vars[vname].value = self.vars[vname].value[self.parse(0, line, f, sp, args)[2]:self.parse(1, line, f, sp, args)[2]]
+                            return self.vars[vname].value
 
                     # if the object is a dictionary
                     elif isinstance(object, dict):
@@ -825,7 +958,38 @@ class Interpreter:
                         if objfunc == 'items':
                             return self.vars[vname].value.items()
                         
+                        # maps each value in the dictionary to the output of the function
+                        if objfunc == 'map':
+                            
+                            # map arguments
+                            keyvarname = self.parse(0, line, f, sp, args)[2]
+                            valuevarname = self.parse(1, line, f, sp, args)[2]
+                            function = args[2][0]
+                                            
+                            new_dict = {}
+                                                        
+                            # loop through the objects items, assigning the key to the key and 
+                            # value to the value
+                            for key, value in self.vars[vname].value.items():
+                                
+                                # log old key
+                                old_key = key
+                                
+                                # execute the function
+                                self.vars[keyvarname] = Var(keyvarname, key)
+                                self.vars[valuevarname] = Var(valuevarname, value)
+                                
+                                # run the function
+                                ret = self.interpret(function)
+                                
+                                if self.vars[keyvarname].value == old_key:
+                                    new_dict[old_key] = self.vars[valuevarname].value
+                                else:
+                                    new_dict[self.vars[keyvarname].value] = self.vars[valuevarname].value
 
+                            self.vars[vname].value = new_dict
+                            
+                            return self.vars[vname].value
 
                 # the below conditions interpret a line based on initial appearances
                 # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
