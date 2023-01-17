@@ -1,6 +1,7 @@
-installing dependencies
+installing dependencies:
 
-there are only a few pip installs tbh, just for flask servers and such,
+there are only a few pip installs that need to
+be installed before executing .msn2 programs, just for flask servers, APIs and such,
 all of them are in dependencies.txt
 
 
@@ -25,7 +26,8 @@ to do this, under VS Code's language mode tab, configure file association of .ms
 see /demos for demonstrations
 see /tests for syntax specific usage (find the most recent validator in /tests)
 see /projects for larger demonstrations
-
+see /msn2 for a portable MSNScript2 Interpreter package that can be copied 
+    into your project directories for launching .msn2 programs anywhere.
 
 file-based code depends on the user's current directory after executing a .msn2 program (ex imports),
 verify that file paths in written code are compatible with the directory at which the program is launched
