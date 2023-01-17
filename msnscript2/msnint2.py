@@ -581,6 +581,29 @@ class Interpreter:
 
                     if objfunc == 'dict':
                         return dict(object)
+
+                    # gets values from the object if the statement is true for each object
+                    # runs the function on each element / kv pair
+                    #
+                    # method is not destructive
+                    if objfunc == 'if':
+
+                        # variable name
+                        varname = self.parse(0, line, f, sp, args)[2]
+
+                        # function to execute
+                        function = args[1][0]
+
+                        new_list = []
+
+                        # perform logic
+                        for el in self.vars[vname].value:
+                            self.vars[varname] =  Var(varname, el)
+                            if self.interpret(function):
+                                new_list.append(el)
+
+                        return new_list
+
                     
                     # comparing object types
                     if objfunc == 'is':
