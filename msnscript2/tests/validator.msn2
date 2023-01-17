@@ -1745,67 +1745,50 @@ function('test_redirect', =>(
     -- @ v1 = @v2 = <<math.ceil(|3 + 0.5|)>>
     -- and(v1.equals(4), v2.equals(4)) ??
 
-    # creating an iterative quicksort
-    -- function ('quicksort', =>(
-        
-        @ size = ?high? - ?low? + 1,
-        @ stack = << [0] * (|?size?|) >>,
-        
-        # top of the stack
-        @ top = -1,
+    # messing around with <2><2>
+    -- assert(<2>%1%<2>)
+    -- assert(<2>%not(0)%<2>)
 
-        # initializing the stack
-        top.++(),
-        stack.set(?top?, ?low?),
-        top.++(),
-        stack.set(?top?, ?high?),
+    -- assert(
+        <2>
+            %assert(1)% == %1%
+        <2>
+    )
 
-        while(top.greaterequal(0), =>(
+    # reversing an array again
+    -- @ a = [1, 2, 3, 4, 5]
+    -- equals(a.reverse(), [5, 4, 3, 2, 1 ]) ??
 
-            @high = stack.get(?top?),
-            top.--(),
-            @ low = stack.get(?top?),
-            top.--(),
+    # simple array operations
+    -- a.add(a.get(2))
+    -- a.equals([5, 4, 3, 2, 1, 3]) ??
 
-            # obtain the partition
-            @ pt = =>(
-                @ i = ?low? - 1,
-                @ x = arr.get(?high?),
+    # sorting an array by evens, then odds
+    -- function('_reset', =>(a.equals([2, 4, 6, 1, 3, 5]) ??, @ a = [1, 2, 3, 4, 5, 6]))
+    -- @ a = [1, 2, 3, 4, 5, 6]
 
-                for (?low?, ?high?, 'j', =>(
-                    if (x.greaterequal(arr.get(?j?)), =>(
-                        i.++(),
-                        arr.set(?i?, arr.get(?j?)),
-                        arr.set(?j?, arr.get(?i?))
-                    ))
-                )),
+    -- @ a = =>(
+        << [el for el in |a.val()| if el % 2 == 0] + 
+           [el for el in |a.val()| if el % 2 != 0] >>)
+    
+    # assert correction and reset 'a'
+    -- _reset()
 
-                arr.set(?i? + 1, arr.get(?high?)),
-                arr.set(?high?, arr.get(?i? + 1)),
-                ?i? + 1
-            ),
+    -- @ a = => (
+        << |a.if('el', equals(el.mod(2), 0))| + 
+           |a.if('el', not(equals(el.mod(2), 0)))| >>)
 
-            if (low.less(?pt? - 1), =>(
-                top.++(),
-                stack.set(?top?, ?low?),
-                top.++(),
-                stack.set(?top?, ?pt? - 1)
-            )),
+    -- a.print()
 
-            if (high.greater(?pt? + 1), =>(
-                top.++(),
-                stack.set(?top?, ?pt? + 1),
-                top.++(),
-                stack.set(?top?, ?high?)
-            )),
+    -- _reset()
 
-            ret('quicksort', arr.val())
-        ))
-    ), 'arr', 'low', 'high')
 
-    -- @ a = [5, 4, 3, 2, 1]
-    -- @ b = quicksort(a.val(), 0, op.sub(a.len(), 1))
-    -- b.print()
+
+
+
+
+    # another way
+
 
 
     -- @ _ = 1
@@ -1846,6 +1829,10 @@ function('test_redirect', =>(
     -- thread('html', private(assert(test_html())))
     -- thread('enclosing', private(assert(test_enclosing())))
     -- thread('destroy', private(assert(test_destroy())))
+
+    # tests post macro functionality
+    -- private(assert(test_postmacros()))
+
     -- thread('function', private(assert(test_function())))
     -- thread('redirect', private(assert(test_redirect())))
     -- thread('userfunc_with_args', private(assert(test_userfunc_with_args())))
@@ -1854,8 +1841,6 @@ function('test_redirect', =>(
     -- thread('paren_macro', private(assert(test_paren_macro())))
     -- thread("other_stuff", private(assert(test_other_stuff())))
 
-    # tests post macro functionality
-    -- private(assert(test_postmacros()))
     -- thread('global_methods', private(assert(test_global_methods())))
     -- thread('int_methods', private(assert(test_int_methods())))
 
