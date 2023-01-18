@@ -24,8 +24,35 @@
 #
 # - be able to run .py programs
 # - have installed the dependencies listed in ../dependencies.txt
+# thats literally all
+# 
+# you should then be able to run "python msn2.py xxxx.msn2" in your own directories / project folders
 
 
+# clear the console
+import ('lib/os.msn2')
+clear()
 
+# create a new directory named "msn2" in the portable directory
+file.mkdir('lib/msn2')
 
+# copy the msn2 library to the new directory
+@ files = file.listdir('lib')
+
+# copy each file from every 
+files.each('fl', =>(
+
+    # obtain working file path
+    @ old = cat('lib/', fl.val()),
+    @ newpath = cat('portable/', fl.val()),
+
+    # if file is directory, create directory in new location
+    if (file.isdir(old.val()), =>(
+        file.mkdir(newpath.val())
+    ), =>(
+        # if file is not a directory, copy file to new location
+        file.copy(old.val(), newpath.val()) 
+    ))
+
+))
 
