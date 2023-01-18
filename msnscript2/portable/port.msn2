@@ -1,4 +1,29 @@
-
+# This folder offers capabilities as a portable MSNScript2 Interpreter.
+#
+# Dependencies are not automatically installed within the new location,
+# so verify the dependencies in ../dependencies.txt are installed in the new directory.
+#
+# PORTABLE MSN2:
+#
+#     .msn2 programs can be run in any location, not just in the msnscript2 respository.
+#   
+#     Run "python msn2.py portable/port.msn2" to create a package named "msn2"
+#     within the portable directory that can be copied to your project directories
+#     so you can run .msn2 code in your own environments.
+#
+#     Anytime a package is created, this package is created with the most recent
+#     versions of the MSN2 Interpreter. 
+#
+#
+# when executed, this file (port.msn2) will create a package named "msn2" in the
+# portable directory. This package can be copied to any directory and used to run
+# .msn2 programs in that directory.
+#
+# the new location of the msn2 package should contain the same dependencies as this 
+# repository, meaning the new directory for the msn2 package should:
+#
+# - be able to run .py programs
+# - have installed the dependencies listed in ../dependencies.txt
 
 
 
