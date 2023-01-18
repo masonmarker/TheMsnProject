@@ -1774,13 +1774,27 @@ function('test_redirect', =>(
     # assert correction and reset 'a'
     -- _reset()
 
-    -- @ a = => (
-        << |a.if('el', equals(el.mod(2), 0))| + 
-           |a.if('el', not(equals(el.mod(2), 0)))| >>)
+    
 
-    -- a.print()
 
-    -- _reset()
+
+
+
+
+
+    # calculating factorial, recursively
+    -- function('factorial', ret('factorial', =>(
+        if (equals(n.val(), 0), 1, op.times(n.val(), factorial(op.sub(n.val(), 1))))
+    )), 'n')
+
+    # testing factorial
+    -- equals(factorial(5), 120) ??
+    -- equals(factorial(0), 1) ??
+    -- equals(factorial(1), 1) ??
+    -- equals(factorial(2), 2) ??
+    -- equals(factorial(3), 6) ??
+    
+
 
 
 
