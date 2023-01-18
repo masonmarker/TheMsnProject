@@ -34,7 +34,7 @@ import ('lib/os.msn2')
 clear()
 
 # create a new directory named "msn2" in the portable directory
-file.mkdir('lib/msn2')
+file.mkdir('portable/msn2')
 
 # copy the msn2 library to the new directory
 @ files = file.listdir('lib')
@@ -44,10 +44,11 @@ files.each('fl', =>(
 
     # obtain working file path
     @ old = cat('lib/', fl.val()),
-    @ newpath = cat('portable/', fl.val()),
+    @ newpath = cat('portable/msn2/', fl.val()),
 
     # if file is directory, create directory in new location
     if (file.isdir(old.val()), =>(
+        file.print(),
         file.mkdir(newpath.val())
     ), =>(
         # if file is not a directory, copy file to new location
