@@ -1793,6 +1793,9 @@ function('test_redirect', =>(
     -- equals(factorial(1), 1) ??
     -- equals(factorial(2), 2) ??
     -- equals(factorial(3), 6) ??
+    -- equals(factorial(4), 24) ??
+    -- equals(factorial(6), 720) ??
+    
     
 
 
