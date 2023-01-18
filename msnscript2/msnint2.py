@@ -1796,9 +1796,32 @@ class Interpreter:
                         lock.acquire()
                         old = self.parse(0, line, f, sp, args)[2]
                         new = self.parse(1, line, f, sp, args)[2]
-                        shutil.copy(old, new)
+                        shutil.copy2(old, new)
                         lock.release()
                         return new
+                    
+                    if objfunc == 'copy2':
+                        lock.acquire()
+                        old = self.parse(0, line, f, sp, args)[2]
+                        new = self.parse(1, line, f, sp, args)[2]
+                        shutil.copy2(old, new)
+                        lock.release()
+                        return new
+                    
+                    if objfunc == 'copyfile':
+                        lock.acquire()
+                        old = self.parse(0, line, f, sp, args)[2]
+                        new = self.parse(1, line, f, sp, args)[2]
+                        shutil.copyfile(old, new)
+                        lock.release()
+                        return new
+                    
+                    if objfunc == 'fullpath':
+                        lock.acquire()
+                        path = self.parse(0, line, f, sp, args)[2]
+                        fullpath = os.path.abspath(path)
+                        lock.release()
+                        return fullpath
                     
                     # moves a file
                     if objfunc == 'move':
@@ -1896,6 +1919,14 @@ class Interpreter:
                             # directory doesn't exist
                             lock.release()
                             return None
+
+                elif func == 'fileacquire':
+                    lock.acquire()
+                    return True
+                
+                elif func == 'filerelease':
+                    lock.release()
+                    return True
 
                 # # performs math operations
                 elif obj == 'math':
