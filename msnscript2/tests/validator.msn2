@@ -1787,14 +1787,15 @@ function('test_redirect', =>(
         if (equals(n.val(), 0), 1, op.times(n.val(), factorial(op.sub(n.val(), 1))))
     )), 'n')
 
-    # testing factorial
-    -- equals(factorial(5), 120) ??
-    -- equals(factorial(0), 1) ??
-    -- equals(factorial(1), 1) ??
-    -- equals(factorial(2), 2) ??
-    -- equals(factorial(3), 6) ??
-    -- equals(factorial(4), 24) ??
-    -- equals(factorial(6), 720) ??
+    # testing factorial in a private context
+    -- equals(private(factorial(0)), 1) ??
+    -- equals(private(factorial(1)), 1) ??
+    -- equals(private(factorial(2)), 2) ??
+    -- equals(private(factorial(3)), 6) ??
+    -- equals(private(factorial(4)), 24) ??
+    -- equals(private(factorial(5)), 120) ??
+    -- equals(private(factorial(6)), 720) ??
+
     
     
 
