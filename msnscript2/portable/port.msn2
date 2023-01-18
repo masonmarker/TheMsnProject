@@ -33,47 +33,18 @@
 import ('lib/os.msn2')
 clear()
 
+
+# start msg
+print('[*] Creating portable MSN2 package...')
+
 # create a new directory named "msn2" in the portable directory
 file.mkdir('portable/msn2')
 
-# copy the msn2 library to the new directory
-@ files = file.listdir('lib')
+print('[*] Copying library...')
 
-# copy each file from every 
-files.each('fl', =>(
 
-    # obtain working file path
-    @ old = cat('lib/', fl.val()),
-    @ newpath = cat('portable/msn2/', fl.val()),
 
-    # if file is directory, create directory in new location
-    if (file.isdir(old.val()), =>(
 
-        # we go one folder deep within the msn2 library
+private(copydir('lib', 'portable/msn2'))
 
-        # make new directory
-        file.mkdir(newpath.val()),
-
-        # copy files from old directory to new directory
-        @ thisdir_files = file.listdir(old.val()),
-
-        # copy each file from this directory
-        thisdir_files.each('fl2', =>(
-
-            # obtain working file path
-            @ old2 = cat(old.val(), '/', fl2.val()),
-            @ newpath2 = cat(newpath.val(), '/', fl2.val()),
-
-            # copy file to new location
-            file.copy(old2.val(), newpath2.val())
-
-        ))
-
-        
-    ), =>(
-        # if file is not a directory, copy file to new location
-        file.copy(old.val(), newpath.val()) 
-    ))
-
-))
 
