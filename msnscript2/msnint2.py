@@ -640,6 +640,10 @@ class Interpreter:
                         self.vars[vname].value = self.vars[vname].value[::-1]
                         return self.vars[vname].value                    
 
+                    # determines if this object is in the object passed
+                    if objfunc == 'in':
+                        return self.vars[vname].value in self.parse(0, line, f, sp, args)[2]
+
                     # variable type specific methods
                     # the isinstance branches below indicate mostly  DESCTRUCTIVE methods!
                     # so be sure to read the code
