@@ -1,0 +1,18 @@
+# serialization support
+#
+# author : Mason Marker
+# date : 11/28/2022
+
+# serial specific resources
+var('__serials', {})
+
+
+# opens a serialization slot
+~ serial_open(name) -> __serial_return
+    -- __serials.set(?name?, 0)
+    -- var('__serial_return', ?name?)
+
+# gets the next serialized value
+~ serial_next(name) -> __serial_return
+    -- __serials.set(?name?, ?__serials?[?name?] + 1)
+    -- var('__serial_return', ?__serials?[?name?])

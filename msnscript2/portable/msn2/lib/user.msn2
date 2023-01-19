@@ -1,0 +1,30 @@
+# offers user capability to inject commands into into a running program
+# author : Mason Marker
+# date : 11/17/2022
+
+
+# starts a shell for the user to inject commands into the running program
+~ shell(name) -> __shell_started
+
+    # gives a generous amount of time before shell starts, more time may be needed if wait is longer than 0.2s
+    -- sleep(0.2)
+
+    # offers command line to user, prompts indefinitely
+    -- thread(?name?, while (1, =>(
+
+            # try(block, catch (optional)) catches any error that may be thrown by the first block
+            try(
+
+                # -() notation executes a string representation of an MSNScript2 instruction in this context
+                print(-(
+                    
+                    # =>() inline notation is used to clean the input before trying an interpretation
+                    =>(
+                        input(?name? + ' >>  ')
+                    )
+                )
+            ))
+        )
+    ))
+    -- var('__shell_started', True)
+

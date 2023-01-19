@@ -1,0 +1,49 @@
+# optimal syntax library
+# 
+# author : Mason Marker
+# date : 12/17/2022
+
+# imports
+import('lib/serial.msn2')
+import('lib/processes.msn2')
+
+# setup
+serial_open('msn2plus_thread')
+
+
+
+# utilizing variables
+enclosedsyntax('^', '^', '__MSN2varname', val(strip(val('__MSN2varname'))))
+# retrieving a variable with '()'
+# (honestly i dont think this variable extraction technique is all that bad)
+enclosedsyntax('(', ')', '__parenvarname', val(strip(val('__parenvarname'))))
+
+
+
+
+# completes a task, then another task, returning the first task's return value
+# syntax : DO task1() THEN task2() -> task1.return
+macro('DO ', '__DOline', private(=>(
+    @ DO_split = __DOline.split(' THEN '),
+    @ DO_ret = -(DO_split.get(0)),
+    -(DO_split.get(1)),
+    destroy('DO_split'),
+    ^DO_ret^    
+)))
+
+# threads
+# starts a thread with an ardered name 't0, t1..'
+macro('/t', '__threadline', =>(
+    var('__name', cat('t', serial_next('msn2plus_thread'))),
+    thread(^__name^, -(val('__threadline'))),
+    DO ^__name^ THEN destroy('__name')
+))
+
+
+# faster assertions
+postmacro('??', '__assertline', =>(
+    @__block = ^__assertline^,
+    @__ev = -(^__block^),
+    if(not(^__ev^), print('[-] assertion error :', ^__block^)),
+    DO ^__ev^ THEN destroy('__ev', '__block')
+))
