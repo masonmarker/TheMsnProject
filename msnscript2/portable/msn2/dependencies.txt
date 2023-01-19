@@ -1,0 +1,6 @@
+pip install bs4
+pip install html5lib
+pip install openai
+pip install requests
+pip install flask
+pip install flask_restful
