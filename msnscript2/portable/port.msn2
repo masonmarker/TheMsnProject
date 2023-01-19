@@ -40,7 +40,7 @@ print('[*] Creating portable MSN2 package...')
 # new directories
 @ package_dir = 'portable/msn2'
 @ package_lib = op.+(package_dir.val(), '/lib')
-
+@ readme = op.+(package_dir.val(), '/README.txt')
 
 # remove the previous directory for replacement
 file.rmdir(package_dir.val())
@@ -76,7 +76,7 @@ file.copy('dependencies.txt', package_dir.val())
 print('[*] Creating README.txt...')
 
 # write README
-file.write('portable/msn2/README.txt', =>(
+file.write(readme.val(), =>(
     <<'This directory (|package_dir.val()|) can now be copied into\n
     your project folders / directories.\n\n
 
@@ -101,4 +101,4 @@ file.write('portable/msn2/README.txt', =>(
 ))
 
 print('\n[+] Created MSN2 package!')
-print('\tsee portable/msn2/README.txt for help with the portable MSN2 package.')
+print(<<'\tsee |readme.val()| for help with the portable MSN2 package.'>>)
