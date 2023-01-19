@@ -22,7 +22,7 @@ function('_dirrecurse', =>(
 
             # if file is directory, recurse, otherwise copy .msn2 library file
             if (file.isdir(old2.val()), 
-                private(recurse(old2.val(), newpath2.val())), 
+                private(_dirrecurse(old2.val(), newpath2.val())), 
 
                 # else
                 file.copy(old2.val(), newpath2.val()))
@@ -56,12 +56,12 @@ function('copydir', =>(
 
     files.each('fl', =>(
 
-    # obtain working file path
-    @ old = cat(src.val(), '/', fl.val()),
-    @ newpath = cat(dest.val(), '/', fl.val()),
+        # obtain working file path
+        @ old = cat(src.val(), '/', fl.val()),
+        @ newpath = cat(dest.val(), '/', fl.val()),
 
-        # adds adds all files from the lib folder
-        private(_dirrecurse(old.val(), newpath.val())),
+            # adds adds all files from the lib folder
+        private(_dirrecurse(old.val(), newpath.val()))
     ))
 
 ), 'src', 'dest')

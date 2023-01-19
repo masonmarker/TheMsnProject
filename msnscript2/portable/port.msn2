@@ -44,7 +44,7 @@ print('[*] Copying library...')
 
 
 
-
+import('lib/files.msn2')
 private(copydir('lib', 'portable/msn2'))
 
 
