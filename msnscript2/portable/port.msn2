@@ -37,12 +37,16 @@ clear()
 # start msg
 print('[*] Creating portable MSN2 package...')
 
+# new directories
+@ package_dir = 'portable/msn2'
+@ package_lib = op.+(package_dir.val(), '/lib')
+
 
 # remove the previous directory for replacement
-file.rmdir('portable/msn2')
+file.rmdir(package_dir.val())
 
 # create a new directory named "msn2" in the portable directory
-file.mkdir('portable/msn2')
+file.mkdir(package_dir.val())
 
 
 # copying
@@ -51,41 +55,50 @@ print('[*] Copying library...')
 
 # copy the lib directory tree to the package location
 import('lib/files.msn2')
-file.mkdir('portable/msn2/lib')
-private(copydir('lib', 'portable/msn2/lib'))
+file.mkdir(package_lib.val())
+private(copydir('lib', package_lib.val()))
 
 print('[*] Copying MSN2 Interpreter...')
 
 # copying latest Interpreter
-file.copy('msnint2.py', 'portable/msn2')
+file.copy('msnint2.py', package_dir.val())
 
 print('[*] Copying MSN2 driver...')
 
 # copying MSN2 driver
-file.copy('msn2.py', 'portable/msn2')
+file.copy('msn2.py', package_dir.val())
 
+print('[*] Copying list of dependencies...')
 
+# copy dependencies
+file.copy('dependencies.txt', package_dir.val())
 
-# readme message
-@ readme = =>(
-    <<"This directory (msn2) can now be copied into\n
+print('[*] Creating README.txt...')
+
+# write README
+file.write('portable/msn2/README.txt', =>(
+    <<'This directory (|package_dir.val()|) can now be copied into\n
     your project folders / directories.\n\n
 
-    You should create your .msn2 program files within the same directory\n
-    as this README.txt (msn2).\n\n
+    The destination folder environment of this package\n
+    should have access to the following:\n
+    - capability to execute .py programs\n
+    - installed the few dependencies in dependencies.txt\n\n
 
-    This package has access to it's own lib directory,\n
+    You should create your .msn2 program files within the same directory\n
+    as this README.txt (|package_dir.val()|).\n\n
+
+    This package has access to an MSN2 library,\n
     therefore, your created .msn2 program files can import files\n
     in the exact manner of those existing outside of this package.\n\n
 
-    ex: import ('lib/timer.msn2')\n\n
+    ex: import ("lib/timer.msn2")\n\n
 
     Run .msn2 programs from this directory with the following syntax:\n
-    'python msn2.py *****.msn2'\n\n
+    "python msn2.py *****.msn2"\n\n
+    
+    Good luck!'>>
+))
 
-    Good luck!">>
-)
-
-# write README
-file.write('portable/msn2/README.txt', readme.val())
-
+print('\n[+] Created MSN2 package!')
+print('\tsee portable/msn2/README.txt for help with the portable MSN2 package.')
