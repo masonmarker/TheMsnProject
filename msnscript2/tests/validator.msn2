@@ -441,6 +441,13 @@ var('f', 6)
 
     -- assert(equals(fam.members(), [?joe?, ?joe2?]))
 
+
+    # 01/19/2023 - adding class methods
+
+    
+
+
+
     -- var('_', True)
 
 # -------------------------------------------
@@ -1774,14 +1781,6 @@ function('test_redirect', =>(
     # assert correction and reset 'a'
     -- _reset()
 
-    
-
-
-
-
-
-
-
     # calculating factorial, recursively
     -- function('factorial', ret('factorial', =>(
         if (equals(n.val(), 0), 1, op.times(n.val(), factorial(op.sub(n.val(), 1))))
@@ -1796,13 +1795,17 @@ function('test_redirect', =>(
     -- equals(private(factorial(5)), 120) ??
     -- equals(private(factorial(6)), 720) ??
 
-    
-    
+    # computes the fibonacci sequence
+    -- function('fib', ret('fib', =>(
+        
+    )), 'n')
+
+    -- equals(private(fib(0)), 0) ??
 
 
 
-
-
+chels=5
+chels(int(input("Enter a number: ")))
 
 
     # another way

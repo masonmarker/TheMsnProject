@@ -1,0 +1,113 @@
+# demonstrates FizzBuzz
+
+# FizzBuzz is a simple game where you count from 1 to 100, but you say
+# "Fizz" if the number is divisible by 3, "Buzz" if it's divisible by 5,
+# and "FizzBuzz" if it's divisible by both 3 and 5.
+
+# author : Mason Marker
+# date : 1/21/23
+
+
+# setup
+@ max = 2000
+
+
+# ----------------------------- Algorithm 1 -----------------------------
+
+function('fizzbuzz1', 1|?max?|i (
+        if(?i? % 3 == 0,
+            if(?i? % 5 == 0,
+                'FizzBuzz', 
+                'Fizz'
+            ), 
+            if(?i? % 5 == 0,
+                'Buzz', 
+                ?i?
+            )
+        )
+    )
+)
+# -----------------------------------------------------------
+
+# ----------------------------- Algorithm 2 -----------------------------
+function('fizzbuzz2', for (
+    1, ?max?, 'i', 
+        if(?i? % 3 == 0,
+            if(?i? % 5 == 0,
+                'FizzBuzz', 
+                'Fizz'
+            ), 
+            if(?i? % 5 == 0,
+                'Buzz', 
+                ?i?
+            )
+        )
+    )
+)
+# -----------------------------------------------------------
+# ----------------------------- Algorithm 3 -----------------------------
+function('fizzbuzz3', 1|?max?|i (
+        ? ?i? % 3 == 0 (
+            ? ?i? % 5 == 0 (
+                'FizzBuzz', 
+                'Fizz'
+            ), 
+            ? ?i? % 5 == 0 (
+                'Buzz', 
+                ?i?
+            )
+        )
+    )
+)
+# -----------------------------------------------------------
+# ----------------------------- Algorithm 4 -----------------------------
+function('fizzbuzz4', 1|?max?|i (
+    ? ?i? % 3 == 0 (
+        ? ?i? % 5 == 0 (
+            'FizzBuzz', 
+            'Fizz'
+        ), 
+        ? ?i? % 5 == 0 (
+            'Buzz', 
+            ?i?
+        )
+    )
+))
+# -----------------------------------------------------------
+
+# ----------------------------- Algorithm 5 -----------------------------
+# algo 5 is just algo 4 squished onto one line with as little whitespace as possible
+# this is the most optimzed algorithm as of 1/21/23
+function('fizzbuzz5',1|?max?|i(??i?%3==0(??i?%5==0('FizzBuzz','Fizz'),??i?%5==0('Buzz',?i?))))
+# -----------------------------------------------------------
+
+
+
+# ----------------------------- Tests -----------------------------
+
+# tests the runtime of the fizzbuzz algorithm
+
+import ('lib/timer.msn2')
+
+timer_start()
+fizzbuzz1()
+print('algo 1:', timer_runtime(), 'sec.')
+
+
+
+timer_start()
+fizzbuzz2()
+print('algo 2:', timer_runtime(), 'sec.')
+
+timer_start()
+fizzbuzz3()
+print('algo 3:', timer_runtime(), 'sec.')
+
+timer_start()
+fizzbuzz4()
+print('algo 4:', timer_runtime(), 'sec.')
+
+
+timer_start()
+fizzbuzz5()
+print('algo 5:', timer_runtime(), 'sec.')
