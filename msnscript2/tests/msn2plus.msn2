@@ -70,11 +70,49 @@ import ('lib/syntax/msn2plus.msn2')
 
 # --------------------------
 
+# ------- BASIC LIST COMPREHENSION -------
+
+# tests basic list comprehension
+function('test_listcomp', =>(
+    print('[+] testing listcomp...'),
+
+    # basic list comprehension
+    @ l = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+
+    # basic list comprehension
+    @ l2 = in (l) <<< x >>> x.mul(2),
+
+    l2.equals([2, 4, 6, 8, 10, 12, 14, 16, 18, 20]) ??,
+
+    # list comprehension with if statement
+    @ l3 = in (l)   <<< x >>>   if(x.greater(5), x.mul(2), (x)),
+    l3.equals([1, 2, 3, 4, 5, 12, 14, 16, 18, 20]) ??,
+
+    # performing multiple operations on each element
+    @ l4 = in (l)   <<< x >>>  =>(
+        x.mul(2),
+        x.add(1),
+        (x)
+    ),
+
+    l4.equals([3, 5, 7, 9, 11, 13, 15, 17, 19, 21]) ??,
+
+    # simplifying
+    @ l5 = in (l) <<< x >>> () x.mul(2) --> add(1),
+
+    l5.equals([3, 5, 7, 9, 11, 13, 15, 17, 19, 21]) ??,
+
+    ret('test_listcomp', 1)
+))
+# --------------------------
+
+
 # executes each test on a new thread
 ~ run_tests() -> _
 
     -- /t private(assert(test_assert()))
     -- /t private(assert(test_vars()))
+    -- /t private(assert(test_listcomp()))
     -- private(assert(test_multi()))
 
 

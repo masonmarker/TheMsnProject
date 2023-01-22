@@ -1016,11 +1016,48 @@ class Interpreter:
                             
                             return self.vars[vname].value
 
+                # ----------------------------------
+                # TESTING FUNCTION FOR UPDATES
+                
+                if func == 'test':
+                    
+                    arg1 = str(self.parse(0, line, f, sp, args)[2])
+                    arg2 = str(self.parse(1, line, f, sp, args)[2])
+                    arg3 = str(self.parse(2, line, f, sp, args)[2])
+                    ret = arg1 + arg2 + arg3
+                    
+                                    
+                    # replace the return value of this function
+                    # within the line with the return value of the function
+
+                    print(sp, f)
+                    
+                    func_call_index = i - len(func)
+                    func_call_end = 0    
+                
+                    print('line len: ' + str(len(line)))
+                    
+                    # get the last argument
+                    last = args[-1][2]
+                    
+                    # compute the end of the function call
+                    func_call_end = last + (len(args) - 1) + f
+
+
+                    
+                    print('func_call_index: ' + str(func_call_index))
+                    print('func_call_end: ' + str(func_call_end))
+                    line = line[:func_call_index] + ret + line[func_call_end:]
+                    print('line: ' + line)
+                    return line
+                    
+                # ----------------------------------
+
                 # the below conditions interpret a line based on initial appearances
                 # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
                 # request for Interpreter redirect to a block of code
                 # the first argument is 
-                if func == 'redirect':
+                elif func == 'redirect':
                     line_vname = self.parse(0, line, f, sp, args)[2]
                     _block = args[1][0]
                     self.redirect_inside = []
@@ -1031,13 +1068,13 @@ class Interpreter:
                     return self.redirect
                         
                 # request for Interpreter redirect cancellation
-                if func == 'stopredirect':
+                elif func == 'stopredirect':
                     self.redirecting = False
                 
                     return True
             
                 # starts the redirection
-                if func == 'startredirect':
+                elif func == 'startredirect':
                     ret = None
                     for _ins in self.redirect_inside:
                         ins = _ins[0]
@@ -2695,8 +2732,8 @@ class Interpreter:
                 # prnts 3\n4\n5
                 elif func.count('|') == 2:
                     loop_args = func.split('|')
-                    start = self.interpret(loop_args[0])
-                    end = self.interpret(loop_args[1])
+                    start = eval(loop_args[0])
+                    end = eval(loop_args[1])
                     loopvar = loop_args[2]
 
                     # prepare loop variable
@@ -2760,7 +2797,7 @@ class Interpreter:
         except:
             None
             
-        # get value of line
+        # interpret line
         try:
             return eval(line)
         except:
