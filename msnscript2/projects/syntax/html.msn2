@@ -1,0 +1,69 @@
+# demonstrates how MSN2 can mimic / improve HTML
+# makes console art
+# 
+# author : Mason Marker
+# date : 1/31/23
+
+
+# screen
+# 2D array of characters to print
+@ screen = [[' '] * 40] * 20
+
+# coordinate
+class('coord', =>(
+    @ i = -1,
+    @ j = -1
+))
+
+
+# <div> class
+class('divider', =>(
+
+    # length 2 coordinates
+    @ top_left = coord(-1, -1),
+
+    # top left coordinate for the first child element
+    @ top_left_inside = coord(-1, -1),
+
+    # child elements
+    @ children = [],
+
+    # pixels owned by a divider
+    @ pixels = []
+))
+
+
+# root div
+@ root = divider(coord(0, 0), coord(1, 1), [], from (
+    coord(0, 0),
+    coord(0, 1),
+    coord(0, 2)
+))
+
+
+
+
+
+
+
+# recursively add all elements to screen
+function('add_to_screen', =>(
+    
+    # add all pixels from this element
+    each(element.pixels(), '__add_pixel', =>(
+        
+    ))
+
+),'element')
+
+
+# add elements to screen
+add_to_screen(root.val())
+
+# rendering the console art
+screen.each('column', =>(
+    column.each('pixel', =>(
+        <<print(|pixel.val()|, end="")>>
+    )),
+    print()
+))
