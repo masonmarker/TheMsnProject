@@ -1,25 +1,4 @@
 
-@ entries = int(input())
-@ d = {}
-
-for(0, entries.val(), '_', =>(
-    @ sp = input().split(" "),
-    d.set(sp.get(1), sp.get(0))
-))
-
-@ to_trans = input().split(" ")
-
-print(=>(
-    @ str = '',
-    to_trans.each("foreign", 
-        str.add(
-            if(foreign.in(d.val()), 
-                cat(d.get(foreign.val()), ' '), 
-                
-                '??? '
-    ))),
-    str.val()
-))
 
 
 
