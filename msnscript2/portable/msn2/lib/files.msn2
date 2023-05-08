@@ -1,0 +1,67 @@
+# offers more file operations
+
+
+
+# helper for copydir()
+function('_dirrecurse', =>(
+        # if file is directory, create directory in new location
+    if (file.isdir(old.val()), =>(
+
+        # make new directory
+        file.mkdir(newpath.val()),
+
+        # copy files from old directory to new directory
+        @ thisdir_files = file.listdir(old.val()),
+
+        # create old path
+        thisdir_files.each('fl2', =>(
+
+            # obtain working file path
+            @ old2 = cat(old.val(), '/', fl2.val()),
+            @ newpath2 = cat(newpath.val(), '/', fl2.val()),
+
+            # if file is directory, recurse, otherwise copy .msn2 library file
+            if (file.isdir(old2.val()), 
+                private(_dirrecurse(old2.val(), newpath2.val())), 
+
+                # else
+                file.copy(old2.val(), newpath2.val()))
+        ))       
+
+    # otherwise, copy file to new location  
+    ), file.copy(old.val(), newpath.val()))
+
+), 'old', 'newpath')
+
+
+
+# # copy the msn2 library to the new directory
+# @ files = file.listdir('lib')
+
+# # copy each file from every 
+# files.each('fl', =>(
+
+#     # obtain working file path
+#     @ old = cat('lib/', fl.val()),
+#     @ newpath = cat('portable/msn2/', fl.val()),
+
+#     # adds adds all files from the lib folder
+#     private(recurse(old.val(), newpath.val())),
+# ))
+
+# copies a directory tree to a new location
+function('copydir', =>(
+
+    @ files = file.listdir(src.val()),
+
+    files.each('fl', =>(
+
+        # obtain working file path
+        @ old = cat(src.val(), '/', fl.val()),
+        @ newpath = cat(dest.val(), '/', fl.val()),
+
+            # adds adds all files from the lib folder
+        private(_dirrecurse(old.val(), newpath.val()))
+    ))
+
+), 'src', 'dest')

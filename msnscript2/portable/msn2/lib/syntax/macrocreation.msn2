@@ -1,0 +1,42 @@
+# library that can be used to create macros
+
+
+
+
+# basic variable setting mechanism, less error protection
+~ basic_variable_set(__middletoken, __macroline)->_
+
+    -- var('adding_varname', split(?__macroline?, ?__middletoken?))
+    -- var('__vname', ?adding_varname?[0])
+    -- __vname.strip()
+    -- var('__ev', -(?adding_varname?[1]))
+    -- var(?__vname?, ?__ev?)
+
+# safer variable setting approach (but not the best)
+~ advance_variable_set(__middletoken  , __macroline)->_
+    -- var('__vn', '')
+    -- var('__vl', '')
+    -- var('__at_vl', False)
+    -- each(^__macroline^, '__c', =>(
+        if (?__c? == ?__middletoken?, =>(
+            var('__vn', ?__vl?),
+            var('__vl', ''),
+            var('__at_vl', True)
+        )),
+        if (?__c? != ?__middletoken?, =>(
+            __vl.add(?__c?),
+        ), if (?__at_vl? and ?__c? != ?__middletoken?, __vl.add(?__c?)))
+    ))
+    -- __vn.strip()
+    -- try(var('__vl', val(__vl.stripped())), var('__vl', -(?__vl?)))
+    -- var(?__vn?, ?__vl?)
+
+
+# executes two arguments as MSNScript2 separated by a token
+~ macro_args(__middletoken, __macroline)->_
+    -- var('__split', __macroline.split(^__middletoken^))
+    -- __split.set(0, strip(__split.get(0)))
+    -- __split.set(1, strip(__split.get(1)))
+    -- @_ = each(^__split^, '__el', -(^__el^))
+
+
