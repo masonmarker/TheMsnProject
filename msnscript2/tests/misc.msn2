@@ -1,4 +1,6 @@
 
 
+@v = 3
 
+v.print('', " <- is the number")
 

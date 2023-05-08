@@ -1,0 +1,9 @@
+# offers operating system specific resources
+#
+# author : Mason Marker
+# date : 11/27/2022
+
+# clears the console regardless of operating system
+~ clear() -> _
+    -- if (windows(), console('cls'), console('clear'))
+

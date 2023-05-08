@@ -1795,22 +1795,8 @@ function('test_redirect', =>(
     -- equals(private(factorial(5)), 120) ??
     -- equals(private(factorial(6)), 720) ??
 
-    # computes the fibonacci sequence
-    -- function('fib', ret('fib', =>(
-        
-    )), 'n')
-
-    -- equals(private(fib(0)), 0) ??
-
-
-
-chels=5
-chels(int(input("Enter a number: ")))
-
 
     # another way
-
-
 
     -- @ _ = 1
 

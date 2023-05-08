@@ -1,0 +1,22 @@
+# Demonstrates the fibonacci sequence, iteratively and recursively
+#
+# author : Mason Marker
+# date : 3/11/23
+
+
+# ----------------------------- Algorithm 1 -----------------------------
+
+function('fib1', 1|?n?|i (
+    if(?i? == 1,
+        1,
+        if(?i? == 2,
+            1,
+            op.+(fib1(?i? - 1), fib1(?i? - 2))
+        )
+    )
+), 'n', 'i')
+
+# -----------------------------------------------------------
+
+
+print(fib1(10, 1))
