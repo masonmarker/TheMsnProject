@@ -2753,6 +2753,10 @@ class Interpreter:
                     method.ended = True
                     return True
 
+                # gets the value from a Var object
+                elif func == 'static':
+                    return self.parse(0, line, f, sp, args)[2].value
+
                 # object instance requested
                 elif func in self.vars:
 
@@ -2767,16 +2771,27 @@ class Interpreter:
 
                     curr_arg_num = 0
                         
+                        
                     # attributes to apply
                     for name in var_obj:
 
+                        # if attribute is a method
+                        if isinstance(var_obj[name].value, self.Method):
+                            
+                            # add the method to the instance
+                            instance[name] = var_obj[name].value
+                            
+                            continue
+
+                        # if attribute is a variable
                         # value can be None
                         try:
                             instance[name] = self.parse(
                                 curr_arg_num, line, f, sp, args)[2]
-
+                            if instance[name] == None:
+                                instance[name] = self.vars[classname].value[name].value
                         # if not specified, field is default value
-                        except:
+                        except:                            
                             try:
                                 instance[name] = var_obj.value[name].copy()
                             except:

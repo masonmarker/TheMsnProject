@@ -442,6 +442,28 @@ var('f', 6)
     -- assert(equals(fam.members(), [?joe?, ?joe2?]))
 
 
+    # testing classes with methods attached
+    -- class ('math', function('_pi', ret('_pi', 3.14)))
+    
+    # create instance of the class
+    -- @ _math = math()
+
+    # assert that function works with no attributes
+    -- assert(equals(_math._pi(), 3.14))
+
+    # new class with both attributes and methods
+    -- class('math', =>(
+        var('pi', 3.1415),
+        function('get_pi', ret('get_pi', _math.pi()))
+    ))    
+
+    # create instance of the class
+    -- @ _math = math()
+
+    -- assert(equals(_math.get_pi(), 3.1415))
+
+
+
     # 01/19/2023 - adding class methods
 
     

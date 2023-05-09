@@ -1,21 +1,23 @@
 
+class ('box', =>(
 
-class('functions', =>(
+    # whats in the box?
+    @ things = [1, 2, 3],
 
-    # attributes
-    @string=None,
-    @list=None,
+    # add something to the box
+    function('add', =>(
 
-    # functions
-    function('test', ret('test', -1)),
-    function('test2', ret('test2', x.add(1)), 'x')
+    ), 'x'),
+
+    # prints this box
+    function('print', =>(
+        
+    ), 'varname'),
 ))
 
-@ funcs = functions("hello", [1, 2, 3])
+# create a box
+@box1 = box()
 
-print(funcs.test())
-print(funcs.test2(5))
+box1.print()
 
 
-
-env(1)
