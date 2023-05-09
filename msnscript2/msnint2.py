@@ -503,9 +503,56 @@ class Interpreter:
                         object = self.vars[obj].value
                     except:
                         object = self.vars[obj]
-
+                    
+                    
                     try:
+                        # if the object is a class
                         if objfunc in object:
+                            
+                            # if the object is a self.Method
+                            if type(object[objfunc]) == self.Method:
+                                
+                                # get the Method object
+                                method = object[objfunc]
+                                
+                                # get the number of arguments to the method
+                                num_args = len(method.args)
+                                
+                                # args to pass to the function
+                                to_pass = []
+                                
+                                # if there is no argument
+                                if args[0][0] != '':
+                                    # for each parsed argument
+                                    for k in range(num_args):
+                                        
+                                        to_pass.append(self.parse(k, line, f, sp, args)[2])
+                                        
+                                
+                                # create return variable
+                                ret_name = method.returns[0]
+
+                                if ret_name not in self.vars:
+                                    self.vars[ret_name] = Var(ret_name, None)
+
+                                # execute method
+                                method.run(to_pass, self)
+
+                                try:
+                                    return eval(str(self.vars[method.returns[0]].value))
+                                except:
+                                    try:
+                                        return str(self.vars[method.returns[0]].value)
+                                    except:
+                                        return str(self.vars[method.returns[0]])
+                                    
+                                
+                                            
+
+                            
+                            # otherwise if we're accessing an attribute
+                            
+                            # no arguments given
                             if args[0][0] == '':
                                 return object[objfunc]
 
@@ -865,6 +912,12 @@ class Interpreter:
                             del self.vars[varname]
                             return object
 
+                        # joins the array by the first argument
+                        if objfunc == 'join' or objfunc == 'delimit':
+
+                            # join the array
+                            return str(self.parse(0, line, f, sp, args)[2]).join(map(str, self.vars[vname].value))
+
                     # if the object is a string
                     elif isinstance(object, str):
 
@@ -1021,6 +1074,31 @@ class Interpreter:
                         # gets the items of this dictionary
                         if objfunc == 'items':
                             return self.vars[vname].value.items()
+
+                        # executes a function for each key-value pair
+                        if objfunc == 'foreach':
+
+                            # variable name of the key
+                            keyname = self.parse(0, line, f, sp, args)[2]
+
+                            # variable name of the value
+                            valuename = self.parse(1, line, f, sp, args)[2]
+
+                            # function to execute
+                            function = args[2][0]
+
+                            # loop through the dictionary
+                            for key, value in self.vars[vname].value.items():
+
+                                # set the key and value variables
+                                self.vars[keyname] = Var(keyname, key)
+                                self.vars[valuename] = Var(valuename, value)
+
+                                # execute the function
+                                self.interpret(function)
+
+                            # return the dictionary
+                            return self.vars[vname].value
 
                         # maps each value in the dictionary to the output of the function
                         if objfunc == 'map':
@@ -1317,7 +1395,7 @@ class Interpreter:
                     ifcond = self.parse(0, line, f, sp, args)[2]
 
                     # if condition is true
-                    if (ifcond):
+                    if ifcond:
                         return self.parse(1, line, f, sp, args)[2]
 
                     # otherwise false block is executed
@@ -2141,7 +2219,7 @@ class Interpreter:
 
                     # creates a variable out of the new interpreters resources
                     obj_to_add = {}
-                    for varname in inter.vars.keys():
+                    for varname in inter.vars:
                         val = inter.vars[varname].value
                         obj_to_add[varname] = Var(varname, val)
 
@@ -2688,7 +2766,7 @@ class Interpreter:
                     instance = {}
 
                     curr_arg_num = 0
-
+                        
                     # attributes to apply
                     for name in var_obj:
 
