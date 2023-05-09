@@ -1,6 +1,21 @@
 
 
-@v = 3
+class('functions', =>(
 
-v.print('', " <- is the number")
+    # attributes
+    @string=None,
+    @list=None,
 
+    # functions
+    function('test', ret('test', -1)),
+    function('test2', ret('test2', x.add(1)), 'x')
+))
+
+@ funcs = functions("hello", [1, 2, 3])
+
+print(funcs.test())
+print(funcs.test2(5))
+
+
+
+env(1)
