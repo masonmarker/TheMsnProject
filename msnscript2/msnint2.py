@@ -508,30 +508,32 @@ class Interpreter:
                     try:
                         # if the object is a class
                         if objfunc in object:
-                            
+
                             # if the object is a self.Method
                             if type(object[objfunc]) == self.Method:
-                                
+
                                 # get the Method object
                                 method = object[objfunc]
                                 
                                 # get the number of arguments to the method
                                 num_args = len(method.args)
-                                
+                                                                
                                 # args to pass to the function
-                                to_pass = []
+                                to_pass = [vname]
                                 
                                 # if there is no argument
                                 if args[0][0] != '':
+                                    
                                     # for each parsed argument
                                     for k in range(num_args):
-                                        
-                                        to_pass.append(self.parse(k, line, f, sp, args)[2])
-                                        
-                                
+                                        try:
+                                            to_pass.append(self.parse(k, line, f, sp, args)[2])
+                                        except:
+                                            None
                                 # create return variable
                                 ret_name = method.returns[0]
 
+                                # if the return variable doesn't exist
                                 if ret_name not in self.vars:
                                     self.vars[ret_name] = Var(ret_name, None)
 

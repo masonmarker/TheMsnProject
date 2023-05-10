@@ -1,23 +1,43 @@
-
 class ('box', =>(
 
     # whats in the box?
     @ things = [1, 2, 3],
 
+    # name of the box
+    @ name="box",
+
     # add something to the box
     function('add', =>(
-
-    ), 'x'),
+        self.things(=>(
+            @_things=self.things(),
+            _things.add(thing.val()),
+            _things.val()
+        ))
+    ), 'self', 'thing'),
 
     # prints this box
     function('print', =>(
-        
-    ), 'varname'),
+        self.print()
+    ), 'self'),
+
+    # prints the things in the box
+    function('print_things',print(self.things()),'self')
 ))
 
 # create a box
-@box1 = box()
+@box1 = box([5, 4, 3, 2, 1])
 
-box1.print()
+
+box1.add(5)
+
+# must pass in the variable name of itself
+box1.print_things()
+
+@box2 = box()
+
+box2.print_things()
+
+
+
 
 
