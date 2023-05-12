@@ -11,13 +11,18 @@ class ('box', =>(
 
     # prints this box
     function('print', =>(
-        
+        varname.print()
     ), 'varname'),
 ))
 
 # create a box
 @box1 = box()
 
-box1.print()
+# add something to the box
+box1.things(=>(
+    @ _things = box1.things(),
+    _things.add(4),
+    _things.val()
+))
 
-
+print(box1.things())
