@@ -827,6 +827,10 @@ class Interpreter:
                                     self.parse(i, line, f, sp, args)[2])
                             return self.vars[vname].value
 
+                        # pops a value from the array
+                        elif objfunc == 'pop':
+                            return self.vars[vname].value.pop()
+
                         # getting at an index
                         elif objfunc == 'get':
                             return self.vars[vname].value[self.parse(0, line, f, sp, args)[2]]
@@ -884,6 +888,10 @@ class Interpreter:
                         # gets the length of the array
                         if objfunc == 'len':
                             return len(self.vars[vname].value)
+                        
+                        # determines if a list is empty
+                        if objfunc == 'empty':
+                            return len(self.vars[vname].value) == 0
 
                         # gets the index of an item in an array
                         if objfunc == 'index':
@@ -893,6 +901,10 @@ class Interpreter:
                             except:
                                 return self.vars[vname].index(el)
 
+                        # determines if this list contains an element
+                        if objfunc == 'contains' or objfunc == 'has' or objfunc == 'includes':
+                            return self.parse(0, line, f, sp, args)[2] in self.vars[vname].value
+                        
                         # finds an element in a list
                         # unlike index(), find returns -1 instead of throwing an
                         # error
@@ -2180,8 +2192,11 @@ class Interpreter:
                 # ands two bools
                 elif func == 'and':
                     first = self.parse(0, line, f, sp, args)[2]
+                    if not first:
+                        return False
                     for i in range(1, len(args)):
-                        if first and not self.parse(i, line, f, sp, args)[2]:
+                        line, as_s, curr_arg = self.parse(i, line, f, sp, args)
+                        if not curr_arg:
                             return False
                     return True
 
