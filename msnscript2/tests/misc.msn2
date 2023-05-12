@@ -1,28 +1,21 @@
 
-class ('box', =>(
 
-    # whats in the box?
-    @ things = [1, 2, 3],
 
-    # add something to the box
-    function('add', =>(
 
-    ), 'x'),
 
-    # prints this box
-    function('print', =>(
-        varname.print()
-    ), 'varname'),
-))
 
-# create a box
-@box1 = box()
 
-# add something to the box
-box1.things(=>(
-    @ _things = box1.things(),
-    _things.add(4),
-    _things.val()
-))
+# nested for loops
+for (0, 5, 'i', for(0, 5, 'j', for(0, 5, 'k', =>(
+    i.print('i:'),
+    j.print('j:'),
+    k.print('k:')
+))))
+
+
+print()
+i.print('i:')
+j.print('j:')
+k.print('k:')
 
 print(box1.things())

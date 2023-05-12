@@ -460,14 +460,145 @@ var('f', 6)
     # create instance of the class
     -- @ _math = math()
 
+    # assert that we can get the correct attribute
     -- assert(equals(_math.get_pi(), 3.1415))
 
+    # math class that determines a different value of pi
+    -- @_math = math(3.14)
+
+    # assert that the new pi value was changed
+    -- assert(equals(_math.pi(), 3.14))
 
 
-    # 01/19/2023 - adding class methods
+
+
+
+    # larger test
+    -- class('box', => (
+
+        # dimensions
+        @length=0,
+        @width=0,
+        @height=0,
+
+        # whats inside?
+        @contents=[],
+
+        # box methods
+        function ('add_item', =>(
+            @ _contents = self.contents(),
+            _contents.add(_item.val()),
+            _contents.val()
+        # class methods should start with 'self'
+        ), 'self', '_item'),
+
+
+        # determines if this box equals another box
+        function ('equals', =>(
+            # verify all attributes are equal
+            ret('equals', and(
+                equals(self.length(), _other.length()),
+                equals(self.width(), _other.width()),
+                equals(self.height(), _other.height()),
+                equals(self.contents(), _other.contents())
+            ))
+        ), 'self', '_other')
+    ))
+
+    # create instance of the class
+    -- @ _box = box()
+
+    # assert default values
+    -- assert(equals(_box.length(), 0))
+    -- assert(equals(_box.width(), 0))
+    -- assert(equals(_box.height(), 0))
+    -- assert(equals(_box.contents(), []))
+
+    # assert that setting attributes works
+    -- _box.length(1)
+    -- _box.width(2)
+    -- _box.height(3)
+    -- _box.contents([1, 2, 3])
+    -- assert(equals(_box.length(), 1))
+    -- assert(equals(_box.width(), 2))
+    -- assert(equals(_box.height(), 3))
+    -- assert(equals(_box.contents(), [1, 2, 3])) 
+
+    # adding an item to the box
+    -- _box.add_item(4)
+    -- assert(equals(_box.contents(), [1, 2, 3, 4]))
+
+    # adding a list of [1, 2] to the box
+    -- _box.add_item([1, 2])
+
+    # assert that the list was added to the box
+    -- assert(equals(_box.contents(), [1, 2, 3, 4, [1, 2]]))
+
+    # creating another box with nothing in it
+    -- @ _box2 = box(0, 0, 0, [])
+
+    # make sure the contents are not the same
+    -- assert(not(equals(_box.contents(), _box2.contents())))
+
+    # add the contents of _box to _box2
+    -- _box2.contents(<<|_box.contents()|.copy()>>)
+
+    # assert their contents are equal
+    -- assert(equals(_box.contents(), _box2.contents()))
+
+    # assert all attributes of box2
+    -- assert(equals(_box2.length(), 0))
+    -- assert(equals(_box2.width(), 0))
+    -- assert(equals(_box2.height(), 0))
+    -- assert(equals(_box2.contents(), [1, 2, 3, 4, [1, 2]]))
+
+    # reassert the attributes of the original box
+    -- assert(equals(_box.length(), 1))
+    -- assert(equals(_box.width(), 2))
+    -- assert(equals(_box.height(), 3))
+    -- assert(equals(_box.contents(), [1, 2, 3, 4, [1, 2]]))
+
+    # assert that box equals itself
+    -- assert(_box.equals(_box.val()))
+    # assert that box does not equal box2
+    -- assert(not(_box.equals(_box2.val())))
+
+    # modify box2 to have the same dimensions as box
+    -- _box2.length(1)
+    -- _box2.width(2)
+    -- _box2.height(3)
+
+    # assert that box2 now equals box
+    -- assert(_box.equals(_box2.val()))
 
     
 
+    # testing static classes
+    -- class ('names', =>(
+        @name1="joe",
+        @name2="joe2",
+        @name3="joe3"
+    ))
+
+    # you do not have to create an instance of the class to access its attributes
+    -- assert(equals(static(names.name1()), "joe"))
+    -- assert(equals(static(names.name2()), "joe2"))
+    -- assert(equals(static(names.name3()), "joe3"))
+
+    # you can still create an instance
+    -- @ _names = names("mason", "harris", "joe")
+
+    # assert that the instance has the correct attributes
+    -- assert(equals(_names.name1(), "mason"))
+    -- assert(equals(_names.name2(), "harris"))
+    -- assert(equals(_names.name3(), "joe"))
+
+    # reassert the static values are the same
+    -- assert(equals(static(names.name1()), "joe"))
+    -- assert(equals(static(names.name2()), "joe2"))
+    -- assert(equals(static(names.name3()), "joe3"))
+
+    # 01/19/2023 - adding class methods
 
 
     -- var('_', True)
