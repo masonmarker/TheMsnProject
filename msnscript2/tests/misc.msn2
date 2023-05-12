@@ -1,43 +1,20 @@
-class ('box', =>(
-
-    # whats in the box?
-    @ things = [1, 2, 3],
-
-    # name of the box
-    @ name="box",
-
-    # add something to the box
-    function('add', =>(
-        self.things(=>(
-            @_things=self.things(),
-            _things.add(thing.val()),
-            _things.val()
-        ))
-    ), 'self', 'thing'),
-
-    # prints this box
-    function('print', =>(
-        self.print()
-    ), 'self'),
-
-    # prints the things in the box
-    function('print_things',print(self.things()),'self')
-))
-
-# create a box
-@box1 = box([5, 4, 3, 2, 1])
-
-
-box1.add(5)
-
-# must pass in the variable name of itself
-box1.print_things()
-
-@box2 = box()
-
-box2.print_things()
 
 
 
 
+
+
+
+# nested for loops
+for (0, 5, 'i', for(0, 5, 'j', for(0, 5, 'k', =>(
+    i.print('i:'),
+    j.print('j:'),
+    k.print('k:')
+))))
+
+
+print()
+i.print('i:')
+j.print('j:')
+k.print('k:')
 
