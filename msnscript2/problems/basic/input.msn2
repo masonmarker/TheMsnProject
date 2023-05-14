@@ -1,0 +1,5 @@
+
+
+@ inp = int(input('Enter a number: '))
+
+inp.print()

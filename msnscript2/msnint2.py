@@ -700,6 +700,11 @@ class Interpreter:
                             self.interpret(func)
                         del self.vars[varname]
                         return object
+                    
+                    # sets this variable to the first argument
+                    if objfunc == '=':
+                        self.vars[vname].value = self.parse(0, line, f, sp, args)[2]
+                        return self.vars[vname].value
 
                     # reverses the iterable
                     if objfunc == 'reverse':
@@ -910,6 +915,11 @@ class Interpreter:
                         # error
                         if objfunc == 'find':
                             return self.vars[vname].value.find(self.parse(0, line, f, sp, args)[2])
+
+                        # shuffles a list
+                        if objfunc == 'shuffle':
+                            random.shuffle(self.vars[vname].value)
+                            return self.vars[vname].value
 
                         # performs a function for each element in the iterable
                         # map() is a destructive method

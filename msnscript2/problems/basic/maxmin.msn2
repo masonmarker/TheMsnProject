@@ -1,0 +1,30 @@
+# finds the maximum or minimum in an array
+
+# timer
+import ('lib/timer.msn2')
+
+timer_start()
+
+
+# create array
+@ array = [1, 2, 3, 4, 5, 6]
+
+# log min and max
+@ min = @ max = array.get(0)
+
+
+
+# loop through elements
+for (0, array.len(), 'i', =>(
+    @ e = array.get(i.val()),
+    @ min = if (e.l(min.val()), e.val(), min.val()),
+    @ max = if (e.g(max.val()), e.val(), max.val())
+))
+
+
+# print min and max
+min.print('min: ')
+max.print('max: ')
+
+# print runtime
+print('found both in', op.mul(timer_runtime(), 100), 'ms')
