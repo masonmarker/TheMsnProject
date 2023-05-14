@@ -1,21 +1,11 @@
 
 
+# import random class
+import ('lib/rand.msn2')
 
+# create rand instance
+@ _rand = rand()
 
-
-
-
-# nested for loops
-for (0, 5, 'i', for(0, 5, 'j', for(0, 5, 'k', =>(
-    i.print('i:'),
-    j.print('j:'),
-    k.print('k:')
-))))
-
-
-print()
-i.print('i:')
-j.print('j:')
-k.print('k:')
-
-print(box1.things())
+0|10|_ (=>(
+    print(_rand.char())
+))
