@@ -1,11 +1,6 @@
 
 
-# import random class
-import ('lib/rand.msn2')
 
-# create rand instance
-@ _rand = rand()
 
-0|10|_ (=>(
-    print(_rand.char())
-))
+
+
