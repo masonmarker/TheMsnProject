@@ -1420,6 +1420,9 @@ serial_open('thread')
 
     -- equals(private(array_sum(None)), 0) ??
 
+    # NOTE : function()'s first argument should be a hard coded string
+    # avoid not using a hard coded string when creating class() inner methods
+
     -- @ _ = 1
 
 # -------------------------------------------
@@ -1949,7 +1952,32 @@ function('test_redirect', =>(
     -- equals(private(factorial(6)), 720) ??
 
 
-    # another way
+    # lol
+    -- if(1,if(1,if(1,assert(1))))
+
+    # entering a private context
+    -- new(=>(
+        class('range', @all=list(range(0,10))),
+        # assert two class insantces have the same initial attribute
+        equals(->(range(), 'all'), ->(range(), 'all'))
+    ))
+
+    # private function
+    -- function('priv', new(=>(
+        # import english alphabet
+        import('lib/eng.msn2'),
+        @ _i = 0,
+        # create a variable for each letter of the alphabet
+        english_alphabet.each('letter', =>(
+            var(letter.val(), _i.inc())
+        )),
+        ret('priv', z.val()),
+        env(1)
+    )))
+
+    -- priv()
+    
+
 
     -- @ _ = 1
 
@@ -1959,12 +1987,65 @@ function('test_redirect', =>(
 
 
 # -------------------------------------------
+
+
+# ------------------ TESTING SUBCLASSES ------------------
+
+# tests nested classes
+# using function() just to verify integrity
+function('subclasses', =>(
+
+    # testing subclasses
+    print('[+] testing subclasses...'),
+
+    # declaring a class
+    class ('_test', =>(
+        # class functions
+        function('get', ret('get',-1), 'self'),
+        function('get2', ret('get2',1), 'self'),
+        
+        # subclass
+        class('_test_sub', =>(
+            @att=5, 
+            function('get_att', ret('get_att', self.att()), 'self')
+        )),
+
+        # creating an instance of the subclass
+        @sub = _test_sub(),
+        # asserting the class was created correctly
+        assert(equals(sub.att(), 5, sub.get_att())),
+    )),
+
+    # creating an instance of the class
+    @test = _test(),
+
+    # instance of the subclass
+    @sub = test.sub(),
+
+    # verifying you can access the subclass and create
+    # instances of it
+    assert(equals(sub.get_att(), 5, sub.att())),
+
+    # return
+    ret('subclasses', 1)
+))
+
+
+
 # -------------------------------------------
 
 
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
 
+# test information
 @ tests_ran = 0
+@ test_count = 0
+
+# macro for running tests
+# (added 5/16/2023)
+macro('TEST ', '__function', =>(
+    thread(cat('thread', test_count.inc()), private(assert(-(__function.val()))))
+))
 
 # runs tests in their own private environment
 # a private block inherits copies of all variables and methods from the parent context
@@ -1975,40 +2056,42 @@ function('test_redirect', =>(
 
     # runs basic tests
     # runs each test on a new thread    
-    -- thread('vars', private(assert(test_var())))
-    -- thread('math', private(assert(test_math()))) 
-    -- thread('strings', private(assert(test_strings())))
-    -- thread('arrays', private(assert(test_arrays())))
-    -- thread('embed', private(assert(test_msn2embed())))
-    -- thread('classes', private(assert(test_classes())))
-    -- thread('complex', private(assert(test_complex())))
-    -- thread('complex2', private(assert(test_complex2())))
-    -- thread('random', private(assert(test_random())))
-    -- thread('loops', private(assert(test_simple_loops())))
-    -- thread('cond', private(assert(test_simple_cond())))
-    -- thread('html', private(assert(test_html())))
-    -- thread('enclosing', private(assert(test_enclosing())))
-    -- thread('destroy', private(assert(test_destroy())))
+    -- TEST test_var()
+    -- TEST test_math()
+    -- TEST test_strings()
+    -- TEST test_arrays()
+    -- TEST test_msn2embed()
+    -- TEST test_classes()
+    -- TEST test_complex()
+    -- TEST test_complex2()
+    -- TEST test_random()
+    -- TEST test_simple_loops()
+    -- TEST test_simple_cond()
+    -- TEST test_html()
+    -- TEST test_enclosing()
+    -- TEST test_destroy()
 
     # tests post macro functionality
     -- private(assert(test_postmacros()))
 
-    -- thread('function', private(assert(test_function())))
-    -- thread('redirect', private(assert(test_redirect())))
-    -- thread('userfunc_with_args', private(assert(test_userfunc_with_args())))
-    -- thread('op', private(assert(test_op())))
-    -- thread('globalmethods', private(assert(test_more_global_methods())))
-    -- thread('paren_macro', private(assert(test_paren_macro())))
-    -- thread("other_stuff", private(assert(test_other_stuff())))
+    # next test block
+    -- TEST test_function()
+    -- TEST test_redirect()
+    -- TEST test_userfunc_with_args()
+    -- TEST test_op()
+    -- TEST test_more_global_methods()
+    -- TEST test_paren_macro()
+    -- TEST test_other_stuff()
+    -- TEST test_global_methods()
+    -- TEST test_int_methods()
+    -- TEST subclasses()
 
-    -- thread('global_methods', private(assert(test_global_methods())))
-    -- thread('int_methods', private(assert(test_int_methods())))
 
-    # macros testing
-    -- thread('macros', private(=>(
+    # testing macros
+    -- TEST => (
         assert(test_macros()),
         add_and_export()
-    )))
+    )
 
 
     # test is not run on another thread to avoid file reading conflicts
@@ -2030,8 +2113,6 @@ function('test_redirect', =>(
             assert(test_processes()),
             add_and_export()
         ))
-
-      #  private(thread('tep', test_endpoints()))
     )),
     
     # adds threads that launch the tests

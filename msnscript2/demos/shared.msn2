@@ -15,7 +15,7 @@ var('resource', semaphore(False, ''))
 # delay to grant opposing thread an opportunity
 # to write to the resource
 ~ offer_resource() -> __offered
--- sleep(0.001)
+-- sleep(0.1)
 
 # only 1 thread can write at a time to the buffer
 thread('thread1', =>(
