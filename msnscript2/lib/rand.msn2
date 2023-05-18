@@ -17,9 +17,4 @@ class('rand', =>(
     function ('shuffle', ret('shuffle', 
         __indexable.shuffle()
     ), 'self', '__indexable'),
-
-    # gets a random english letter
-    function ('char', ret('char', 
-        <<|english_alphabet.val()|[|random(0, english_alphabet.len(),)|]>>
-    ), 'self'),
 ))

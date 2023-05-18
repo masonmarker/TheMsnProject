@@ -598,7 +598,30 @@ var('f', 6)
     -- assert(equals(static(names.name2()), "joe2"))
     -- assert(equals(static(names.name3()), "joe3"))
 
-    # 01/19/2023 - adding class methods
+    
+    # working with class methods and constructors
+    -- class('dude', =>(
+
+        # attributes
+        @ name = 'unknown',
+        @ age = -1,
+
+        # constructor
+        function('const', =>(
+            self.name(private(=>(
+                @_name=self.name(),
+                _name.upper()
+            )))
+        ),'self')
+
+    ))
+
+
+    # testing
+    -- @ dude1 = dude('bruh')
+    -- assert(equals(dude1.name(), 'BRUH'))
+    -- assert(equals(dude1.age(), -1))
+
 
 
     -- var('_', True)
@@ -1963,7 +1986,7 @@ function('test_redirect', =>(
     ))
 
     # private function
-    -- function('priv', new(=>(
+    -- function('priv', =>(
         # import english alphabet
         import('lib/eng.msn2'),
         @ _i = 0,
@@ -1971,13 +1994,27 @@ function('test_redirect', =>(
         english_alphabet.each('letter', =>(
             var(letter.val(), _i.inc())
         )),
-        ret('priv', z.val()),
-        env(1)
-    )))
-
-    -- priv()
+        ret('priv', z.val())
+    ))
+    -- assert(equals(private(priv()), 26))
     
+    # classes working together
+    -- new(=>(
+        # making a class of tests
+        class('random_tests', =>(
+            # test 1
+            function('test1', =>(
+                assert(equals(op.add(value.val(), 3), 13))
+            ), 'self', 'value')
+        )),
+        =>(@_r=random_tests(),_r.test1(10))
+    ))
 
+    # testing the 'in' operator
+    -- @ v = 4
+    -- assert(v.in([1, 2, 3, 4, 5]))
+    -- assert(not(v.in([1, 2, 3, 5, 6])))
+    -- assert(v.in([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))    
 
     -- @ _ = 1
 
