@@ -2808,6 +2808,11 @@ class Interpreter:
                             # add the method to the instance
                             instance[name] = var_obj[name].value
                             
+                            # if the method's name is 'const'
+                            if var_obj[name].value.name == 'const':
+                                # run the function with the argument being
+                                # this instance
+                                var_obj[name].value.run([instance], self)
                             continue
 
                         # if attribute is a variable
@@ -2825,6 +2830,7 @@ class Interpreter:
                                 var = var_obj[name]
                                 instance[name] = var.value
                         curr_arg_num += 1
+                    
 
                     return instance
 
