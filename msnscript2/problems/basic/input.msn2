@@ -1,5 +1,8 @@
 
+# clear the console
+import ('lib/os.msn2')
+clear()
 
-@ inp = int(input('Enter a number: '))
-
-inp.print()
+while (=>(@inp=input('type a number: '), inp.int()), =>(
+    inp.print('input: ')
+))

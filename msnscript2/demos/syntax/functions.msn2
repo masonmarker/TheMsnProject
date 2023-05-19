@@ -1,0 +1,16 @@
+# new functional syntax
+#
+# author : Mason Marker
+# date : 5/18/2023
+
+# importing msn2plus syntax
+import('lib/syntax/msn2plus.msn2')
+
+# testing the macro
+
+
+# declaring a function
+f: addition : a, b, c : a.add((b), (c))
+
+# executing the function
+assert(equals(addition(1, 2, 3), 6))

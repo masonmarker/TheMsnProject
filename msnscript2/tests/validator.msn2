@@ -2071,6 +2071,24 @@ function('subclasses', =>(
 
 # -------------------------------------------
 
+# ------------------ TESTING JOINT MACROS ------------------
+# tests defined macros being used together
+# import msn2plus
+import('lib/syntax/msn2plus.msn2')
+
+
+# new, safer function declaration mechanism
+f: jointmacros :: =>(
+    print('[+] testing joint macros...'),
+
+    and(1, 1) ??,
+    or(0, 1) ??,
+    and(or(1, 0),or(1, 1),or(0, 1)) ??,
+    and(=>(1), =>(1)) ??,
+    1
+)
+
+# -------------------------------------------
 
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
 
@@ -2122,6 +2140,7 @@ macro('TEST ', '__function', =>(
     -- TEST test_global_methods()
     -- TEST test_int_methods()
     -- TEST subclasses()
+    -- TEST jointmacros()
 
 
     # testing macros
