@@ -10,16 +10,12 @@ import('lib/processes.msn2')
 # setup
 serial_open('msn2plus_thread')
 
-
-
 # utilizing variables
 enclosedsyntax('^', '^', '__MSN2varname', val(strip(val('__MSN2varname'))))
 
 # retrieving a variable with '()'
 # (honestly i dont think this variable extraction technique is all that bad)
 enclosedsyntax('(', ')', '__parenvarname', val(strip(val('__parenvarname'))))
-
-
 
 
 # completes a task, then another task, returning the first task's return value
@@ -86,6 +82,53 @@ macro('in ', '__inline', private(=>(
 )))
 
 
+# new function declaration
+# correctly hides function variables and removes
+# the need for ret()
+macro('f:', '__func_body', =>(
+    
+    # split __func_body by :
+    @ _sp_funcbody = __func_body.split(':'),
+
+    # get function name
+    @ _func_name = strip(_sp_funcbody.get(0)),
+
+    # get function args
+    @ _func_args = _sp_funcbody.get(1),
+
+    # get function body
+    @ _func_body = _sp_funcbody.get(2),
+    # to str
+    @ _func_body = _func_body.str(),
+
+    # get the individual args
+    @ _func_args = _func_args.split(','),
+
+    # map the func args to the stripped version
+    _func_args.map('_el', strip(_el.str())),
+
+    # declaring the new function
+    function(_func_name.val(),),
+
+    # adding the arguments
+    _func_args.each('_arg', function.addarg(_func_name.val(), _arg.val())),
+
+    # adding the body
+    function.addbody(_func_name.val(), cat(
+        'ret(',
+        cat('"', _func_name.val(), '",'),
+        'private(',
+        _func_body.val(),
+        '))'
+    )),
+
+    # destroying the variables
+    destroy('_sp_funcbody'),
+    destroy('_func_name'),
+    destroy('_func_args'),
+    destroy('_func_body'),
+    destroy('__func_body')
+))
 
 
 
