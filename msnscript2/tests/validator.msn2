@@ -2134,16 +2134,15 @@ function('test_sets', =>(
     class('test_set', =>(
         @ set = set(0, 1, 2, 3),
 
-        # new function macro
-        f: get_set : self : self.set(),
+        function('get_set', ret('get_set', 
+            self.set()
+        ),'self'),
 
         # add an element to the set
-        f: add_element : self, element : =>(
-            @_set=self.set(),
-            @_set.add(element.val()),
-            self.set(_set.val()),
-            print('added')
-        )
+        # also testing the 'as' function
+        function('add_element', self.set(
+            as('_t', self.set(), _t.add(_el.val()))
+        ),'self', '_el')
     )),
 
     @ set = test_set(),
@@ -2153,7 +2152,12 @@ function('test_sets', =>(
 
     # add an element to the set
     set.add_element(4),
+    
+    # assert the element was added
     equals(set.set(), {0, 1, 2, 3, 4}) ??,
+
+
+
 
 
 

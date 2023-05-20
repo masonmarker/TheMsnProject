@@ -11,6 +11,9 @@ import('lib/syntax/msn2plus.msn2')
 
 # declaring a function
 f: addition : a, b, c : a.add((b), (c))
+f: subtract : a, c, c : a.sub((b), (c))
+
 
 # executing the function
 assert(equals(addition(1, 2, 3), 6))
+assert(equals(subtract(1, 2, 3), -4))
