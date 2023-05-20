@@ -94,24 +94,30 @@ import('tests/speed/resources.msn2')
 # -------------------------------------------
 
 
+# ----------------- MSN2PLUSSYNTAX -----------------
+function('test_msn2plus', =>(
+    TEST 'obtaining a variable with ()' ::: (common),
+    TEST 'msn2plus function declaration (no args or body)' ::: f:msn2nobody::,
+    TEST 'msn2plus function declaration (no args)' ::: f:msn2noargs::assert(1),
+))
+# -------------------------------------------
+
+
+
 
 # ----------------------------- RUNNING TESTS -----------------------------
+
+# macro to run a test
 
 # prints a divider
 DIVIDER
 
 # executes a test in a private context
-private(test_nothing())
-
-DIVIDER
-private(test_vars())
-DIVIDER
-private(test_fallback())
-DIVIDER
-private(test_syscall())
-DIVIDER
-private(test_sort())
-DIVIDER
-private(test_user_method())
-DIVIDER
-private(test_macros())
+SPEED test_nothing()
+SPEED test_vars()
+SPEED test_fallback()
+SPEED test_syscall()
+SPEED test_sort()
+SPEED test_user_method()
+SPEED test_macros()
+SPEED test_msn2plus()
