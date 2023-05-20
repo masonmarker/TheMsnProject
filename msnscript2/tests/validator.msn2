@@ -2128,6 +2128,35 @@ function('test_sets', =>(
     # assert set equals
     set.equals({0, 1, 2, 3}) ??,
 
+
+
+    # set inside a class
+    class('test_set', =>(
+        @ set = set(0, 1, 2, 3),
+
+        # new function macro
+        f: get_set : self : self.set(),
+
+        # add an element to the set
+        f: add_element : self, element : =>(
+            @_set=self.set(),
+            @_set.add(element.val()),
+            self.set(_set.val()),
+            print('added')
+        )
+    )),
+
+    @ set = test_set(),
+
+    equals(set.set(), {0, 1, 2, 3}) ??,
+    equals(set.get_set(), {0, 1, 2, 3}) ??,
+
+    # add an element to the set
+    set.add_element(4),
+    equals(set.set(), {0, 1, 2, 3, 4}) ??,
+
+
+
     ret('test_sets', 1)
 ))
 # -------------------------------------------
