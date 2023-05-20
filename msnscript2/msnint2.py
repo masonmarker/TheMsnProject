@@ -709,7 +709,7 @@ class Interpreter:
                             
                         del self.vars[varname]
                         return object
-                    
+                                        
                     # sets this variable to the first argument
                     if objfunc == '=':
                         self.vars[vname].value = self.parse(0, line, f, sp, args)[2]
@@ -2468,6 +2468,30 @@ class Interpreter:
                 elif func == '-':
                     line, as_s, string = self.parse(0, line, f, sp, args)
                     return self.interpret(string)
+                
+                # does something with a value as a temporary 
+                # variable
+                elif func == 'as':
+                    
+                    # temporary variable name
+                    varname = self.parse(0, line, f, sp, args)[2]
+                    
+                    # value to set
+                    val = self.parse(1, line, f, sp, args)[2]
+                    
+                    # block to execute
+                    block = args[2][0]
+                    
+                    # set the variable
+                    self.vars[varname] = Var(varname, val)
+                    
+                    # execute the block
+                    ret = self.interpret(block)
+                    
+                    # delete the variable
+                    del self.vars[varname]
+                    
+                    return ret
 
                 # strips a str
                 elif func == 'strip':
@@ -2609,7 +2633,7 @@ class Interpreter:
                         while not self.interpret(args[0][0]):
                             self.interpret(args[1][0])
                     return True
-
+                      
                 # exports a quantity of variables or methods from the working context to the parent context,
                 # ex private context -> boot context
                 elif func == 'export':
