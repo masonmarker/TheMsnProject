@@ -1443,6 +1443,14 @@ serial_open('thread')
 
     -- equals(private(array_sum(None)), 0) ??
 
+
+
+    # playing with functions
+    -- function('f', ret('f', _e.val()), '_e')
+
+    # running the already declared function
+    -- equals(private(f(5)), 5) ??
+
     # NOTE : function()'s first argument should be a hard coded string
     # avoid not using a hard coded string when creating class() inner methods
 
@@ -2016,6 +2024,16 @@ function('test_redirect', =>(
     -- assert(not(v.in([1, 2, 3, 5, 6])))
     -- assert(v.in([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))    
 
+
+    # testing the as() syscall
+    # allows for code generalizations to be
+    # collected into a temporary variable
+    # that will be destroyed after the function's
+    # execution
+
+
+
+
     -- @ _ = 1
 
 
@@ -2132,8 +2150,11 @@ function('test_sets', =>(
 
     # set inside a class
     class('test_set', =>(
+
+        # set attributes
         @ set = set(0, 1, 2, 3),
 
+        # gets this set
         function('get_set', ret('get_set', 
             self.set()
         ),'self'),
@@ -2145,6 +2166,7 @@ function('test_sets', =>(
         ),'self', '_el')
     )),
 
+    # test set
     @ set = test_set(),
 
     equals(set.set(), {0, 1, 2, 3}) ??,
@@ -2154,8 +2176,54 @@ function('test_sets', =>(
     set.add_element(4),
     
     # assert the element was added
-    equals(set.set(), {0, 1, 2, 3, 4}) ??,
+    equals(set.get_set(), set.set(), {0, 1, 2, 3, 4}) ??,
 
+    # making another test_set() with its own set values
+    @ set2 = test_set(set('hello', 'hello', 'mason')),
+
+    # assert the set is correct
+    equals(set2.get_set(), set2.set(), {'hello', 'mason'}) ??,
+    # assert the first set is still the first set
+    equals(set.get_set(), set.set(), {0, 1, 2, 3, 4}) ??,
+
+
+    # testing class constructor bc bored
+    class('hello', =>(
+
+        @ val1=1,
+        @ val2=2,
+        @result=3,
+
+        # constructor
+        function('const',
+            self.result(op.add(self.val1(), self.val2())),
+        'self')
+        
+    )),
+
+    # test class
+    @ hey = hello(),
+
+    # assert the result is correct
+    equals(hey.result(), 3) ??,
+
+    # assert the values are correct
+    equals(hey.val1(), 1) ??,
+    equals(hey.val2(), 2) ??,
+
+    # create a new class with different val1 and val2
+    @ hey2 = hello(3, 4),
+
+    # assert the result is correct
+    equals(hey2.result(), 7) ??,
+
+    # creating a class with different values
+    # after needing default attribute prior to the
+    # attribute needing changed
+    @ hey3 = hello(static(hello.val1()), 5),
+
+    # assert the result is correct
+    equals(hey3.result(), 6) ??,
 
 
 
