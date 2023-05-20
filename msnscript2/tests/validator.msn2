@@ -2090,6 +2090,48 @@ f: jointmacros :: =>(
 
 # -------------------------------------------
 
+# ------------------ TESTING SETS ------------------
+function('test_sets', =>(
+    print('[+] testing sets...'),
+
+    # creating an empty set
+    @ set = set(),
+
+    # length of set should be zero
+    not(set.len()) ??,
+
+    # add a bunch of things to the set
+    set.add(1, 2, 3, 4, 5, 5, 4, 3, 2, 1),
+
+    # length of set should be 5
+    equals(set.len(), 5) ??,
+
+    # asserts what the set is
+    equals(set.val(), {1, 2, 3, 4, 5}) ??,
+
+    # asserts the set can be cast to a list
+    equals(set.list(), [1, 2, 3, 4, 5]) ??,
+
+    # gets an an index in the set
+    equals(set.get(0), 1) ??,
+    equals(set.get(1), 2) ??,
+    equals(set.get(2), 3) ??,
+    equals(set.get(3), 4) ??,
+    equals(set.get(4), 5) ??,
+
+    # assert set equals again
+    set.equals({1, 2, 3, 4, 5}) ??,
+
+    # creating a set from a constructor
+    @ set = set(0, 1, 2, 3),
+
+    # assert set equals
+    set.equals({0, 1, 2, 3}) ??,
+
+    ret('test_sets', 1)
+))
+# -------------------------------------------
+
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
 
 # test information
@@ -2141,6 +2183,7 @@ macro('TEST ', '__function', =>(
     -- TEST test_int_methods()
     -- TEST subclasses()
     -- TEST jointmacros()
+    -- TEST test_sets()
 
 
     # testing macros

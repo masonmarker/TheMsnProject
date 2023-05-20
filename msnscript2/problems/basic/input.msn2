@@ -3,6 +3,8 @@
 import ('lib/os.msn2')
 clear()
 
-while (=>(@inp=input('type a number: '), inp.int()), =>(
+try(while (=>(@inp=input('type a number: '), inp.int()), =>(
     inp.print('input: ')
-))
+)))
+
+print('bye!!')
