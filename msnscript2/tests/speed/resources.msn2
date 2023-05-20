@@ -1,5 +1,6 @@
 import ('lib/timer.msn2')
 import ('lib/os.msn2')
+import ('lib/syntax/msn2plus.msn2')
 clear()
 
 # average timer runtime, subtracted from speed computations after they're made
@@ -51,6 +52,12 @@ macro ('TEST', '__line', =>(
     var('message', ?__split?[0]),
     message.strip(),
     run_timer(-(?message?), ?__split?[1])
+))
+
+# macro to run a private test, then print a divider
+macro('SPEED ', '__line', =>(
+    private(-(__line.val())),
+    DIVIDER
 ))
 
 macro('DIVIDER', '__unused', print('---------------------------------------'))

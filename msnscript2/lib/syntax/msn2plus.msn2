@@ -98,6 +98,7 @@ macro('f:', '__func_body', =>(
 
     # get function body
     @ _func_body = _sp_funcbody.get(2),
+    
     # to str
     @ _func_body = _func_body.str(),
 
