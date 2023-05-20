@@ -648,6 +648,7 @@ class Interpreter:
 
                     if objfunc == 'dict':
                         return dict(object)
+                    
 
                     # gets values from the object if the statement is true for each object
                     # runs the function on each element / kv pair
@@ -691,13 +692,21 @@ class Interpreter:
 
                         # get the variable name
                         varname = self.parse(0, line, f, sp, args)[2]
-
                         # get the function
                         func = args[1][0]
 
-                        for i in range(len(object)):
-                            self.vars[varname] = Var(varname, object[i])
-                            self.interpret(func)
+                        # try an indexable
+                        try:
+                            for i in range(len(object)):
+                                self.vars[varname] = Var(varname, object[i])
+                                self.interpret(func)
+                         
+                        except:
+                            # try a set
+                            for i in object:
+                                self.vars[varname] = Var(varname, i)
+                                self.interpret(func)
+                            
                         del self.vars[varname]
                         return object
                     
@@ -820,7 +829,45 @@ class Interpreter:
 
                         # more basic functions
                         return self.vars[vname].value
+                    
+                    # set based functions
+                    elif isinstance(object, set):
+                        
+                        # adds all arguments to the set object
+                        if objfunc == 'add' or objfunc == 'put':
+                            for i in range(len(args)):
+                                self.vars[vname].value.add(
+                                    self.parse(i, line, f, sp, args)[2])
+                            return self.vars[vname].value
+                        
+                        if objfunc == 'pop':
+                            return self.vars[vname].value.pop()
+                        
+                        # removes all arguments from the set object
+                        if objfunc == 'remove':
+                            for i in range(len(args)):
+                                self.vars[vname].value.remove(
+                                    self.parse(i, line, f, sp, args)[2])
+                            return self.vars[vname].value
+                        
+                        # converts this set to a list
+                        if objfunc == 'list':
+                            return list(self.vars[vname].value)
+                        
+                        # gets at an index in the set
+                        # sets are not indexable
+                        if objfunc == 'get':
+                            
+                            # index to get at
+                            ind = self.parse(0, line, f, sp, args)[2]
+                            
+                            # get the index
+                            for i in object:
+                                if ind == 0:
+                                    return i
+                                ind -= 1
 
+                            
                     # array based functions
                     elif isinstance(object, list):
 
@@ -941,6 +988,10 @@ class Interpreter:
 
                             # join the array
                             return str(self.parse(0, line, f, sp, args)[2]).join(map(str, self.vars[vname].value))
+
+                        # converts this list to a set
+                        if objfunc == 'toset':
+                            return set(self.vars[vname].value)
 
                     # if the object is a string
                     elif isinstance(object, str):
@@ -1403,6 +1454,43 @@ class Interpreter:
                     if objfunc == 'len':
                         return total_ints
                     return '<msnint2 class>'
+                
+                # casting
+                elif func == 'int':
+                    return int(self.parse(0, line, f, sp, args)[2])
+                elif func == 'float':
+                    return float(self.parse(0, line, f, sp, args)[2])
+                elif func == 'str':
+                    return str(self.parse(0, line, f, sp, args)[2])
+                elif func == 'bool':
+                    return bool(self.parse(0, line, f, sp, args)[2])
+                elif func == 'complex':
+                    return complex(self.parse(0, line, f, sp, args)[2])
+                
+                
+                # gets the type of the argument
+                elif func == 'type':
+                    return type(self.parse(0, line, f, sp, args)[2])
+                
+                # casting to iterables / sets / dicts
+                elif func == 'set':
+                    
+                    # creates a set from all arguments
+                    if args[0][0] == '':
+                        return set()
+                    
+                    # creates a set from all arguments
+                    s = set()
+                    
+                    # adds all arguments to the set
+                    for i in range(len(args)):
+                        s.add(self.parse(i, line, f, sp, args)[2])
+                    return s
+                    
+                elif func == 'dict':
+                    return dict(self.parse(0, line, f, sp, args)[2])
+                elif func == 'tuple':
+                    return tuple(self.parse(0, line, f, sp, args)[2])
 
                 # conditional logic
                 elif func == 'if':
