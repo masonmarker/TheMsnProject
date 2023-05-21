@@ -2525,6 +2525,10 @@ class Interpreter:
                 elif func == 'break':
                     self.breaking = True
                     return
+                
+                # reverses the first argument
+                elif func == 'reverse':
+                    return self.parse(0, line, f, sp, args)[2][::-1]
 
                 # inherits methods only from the parent context
                 elif func == 'inherit:methods':
