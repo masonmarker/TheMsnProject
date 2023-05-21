@@ -1,0 +1,17 @@
+# opening and working with an application
+#
+# author : Mason Marker
+# date : 5/20/2023
+
+console('cls')
+
+
+# defines an application
+@ app = app('notepad.exe')
+
+
+# starts the application
+app.start()
+
+# types something in the notepad
+app.write('hello world')
