@@ -9,7 +9,7 @@ import('lib/syntax/msn2plus.msn2')
 # testing the macro
 
 
-# declaring a function
+# declaring functions with arguments
 f: addition : a, b, c : a.add((b), (c))
 f: subtract : a, c, c : a.sub((b), (c))
 
@@ -17,3 +17,13 @@ f: subtract : a, c, c : a.sub((b), (c))
 # executing the function
 assert(equals(addition(1, 2, 3), 6))
 assert(equals(subtract(1, 2, 3), -4))
+
+
+# function with no arguments
+f: hello :: -1
+f: hello2::-1
+
+equals(hello(), -1) ??
+equals(hello2(), -1) ??
+
+
