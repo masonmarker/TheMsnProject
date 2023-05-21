@@ -5,6 +5,10 @@
 import os
 import math
 import shutil
+from pywinauto.application import Application
+from pywinauto import timings
+
+
 import openai
 import random
 import time
@@ -1079,6 +1083,44 @@ class Interpreter:
                             self.vars[vname].value = self.vars[vname].value[self.parse(
                                 0, line, f, sp, args)[2]:self.parse(1, line, f, sp, args)[2]]
                             return self.vars[vname].value
+
+                    # if the object is a pywinauto application
+                    elif isinstance(object, self.App):
+                        
+                        # path to the application to work with
+                        path = object.path
+                        # actual pwinauto application object
+                        app = object.application
+                        
+                        # creates and starts the application
+                        if objfunc == 'start':
+                            
+                            # create and start the application
+                            if not object.application:
+                                object.application = Application(backend="uia").start(path)
+                            return object.application
+                        
+                        # types something in the window
+                        # takes one argument:
+                        #   - what to type
+                        if objfunc == 'write':
+                            
+                            time.sleep(10)
+                            
+                            # what to type
+                            to_type = self.parse(0, line, f, sp, args)[2]
+                            
+                            # get the window
+                            window = object.application.window()
+                            
+                            button = window.child_window(title="File", control_type="Button")
+                            button.click()
+                            
+                            
+                        
+                            
+                            
+                        return object
 
                     # if the object is a dictionary
                     elif isinstance(object, dict):
@@ -2977,7 +3019,21 @@ class Interpreter:
                     # set the value
                     o[attr] = val
                     return val
-
+                
+                # PRACTICAL FUNCTIONALITY
+                # started 5/20/2023
+                
+                
+                # starts and retrieves an instance
+                # of an application on the local machine
+                # only properly implemented for Windows
+                # uses pywinauto to do all of this
+                elif func == 'app':
+                    
+                    # creates an App variable
+                    return self.App(path = self.parse(0, line, f, sp, args)[2])
+                    
+                    
                 # functional syntax I decided to add to make loops a tiny bit faster,
                 # cannot receive non literal arguments
                 # syntax:     3|5|i (prnt(i))
@@ -3613,3 +3669,15 @@ class Interpreter:
         def delete(self):
             self.make_api({})
             return self.response
+    
+    
+    # class for an App
+    class App:
+        # constructor
+        def __init__(self, path):
+            
+            # path of application being launched
+            self.path = path
+            
+            # pwinauto application object
+            self.application = None
