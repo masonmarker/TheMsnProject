@@ -2225,6 +2225,13 @@ function('test_sets', =>(
     # assert the result is correct
     equals(hey3.result(), 6) ??,
 
+    
+    
+
+
+
+
+    
 
 
 
