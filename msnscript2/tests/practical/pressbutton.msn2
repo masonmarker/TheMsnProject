@@ -1,0 +1,16 @@
+# Tests basic actions within the automation capabilities
+# of the language.
+#
+# author : Mason Marker
+# date : 5/23/2023
+
+# starts chrome
+@ chrome = app("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")
+chrome.start()
+
+chrome.print_children()
+
+
+
+# stop edge
+chrome.stop()

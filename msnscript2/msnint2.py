@@ -6,9 +6,11 @@ import os
 import math
 import shutil
 import pywinauto
-from pywinauto.application import Application
-from pywinauto import timings
 
+# pywinauto automation
+from pywinauto.application import Application
+from pywinauto import mouse
+from pywinauto import timings
 
 import openai
 import random
@@ -1103,8 +1105,8 @@ class Interpreter:
                             # get the string
                             return object[index-left:index+len(keyword)+right]
                             
-
-                    # get different types of children
+                    # GENERAL METHODS
+                    # gets the immediate children of the parent window
                     def children(parent_window):
                         return [self.AppElement(child, child.window_text()) for child in window.children()]
                     # gets a child at an index
@@ -1123,15 +1125,68 @@ class Interpreter:
                         subtext = subtext.lower()
                         return [self.AppElement(child, child.window_text()) for child in window.children()
                                 if subtext in child.window_text().lower()]
-                    # gets all menu objects existing in a window
-
+                        
+                    # recursively searches the child tree for a certain object type
+                    def recursive_search(parent_window, type, as_type):
+                        found = []
+                        for child in parent_window.children():
+                            if isinstance(child, type):
+                                found.append(as_type(child, child.window_text()))
+                            found += recursive_search(child, type, as_type)
+                        return found
+                    # prints all elements
+                    def print_elements(parent_window, retrieve_elements):
+                        for i, element in enumerate(retrieve_elements(parent_window)):
+                            print(i, ":")
+                            print(element)
+                        return None
+                    # finds an element containing the substring specified
+                    def find_elements(parent_window, subtext, retrieve_elements):
+                        elements = []
+                        subtext = subtext.lower()
+                        for element in retrieve_elements(parent_window):
+                            if subtext in element.name.lower():
+                                elements.append(element)
+                        return elements
+                    # ---------------------------
+                    
+                          
+                    # NARROWING GENERAL METHODS
+                    # recursively gets all menus existing in the parent_window tree
+                    # accumulates all instances of pywinauto.controls.uia_controls.MenuWrapper
                     def menus(parent_window):
-                        return [self.AppElement(child, child.window_text()) for child in window.children()
-                                if isinstance(child, pywinauto.controls.uia_controls.MenuWrapper)]
+                        return recursive_search(parent_window, pywinauto.controls.uia_controls.MenuWrapper, self.Menu)
                     # gets a single menu
-
                     def menu(parent_window, index):
                         return menus(parent_window)[index]
+                    # prints all the menus
+                    def print_menus(parent_window):
+                        return print_elements(parent_window, menus)
+                    # finds a menu with subtext in its name
+                    def find_menus(parent_window, subtext):
+                        return find_elements(parent_window, subtext, menus)
+                    
+                    # gets all toolbars
+                    def toolbars(parent_window):
+                        return recursive_search(parent_window, pywinauto.controls.uia_controls.ToolbarWrapper, self.ToolBar)
+                    def print_toolbars(parent_window):
+                        return print_elements(parent_window, toolbars)
+                    def toolbar(parent_window, index):
+                        return toolbars(parent_window)[index]
+                    def find_toolbars(parent_window, subtext):
+                        return find_elements(parent_window, subtext, toolbars)
+                    
+                    # recursively gets all instances of pywinauto.controls.uia_controls.ButtonWrapper
+                    def buttons(parent_window):
+                        return recursive_search(parent_window, pywinauto.controls.uia_controls.ButtonWrapper, self.Button)
+                    def button(parent_window, index):
+                        return buttons(parent_window)[index]
+                    def print_buttons(parent_window):
+                        return print_elements(parent_window, buttons)
+                    def find_buttons(parent_window, subtext):
+                        return find_elements(parent_window, subtext, buttons)
+                    # ---------------------------
+                    
 
                     # if the object is a pywinauto application
                     # KNOWN ISSUES:
@@ -1156,7 +1211,7 @@ class Interpreter:
 
                             return object.application
                         # kills the application
-                        if objfunc == 'stop':
+                        if objfunc == 'stop' or objfunc == 'kill':
                             # kill the application
                             return app.kill()
 
@@ -1174,12 +1229,45 @@ class Interpreter:
                         # finds children with subtext in their names
                         if objfunc == 'find_children':
                             return find_children(window, self.parse(0, line, f, sp, args)[2])
-                        # getting all
+                        
+                        # getting all menus
                         if objfunc == 'menus':
                             return menus(window)
-                        # getting a single menu
+                        # getting a single menu at an index
                         if objfunc == 'menu':
                             return menu(window, self.parse(0, line, f, sp, args)[2])
+                        # prints all menus
+                        if objfunc == 'print_menus':
+                            return print_menus(window)
+                        
+                        # gets all toolbars
+                        if objfunc == 'toolbars':
+                            return toolbars(window)
+                        # prints all toolbars
+                        if objfunc == 'print_toolbars':
+                            return print_toolbars(window)
+                        # gets a single toolbar at an index
+                        if objfunc == 'toolbar':
+                            return toolbar(window, self.parse(0, line, f, sp, args)[2])
+                        # finds all toolbars with subtext in their names
+                        if objfunc == 'find_toolbars':
+                            return find_toolbars(window, self.parse(0, line, f, sp, args)[2])
+                        
+                        
+                        
+                        # gets all buttons
+                        if objfunc == 'buttons':
+                            return buttons(window)
+                        # gets a single button at an index
+                        if objfunc == 'button':
+                            return button(window, self.parse(0, line, f, sp, args)[2])
+                        # prints all buttons
+                        if objfunc == 'print_buttons':
+                            return print_buttons(window)
+                        # finds all buttons with subtext in their names
+                        if objfunc == 'find_buttons':
+                            return find_buttons(window, self.parse(0, line, f, sp, args)[2])
+                        
 
                         # gets information about this application
                         # gets the text of the window
@@ -1226,6 +1314,18 @@ class Interpreter:
                         # gets the window text
                         if objfunc == 'text':
                             return window.window_text()
+                        # GETTING LOCATION OF THE WINDOW
+                        if objfunc == 'top':
+                            return window.rectangle().top
+                        if objfunc == 'bottom':
+                            return window.rectangle().bottom
+                        if objfunc == 'left':
+                            return window.rectangle().left
+                        if objfunc == 'right':
+                            return window.rectangle().right
+                        # getting the rectangle overall
+                        if objfunc == 'rectangle':
+                            return [window.rectangle().top, window.rectangle().bottom, window.rectangle().left, window.rectangle().right]
 
                         # WINDOW ACTIONS
                         # sends keystrokes to the application
@@ -1233,6 +1333,41 @@ class Interpreter:
                         if objfunc == 'write':
                             # sends keystrokes to the application
                             return window.type_keys(self.parse(0, line, f, sp, args)[2], with_spaces=True)
+                        # hovers over the window
+                        if objfunc == 'hover':
+                            # hovers the mouse over the window, using the mid point of the element
+                            return mouse.move(coords=(window.rectangle().mid_point()))
+                        
+                        # different types of AppElements
+                        # if the appelement is a button
+                        if isinstance(object, self.Button):
+                            
+                            # clicks the button
+                            if objfunc == 'click' or objfunc == 'left_click':
+                                return object.click()
+                            # left clicks the button
+                            if objfunc == 'right_click':
+                                return object.right_click()
+                            
+                        # working with ToolBars
+                        if isinstance(object, self.ToolBar):
+                            toolbar_window = object.window
+                            # gets the buttons of the toolbar
+                            if objfunc == 'buttons':
+                                return [toolbar_window.button(i) for i in range(toolbar_window.button_count())]
+                            # prints the buttons of this toolbar
+                            if objfunc == 'print_buttons':
+                                for i in range(toolbar_window.button_count()):
+                                    print(i, ':', toolbar_window.button(i))
+                                return None
+                            # gets a button at an index
+                            if objfunc == 'button':
+                                return toolbar_window.button(self.parse(0, line, f, sp, args)[2])
+                            # finds all buttons with subtext in their names
+                            if objfunc == 'find_buttons':
+                                return find_buttons(toolbar_window, self.parse(0, line, f, sp, args)[2])
+                                
+                            
 
                         return object
 
@@ -1747,6 +1882,14 @@ class Interpreter:
                         self.vars[varname] = Var(varname, iterable[i - 1])
 
                     return iterable
+                
+                # gets the first element in the iterable
+                elif func == 'first' or func == 'head':
+                    return self.parse(0, line, f, sp, args)[2][0]
+                
+                # gets the last element in the iterable
+                elif func == 'last' or func == 'tail':
+                    return self.parse(0, line, f, sp, args)[2][-1]
 
                 # the following provide efficient variable arithmetic
                 elif func == 'add':
@@ -3849,3 +3992,39 @@ class Interpreter:
         # string
         def __str__(self):
             return Interpreter.bordered(f'Text: {self.name}\nObject: {self.window}')
+    
+    # class for a button
+    class Button(AppElement):
+            
+        # constructor
+        def __init__(self, window, name):
+
+            # call super constructor
+            super().__init__(window, name)
+
+        # clicks the button
+        def click(self):
+            self.window.click()
+            
+        # right clicks the button
+        def right_click(self):
+            self.window.click_input(button='right')
+            
+    # class for a Menu
+    class Menu(AppElement):
+                
+        # constructor
+        def __init__(self, window, name):
+
+            # call super constructor
+            super().__init__(window, name)
+    
+
+    # class for a ToolBar
+    class ToolBar(AppElement):
+                    
+        # constructor
+        def __init__(self, window, name):
+
+            # call super constructor
+            super().__init__(window, name)
