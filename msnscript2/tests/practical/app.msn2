@@ -1,17 +1,46 @@
 # opening and working with an application
 #
 # author : Mason Marker
-# date : 5/20/2023
-
-console('cls')
+# date : 5/22/2023
 
 
 # defines an application
-@ app = app('notepad.exe')
+@ chrome = app('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
+
+# starts chrome
+chrome.start()
 
 
-# starts the application
-app.start()
 
-# types something in the notepad
-app.write('hello world')
+# types a prompt into google
+chrome.write('what is the current stock price of apple?')
+
+# preses the enter key
+chrome.enter()
+
+# waits for a child window containing AAPL
+wait(@ windows_with_AAPL = chrome.find_children('USD '))
+
+
+
+
+# get the first child containing AAPL
+@ window_with_AAPL = windows_with_AAPL.get(0)
+@ text = window_with_AAPL.text()
+
+
+# get the text 8 characters left from the first USD
+@ price = strip(text.around('USD', 8, 0))
+
+# close chrome
+chrome.stop()
+
+
+# writes the current AAPL stock price to notepad
+@ notepad = app('notepad.exe')
+notepad.start()
+notepad.write(cat('Current Apple stock price: ', price.val()))
+
+# sleep for 5 seconds, then close the notepad 
+sleep(5)
+notepad.stop()

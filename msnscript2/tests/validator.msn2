@@ -344,6 +344,22 @@ var('f', 6)
     -- deep.setn(999, '1', '2', '3', '4', '5')
     -- assert(?deep?['1']['2']['3']['4']['5'] == 999)
 
+
+
+    # testing the unpack() system call
+    -- unpack([100, 101, 102, 103], 'a', 'b', 'c', 'd')
+
+    -- assert(?a? == 100)
+    -- assert(?b? == 101)
+    -- assert(?c? == 102)
+    -- assert(?d? == 103)
+
+    # testing again
+    -- unpack(['hello', 'bro'], 'a', 'b')
+
+    -- assert(equals(a.val(), 'hello'))
+    -- assert(equals(b.val(), 'bro'))
+
     -- var('_', True)
 
 # -------------------------------------------
