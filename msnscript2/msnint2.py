@@ -5,6 +5,7 @@
 import os
 import math
 import shutil
+import pywinauto
 from pywinauto.application import Application
 from pywinauto import timings
 
@@ -507,8 +508,7 @@ class Interpreter:
                         object = self.vars[obj].value
                     except:
                         object = self.vars[obj]
-                    
-                    
+
                     try:
                         # if the object is a class
                         if objfunc in object:
@@ -518,20 +518,21 @@ class Interpreter:
 
                                 # get the Method object
                                 method = object[objfunc]
-                                
+
                                 # get the number of arguments to the method
                                 num_args = len(method.args)
-                                                                
+
                                 # args to pass to the function
                                 to_pass = [vname]
-                                
+
                                 # if there is no argument
                                 if args[0][0] != '':
-                                    
+
                                     # for each parsed argument
                                     for k in range(num_args):
                                         try:
-                                            to_pass.append(self.parse(k, line, f, sp, args)[2])
+                                            to_pass.append(self.parse(
+                                                k, line, f, sp, args)[2])
                                         except:
                                             None
                                 # create return variable
@@ -551,13 +552,9 @@ class Interpreter:
                                         return str(self.vars[method.returns[0]].value)
                                     except:
                                         return str(self.vars[method.returns[0]])
-                                    
-                                
-                                            
 
-                            
                             # otherwise if we're accessing an attribute
-                            
+
                             # no arguments given
                             if args[0][0] == '':
                                 return object[objfunc]
@@ -652,7 +649,6 @@ class Interpreter:
 
                     if objfunc == 'dict':
                         return dict(object)
-                    
 
                     # gets values from the object if the statement is true for each object
                     # runs the function on each element / kv pair
@@ -704,19 +700,20 @@ class Interpreter:
                             for i in range(len(object)):
                                 self.vars[varname] = Var(varname, object[i])
                                 self.interpret(func)
-                         
+
                         except:
                             # try a set
                             for i in object:
                                 self.vars[varname] = Var(varname, i)
                                 self.interpret(func)
-                            
+
                         del self.vars[varname]
                         return object
-                                        
+
                     # sets this variable to the first argument
                     if objfunc == '=':
-                        self.vars[vname].value = self.parse(0, line, f, sp, args)[2]
+                        self.vars[vname].value = self.parse(
+                            0, line, f, sp, args)[2]
                         return self.vars[vname].value
 
                     # reverses the iterable
@@ -833,45 +830,44 @@ class Interpreter:
 
                         # more basic functions
                         return self.vars[vname].value
-                    
+
                     # set based functions
                     elif isinstance(object, set):
-                        
+
                         # adds all arguments to the set object
                         if objfunc == 'add' or objfunc == 'put':
                             for i in range(len(args)):
                                 self.vars[vname].value.add(
                                     self.parse(i, line, f, sp, args)[2])
                             return self.vars[vname].value
-                        
+
                         if objfunc == 'pop':
                             return self.vars[vname].value.pop()
-                        
+
                         # removes all arguments from the set object
                         if objfunc == 'remove':
                             for i in range(len(args)):
                                 self.vars[vname].value.remove(
                                     self.parse(i, line, f, sp, args)[2])
                             return self.vars[vname].value
-                        
+
                         # converts this set to a list
                         if objfunc == 'list':
                             return list(self.vars[vname].value)
-                        
+
                         # gets at an index in the set
                         # sets are not indexable
                         if objfunc == 'get':
-                            
+
                             # index to get at
                             ind = self.parse(0, line, f, sp, args)[2]
-                            
+
                             # get the index
                             for i in object:
                                 if ind == 0:
                                     return i
                                 ind -= 1
 
-                            
                     # array based functions
                     elif isinstance(object, list):
 
@@ -944,7 +940,7 @@ class Interpreter:
                         # gets the length of the array
                         if objfunc == 'len':
                             return len(self.vars[vname].value)
-                        
+
                         # determines if a list is empty
                         if objfunc == 'empty':
                             return len(self.vars[vname].value) == 0
@@ -960,7 +956,7 @@ class Interpreter:
                         # determines if this list contains an element
                         if objfunc == 'contains' or objfunc == 'has' or objfunc == 'includes':
                             return self.parse(0, line, f, sp, args)[2] in self.vars[vname].value
-                        
+
                         # finds an element in a list
                         # unlike index(), find returns -1 instead of throwing an
                         # error
@@ -1084,42 +1080,160 @@ class Interpreter:
                                 0, line, f, sp, args)[2]:self.parse(1, line, f, sp, args)[2]]
                             return self.vars[vname].value
 
+                        # gets a string containing a certain amount of characters left and 
+                        # right of the first occurance of the string inside of a string
+                        if objfunc == 'around':
+                            
+                            # keyword to search for
+                            keyword = self.parse(0, line, f, sp, args)[2]
+                            
+                            # amount of characters to get to the left of the keyword
+                            left = self.parse(1, line, f, sp, args)[2]
+                            
+                            # amount of characters to get to the right of the keyword
+                            right = self.parse(2, line, f, sp, args)[2]
+                            
+                            # get the index of the keyword
+                            index = object.find(keyword)
+                            
+                            # if not found
+                            if index == -1:
+                                return f"around(): Keyword '{keyword}' not found in string"
+                            
+                            # get the string
+                            return object[index-left:index+len(keyword)+right]
+                            
+
+                    # get different types of children
+                    def children(parent_window):
+                        return [self.AppElement(child, child.window_text()) for child in window.children()]
+                    # gets a child at an index
+                    # prints the children
+
+                    def print_children(parent_window):
+                        for child in children(parent_window):
+                            print(child)
+
+                    def child(parent_window, index):
+                        child = children(parent_window)[index]
+                        return self.AppElement(child, child.window_text())
+                    # finds a child with subtext in its name
+
+                    def find_children(parent_window, subtext):
+                        subtext = subtext.lower()
+                        return [self.AppElement(child, child.window_text()) for child in window.children()
+                                if subtext in child.window_text().lower()]
+                    # gets all menu objects existing in a window
+
+                    def menus(parent_window):
+                        return [self.AppElement(child, child.window_text()) for child in window.children()
+                                if isinstance(child, pywinauto.controls.uia_controls.MenuWrapper)]
+                    # gets a single menu
+
+                    def menu(parent_window, index):
+                        return menus(parent_window)[index]
+
                     # if the object is a pywinauto application
-                    elif isinstance(object, self.App):
-                        
+                    # KNOWN ISSUES:
+                    #   - I've tested this on a Windows 11 laptop and it doesn't
+                    #     work for some reason
+                    if isinstance(object, self.App):
+
                         # path to the application to work with
                         path = object.path
                         # actual pwinauto application object
                         app = object.application
-                        
+                        # window
+                        window = app.window() if app else None
+
+                        # STARTING AND STOPPING APPLICATIONS
                         # creates and starts the application
                         if objfunc == 'start':
-                            
                             # create and start the application
                             if not object.application:
-                                object.application = Application(backend="uia").start(path)
+                                object.application = Application(
+                                    backend="uia").start(path)
+
                             return object.application
-                        
-                        # types something in the window
-                        # takes one argument:
-                        #   - what to type
+                        # kills the application
+                        if objfunc == 'stop':
+                            # kill the application
+                            return app.kill()
+
+                        # RETRIEVING CHILDREN
+                        # gets the available child reference keywords
+                        if objfunc == 'children':
+                            return children(window)
+                        # prints the children
+                        if objfunc == 'print_children':
+                            return print_children(window)
+                        # gets a certain child
+                        # first argument is the index of the child
+                        if objfunc == 'child':
+                            return child(window, self.parse(0, line, f, sp, args)[2])
+                        # finds children with subtext in their names
+                        if objfunc == 'find_children':
+                            return find_children(window, self.parse(0, line, f, sp, args)[2])
+                        # getting all
+                        if objfunc == 'menus':
+                            return menus(window)
+                        # getting a single menu
+                        if objfunc == 'menu':
+                            return menu(window, self.parse(0, line, f, sp, args)[2])
+
+                        # gets information about this application
+                        # gets the text of the window
+                        if objfunc == 'text':
+                            return window.window_text()
+
+                        # APPLICATION ACTIONS
+                        # sends keystrokes to the application
+                        # takes one argument, being the keystrokes to send
                         if objfunc == 'write':
-                            
-                            time.sleep(10)
-                            
-                            # what to type
-                            to_type = self.parse(0, line, f, sp, args)[2]
-                            
-                            # get the window
-                            window = object.application.window()
-                            
-                            button = window.child_window(title="File", control_type="Button")
-                            button.click()
-                            
-                            
-                        
-                            
-                            
+                            # sends keystrokes to the application
+                            return window.type_keys(self.parse(0, line, f, sp, args)[2], with_spaces=True)
+                        # presses the enter key
+                        if objfunc == 'enter':
+                            # presses the enter key
+                            return window.type_keys('{ENTER}')
+
+                        # return the object
+                        return object
+
+                    # if the object is a pywinauto window element
+                    elif isinstance(object, self.AppElement):
+
+                        # get the window of the AppElement object
+                        window = object.window
+                        # get the text of the AppElement object
+                        name = object.name
+
+                        # OBTAINING DIFFERENT TYPES OF CHILDREN
+                        # get the element window
+                        if objfunc == 'window':
+                            return window
+                        # getes all children
+                        if objfunc == 'children':
+                            return children(window)
+                        # prints the children
+                        if objfunc == 'print_children':
+                            return print_children(window)
+                        # gets a child at an index
+                        if objfunc == 'child':
+                            return child(window, self.parse(0, line, f, sp, args)[2])
+
+                        # getting information about the current window
+                        # gets the window text
+                        if objfunc == 'text':
+                            return window.window_text()
+
+                        # WINDOW ACTIONS
+                        # sends keystrokes to the application
+                        # takes one argument, being the keystrokes to send
+                        if objfunc == 'write':
+                            # sends keystrokes to the application
+                            return window.type_keys(self.parse(0, line, f, sp, args)[2], with_spaces=True)
+
                         return object
 
                     # if the object is a dictionary
@@ -1496,7 +1610,7 @@ class Interpreter:
                     if objfunc == 'len':
                         return total_ints
                     return '<msnint2 class>'
-                
+
                 # casting
                 elif func == 'int':
                     return int(self.parse(0, line, f, sp, args)[2])
@@ -1508,27 +1622,30 @@ class Interpreter:
                     return bool(self.parse(0, line, f, sp, args)[2])
                 elif func == 'complex':
                     return complex(self.parse(0, line, f, sp, args)[2])
-                
-                
+
                 # gets the type of the argument
                 elif func == 'type':
                     return type(self.parse(0, line, f, sp, args)[2])
-                
+
+                # gets the dir of the argument
+                elif func == 'dir':
+                    return dir(self.parse(0, line, f, sp, args)[2])
+
                 # casting to iterables / sets / dicts
                 elif func == 'set':
-                    
+
                     # creates a set from all arguments
                     if args[0][0] == '':
                         return set()
-                    
+
                     # creates a set from all arguments
                     s = set()
-                    
+
                     # adds all arguments to the set
                     for i in range(len(args)):
                         s.add(self.parse(i, line, f, sp, args)[2])
                     return s
-                    
+
                 elif func == 'dict':
                     return dict(self.parse(0, line, f, sp, args)[2])
                 elif func == 'tuple':
@@ -1614,6 +1731,22 @@ class Interpreter:
                         self.vars[element_name].value = array[i]
                         self.interpret(block_s)
                     return array
+
+                # unpacks the first argument into any amount of variables
+                # specified by the remaining arguments provided as variable names
+                # creates the variables if they don't exists
+                # 5/22/2023
+                elif func == 'unpack':
+
+                    # iterable to unpack
+                    iterable = self.parse(0, line, f, sp, args)[2]
+
+                    # variable names to unpack into
+                    for i in range(1, len(args)):
+                        varname = self.parse(i, line, f, sp, args)[2]
+                        self.vars[varname] = Var(varname, iterable[i - 1])
+
+                    return iterable
 
                 # the following provide efficient variable arithmetic
                 elif func == 'add':
@@ -2344,6 +2477,16 @@ class Interpreter:
                 elif func == 'or':
                     return self.parse(0, line, f, sp, args)[2] or self.parse(1, line, f, sp, args)[2]
 
+                # comparing numbers
+                elif func == 'greater' or func == 'g':
+                    return self.parse(0, line, f, sp, args)[2] > self.parse(1, line, f, sp, args)[2]
+                elif func == 'less' or func == 'l':
+                    return self.parse(0, line, f, sp, args)[2] < self.parse(1, line, f, sp, args)[2]
+                elif func == 'greaterequal' or func == 'ge':
+                    return self.parse(0, line, f, sp, args)[2] >= self.parse(1, line, f, sp, args)[2]
+                elif func == 'lessequal' or func == 'le':
+                    return self.parse(0, line, f, sp, args)[2] <= self.parse(1, line, f, sp, args)[2]
+
                 # inline function, takes any amount of instructions
                 # returns the result of the last instruction
                 elif func == "=>":
@@ -2510,29 +2653,29 @@ class Interpreter:
                 elif func == '-':
                     line, as_s, string = self.parse(0, line, f, sp, args)
                     return self.interpret(string)
-                
-                # does something with a value as a temporary 
+
+                # does something with a value as a temporary
                 # variable
                 elif func == 'as':
-                    
+
                     # temporary variable name
                     varname = self.parse(0, line, f, sp, args)[2]
-                    
+
                     # value to set
                     val = self.parse(1, line, f, sp, args)[2]
-                    
+
                     # block to execute
                     block = args[2][0]
-                    
+
                     # set the variable
                     self.vars[varname] = Var(varname, val)
-                    
+
                     # execute the block
                     ret = self.interpret(block)
-                    
+
                     # delete the variable
                     del self.vars[varname]
-                    
+
                     return ret
 
                 # strips a str
@@ -2567,7 +2710,7 @@ class Interpreter:
                 elif func == 'break':
                     self.breaking = True
                     return
-                
+
                 # reverses the first argument
                 elif func == 'reverse':
                     return self.parse(0, line, f, sp, args)[2][::-1]
@@ -2679,7 +2822,7 @@ class Interpreter:
                         while not self.interpret(args[0][0]):
                             self.interpret(args[1][0])
                     return True
-                      
+
                 # exports a quantity of variables or methods from the working context to the parent context,
                 # ex private context -> boot context
                 elif func == 'export':
@@ -2955,17 +3098,16 @@ class Interpreter:
                     instance = {}
 
                     curr_arg_num = 0
-                        
-                        
+
                     # attributes to apply
                     for name in var_obj:
 
                         # if attribute is a method
                         if isinstance(var_obj[name].value, self.Method):
-                            
+
                             # add the method to the instance
                             instance[name] = var_obj[name].value
-                            
+
                             # if the method's name is 'const'
                             if var_obj[name].value.name == 'const':
                                 # run the function with the argument being
@@ -2981,14 +3123,13 @@ class Interpreter:
                             if instance[name] == None:
                                 instance[name] = self.vars[classname].value[name].value
                         # if not specified, field is default value
-                        except:                            
+                        except:
                             try:
                                 instance[name] = var_obj.value[name].copy()
                             except:
                                 var = var_obj[name]
                                 instance[name] = var.value
                         curr_arg_num += 1
-                    
 
                     return instance
 
@@ -3023,21 +3164,19 @@ class Interpreter:
                     # set the value
                     o[attr] = val
                     return val
-                
+
                 # PRACTICAL FUNCTIONALITY
                 # started 5/20/2023
-                
-                
+
                 # starts and retrieves an instance
                 # of an application on the local machine
                 # only properly implemented for Windows
                 # uses pywinauto to do all of this
                 elif func == 'app':
-                    
+
                     # creates an App variable
-                    return self.App(path = self.parse(0, line, f, sp, args)[2])
-                    
-                    
+                    return self.App(path=self.parse(0, line, f, sp, args)[2])
+
                 # functional syntax I decided to add to make loops a tiny bit faster,
                 # cannot receive non literal arguments
                 # syntax:     3|5|i (prnt(i))
@@ -3615,6 +3754,16 @@ class Interpreter:
             None
         return array
 
+    # prints text with a box around it
+    def bordered(text):
+        lines = text.splitlines()
+        width = max(len(s) for s in lines)
+        res = ['┌' + '─' * width + '┐']
+        for s in lines:
+            res.append('│' + (s + ' ' * width)[:width] + '│')
+        res.append('└' + '─' * width + '┘')
+        return '\n'.join(res)
+
     class Method:
         def __init__(self, name, interpreter):
             self.name = name
@@ -3673,15 +3822,30 @@ class Interpreter:
         def delete(self):
             self.make_api({})
             return self.response
-    
-    
+
     # class for an App
+
     class App:
         # constructor
         def __init__(self, path):
-            
+
             # path of application being launched
             self.path = path
-            
+
             # pwinauto application object
             self.application = None
+
+    # element for an application
+    class AppElement:
+
+        # constructor
+        def __init__(self, window, name):
+
+            # set the window
+            self.window = window
+            # set the name
+            self.name = name
+
+        # string
+        def __str__(self):
+            return Interpreter.bordered(f'Text: {self.name}\nObject: {self.window}')
