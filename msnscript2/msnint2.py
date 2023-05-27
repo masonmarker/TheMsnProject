@@ -6,6 +6,7 @@ import os
 import math
 import shutil
 import pywinauto
+import win32api
 
 # pywinauto automation
 from pywinauto.application import Application
@@ -96,6 +97,8 @@ models = {
 lines_ran = []
 total_ints = 0
 
+# automation
+apps = {}
 
 # interprets MSNScript2, should create a new interpreter for each execution iteration
 class Interpreter:
@@ -136,7 +139,7 @@ class Interpreter:
 
         self.processes = {}
         self.breaking_return = []
-
+    
     # executes stored script
     def execute(self, script):
 
@@ -1112,10 +1115,6 @@ class Interpreter:
                     # gets a child at an index
                     # prints the children
 
-                    def print_children(parent_window):
-                        for child in children(parent_window):
-                            print(child)
-
                     def child(parent_window, index):
                         child = children(parent_window)[index]
                         return self.AppElement(child, child.window_text())
@@ -1125,14 +1124,15 @@ class Interpreter:
                         subtext = subtext.lower()
                         return [self.AppElement(child, child.window_text()) for child in window.children()
                                 if subtext in child.window_text().lower()]
+                    
                         
                     # recursively searches the child tree for a certain object type
-                    def recursive_search(parent_window, type, as_type):
+                    def recursive_search(parent_window, type, as_type, object_string_endswith=None):
                         found = []
                         for child in parent_window.children():
-                            if isinstance(child, type):
-                                found.append(as_type(child, child.window_text()))
-                            found += recursive_search(child, type, as_type)
+                            if isinstance(child, type) or (object_string_endswith and str(child).endswith(object_string_endswith)):
+                                found += [as_type(child, child.window_text())]
+                            found += recursive_search(child, type, as_type, object_string_endswith)
                         return found
                     # prints all elements
                     def print_elements(parent_window, retrieve_elements):
@@ -1146,8 +1146,53 @@ class Interpreter:
                         subtext = subtext.lower()
                         for element in retrieve_elements(parent_window):
                             if subtext in element.name.lower():
-                                elements.append(element)
+                                elements.append(self.AppElement(element, element.window_text()))
                         return elements
+                    # finds the exact elements specified
+                    def find_elements_exact(parent_window, text, retrieve_elements):
+                        elements = []
+                        for element in retrieve_elements(parent_window):
+                            if text == element.name:
+                                elements.append(self.AppElement(element, element.window_text()))
+                        return elements
+                    def wait_for_element_subtext(parent_window, retrieve_elements, subtext):
+                        subtext = subtext.lower()
+                        while True:
+                            for element in retrieve_elements(parent_window):
+                                if subtext in element.name.lower():
+                                    return self.AppElement(element, element.window_text())
+                    # waits for a child to exist with text containing subtext
+                    def wait_for_text(parent_window, subtext):
+                        return wait_for_element_subtext(parent_window, children, subtext)
+                    # waits for a child to exist in the entire child tree containing subtext
+                    def wait_for_text_all(parent_window, subtext):
+                        return wait_for_element_subtext(parent_window, all_children, subtext)
+                        
+                                      
+                    # prints all children of a parent window
+                    def print_children(parent_window):
+                        return print_elements(parent_window, children)
+                                        
+                    # gets all children in the child tree
+                    def all_children(parent_window):
+                        found = []
+                        for child in parent_window.children():
+                            found.append(self.AppElement(child, child.window_text()))
+                            found += all_children(child)
+                        return found
+                    # prints the child tree of a parent window
+                    def print_all_children(parent_window):
+                        return print_elements(parent_window, all_children)
+                    # gets from all children at an index
+                    def all_child(parent_window, index):
+                        return all_children(parent_window)[index]
+                    # finds all children with subtext in their name
+                    def find_all_children(parent_window, subtext):
+                        return find_elements(parent_window, subtext, all_children)
+                    # finds all children from an exact text
+                    def find_all_children_exact(parent_window, text):
+                        return find_elements_exact(parent_window, text, all_children)
+                    
                     # ---------------------------
                     
                           
@@ -1185,9 +1230,58 @@ class Interpreter:
                         return print_elements(parent_window, buttons)
                     def find_buttons(parent_window, subtext):
                         return find_elements(parent_window, subtext, buttons)
+                    
+                    # for hyperlinks
+                    def links(parent_window):
+                        return recursive_search(parent_window, int, self.Link, object_string_endswith="Hyperlink")
+                    def link(parent_window, index):
+                        return links(parent_window)[index]
+                    def print_links(parent_window):
+                        return print_elements(parent_window, links)
+                    def find_links(parent_window, subtext):
+                        return find_elements(parent_window, subtext, links)
                     # ---------------------------
                     
+                    # moves the mouse to the center of an element, and clicks it
+                    def clk(window, button='left', waittime=1):
+                        # set the focus to this element
+                        window.set_focus()
+                        
+                        # wait for the element to be ready
+                        time.sleep(waittime)
+                
+                        # get the new coordinates of this element after the focus
+                        coords = window.get_properties()['rectangle'].mid_point()
+                        
+                        # click the mouse
+                        mouse.click(button=button, coords=coords)
 
+                        # return the object
+                        return object   
+                    
+                    # determines if a point is visible within a rectangle
+                    def has_point(object, x, y):
+                        return object.get_properties()['rectangle'].top <= y <= object.get_properties()['rectangle'].bottom and object.get_properties()['rectangle'].left <= x <= object.get_properties()['rectangle'].right
+                    
+                    # recursively get the first object that has the point
+                    # the first object that has the point and no children
+                    def rec(root, x, y):
+                        
+                        # if the root has children
+                        if root.children():
+                            # for each child
+                            for child in root.children():
+                                # if the child has the point
+                                if has_point(child, x, y):
+                                    # return the child
+                                    return rec(child, x, y)
+                        # if the root has no children
+                        else:
+                            # return the root
+                            return self.AppElement(root, root.window_text())
+                        
+                        
+            
                     # if the object is a pywinauto application
                     # KNOWN ISSUES:
                     #   - I've tested this on a Windows 11 laptop and it doesn't
@@ -1208,6 +1302,10 @@ class Interpreter:
                             if not object.application:
                                 object.application = Application(
                                     backend="uia").start(path)
+                            
+                            # add to global apps
+                            global apps
+                            apps[len(apps) + 1] = object
 
                             return object.application
                         # kills the application
@@ -1230,6 +1328,23 @@ class Interpreter:
                         if objfunc == 'find_children':
                             return find_children(window, self.parse(0, line, f, sp, args)[2])
                         
+                        # gets all children
+                        if objfunc == 'all_children':
+                            return all_children(window)
+                        # prints all children
+                        if objfunc == 'print_all_children':
+                            return print_all_children(window)
+                        # gets a single child at an index
+                        if objfunc == 'all_child':
+                            return all_child(window, self.parse(0, line, f, sp, args)[2])
+                        # finds all children with subtext in their names
+                        if objfunc == 'find_all_children':
+                            return find_all_children(window, self.parse(0, line, f, sp, args)[2])
+                        # finds all children from an exact text
+                        if objfunc == 'find_all_children_exact':
+                            return find_all_children_exact(window, self.parse(0, line, f, sp, args)[2])
+                        
+                        
                         # getting all menus
                         if objfunc == 'menus':
                             return menus(window)
@@ -1239,6 +1354,9 @@ class Interpreter:
                         # prints all menus
                         if objfunc == 'print_menus':
                             return print_menus(window)
+                        # finds all menus with subtext in their names
+                        if objfunc == 'find_menus':
+                            return find_menus(window, self.parse(0, line, f, sp, args)[2])
                         
                         # gets all toolbars
                         if objfunc == 'toolbars':
@@ -1253,8 +1371,6 @@ class Interpreter:
                         if objfunc == 'find_toolbars':
                             return find_toolbars(window, self.parse(0, line, f, sp, args)[2])
                         
-                        
-                        
                         # gets all buttons
                         if objfunc == 'buttons':
                             return buttons(window)
@@ -1268,11 +1384,30 @@ class Interpreter:
                         if objfunc == 'find_buttons':
                             return find_buttons(window, self.parse(0, line, f, sp, args)[2])
                         
+                        # gets all links
+                        if objfunc == 'links':
+                            return links(window)
+                        # gets a single link at an index
+                        if objfunc == 'link':
+                            return link(window, self.parse(0, line, f, sp, args)[2])
+                        # prints all links
+                        if objfunc == 'print_links':
+                            return print_links(window)
+                        # finds all links with subtext in their names
+                        if objfunc == 'find_links':
+                            return find_links(window, self.parse(0, line, f, sp, args)[2])
+                        
 
                         # gets information about this application
                         # gets the text of the window
                         if objfunc == 'text':
                             return window.window_text()
+                        # waits for a child containing text
+                        if objfunc == 'wait_for_text':
+                            return wait_for_text(window, self.parse(0, line, f, sp, args)[2])
+                        # waits for a child containing text in the entire child tree
+                        if objfunc == 'wait_for_text_all':
+                            return wait_for_text_all(window, self.parse(0, line, f, sp, args)[2])
 
                         # APPLICATION ACTIONS
                         # sends keystrokes to the application
@@ -1316,17 +1451,82 @@ class Interpreter:
                             return window.window_text()
                         # GETTING LOCATION OF THE WINDOW
                         if objfunc == 'top':
-                            return window.rectangle().top
+                            return window.get_properties()['rectangle'].top
                         if objfunc == 'bottom':
-                            return window.rectangle().bottom
+                            return window.get_properties()['rectangle'].bottom
                         if objfunc == 'left':
-                            return window.rectangle().left
+                            return window.get_properties()['rectangle'].left
                         if objfunc == 'right':
-                            return window.rectangle().right
+                            return window.get_properties()['rectangle'].right
+                        if objfunc == 'center' or objfunc == 'mid_point':
+                            return window.get_properties()['rectangle'].mid_point()
                         # getting the rectangle overall
                         if objfunc == 'rectangle':
-                            return [window.rectangle().top, window.rectangle().bottom, window.rectangle().left, window.rectangle().right]
+                            return [window.get_properties()['rectangle'].top, window.get_properties()['rectangle'].bottom, window.get_properties()['rectangle'].left, window.get_properties()['rectangle'].right]
 
+                        # getting adjacent elements
+                        # could or could not be decendants
+                        # operation is very slow, should be used mainly
+                        # for element discovery
+                        if objfunc == 'element_above':
+                            # pixels above
+                            pixels = self.parse(0, line, f, sp, args)[2]
+                            # get the root window of this application
+                            root = object.top_level_parent()
+                            
+                            # get the top middle point of this element
+                            top = object.get_properties()['rectangle'].top - pixels
+                            mid = object.get_properties()['rectangle'].mid_point()[0]
+                            # if there exist two arguments, move the mouse to that location
+                            if len(args) == 2:
+                                mouse.move(coords=(mid, top))
+                            # recursively find all children from the root window
+                            # that have the point specified
+                            return rec(root, mid, top)
+                        if objfunc == 'element_below':
+                            # pixels above
+                            pixels = self.parse(0, line, f, sp, args)[2]
+                            # get the root window of this application
+                            root = object.top_level_parent()
+                            # get the top middle point of this element
+                            bottom = object.get_properties()['rectangle'].bottom + pixels
+                            mid = object.get_properties()['rectangle'].mid_point()[0]
+                            if len(args) == 2:
+                                mouse.move(coords=(mid, bottom))
+                            # recursively find all children from the root window
+                            # that have the point specified
+                            return rec(root, mid, bottom)
+                        if objfunc == 'element_left':
+                            # pixels to the left
+                            pixels = self.parse(0, line, f, sp, args)[2]
+                            # get the root window of this application
+                            root = object.top_level_parent()
+                            
+                            # get the left middle point of this element
+                            left = object.get_properties()['rectangle'].left - pixels
+                            mid = object.get_properties()['rectangle'].mid_point()[1]
+                            if len(args) == 2:
+                                mouse.move(coords=(left, mid))
+                            # recursively find all children from the root window
+                            # that have the point specified
+                            return rec(root, left, mid)
+                        if objfunc == 'element_right':
+                            # pixels to the right
+                            pixels = self.parse(0, line, f, sp, args)[2]
+                            # get the root window of this application
+                            root = object.top_level_parent()
+                            
+                            # get the right middle point of this element
+                            right = object.get_properties()['rectangle'].right + pixels
+                            mid = object.get_properties()['rectangle'].mid_point()[1]
+                            if len(args) == 2:
+                                mouse.move(coords=(right, mid))
+                            # recursively find all children from the root window
+                            # that have the point specified
+                            return rec(root, right, mid)
+                        
+                        
+                            
                         # WINDOW ACTIONS
                         # sends keystrokes to the application
                         # takes one argument, being the keystrokes to send
@@ -1336,7 +1536,7 @@ class Interpreter:
                         # hovers over the window
                         if objfunc == 'hover':
                             # hovers the mouse over the window, using the mid point of the element
-                            return mouse.move(coords=(window.rectangle().mid_point()))
+                            return mouse.move(coords=(window.get_properties()['rectangle'].mid_point()))
                         
                         # different types of AppElements
                         # if the appelement is a button
@@ -1348,6 +1548,21 @@ class Interpreter:
                             # left clicks the button
                             if objfunc == 'right_click':
                                 return object.right_click()
+                            return object
+
+                        # working with Links
+                        if isinstance(object, self.Link):           
+                            waittime = self.parse(0, line, f, sp, args)[2] if args[0][0] != '' else 1                 
+                            # clicks the link
+                            if objfunc == 'click' or objfunc == 'left_click':
+                                return clk(window, waittime=waittime)
+                            # right clicks the link
+                            if objfunc == 'right_click':
+                                return clk(window, button='right', waittime=waittime)
+                            return object
+
+                            
+
                             
                         # working with ToolBars
                         if isinstance(object, self.ToolBar):
@@ -1366,8 +1581,14 @@ class Interpreter:
                             # finds all buttons with subtext in their names
                             if objfunc == 'find_buttons':
                                 return find_buttons(toolbar_window, self.parse(0, line, f, sp, args)[2])
-                                
-                            
+                            return object
+                                    
+                                    
+                        # extra methods such that this AppElement requires different logic
+                        if objfunc == 'click' or objfunc == 'left_click':
+                            return clk(window, waittime=self.parse(0, line, f, sp, args)[2] if args[0][0] != '' else 1)              
+                        if objfunc == 'right_click':
+                            return clk(window, button='right', waittime=self.parse(0, line, f, sp, args)[2] if args[0][0] != '' else 1)
 
                         return object
 
@@ -1552,7 +1773,8 @@ class Interpreter:
 
                     # add the body
                     new_method.add_body(block)
-                    new_method.add_return(fname + "__return__")
+                    new_method.add_return(f"{fname}__return__")
+                    
 
                     # obtain the rest of the arguments as method args
                     for i in range(2, len(args)):
@@ -1580,7 +1802,7 @@ class Interpreter:
                     # value
                     value = self.parse(1, line, f, sp, args)[2]
 
-                    vname = fname + "__return__"
+                    vname = f"{fname}__return__"
 
                     self.vars[vname].value = value
                     return value
@@ -1885,11 +2107,17 @@ class Interpreter:
                 
                 # gets the first element in the iterable
                 elif func == 'first' or func == 'head':
-                    return self.parse(0, line, f, sp, args)[2][0]
+                    try:
+                        return self.parse(0, line, f, sp, args)[2][0]
+                    except:
+                        return None
                 
                 # gets the last element in the iterable
                 elif func == 'last' or func == 'tail':
-                    return self.parse(0, line, f, sp, args)[2][-1]
+                    try:
+                        return self.parse(0, line, f, sp, args)[2][-1]
+                    except:
+                        return None
 
                 # the following provide efficient variable arithmetic
                 elif func == 'add':
@@ -2106,6 +2334,57 @@ class Interpreter:
                         return math.floor((random.random() * (arg2 - arg)) + arg)
 
                     return '<msnint2 class>'
+
+                # mouse operations
+                elif obj == 'mouse':
+                    
+                    # gets the current position of the mouse
+                    if objfunc == 'getpos' or objfunc == 'pos' or objfunc == 'position':
+                        return win32api.GetCursorPos()
+                    
+                    # moves the mouse to an x, y position
+                    if objfunc == 'move':
+                        return mouse.move(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
+                    # right clicks the mouse
+                    elif objfunc == 'click' or objfunc == 'left_click':
+                        
+                        # if args are provided
+                        if len(args) == 2:
+                            return mouse.click(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
+                        # if no args are provided
+                        else:
+                            return mouse.click(coords=mouse.get_cursor_pos())
+                    # right clicks the mouse
+                    elif objfunc == 'right_click':
+                        # if args are provided
+                        if len(args) == 2:
+                            return mouse.click(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2], button="right")
+                        # if no args are provided
+                        else:
+                            return mouse.click(button="right", coords=win32api.GetCursorPos())
+                    # double clicks the mouse
+                    elif objfunc == 'double_click':
+                        # if args are provided
+                        if len(args) == 2:
+                            return mouse.double_click(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
+                        # if no args are provided
+                        else:
+                            return mouse.double_click(coords=win32api.GetCursorPos())
+                    # scrolls the mouse
+                    elif objfunc == 'scroll':
+                        return mouse.scroll(self.parse(0, line, f, sp, args)[2])
+                    
+                    # DIRECTIONAL MOVEMENTS
+                    # moves the mouse down from its current location
+                    elif objfunc == 'down':
+                        curr_x, curr_y = win32api.GetCursorPos()
+                        return mouse.move(coords=(curr_x, curr_y + self.parse(0, line, f, sp, args)[2]))
+                    
+                    
+                    return '<msnint2 class>'
+                    
+                        
+                        
 
                 # html parsing simplified
                 elif obj == 'html':
@@ -3316,9 +3595,21 @@ class Interpreter:
                 # only properly implemented for Windows
                 # uses pywinauto to do all of this
                 elif func == 'app':
+                                        
+                    # get the path to the application
+                    path = self.parse(0, line, f, sp, args)[2]            
 
+                    # get the name of the application
+                    name = path.split('\\')[-1]
+                    
+                    # use taskkill to kill the application
+                    # taskkill should end the program by name, and should kill
+                    # all child processes forcefully, it should also not print
+                    # anything to the console                    
+                    os.system(f'taskkill /f /im {name} >nul 2>&1')                    
+                    
                     # creates an App variable
-                    return self.App(path=self.parse(0, line, f, sp, args)[2])
+                    return self.App(path=path)
 
                 # functional syntax I decided to add to make loops a tiny bit faster,
                 # cannot receive non literal arguments
@@ -3988,10 +4279,30 @@ class Interpreter:
             self.window = window
             # set the name
             self.name = name
+            
+        # gets the text of the window
+        def window_text(self):
+            return self.name
 
+        # gets all children of the window
+        def children(self):
+            return self.window.children()
+
+        # sets the focus to the window
+        def set_focus(self):
+            self.window.set_focus()
+            
+        # gets the properties of the window
+        def get_properties(self):
+            return self.window.get_properties()
+        
+        # gets the highest level parent of this element
+        def top_level_parent(self):
+            return self.window.top_level_parent()
+        
         # string
         def __str__(self):
-            return Interpreter.bordered(f'Text: {self.name}\nObject: {self.window}')
+            return Interpreter.bordered(f'Text: {self.name if self.name else "[No Text Found]"}\nObject:\n{self.window}')
     
     # class for a button
     class Button(AppElement):
@@ -4009,6 +4320,15 @@ class Interpreter:
         # right clicks the button
         def right_click(self):
             self.window.click_input(button='right')
+    
+    # class for a Link
+    class Link(AppElement):
+                    
+        # constructor
+        def __init__(self, window, name):
+
+            # call super constructor
+            super().__init__(window, name)
             
     # class for a Menu
     class Menu(AppElement):
