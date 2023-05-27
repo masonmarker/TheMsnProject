@@ -2335,8 +2335,8 @@ class Interpreter:
 
                     return '<msnint2 class>'
 
-                # mouse operations
-                elif obj == 'mouse':
+                # mouse pointer operations
+                elif obj == 'pointer':
                     
                     # gets the current position of the mouse
                     if objfunc == 'getpos' or objfunc == 'pos' or objfunc == 'position':
@@ -2346,39 +2346,52 @@ class Interpreter:
                     if objfunc == 'move':
                         return mouse.move(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
                     # right clicks the mouse
-                    elif objfunc == 'click' or objfunc == 'left_click':
-                        
+                    if objfunc == 'click' or objfunc == 'left_click':
                         # if args are provided
                         if len(args) == 2:
                             return mouse.click(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
                         # if no args are provided
                         else:
-                            return mouse.click(coords=mouse.get_cursor_pos())
+                            return mouse.click(coords=win32api.GetCursorPos())
                     # right clicks the mouse
-                    elif objfunc == 'right_click':
+                    if objfunc == 'right_click':
                         # if args are provided
                         if len(args) == 2:
-                            return mouse.click(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2], button="right")
+                            return mouse.right_click(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
                         # if no args are provided
                         else:
-                            return mouse.click(button="right", coords=win32api.GetCursorPos())
+                            return mouse.right_click(coords=win32api.GetCursorPos())
                     # double clicks the mouse
-                    elif objfunc == 'double_click':
+                    if objfunc == 'double_click':
                         # if args are provided
                         if len(args) == 2:
                             return mouse.double_click(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
                         # if no args are provided
                         else:
                             return mouse.double_click(coords=win32api.GetCursorPos())
-                    # scrolls the mouse
-                    elif objfunc == 'scroll':
-                        return mouse.scroll(self.parse(0, line, f, sp, args)[2])
-                    
+                        
+
+
+
+
+
                     # DIRECTIONAL MOVEMENTS
                     # moves the mouse down from its current location
                     elif objfunc == 'down':
                         curr_x, curr_y = win32api.GetCursorPos()
                         return mouse.move(coords=(curr_x, curr_y + self.parse(0, line, f, sp, args)[2]))
+                    # moves the mouse up from its current location
+                    elif objfunc == 'up':
+                        curr_x, curr_y = win32api.GetCursorPos()
+                        return mouse.move(coords=(curr_x, curr_y - self.parse(0, line, f, sp, args)[2]))
+                    # moves the mouse left from its current location
+                    elif objfunc == 'left':
+                        curr_x, curr_y = win32api.GetCursorPos()
+                        return mouse.move(coords=(curr_x - self.parse(0, line, f, sp, args)[2], curr_y))
+                    # moves the mouse right from its current location
+                    elif objfunc == 'right':
+                        curr_x, curr_y = win32api.GetCursorPos()
+                        return mouse.move(coords=(curr_x + self.parse(0, line, f, sp, args)[2], curr_y))
                     
                     
                     return '<msnint2 class>'
