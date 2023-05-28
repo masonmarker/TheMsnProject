@@ -2252,17 +2252,7 @@ function('test_sets', =>(
 
 # ------------------ TESTING BASE INTERPRETER SYNTAX UPDATES ------------------
 
-# tests new variable access methods without .val()
-# as well as continuous functional calls for variables
-function(@_tbase='base_syntax_updates', =>(
-    
-    print('[+] testing base interpreter syntax updates...'),
 
-    # define a variable
-    @ number = 0,    
-
-    ret(_tbase, 1)
-))
 # -------------------------------------------
 
 
