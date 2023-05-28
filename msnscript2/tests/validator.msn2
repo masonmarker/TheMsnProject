@@ -357,8 +357,8 @@ var('f', 6)
     # testing again
     -- unpack(['hello', 'bro'], 'a', 'b')
 
-    -- assert(equals(a.val(), 'hello'))
-    -- assert(equals(b.val(), 'bro'))
+    -- assert(equals(a , 'hello'))
+    -- assert(equals(b, 'bro'))
 
     -- var('_', True)
 
@@ -503,8 +503,8 @@ var('f', 6)
         # box methods
         function ('add_item', =>(
             @ _contents = self.contents(),
-            _contents.add(_item.val()),
-            _contents.val()
+            _contents.add(_item),
+            _contents
         # class methods should start with 'self'
         ), 'self', '_item'),
 
@@ -575,9 +575,9 @@ var('f', 6)
     -- assert(equals(_box.contents(), [1, 2, 3, 4, [1, 2]]))
 
     # assert that box equals itself
-    -- assert(_box.equals(_box.val()))
+    -- assert(_box.equals(_box))
     # assert that box does not equal box2
-    -- assert(not(_box.equals(_box2.val())))
+    -- assert(not(_box.equals(_box2)))
 
     # modify box2 to have the same dimensions as box
     -- _box2.length(1)
@@ -585,7 +585,7 @@ var('f', 6)
     -- _box2.height(3)
 
     # assert that box2 now equals box
-    -- assert(_box.equals(_box2.val()))
+    -- assert(_box.equals(_box2))
 
     
 
@@ -1334,8 +1334,8 @@ serial_open('thread')
     # creates a post macro for a more English approach to asserting
     # i guess you could call it questioning lol
     -- postmacro('??', 'line', =>(
-        if (not(-(line.val())), print(
-            '[-] assertion error : ', line.val()
+        if (not(-(line)), print(
+            '[-] assertion error : ', line
         ))
     ))
 
@@ -1462,7 +1462,7 @@ serial_open('thread')
 
 
     # playing with functions
-    -- function('f', ret('f', _e.val()), '_e')
+    -- function('f', ret('f', _e), '_e')
 
     # running the already declared function
     -- equals(private(f(5)), 5) ??
@@ -1644,7 +1644,7 @@ function('test_redirect', =>(
 # all types share certain methods, this test demonstrates those methods
 # certain methods cannot and should not be used on certain types
 # ex: integer.copy() will not work and should not be
-# used (integer.val()), however array.copy() will
+# used (integer), however array.copy() will
 ~ test_global_methods() -> _ 
 
     -- print('[+] testing global methods...')
@@ -1653,20 +1653,20 @@ function('test_redirect', =>(
 
     # testing copy()
     -- @v2 = v.copy()
-    -- equals(v.val(), v2.val()) ??
+    -- equals(v, v2) ??
 
     # testing len()
     -- equals(v.len(), 4) ??
 
     # testing val()
-    -- equals(v.val(), [1, 2, 3, 4]) ??
+    -- equals(v, [1, 2, 3, 4]) ??
 
     # test casting methods
     -- equals(v.str(), '[1, 2, 3, 4]') ??
 
     -- @ string = 'hello world'
 
-    # calling str() is like calling str(string.val()) and is essentially the same as calling string.val()
+    # calling str() is like calling str(string) and is essentially the same as calling string
     # with extra, unnecessary steps
     -- equals(string.str(), 'hello world') ??
 
@@ -1674,14 +1674,14 @@ function('test_redirect', =>(
 
     # testing -() explicitly
     # interprets msn2 code as a string
-    -- equals(-(string.val()), [3, 4, 5, 65]) ??
+    -- equals(-(string), [3, 4, 5, 65]) ??
 
     # finally, an equals method for all types
     # equals(), like the system call, takes any amount of arguments
     -- string.equals('[3, 4, 5, 65]') ??
 
     # extract the value from the string
-    -- @ array = -(string.val())
+    -- @ array = -(string)
 
     # lists, like all other types, have an equals method
     -- array.equals([3, 4, 5, 65]) ??
@@ -1711,14 +1711,14 @@ function('test_redirect', =>(
 
     # testing increment
     -- int.inc()
-    -- equals(int.val(), 6) ??
+    -- equals(int, 6) ??
 
     # testing decrement
     -- int.dec()
-    -- equals(int.val(), 5) ??
+    -- equals(int, 5) ??
 
     # testing add
-    -- equals(int.add(int2.val()), 15) ??
+    -- equals(int.add(int2), 15) ??
     
     -- @int = 0
 
@@ -1803,7 +1803,7 @@ function('test_redirect', =>(
     -- @ sum = 0
 
     -- @ v = [1, 2, 3, 4]
-    -- v.each('e', sum.add(e.val()))
+    -- v.each('e', sum.add(e))
     -- sum.equals(10) ??
 
 
@@ -1978,15 +1978,15 @@ function('test_redirect', =>(
     -- @ a = [1, 2, 3, 4, 5, 6]
 
     -- @ a = =>(
-        << [el for el in |a.val()| if el % 2 == 0] + 
-           [el for el in |a.val()| if el % 2 != 0] >>)
+        << [el for el in |a| if el % 2 == 0] + 
+           [el for el in |a| if el % 2 != 0] >>)
     
     # assert correction and reset 'a'
     -- _reset()
 
     # calculating factorial, recursively
     -- function('factorial', ret('factorial', =>(
-        if (equals(n.val(), 0), 1, op.times(n.val(), factorial(op.sub(n.val(), 1))))
+        if (equals(n, 0), 1, op.times(n, factorial(op.sub(n, 1))))
     )), 'n')
 
     # testing factorial in a private context
@@ -2018,7 +2018,7 @@ function('test_redirect', =>(
         english_alphabet.each('letter', =>(
             var(letter.val(), _i.inc())
         )),
-        ret('priv', z.val())
+        ret('priv', z)
     ))
     -- assert(equals(private(priv()), 26))
     
@@ -2028,7 +2028,7 @@ function('test_redirect', =>(
         class('random_tests', =>(
             # test 1
             function('test1', =>(
-                assert(equals(op.add(value.val(), 3), 13))
+                assert(equals(op.add(value, 3), 13))
             ), 'self', 'value')
         )),
         =>(@_r=random_tests(),_r.test1(10))
@@ -2116,15 +2116,15 @@ import('lib/syntax/msn2plus.msn2')
 
 
 # new, safer function declaration mechanism
-f: jointmacros :: =>(
+function('jointmacros', =>(
     print('[+] testing joint macros...'),
 
     and(1, 1) ??,
     or(0, 1) ??,
     and(or(1, 0),or(1, 1),or(0, 1)) ??,
     and(=>(1), =>(1)) ??,
-    1
-)
+    ret('jointmacros', 1)
+))
 
 # -------------------------------------------
 
@@ -2145,7 +2145,7 @@ function('test_sets', =>(
     equals(set.len(), 5) ??,
 
     # asserts what the set is
-    equals(set.val(), {1, 2, 3, 4, 5}) ??,
+    equals(set, {1, 2, 3, 4, 5}) ??,
 
     # asserts the set can be cast to a list
     equals(set.list(), [1, 2, 3, 4, 5]) ??,
@@ -2182,7 +2182,7 @@ function('test_sets', =>(
         # add an element to the set
         # also testing the 'as' function
         function('add_element', self.set(
-            as('_t', self.set(), _t.add(_el.val()))
+            as('_t', self.set(), _t.add(_el))
         ),'self', '_el')
     )),
 
@@ -2250,6 +2250,22 @@ function('test_sets', =>(
 ))
 # -------------------------------------------
 
+# ------------------ TESTING BASE INTERPRETER SYNTAX UPDATES ------------------
+
+# tests new variable access methods without .val()
+# as well as continuous functional calls for variables
+function(@_tbase='base_syntax_updates', =>(
+    
+    print('[+] testing base interpreter syntax updates...'),
+
+    # define a variable
+    @ number = 0,    
+
+    ret(_tbase, 1)
+))
+# -------------------------------------------
+
+
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
 
 # test information
@@ -2259,7 +2275,7 @@ function('test_sets', =>(
 # macro for running tests
 # (added 5/16/2023)
 macro('TEST ', '__function', =>(
-    thread(cat('thread', test_count.inc()), private(assert(-(__function.val()))))
+    thread(cat('thread', test_count.inc()), private(assert(-(__function ))))
 ))
 
 # runs tests in their own private environment
@@ -2309,6 +2325,8 @@ macro('TEST ', '__function', =>(
         assert(test_macros()),
         add_and_export()
     )
+
+    -- TEST base_syntax_updates()
 
 
     # test is not run on another thread to avoid file reading conflicts
