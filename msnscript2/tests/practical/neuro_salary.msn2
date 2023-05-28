@@ -8,19 +8,14 @@
 chrome.start()
 
 # search Google for salary of a neurologist in California
-chrome.write('what is the salary of a neurologist in California?')
-
-# press the enter key
-chrome.enter()
+chrome.write('what is the salary of a neurologist in California?{ENTER}')
 
 # get the first Google link
 wait(@ first_google_link = first(
     chrome.find_links('Neurologist Salary in California'))
 )
-
 # click the link
 first_google_link.click()
-
 # wait for the page to load by a unique
 # footer on the page
 chrome.wait_for_text (
@@ -44,20 +39,16 @@ new_tab.click()
 chrome.wait_for_text('customize chrome')
 
 # search for salary calculator
-chrome.write('salary calculator')
-chrome.enter()
-
+chrome.write('salary calculator{ENTER}')
 # wait for the correct link to appear, then click it
 wait(@ smart_asset_link = first(
     chrome.find_links('paycheck calculator: federal'))
 )
 smart_asset_link.click()
-
 # wait for the page to load by a unique
 # footer on the page
 chrome.wait_for_text('Sources: SmartAsset, government websites')
 
-# main thread continues to
 # get the description of the input for the salary to be entered
 @ salary_input_description = first(
     chrome.find_all_children_exact('Salary (per year)')
@@ -79,15 +70,14 @@ chrome.write(cat("{BACK}", salary.val()))
 
 # hovers the mouse over the title
 pay_freq_title.hover()
-
 # click on the menu
 pointer.down(20)
 pointer.click()
-
 # click on the first menu option
 pointer.up(20)
 pointer.click()
 
+# key phrase to wait for and used to locate the computed salary
 @ key_phrase = 'Your estimated annual take home pay:'
 # wait for the page to finish computing
 chrome.wait_for_text(key_phrase.val())
@@ -100,7 +90,7 @@ chrome.wait_for_text(key_phrase.val())
 # extract the computed salary from the paragraph
 @ text = take_home_pay.text()
 @ take_home_pay = text.around(key_phrase.val(), 0, 10)
-() take_home_pay.replace(key_phrase.val(), '') --> replace('$', '') --> replace(',', '')
+() take_home_pay.replace(key_phrase.val(), '')-->replace('$', '')-->replace(',', '')
 @ take_home_pay = take_home_pay.int()
 
 # prints a number as money

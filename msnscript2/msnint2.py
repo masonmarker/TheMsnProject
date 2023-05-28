@@ -273,6 +273,11 @@ class Interpreter:
             line = line[1:]
             return self.interpret_msnscript_1(line)
 
+        # creating functions (METHOD 2/3)
+        # added 5/28/2022
+        if line.startswith('f:'):
+            ...
+
         if line.startswith('<<'):
 
             # parse all text in the line for text surrounded by |
@@ -714,12 +719,6 @@ class Interpreter:
 
                         del self.vars[varname]
                         return object
-
-                    # sets this variable to the first argument
-                    if objfunc == '=':
-                        self.vars[vname].value = self.parse(
-                            0, line, f, sp, args)[2]
-                        return self.vars[vname].value
 
                     # reverses the iterable
                     if objfunc == 'reverse':
@@ -3700,6 +3699,11 @@ class Interpreter:
             try:
                 return eval(str(self.replace_vars(line)))
             except:
+                # try a variable
+                if line in self.vars:
+                    return self.vars[line].value
+
+                # otherwise nothing
                 return None
 
     # adds a new program wide syntax
