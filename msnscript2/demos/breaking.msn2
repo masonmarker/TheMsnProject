@@ -13,7 +13,7 @@ private(=>(
 
         # leave private context if number > 75
         # exports number and i to parent context
-        if (?number? > 75, =>(
+        if (number.greater(75), =>(
             export('number', 'i'),
 
             # leaves private context
@@ -30,4 +30,4 @@ private(=>(
 ))
 
 # asserts variables were computed and exported correctly
-assert(?i? == 76 and ?number? == 76)
+assert(i.equals(76), number.equals(76))

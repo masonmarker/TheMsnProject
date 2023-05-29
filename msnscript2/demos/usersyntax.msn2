@@ -16,7 +16,7 @@ clear()
 # creates a new system wide syntax, see tests/validator.msn2 for documentation
 # prints a line in the form of a message
 syntax('!', 'bt', =>(
-    print('[+]', ?bt?)
+    print('[+]', bt)
 ))
 
 # opens a new serialized variable for thread naming
@@ -29,12 +29,12 @@ syntax('/t', 'line', =>(
     var('__name', serial_next('thread')),
 
     # start the thread
-    thread(?__name?, -(?line?)),
+    thread(__name, -(line)),
 
     # thread has been started
-    print('[+] thread started:', ?__name?),
+    print('[+] thread started:', __name),
 
-    ?__name?
+    __name
 ))
 
 

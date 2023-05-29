@@ -8,11 +8,11 @@ import ('lib/os.msn2')
 clear()
 
 # creates a postmacro that separates and executes the arguments specified with macro_args()
-postmacro(';', '__line', macro_args(':::', ?__line?))
+postmacro(';', '__line', macro_args(':::', __line))
 
 # sorts an array
-macro('SORT', '__line', sorted(-(?__line?)))
-macro('REV', '__line', << |-(?__line?)|[::-1] >>)
+macro('SORT', '__line', sorted(-(__line)))
+macro('REV', '__line', << |-(__line)|[::-1] >>)
 
 
 
