@@ -12,6 +12,7 @@
 #
 # author : Mason Marker
 # date : 12/20/2022
+# UPDATED : 5/28/2023
 
 
 # to import files, file path is relative to the user's cwd
@@ -21,7 +22,7 @@
 import ('lib/os.msn2')
 
 # importing syntax additions
-# more relevant and optimal syntax for variable extraction with '^^' and '()'
+# more relevant and optimal syntax for variable extraction with '' and '()'
 # and thread ease of use with '/t'
 import ('lib/syntax/msn2plus.msn2')
 
@@ -33,75 +34,75 @@ clear()
 
 
 # printing to the console
-print('[+] beginning', 'tutorial')
+print('[+] beginning tutorial')
 
 
 # setting variables
 var('var1', 1)
 
 # asserting that statement(s) are not 0
-assert(1, True, not False, not 0, not(0), assert(1), ^var1^)
+assert(1, True, not False, not 0, not(0), assert(1), var1)
 
 # boolean assertions
 assert(5 != 4, 4 == 4, 3==3, 7>=3, 2>=2, 5<=7, 5<=5)
 
 # assertions with variables
-assert(equals(^var1^, 1))
+assert(equals(var1, 1))
 
 
 
 
 # alternate variable setting with '@' macro
 @var1 += 3
-assert(equals(^var1^, 4))
+assert(equals(var1, 4))
 
 @var1 = 3
-assert(equals(^var1^, 3))
+assert(equals(var1, 3))
 
 @var1 -= 1
-assert(equals(^var1^, 2))
+assert(equals(var1, 2))
 
 @var1 *= 2
-assert(equals(^var1^, 4))
+assert(equals(var1, 4))
 
 @var1 /= 2
-assert(equals(^var1^, 2))
+assert(equals(var1, 2))
 
 
 # msn2 instruction insertion with '|'
 @var1 = sorted([5, 4, 3, 2, 1])
-assert(equals(^var1^, [1, 2, 3, 4, 5]))
+assert(equals(var1, [1, 2, 3, 4, 5]))
 
 
 var('var1', 0)
 
 # directly destructive variable manipulation with functions
 assert(equals(var1.++(), 1))
-assert(equals(^var1^, 1))
+assert(equals(var1, 1))
 assert(equals(var1.--(), 0))
-assert(equals(^var1^, 0))
+assert(equals(var1, 0))
 
 @ string='hello\nthis is a string'
-assert(equals(^string^, 'hello\nthis is a string'))
+assert(equals(string, 'hello\nthis is a string'))
 
 @ string = ''
-assert(equals(^string^, ''))
+assert(equals(string, ''))
 
 @ string = 'hello'
-assert(equals(^string^, 'hello'))
+assert(equals(string, 'hello'))
 
 @string += '\nthis is a string' 
-assert(equals(^string^, 'hello\nthis is a string'))
+assert(equals(string, 'hello\nthis is a string'))
 
 # function based approach
 string.replace('\n', ' ')
-assert(equals(^string^, 'hello this is a string'))
+assert(equals(string, 'hello this is a string'))
 
 string.replace('i', '', 2)
-assert(equals(^string^, 'hello ths s a string'))
+assert(equals(string, 'hello ths s a string'))
 
 string.add('!')
-assert(equals(^string^, 'hello ths s a string!'))
+assert(equals(string, 'hello ths s a string!'))
 
 
 
@@ -118,13 +119,13 @@ if (1, assert(1))
 
 # loops
 var('var1', 0)
-for (0, 5, 'i', @var1 += ^i^)
-assert(equals(^var1^, 10))
+for (0, 5, 'i', @var1 += i)
+assert(equals(var1, 10))
 
 # start_arg|end_arg|loop_arg loops cannot have arguments iunvoving a '('
 var('var1', 0)
-0|5|i (@var1 += ^i^)
-assert(equals(^var1^, 10))
+0|5|i (@var1 += i)
+assert(equals(var1, 10))
 
 
 # any line ending in '(' will continue until the next line ending in ')'
@@ -148,24 +149,24 @@ assert (
 # the following function returns the sum of the first 10 integers
 var('_sum', =>(
     var('_sum', 0), 
-    for (0, 10, 'i', @_sum += ^i^),
+    for (0, 10, 'i', @_sum += i),
 
-    # using one of the variable value extraction enclosing macros '^^'
-    ^_sum^
+    # using one of the variable value extraction enclosing macros ''
+    _sum
 ))  
 
-assert(equals(^_sum^, 45))
+assert(equals(_sum, 45))
 
 
 # shortening the process into 1 line
-assert(equals(var('_sum', =>(var('_sum', 0), for (0, 10, 'i', @_sum += ^i^), ^_sum^)), 45))
+assert(equals(var('_sum', =>(var('_sum', 0), for (0, 10, 'i', @_sum += i), _sum)), 45))
 
 
 # without a variable
-assert(equals(=>(var('_sum', 0), for (0, 10, 'i', @_sum += ^i^), ^_sum^), 45))
+assert(equals(=>(var('_sum', 0), for (0, 10, 'i', @_sum += i), _sum), 45))
 
 # with simple loops
-assert(equals(=>(var('_sum', 0), 0|10|i (@_sum += ^i^), ^_sum^), 45))
+assert(equals(=>(var('_sum', 0), 0|10|i (@_sum += i), _sum), 45))
 
 # with a python system call fallback to range() and sum() (most optimal)
 assert(equals(sum(range(0, 10)), 45))
@@ -176,15 +177,15 @@ assert(sum(range(0, 10)) == 45)
 # with each syntax
 assert(equals(=>(
     var('_sum', 0),
-    each(range(0, 10), 'el', @_sum += ^el^),
-    ^_sum^
+    each(range(0, 10), 'el', @_sum += el),
+    _sum
 ), 45))
 
 # with each syntax  
 assert(equals(=>(
     var('_sum', 0),
-    each(range(0, 10), 'el', add('_sum', ^el^)),
-    ^_sum^
+    each(range(0, 10), 'el', add('_sum', el)),
+    _sum
 ), 45))
 
 
@@ -198,7 +199,7 @@ enclosedsyntax('rng[', ']', '__line', =>(
     # enclosing syntax <<>> interprets and replaces all msn2 code 
     # surrounded by || with it's return value, then evaluates the
     # resulting string as a line of Python
-    << list(range(int(|^__split^|[0]), int(|^__split^|[1]))) >>
+    << list(range(int(|__split|[0]), int(|__split|[1]))) >>
 ))
 
 # more optimal approach
@@ -213,7 +214,7 @@ equals(sum(rng[0:10]), 45) ??
 #
 # equals method with less characters
 ~ eq(__arg1, __arg2) -> __result
-    -- var('__result', equals(^__arg1^, ^__arg2^))
+    -- var('__result', equals(__arg1, __arg2))
 
 # more optimal approach
 eq(sum(rng[0:10]), 45) ??
@@ -221,7 +222,7 @@ eq(sum(rng[0:10]), 45) ??
 # macro for obtaining the sum of a range
 enclosedsyntax('rsum[', ']', '__line', =>(
     var('__split', __line.split(':')),
-    << sum(range(int(|^__split^|[0]), int(|^__split^|[1]))) >>
+    << sum(range(int(|__split|[0]), int(|__split|[1]))) >>
 ))
 
 # more optimal approach with rsum[]
@@ -237,7 +238,7 @@ eq(rsum[0:10000], 49995000) ??
 # example:
 var('n', 4)
 n.++()
-eq(^n^, 5)??
+eq(n, 5)??
 
 # you can also call methods on objects
 # objects in msn2 without msn2 function calls or macros is created with
@@ -359,9 +360,9 @@ private(=>(
     # assert that v exists
     exists('v') ??,
     not(exists('asdf')) ??,
-    not(^v^) ??,
+    not(v) ??,
     @v += 1,
-    ^v^ ??,
+    v ??,
     @priv_var=0,
     exists('priv_var') ??
 ))
@@ -369,13 +370,13 @@ private(=>(
 # verify code segment was privatized
 exists('v') ??
 not(exists('priv_var')) ??
-eq(^v^, 0) ??
+eq(v, 0) ??
 
 # private returns the return value of its first argument, 
 # which allows for private execution of methods, for example:
 
 ~ get_keys(__map) -> __keys
-    -- var('__keys', list(keys(^__map^)))
+    -- var('__keys', list(keys(__map)))
 
 # private context inherits and executes user function in an isolated environment
 eq(private(get_keys({'key': 'value', 'name': 'joe'})), ['key', 'name']) ??
@@ -436,7 +437,7 @@ join('thread_1')
 
 # starting a thread with imported msn2plus syntax
 var('n', /t 1??)
-join(^n^)
+join(n)
 
 # starting two threads that communicate with each other
 # tests this process across 5 iterations
@@ -446,7 +447,7 @@ join(^n^)
     @t2_done=0,
     @work=0,
     /t =>(
-        wait(^t2_done^),
+        wait(t2_done),
         @can_continue=1
     ),
 
@@ -455,11 +456,11 @@ join(^n^)
         @t2_done=1 
     ),
 
-    eq(^work^, 10) ??,
-    wait(^can_continue^)
+    eq(work, 10) ??,
+    wait(can_continue)
 ))
 
-eq(^work^, 10) ??
+eq(work, 10) ??
 
 
 # -------------------- python fallback <<>> --------------------
@@ -475,17 +476,17 @@ var('ip', api_local.host())
 #
 # this allows for Pythonically syntactical capabilities in msn2
 # ------------------------------------V----V---------------
-var('ip_split', << [int(el) for el in |^ip^|.split('.')] >>)
-eq(^ip_split^, [127, 0, 0, 1]) ??
+var('ip_split', << [int(el) for el in |ip|.split('.')] >>)
+eq(ip_split, [127, 0, 0, 1]) ??
 
 
 # optimizing with a user defined function
 ~ to_int(__string_array) -> __result
-    -- var('__result', << [int(el) for el in |^__string_array^|] >>)
+    -- var('__result', << [int(el) for el in |__string_array|] >>)
 
 @ip_split=0
 var('ip_split', to_int(ip.split('.')))  
-eq(^ip_split^, [127, 0, 0, 1]) ??
+eq(ip_split, [127, 0, 0, 1]) ??
 
 
 
@@ -496,15 +497,15 @@ macro('TEST', '__line', private(=>(
     var('__split', __line.split('AND')),
 
     # making assertion
-    if(not(equals(-(->(^__split^, 0)), -(->(^__split^, 1)))), =>(
+    if(not(equals(-(->(__split, 0)), -(->(__split, 1)))), =>(
 
         # printing error messagef
-        print('[-] assertion failed :', ->(^__split^, 0), '==', ->(^__split^, 1))
+        print('[-] assertion failed :', ->(__split, 0), '==', ->(__split, 1))
     ))
 )))
 
 # clean test case syntax
-TEST ^ip_split^ AND [127, 0, 0, 1]
+TEST ip_split AND [127, 0, 0, 1]
 TEST 54 AND 54
 TEST {'key': 'value'} AND {'key': 'value'}
 TEST [1, 2, 3] AND [1, 2, 3]
@@ -525,9 +526,9 @@ TEST 5 == 3 AND False
 TEST to_int(ip.split('.')) AND [127, 0, 0, 1]
 TEST 'hello'.split('l') AND ['he', '', 'o']
 TEST 1 AND 5+4-4-4
-TEST =>(@v=1, ^v^) AND =>(
+TEST =>(@v=1, v) AND =>(
     @arr = [1, 2, 3, 4, 5],
-    eq(sum(^arr^), 15) ??
+    eq(sum(arr), 15) ??
 )
 
 # -------------------- PROCESSES --------------------
@@ -601,11 +602,11 @@ assert(<2> %timer_runtime()% >= 0.5 <2>)
 # creates an email object
 ~ email_from(__email) -> __result
     -- var('__sp', __email.split('@'))
-    -- var('__result', << {'name': |->(^__sp^, 0)|, 'domain': |->(split(->(^__sp^, 1), '.'), 0)|} >>) 
+    -- var('__result', << {'name': |->(__sp, 0)|, 'domain': |->(split(->(__sp, 1), '.'), 0)|} >>) 
 
-var('em1', email_from(^email^))
-var('em2', email_from(^email2^))
-var('em3', email_from(^email3^))
+var('em1', email_from(email))
+var('em2', email_from(email2))
+var('em3', email_from(email3))
 
 TEST em1.name() AND 'johndoe123'
 TEST em1.domain() AND 'outlook'
@@ -647,12 +648,12 @@ not(exists('__v'))??
 assert(@variable = assert(1))
 assert(equals(@variable+=assert(1)))
 
-assert(equals(^variable^, 2))
+assert(equals(variable, 2))
 
 
 # working with complex variables
 @v = {'key': '\n\t\rhello\t\n\r', 'key2': -4532.543523, 'key3': [1, 2, 3, 4, 5]}
-assert(equals(^v^, {'key': '\n\t\rhello\t\n\r', 'key2': -4532.543523, 'key3': [1, 2, 3, 4, 5]}))
+assert(equals(v, {'key': '\n\t\rhello\t\n\r', 'key2': -4532.543523, 'key3': [1, 2, 3, 4, 5]}))
 
 
 # advanced setting of a variable
@@ -662,10 +663,10 @@ assert(equals(^v^, {'key': '\n\t\rhello\t\n\r', 'key2': -4532.543523, 'key3': [1
     array.avg()
 )
 
-TEST ^v^ AND 3.0
+TEST v AND 3.0
 
 @ v = =>(<< |[1, 2, 3]| >>)
-TEST ^v^ AND [1, 2, 3]
+TEST v AND [1, 2, 3]
 
 
 # -------------------- EXAMPLE PROBLEM --------------------
@@ -679,12 +680,12 @@ TEST ^v^ AND [1, 2, 3]
 
     # adds a random integer between 1 and the index to the array
     # adds a third argument to the random() function to return an integer
-    for(1, 10, 'i', __unused. push (random(1, ^i^,))),
-    ^__unused^
+    for(1, 10, 'i', __unused. push (random(1, i,))),
+    __unused
 )
 
 # assert each element is in bounds
-for(1,arr.len(), 'i', assert(<< 1 <= |arr.get(^i^)| and |arr.get(^i^)| <= |^i^| >>))
+for(1,arr.len(), 'i', assert(<< 1 <= |arr.get(i)| and |arr.get(i)| <= |i| >>))
 
 # --- OPTIMIZING LOOP FOR THIS CASE --- 
 
@@ -693,44 +694,44 @@ macro('EACH ', '__line', =>(
 
     # extracting tokens
     @__sp = __line.split(' IN '),
-    @__eachargs = ->(^__sp^, 0),
-    @__sp2 = split(->(^__sp^, 1), ' DO '),
-    @__block = ->(^__sp2^, 1),
-    @__iterable = ->(^__sp2^, 0),
+    @__eachargs = ->(__sp, 0),
+    @__sp2 = split(->(__sp, 1), ' DO '),
+    @__block = ->(__sp2, 1),
+    @__iterable = ->(__sp2, 0),
     @__eachargssp = __eachargs.split(','),
-    @__el_vname = ->(^__eachargssp^, 0),
-    @__ind_vname = ->(^__eachargssp^, 1),
+    @__el_vname = ->(__eachargssp, 0),
+    @__ind_vname = ->(__eachargssp, 1),
     __el_vname.strip(),
     __ind_vname.strip(),
 
     # perform loop logic
     @__ind = 0,
     @__each_ret=None,
-    each(-(^__iterable^), '__EACH_ELEMENT', =>(
-        var(^__el_vname^, ^__EACH_ELEMENT^),
-        var(^__ind_vname^, ^__ind^),
-        @__each_ret = -(^__block^),
+    each(-(__iterable), '__EACH_ELEMENT', =>(
+        var(__el_vname, __EACH_ELEMENT),
+        var(__ind_vname, __ind),
+        @__each_ret = -(__block),
         @__ind+=1
     )),
 
     # cleanup macro variables
     destroy('__sp', '__eachargs', '__sp2', '__block', '__iterable', '__eachargssp', '__el_vname', '__ind_vname', '__ind'),
 
-    ^__each_ret^
+    __each_ret
 ))
 
 
 # invoking EACH macro to perform each loop with element and index variables
-EACH el, i IN ^arr^ DO assert(<< 1 <= |^el^| and |^el^| <= |^i^| + 1 >>)
+EACH el, i IN arr DO assert(<< 1 <= |el| and |el| <= |i| + 1 >>)
 
 
 @map = {}
 
 # str() method on a number gets a string representation of the number
-EACH element, ind IN [1, 2, 3] DO map.set(ind.str(), ^element^)
+EACH element, ind IN [1, 2, 3] DO map.set(ind.str(), element)
 
 # converted array to map
-TEST ^map^ AND {'0': 1, '1': 2, '2': 3}
+TEST map AND {'0': 1, '1': 2, '2': 3}
 
 
 # creates half-assed macro and enclosed syntax for crude list comprehension
@@ -742,7 +743,7 @@ macro('DO ', '__line', private(=>(
     @ DO_split = __line.split(' THEN '),
     @ DO_ret = -(DO_split.get(0)),
     -(DO_split.get(1)),
-    ^DO_ret^    
+    DO_ret    
 )))
 
 # creating a list comprehension syntax similar to that of Python's,
@@ -766,20 +767,20 @@ enclosedsyntax('2[', ']', '__line', private(=>(
 
     # perform loop
     for (0, __iterable.len(), '__i', =>(
-        var(^__loopvar^, __iterable.get(^__i^)),
-         __iterable.set(^__i^, -(^__block^))
+        var(__loopvar, __iterable.get(__i)),
+         __iterable.set(__i, -(__block))
     )),
 
 
     # return mended list and destroy variables
-    DO list(^__iterable^) THEN destroy('__')
+    DO list(__iterable) THEN destroy('__')
 )))
 
 # invokes msn2 list comprehension
 TEST 2[@el += 1 FOR el IN [1, 2, 3, 4, 5]] AND [2, 3, 4, 5, 6]
 
 # gets a range from 0 to 5
-TEST 2[^_^ FOR _ IN range(0, 5)] AND [0, 1, 2, 3, 4]
+TEST 2[_ FOR _ IN range(0, 5)] AND [0, 1, 2, 3, 4]
 
 
 
@@ -790,8 +791,8 @@ TEST 2[=>(
 
 
 @arr = [5, 4, 3, 2, 1]
-@arr = 2[@el *= 3 FOR el IN ^arr^]
-TEST ^arr^ AND [15, 12, 9, 6, 3]
+@arr = 2[@el *= 3 FOR el IN arr]
+TEST arr AND [15, 12, 9, 6, 3]
 
 
 # ------------------------ OTHER STUFF  ------------------------

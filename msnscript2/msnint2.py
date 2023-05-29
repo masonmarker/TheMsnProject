@@ -217,6 +217,7 @@ class Interpreter:
         for varname in sorted(self.vars.keys(), key=len, reverse=True):
 
             try:
+
                 boo = boo.replace(varname, str(
                     self.get_var(eval(f'"{varname}"'))))
             except:
@@ -431,7 +432,14 @@ class Interpreter:
         # try base literal
         try:
             if not line.startswith('--'):
-                return eval(line)
+                
+                # try evaluating the line
+                _ret = eval(line)
+                
+                # eval cannot be a python class, because names of variables
+                # could result in python classes
+                if not isinstance(_ret, type):
+                    return _ret
         except:
             None
 
@@ -1154,18 +1162,36 @@ class Interpreter:
                             if text == element.name:
                                 elements.append(self.AppElement(element, element.window_text()))
                         return elements
-                    def wait_for_element_subtext(parent_window, retrieve_elements, subtext):
+                    # waits for the first element to appear containing the substring specified
+                    # is not case sensitive
+                    def wait_for_element_subtext(parent_window, retrieve_elements, subtext, timeout=None):
                         subtext = subtext.lower()
-                        while True:
-                            for element in retrieve_elements(parent_window):
-                                if subtext in element.name.lower():
-                                    return self.AppElement(element, element.window_text())
+                        # subfunction for locating the element
+                        def find_element_():
+                            try:
+                                for element in retrieve_elements(parent_window):
+                                    if subtext in element.name.lower():
+                                        return self.AppElement(element, element.window_text())
+                            except:
+                                pass
+                        if not timeout:
+                            while True:
+                                if (_ret := find_element_()) is not None:
+                                    return _ret
+                        else:
+                            # get the current time
+                            start_time = time.time()
+                            # while the time elapsed is less than the timeout
+                            while time.time() - start_time < timeout:
+                                if (_ret := find_element_()) is not None:
+                                    return _ret
+                                
                     # waits for a child to exist with text containing subtext
-                    def wait_for_text(parent_window, subtext):
-                        return wait_for_element_subtext(parent_window, children, subtext)
+                    def wait_for_text(parent_window, subtext, timeout=None):
+                        return wait_for_element_subtext(parent_window, children, subtext, timeout=timeout)
                     # waits for a child to exist in the entire child tree containing subtext
-                    def wait_for_text_all(parent_window, subtext):
-                        return wait_for_element_subtext(parent_window, all_children, subtext)
+                    def wait_for_text_all(parent_window, subtext, timeout=None):
+                        return wait_for_element_subtext(parent_window, all_children, subtext, timeout=timeout)
                         
                                       
                     # prints all children of a parent window
@@ -1239,7 +1265,41 @@ class Interpreter:
                         return print_elements(parent_window, links)
                     def find_links(parent_window, subtext):
                         return find_elements(parent_window, subtext, links)
+                    
+                    # for decendants
+                    def descendants(parent_window):
+                        return recursive_search(parent_window, int, self.AppElement)
                     # ---------------------------
+                    # GENERALIZING METHOD CALLS FOR ELEMENT DISCOVERY
+                    def callables(window, 
+                                  objfunc1, objfunc1_method, 
+                                  objfunc2, objfunc2_method,
+                                  objfunc3, objfunc3_method,
+                                  objfunc4, objfunc4_method,
+                                  objfunc5=None, objfunc5_method=None):
+                        
+                        # RETRIEVING CHILDREN
+                        # gets the available child reference keywords
+                        if objfunc == objfunc1:
+                            return objfunc1_method(window)
+                        # prints the children
+                        if objfunc == objfunc2:
+                            return objfunc2_method(window)
+                        # gets a certain child
+                        # first argument is the index of the child
+                        if objfunc == objfunc3:
+                            return objfunc3_method(window, self.parse(0, line, f, sp, args)[2])
+                        # finds children with subtext in their names
+                        if objfunc == objfunc4:
+                            return objfunc4_method(window, self.parse(0, line, f, sp, args)[2])
+                        if objfunc == objfunc5:
+                            return objfunc5_method(window, self.parse(0, line, f, sp, args)[2])
+                        return '<msnint2 no callable>'
+                        
+                    
+                    
+                    # ---------------------------
+
                     
                     # moves the mouse to the center of an element, and clicks it
                     def clk(window, button='left', waittime=1):
@@ -1314,88 +1374,58 @@ class Interpreter:
 
                         # RETRIEVING CHILDREN
                         # gets the available child reference keywords
-                        if objfunc == 'children':
-                            return children(window)
-                        # prints the children
-                        if objfunc == 'print_children':
-                            return print_children(window)
-                        # gets a certain child
-                        # first argument is the index of the child
-                        if objfunc == 'child':
-                            return child(window, self.parse(0, line, f, sp, args)[2])
-                        # finds children with subtext in their names
-                        if objfunc == 'find_children':
-                            return find_children(window, self.parse(0, line, f, sp, args)[2])
+                        if  (chldrn := callables(window,
+                                    'children', children,
+                                    'print_children', print_children,
+                                    'child', child,
+                                    'find_children', find_children)) != '<msnint2 no callable>': 
+                            return chldrn
                         
-                        # gets all children
-                        if objfunc == 'all_children':
-                            return all_children(window)
-                        # prints all children
-                        if objfunc == 'print_all_children':
-                            return print_all_children(window)
-                        # gets a single child at an index
-                        if objfunc == 'all_child':
-                            return all_child(window, self.parse(0, line, f, sp, args)[2])
-                        # finds all children with subtext in their names
-                        if objfunc == 'find_all_children':
-                            return find_all_children(window, self.parse(0, line, f, sp, args)[2])
-                        # finds all children from an exact text
-                        if objfunc == 'find_all_children_exact':
-                            return find_all_children_exact(window, self.parse(0, line, f, sp, args)[2])
-                        
-                        
+                        # working with the entire child tree
+                        if (all_chldrn := callables(window,
+                                    'all_children', all_children,
+                                    'print_all_children', print_all_children,
+                                    'all_child', all_child,
+                                    'find_all_children', find_all_children,
+                                    'find_all_children_exact', find_all_children_exact)) != '<msnint2 no callable>': 
+                            return all_chldrn
+
                         # getting all menus
-                        if objfunc == 'menus':
-                            return menus(window)
-                        # getting a single menu at an index
-                        if objfunc == 'menu':
-                            return menu(window, self.parse(0, line, f, sp, args)[2])
-                        # prints all menus
-                        if objfunc == 'print_menus':
-                            return print_menus(window)
-                        # finds all menus with subtext in their names
-                        if objfunc == 'find_menus':
-                            return find_menus(window, self.parse(0, line, f, sp, args)[2])
+                        if (mns := callables(window,
+                                    'menus', menus,
+                                    'print_menus', print_menus,
+                                    'menu', menu,
+                                    'find_menus', find_menus)) != '<msnint2 no callable>': 
+                            return mns
                         
                         # gets all toolbars
-                        if objfunc == 'toolbars':
-                            return toolbars(window)
-                        # prints all toolbars
-                        if objfunc == 'print_toolbars':
-                            return print_toolbars(window)
-                        # gets a single toolbar at an index
-                        if objfunc == 'toolbar':
-                            return toolbar(window, self.parse(0, line, f, sp, args)[2])
-                        # finds all toolbars with subtext in their names
-                        if objfunc == 'find_toolbars':
-                            return find_toolbars(window, self.parse(0, line, f, sp, args)[2])
+                        if (tbrs := callables(window,
+                                    'toolbars', toolbars,
+                                    'print_toolbars', print_toolbars,
+                                    'toolbar', toolbar,
+                                    'find_toolbars', find_toolbars)) != '<msnint2 no callable>': 
+                            return tbrs
                         
                         # gets all buttons
-                        if objfunc == 'buttons':
-                            return buttons(window)
-                        # gets a single button at an index
-                        if objfunc == 'button':
-                            return button(window, self.parse(0, line, f, sp, args)[2])
-                        # prints all buttons
-                        if objfunc == 'print_buttons':
-                            return print_buttons(window)
-                        # finds all buttons with subtext in their names
-                        if objfunc == 'find_buttons':
-                            return find_buttons(window, self.parse(0, line, f, sp, args)[2])
+                        if (btns := callables(window,
+                                    'buttons', buttons,
+                                    'print_buttons', print_buttons,
+                                    'button', button,
+                                    'find_buttons', find_buttons)) != '<msnint2 no callable>': 
+                            return btns
                         
                         # gets all links
-                        if objfunc == 'links':
-                            return links(window)
-                        # gets a single link at an index
-                        if objfunc == 'link':
-                            return link(window, self.parse(0, line, f, sp, args)[2])
-                        # prints all links
-                        if objfunc == 'print_links':
-                            return print_links(window)
-                        # finds all links with subtext in their names
-                        if objfunc == 'find_links':
-                            return find_links(window, self.parse(0, line, f, sp, args)[2])
+                        if (lnks := callables(window,
+                                    'links', links,
+                                    'print_links', print_links,
+                                    'link', link,
+                                    'find_links', find_links)) != '<msnint2 no callable>': 
+                            return lnks
                         
+                        # working with decendants
+                        if objfunc == 'child_windows':
+                            return window.descendants()
+
 
                         # gets information about this application
                         # gets the text of the window
@@ -1403,10 +1433,21 @@ class Interpreter:
                             return window.window_text()
                         # waits for a child containing text
                         if objfunc == 'wait_for_text':
-                            return wait_for_text(window, self.parse(0, line, f, sp, args)[2])
+                            # if no timeout provided
+                            if len(args) == 1:
+                                return wait_for_text(window, self.parse(0, line, f, sp, args)[2])
+                            # if timeout provided
+                            elif len(args) == 2:
+                                return wait_for_text(window, self.parse(0, line, f, sp, args)[2], 
+                                                     timeout=self.parse(1, line, f, sp, args)[2])
                         # waits for a child containing text in the entire child tree
                         if objfunc == 'wait_for_text_all':
-                            return wait_for_text_all(window, self.parse(0, line, f, sp, args)[2])
+                            # if no timeout provided
+                            if len(args) == 1:
+                                return wait_for_text_all(window, self.parse(0, line, f, sp, args)[2])
+                            elif len(args) == 2:
+                                return wait_for_text_all(window, self.parse(0, line, f, sp, args)[2], 
+                                                     timeout=self.parse(1, line, f, sp, args)[2])
 
                         # APPLICATION ACTIONS
                         # sends keystrokes to the application
@@ -1434,15 +1475,15 @@ class Interpreter:
                         # get the element window
                         if objfunc == 'window':
                             return window
-                        # getes all children
-                        if objfunc == 'children':
-                            return children(window)
-                        # prints the children
-                        if objfunc == 'print_children':
-                            return print_children(window)
-                        # gets a child at an index
-                        if objfunc == 'child':
-                            return child(window, self.parse(0, line, f, sp, args)[2])
+                        
+                        # working with children, performs the same logic as the above
+                        # application
+                        if (chldrn := callables(window,
+                                    'children', children,
+                                    'print_children', print_children,
+                                    'child', child,
+                                    'find_children', find_children)) != '<msnint2 no callable>': 
+                            return chldrn
 
                         # getting information about the current window
                         # gets the window text
@@ -3671,7 +3712,6 @@ class Interpreter:
                     try:
                         line = self.replace_vars2(line)
                         # python piggyback attempt
-
                         return eval(line)
                     except:
                         # maybe its a variable?
@@ -3685,13 +3725,17 @@ class Interpreter:
                 objfunc += c
             else:
                 func += c
+        
+        # try a variable
+        if line in self.vars:
+            return self.vars[line].value
 
+        # otherwise nothing
         # try replacing variables 2
         try:
             line = self.replace_vars2(line)
         except:
             None
-
         # get value of line
         try:
             return eval(line)
@@ -3699,13 +3743,7 @@ class Interpreter:
             try:
                 return eval(str(self.replace_vars(line)))
             except:
-                # try a variable
-                if line in self.vars:
-                    return self.vars[line].value
-
-                # otherwise nothing
                 return None
-
     # adds a new program wide syntax
     def add_syntax(self, token, between, function):
         syntax[token] = [between, function]
@@ -3954,7 +3992,6 @@ class Interpreter:
                         except:
                             self.vars[variable].value += self.interpret(
                                 element)
-
                     return self.vars[variable].value
                 elif c == '-' and line[i + 1] == '=':
                     variable = element

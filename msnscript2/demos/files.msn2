@@ -15,19 +15,19 @@ var('path', './hello/world.txt')
 file.mkdir("./hello")
 
 # creates a file
-file.create(?path?)
+file.create(path)
 
 # appends to file twice
-for (0, 2, 'i', file.append(?path?, "hello world\n"))
+for (0, 2, '_', file.append(path, "hello world\n"))
 
 # asserts text was written
-assert(equals(file.read(?path?), "hello world\nhello world\n"))
+assert(equals(file.read(path), "hello world\nhello world\n"))
 
 # erases all text in the file
-file.clear(?path?)
+file.clear(path)
 
 # asserts file is empty
-assert(equals(file.read(?path?), ""))
+assert(equals(file.read(path), ""))
 
 # removes all files in directory
 file.emptydir("./hello")
