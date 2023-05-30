@@ -725,7 +725,6 @@ class Interpreter:
                                 self.vars[varname] = Var(varname, i)
                                 self.interpret(func)
 
-                        del self.vars[varname]
                         return object
 
                     # reverses the iterable
@@ -1114,6 +1113,14 @@ class Interpreter:
                             
                             # get the string
                             return object[index-left:index+len(keyword)+right]
+                        
+                        # startswith
+                        if objfunc == 'startswith':
+                            return object.startswith(self.parse(0, line, f, sp, args)[2])
+                        
+                        # endswith
+                        if objfunc == 'endswith':
+                            return object.endswith(self.parse(0, line, f, sp, args)[2])
                             
                     # GENERAL METHODS
                     # gets the immediate children of the parent window
@@ -1185,6 +1192,34 @@ class Interpreter:
                             while time.time() - start_time < timeout:
                                 if (_ret := find_element_()) is not None:
                                     return _ret
+                    # waits for the first element to appear with the exact text specified
+                    def wait_for_element_exact(parent_window, retrieve_elements, text, timeout=None):
+                        # subfunction for locating the element
+                        def find_element_():
+                            try:
+                                for element in retrieve_elements(parent_window):
+                                    if text == element.name:
+                                        return self.AppElement(element, element.window_text())
+                            except:
+                                pass
+                        if not timeout:
+                            while True:
+                                if (_ret := find_element_()) is not None:
+                                    return _ret
+                        else:
+                            # get the current time
+                            start_time = time.time()
+                            # while the time elapsed is less than the timeout
+                            while time.time() - start_time < timeout:
+                                if (_ret := find_element_()) is not None:
+                                    return _ret
+                    # waits for the first element to appear in all children containing the substring specified with the type specified
+                    def wait_for_type_subtext_all(parent_window, type, as_type, subtext, timeout=None):
+                        return wait_for_element_subtext(parent_window, lambda parent_window: recursive_search(parent_window, type, as_type), subtext, timeout=timeout)
+                    # wait for the first element to appear in all children with the exact text specified with the type specified
+                    def wait_for_type_exact_all(parent_window, type, as_type, text, timeout=None):
+                        return wait_for_element_exact(parent_window, lambda parent_window: recursive_search(parent_window, type, as_type), text, timeout=timeout)
+                        
                                 
                     # waits for a child to exist with text containing subtext
                     def wait_for_text(parent_window, subtext, timeout=None):
@@ -1192,8 +1227,12 @@ class Interpreter:
                     # waits for a child to exist in the entire child tree containing subtext
                     def wait_for_text_all(parent_window, subtext, timeout=None):
                         return wait_for_element_subtext(parent_window, all_children, subtext, timeout=timeout)
-                        
-                                      
+                    # waits for a child to exist with text exactly equal to text
+                    def wait_for_text_exact(parent_window, text, timeout=None):
+                        return wait_for_element_exact(parent_window, children, text, timeout=timeout)
+                    # waits for a child to exist in the entire child tree with text exactly equal to text
+                    def wait_for_text_exact_all(parent_window, text, timeout=None):
+                        return wait_for_element_exact(parent_window, all_children, text, timeout=timeout)
                     # prints all children of a parent window
                     def print_children(parent_window):
                         return print_elements(parent_window, children)
@@ -1266,17 +1305,39 @@ class Interpreter:
                     def find_links(parent_window, subtext):
                         return find_elements(parent_window, subtext, links)
                     
+                    # for tabitems
+                    def tabitems(parent_window):
+                        return recursive_search(parent_window, int, self.TabItem, object_string_endswith="TabItem")
+                    def tabitem(parent_window, index):
+                        return tabitems(parent_window)[index]
+                    def print_tabitems(parent_window):
+                        return print_elements(parent_window, tabitems)
+                    def find_tabitems(parent_window, subtext):
+                        return find_elements(parent_window, subtext, tabitems)
+                    def find_tabitems_exact(parent_window, text):
+                        return find_elements_exact(parent_window, text, tabitems)
+                    
                     # for decendants
                     def descendants(parent_window):
                         return recursive_search(parent_window, int, self.AppElement)
                     # ---------------------------
                     # GENERALIZING METHOD CALLS FOR ELEMENT DISCOVERY
                     def callables(window, 
-                                  objfunc1, objfunc1_method, 
+                                  # array elements
+                                  objfunc1, objfunc1_method,
+                                  # print the elements 
                                   objfunc2, objfunc2_method,
+                                  # get a certain element
                                   objfunc3, objfunc3_method,
+                                  # find elements with subtext in their names
                                   objfunc4, objfunc4_method,
-                                  objfunc5=None, objfunc5_method=None):
+                                  # find elements with exact text in their names
+                                  objfunc5=None, objfunc5_method=None,
+                                  # waits for the first element of a certain type with subtext in name
+                                    objfunc6=None, objfunc6_method=None, type1=None, as_type1=None,
+                                    # waits for the first element of a certain type with exact text in name
+                                    objfunc7=None, objfunc7_method=None, type2=None, as_type2=None,
+                                  ):
                         
                         # RETRIEVING CHILDREN
                         # gets the available child reference keywords
@@ -1294,6 +1355,23 @@ class Interpreter:
                             return objfunc4_method(window, self.parse(0, line, f, sp, args)[2])
                         if objfunc == objfunc5:
                             return objfunc5_method(window, self.parse(0, line, f, sp, args)[2])
+                        
+                        # waits for the first child of a certain type with exact text in its name
+                        if objfunc == objfunc6:
+                            # if 1 argument, there is no timeout
+                            if len(args) == 1:
+                                return wait_for_type_exact_all(window, type1, as_type1, self.parse(0, line, f, sp, args)[2])
+                            elif len(args) == 2:
+                                return wait_for_type_exact_all(window, type1, as_type1, self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
+                        # waits for the first child of a certain type with subtext in its name
+                        if objfunc == objfunc7:
+                            # if 1 argument, there is no timeout
+                            if len(args) == 1:
+                                return wait_for_type_subtext_all(window, type2, as_type2, self.parse(0, line, f, sp, args)[2])
+                            elif len(args) == 2:
+                                return wait_for_type_subtext_all(window, type2, as_type2, self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
+                            
+                        
                         return '<msnint2 no callable>'
                         
                     
@@ -1411,8 +1489,27 @@ class Interpreter:
                                     'buttons', buttons,
                                     'print_buttons', print_buttons,
                                     'button', button,
-                                    'find_buttons', find_buttons)) != '<msnint2 no callable>': 
+                                    'find_buttons', find_buttons,
+                                    objfunc5=None, objfunc5_method=None,
+                                    
+                                    objfunc6='wait_for_button_exact', objfunc6_method=wait_for_type_exact_all, 
+                                        type1=pywinauto.controls.uia_controls.ButtonWrapper, 
+                                        as_type1=self.Button,
+                                    
+                                    objfunc7='wait_for_button', objfunc7_method=wait_for_type_subtext_all, 
+                                        type2=pywinauto.controls.uia_controls.ButtonWrapper,
+                                        as_type2=self.Button
+                                        
+                                    )) != '<msnint2 no callable>':  
                             return btns
+                        
+                        # gets all tabitems
+                        if (tbs := callables(window,
+                                    'tabitems', tabitems,
+                                    'print_tabitems', print_tabitems,
+                                    'tabitem', tabitem,
+                                    'find_tabitems', find_tabitems)) != '<msnint2 no callable>': 
+                            return tbs
                         
                         # gets all links
                         if (lnks := callables(window,
@@ -1422,15 +1519,43 @@ class Interpreter:
                                     'find_links', find_links)) != '<msnint2 no callable>': 
                             return lnks
                         
-                        # working with decendants
-                        if objfunc == 'child_windows':
-                            return window.descendants()
-
+                        # gets the top_window
+                        if objfunc == 'print_tree':
+                            return app.dump_tree()
 
                         # gets information about this application
                         # gets the text of the window
                         if objfunc == 'text':
                             return window.window_text()
+                        # gets the window
+                        if objfunc == 'window':
+                            return window
+                        # gets the handle
+                        if objfunc == 'handle':
+                            return window.handle
+                        
+                        # chrome based children collection
+                        def chrome_children_():
+                            chrome_window = app.window(title_re='.*Chrome.')
+                            chrome_handle = chrome_window.handle
+                            wd = app.window(handle=chrome_handle)
+                            document = wd.child_window(class_name='Chrome_RenderWidgetHostHWND')
+                            return document.descendants()
+                        
+                        # GOOGLE CHROME ONLY
+                        if objfunc == 'chrome_children':
+                            # if not arguments
+                            if args[0][0] == '':
+                                return chrome_children_()
+                            # if one argument, check if the first argument is contained
+                            elif len(args) == 1:
+                                subtext = self.parse(0, line, f, sp, args)[2].lower()
+                                return [self.AppElement(d, d.window_text()) for d in chrome_children_() if subtext in d.window_text().lower()]
+                            # if two arguments, check if the first argument is exact
+                            elif len(args) == 2:
+                                subtext = self.parse(0, line, f, sp, args)[2]
+                                return [self.AppElement(d, d.window_text()) for d in chrome_children_() if subtext == d.window_text()]
+                        
                         # waits for a child containing text
                         if objfunc == 'wait_for_text':
                             # if no timeout provided
@@ -1448,6 +1573,23 @@ class Interpreter:
                             elif len(args) == 2:
                                 return wait_for_text_all(window, self.parse(0, line, f, sp, args)[2], 
                                                      timeout=self.parse(1, line, f, sp, args)[2])
+                                
+                        # waits for a child containing the exact text
+                        if objfunc == 'wait_for_text_exact':
+                            # if no timeout provided
+                            if len(args) == 1:
+                                return wait_for_text_exact(window, self.parse(0, line, f, sp, args)[2])
+                            elif len(args) == 2:
+                                return wait_for_text_exact(window, self.parse(0, line, f, sp, args)[2], 
+                                                     timeout=self.parse(1, line, f, sp, args)[2])
+                        # waits for a child containing the exact text in the entire child tree
+                        if objfunc == 'wait_for_text_exact_all':
+                            # if no timeout provided
+                            if len(args) == 1:
+                                return wait_for_text_exact_all(window, self.parse(0, line, f, sp, args)[2])
+                            elif len(args) == 2:
+                                return wait_for_text_exact_all(window, self.parse(0, line, f, sp, args)[2], 
+                                                     timeout=self.parse(1, line, f, sp, args)[2])
 
                         # APPLICATION ACTIONS
                         # sends keystrokes to the application
@@ -1455,10 +1597,58 @@ class Interpreter:
                         if objfunc == 'write':
                             # sends keystrokes to the application
                             return window.type_keys(self.parse(0, line, f, sp, args)[2], with_spaces=True)
+                        # presses keys at the same time
+                        if objfunc == 'press':
+                            kys = []
+                            for i in range(len(args)):
+                                kys.append(self.parse(i, line, f, sp, args)[2])
+                            sending = ''
+                            # keys down
+                            for key in kys:
+                                sending += '{' + key + ' down}'
+                            # keys up
+                            for key in kys:
+                                sending += '{' + key + ' up}'
+                            # presses the keys at the same time
+                            return window.type_keys(sending)
+                        # sends keystrokes to the application
+                        # takes one argument, being the keystrokes to send
+                        if objfunc == 'send_keys':
+                            # sends keystrokes to the application
+                            return window.send_keys(self.parse(0, line, f, sp, args)[2], with_spaces=True)
+                        
+                        # presses the shortcut keys to inspects element
+                        # ctrl shift i
+                        if objfunc == 'inspect':
+                            # presses the shortcut keys to inspects element
+                            return window.type_keys('{VK_CONTROL down}{VK_SHIFT down}{i down}{VK_CONTROL up}{VK_SHIFT up}{i up}')
+                        
                         # presses the enter key
                         if objfunc == 'enter':
                             # presses the enter key
                             return window.type_keys('{ENTER}')
+                        # page down
+                        if objfunc == 'page_down':
+                            # presses the page down key
+                            return window.type_keys('{PGDN}')
+                        
+                        # # collects all children within the entire page
+                        # # finds all scrollbars and scrolls throughout the entire page
+                        # # in all directions, collecting all children
+                        # if objfunc == 'collect_children':
+                        #     chld = set()
+                        #     # gets all scrollbars
+                        #     scrlbrs = window.scrollbars()
+                        #     # get the height of the screen
+                        #     height = window.rectangle().height
+                            
+                        #     return scrlbrs
+                        
+                        # # gets the vertical scrollbar
+                        # if objfunc == 'vertical_scrollbar':
+                        #     wd = window.child_window(control_type="Scroll")
+                        #     return self.ScrollBar(wd, 'vertical')
+                                
 
                         # return the object
                         return object
@@ -1504,6 +1694,17 @@ class Interpreter:
                         if objfunc == 'rectangle':
                             return [window.get_properties()['rectangle'].top, window.get_properties()['rectangle'].bottom, window.get_properties()['rectangle'].left, window.get_properties()['rectangle'].right]
 
+                        # computes the diameter of the window
+                        if objfunc == 'width':
+                            left = window.get_properties()['rectangle'].left
+                            right = window.get_properties()['rectangle'].right
+                            return right - left
+                        # computes the height of the window
+                        if objfunc == 'height':
+                            top = window.get_properties()['rectangle'].top
+                            bottom = window.get_properties()['rectangle'].bottom
+                            return bottom - top
+                        
                         # getting adjacent elements
                         # could or could not be decendants
                         # operation is very slow, should be used mainly
@@ -1565,7 +1766,15 @@ class Interpreter:
                             # that have the point specified
                             return rec(root, right, mid)
                         
+                        # focus on the window
+                        if objfunc == 'focus':
+                            return window.set_focus()
                         
+                        # scrolls to the window
+                        if objfunc == 'scroll':
+                            x = window.get_properties()['rectangle'].mid_point()[0]
+                            y = window.get_properties()['rectangle'].mid_point()[1]
+                            return mouse.scroll(coords=(x, y))
                             
                         # WINDOW ACTIONS
                         # sends keystrokes to the application
@@ -1622,6 +1831,13 @@ class Interpreter:
                             if objfunc == 'find_buttons':
                                 return find_buttons(toolbar_window, self.parse(0, line, f, sp, args)[2])
                             return object
+                        
+                        # working with scrollbars
+                        if isinstance(object, self.ScrollBar):
+                            scrollbar_window = object.window
+                            
+                            if objfunc == 'scroll_down':
+                                return scrollbar_window.scroll_down(amount='page', count=1)
                                     
                                     
                         # extra methods such that this AppElement requires different logic
@@ -2128,6 +2344,36 @@ class Interpreter:
                         self.vars[element_name].value = array[i]
                         self.interpret(block_s)
                     return array
+                
+                # filters an iterable to retain all elements that satisfy the second argument as
+                # a block
+                # the first argument is a string for a variable for each element
+                # second argument is a block to run for each element
+                elif func == 'filter':
+                    
+                    # iterable to filter
+                    iterable = self.parse(0, line, f, sp, args)[2]
+                    
+                    # variable name
+                    varname = self.parse(1, line, f, sp, args)[2]
+
+                    # block to execute
+                    block = args[2][0]
+                    
+                    # new array
+                    filtered = []
+                    
+                    # iterate through each element
+                    for v in iterable:
+                            
+                        # set the variable to the element
+                        self.vars[varname] = Var(varname, v)
+                        
+                        # if the block returns true, add the element to the new array
+                        if self.interpret(block):
+                            filtered.append(v)
+
+                    return filtered
 
                 # unpacks the first argument into any amount of variables
                 # specified by the remaining arguments provided as variable names
@@ -2409,6 +2655,12 @@ class Interpreter:
                         # if no args are provided
                         else:
                             return mouse.double_click(coords=win32api.GetCursorPos())
+                    # scrolls the mouse wheel to the bottom of the page
+                    if objfunc == 'scroll_bottom':
+                        return mouse.scroll(wheel_dist=9999999)
+                    # scrolls the mouse wheel to the top of the page
+                    if objfunc == 'scroll_top':
+                        return mouse.scroll(wheel_dist=-9999999)
                         
 
 
@@ -3158,7 +3410,7 @@ class Interpreter:
                     return self.parse(0, line, f, sp, args)[2].strip()
 
                 # returns the MSNScript2 passed as a string
-                elif func == 'async':
+                elif func == 'async' or func == 'script':
                     return args[0][0]
 
                 # gets the current time
@@ -3297,6 +3549,34 @@ class Interpreter:
                         while not self.interpret(args[0][0]):
                             self.interpret(args[1][0])
                     return True
+                
+                # performs a an action every certain amount of seconds
+                # where the amount of seconds is the first argument
+                # the block is the second argument
+                # third argument is optional, and is the amount of seconds
+                # the interval should last for, if not provided, the interval
+                # will last forever
+                if func == 'interval':
+                    
+                    # amount of seconds
+                    seconds = self.parse(0, line, f, sp, args)[2]
+                    
+                    # block to execute
+                    block = args[1][0]
+                    
+                    # if the interval should last for a certain amount of seconds
+                    # should account for the first argument to correctly wait
+                    if len(args) == 3:
+                        end = time.time() + self.parse(2, line, f, sp, args)[2]
+                        while time.time() < end:
+                            time.sleep(seconds)
+                            self.interpret(block)
+                            
+                    else:
+                        while True:
+                            time.sleep(seconds)
+                            self.interpret(block)
+                    
 
                 # exports a quantity of variables or methods from the working context to the parent context,
                 # ex private context -> boot context
@@ -3775,8 +4055,8 @@ class Interpreter:
                 except:
                     val = str(var)
             if isinstance(val, str):
-                val = '"' + val + '"'
-            line = line.replace('?'+varname+'?', str(val))
+                val = f'"{val}"'
+            line = line.replace(f'?{varname}?', str(val))
         return line
 
     def thread_by_name(self, name):
@@ -4354,9 +4634,18 @@ class Interpreter:
         def top_level_parent(self):
             return self.window.top_level_parent()
         
+        # computes the height of the window
+        def height(self):
+            return self.window.get_properties()['rectangle'].bottom - self.window.get_properties()['rectangle'].top
+        
+        # computes the width of the window
+        def width(self):
+            return self.window.get_properties()['rectangle'].right - self.window.get_properties()['rectangle'].left
+        
         # string
         def __str__(self):
-            return Interpreter.bordered(f'Text: {self.name if self.name else "[No Text Found]"}\nObject:\n{self.window}')
+            return Interpreter.bordered(f'Text: {self.name if self.name else "[No Text Found]"}\nSize:\
+{f"{self.width()}x{self.height()}"}\nObject:\n{self.window}')
     
     # class for a button
     class Button(AppElement):
@@ -4402,3 +4691,20 @@ class Interpreter:
 
             # call super constructor
             super().__init__(window, name)
+            
+    # class for a scrollbar
+    class ScrollBar(AppElement):
+                        
+        # constructor
+        def __init__(self, window, name):
+
+            # call super constructor
+            super().__init__(window, name)  
+
+    # class for TabItems
+    class TabItem(AppElement):
+        # constructor
+        def __init__(self, window, name):
+
+            # call super constructor
+            super().__init__(window, name)  
