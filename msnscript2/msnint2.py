@@ -705,6 +705,20 @@ class Interpreter:
                     if objfunc == 'slice':
                         return self.vars[vname].value[self.parse(0, line, f, sp, args)[2]:self.parse(1, line, f, sp, args)[2]]
 
+                    # gets the index of the object
+                    if objfunc == 'index':
+                        return self.vars[vname].value.index(self.parse(0, line, f, sp, args)[2])
+
+                    # exports a variable to the parent context
+                    if objfunc == 'export':
+                        name = vname
+                        # if an argument is provided
+                        # export as name
+                        if args[0][0] != '':
+                            name = self.parse(0, line, f, sp, args)[2]
+                        self.parent.vars[name] = Var(name, object)
+                        return object
+
                     # performs a function for each element in the iterable
                     if objfunc == 'each':
 
@@ -726,6 +740,30 @@ class Interpreter:
                                 self.interpret(func)
 
                         return object
+
+                    # filters the iterable
+                    if objfunc == 'filter':
+                        
+                        # get the variable name
+                        varname = self.parse(0, line, f, sp, args)[2]
+
+                        # get the function
+                        block = args[1][0]
+                        
+                        # filtered
+                        filtered = []
+                        
+                        # filter the iterable
+                        for el in object:
+                            self.vars[varname] = Var(varname, el)
+                            if self.interpret(block):
+                                filtered.append(el)
+                                
+                        # set the variable to the filtered list
+                        self.vars[vname].value = filtered
+                        
+                        # return the filtered list
+                        return self.vars[vname].value
 
                     # reverses the iterable
                     if objfunc == 'reverse':
@@ -955,14 +993,6 @@ class Interpreter:
                         # determines if a list is empty
                         if objfunc == 'empty':
                             return len(self.vars[vname].value) == 0
-
-                        # gets the index of an item in an array
-                        if objfunc == 'index':
-                            el = self.parse(0, line, f, sp, args)[2]
-                            try:
-                                return self.vars[vname].value.index(el)
-                            except:
-                                return self.vars[vname].index(el)
 
                         # determines if this list contains an element
                         if objfunc == 'contains' or objfunc == 'has' or objfunc == 'includes':

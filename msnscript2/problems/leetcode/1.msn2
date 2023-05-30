@@ -1,0 +1,27 @@
+# find the index of the substring in the string provided
+#
+# author : Mason Marker
+# date : 5/30/2023
+
+@ substring = 'mason'
+@ string = 'my name is mason'
+
+# creating a private context for breaking
+private(=>(
+    for (0, string.len(), 'i', =>(
+        if (equals(string.get(i), substring.get(0)), =>(
+            for (0, substring.len(), 'j', =>(
+                if (equals(string.get(op.add(i, j)), substring.get(j)), =>(
+                    if (equals(op.sub(substring.len(), 1), j), =>(
+                        i.export(),
+                        break(),
+                        print('this should never be printed')
+                    ))
+                )),
+            ))
+        ))
+    ))  
+))
+
+# assert the correct answer
+assert(i.equals(string.index(substring)))
