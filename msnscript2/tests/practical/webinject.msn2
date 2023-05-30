@@ -12,26 +12,47 @@ chrome.start()
 chrome.write(url)
 chrome.enter()
 
-# waits for the Copyright footer to load,
-# signaling that the rest of the page has loaded
-chrome.wait_for_text('Copyright')
-
 # presses keys at the same time to inspect element
 chrome.inspect()
 
 # waits for the console tab item to appear
 wait(@ console_button = first(chrome.find_tabitems('Console')))
 
-# clears the console
-chrome.press('VK_CONTROL', 'l')
-
 # clicks the console
 console_button.click()
 
-# writes into the console some JavaScript
-chrome.send_keys(script(
-    console.log('Hello, World!');
+# enters the console tab
+chrome.press('VK_CONTROL', 'l')
+
+# writes into the console a string
+# with characters requiring simultaneous key presses,
+# such as '!' or ')', and even capital letters
+chrome.write_special(script(
+    const elements = document.getElementsByClassName('button blue btnsml caps');
+    const operatorButton = Array.from(
+        document.getElementsByClassName('button orange btnsml caps'))
+            .find(e => e.value === '+');
+    const equalsButton = document.getElementsByClassName('button green btnsml caps2')[0];
+    function click(a, b, c) {
+        for (let i = 0; i < elements.length; i++) {
+            const e = elements[i];
+            const val = e.value;
+            if (val === a || val === b || val === c) {
+                e.click();
+            }
+        }
+    }
+    click('1', '2', '3');
+    operatorButton.click();
+    click('4', '5', '6');
+    equalsButton.click();
 ))
 
-sleep(4)
-chrome.stop()
+# execute the script
+chrome.enter()
+
+# get the element containing the result of the calculation
+@ equals_element = get(chrome.find_all_children('='), 1)
+
+# print the result
+print(equals_element.text())
