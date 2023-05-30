@@ -7,21 +7,25 @@
 @ string = 'my name is mason'
 
 # creating a private context for breaking
-private(=>(
-    for (0, string.len(), 'i', =>(
+private(for (0, string.len(), 'i', =>(
         if (equals(string.get(i), substring.get(0)), =>(
             for (0, substring.len(), 'j', =>(
-                if (equals(string.get(op.add(i, j)), substring.get(j)), =>(
-                    if (equals(op.sub(substring.len(), 1), j), =>(
+                if (equals(string.get(i.+(j)), substring.get(j)), =>(
+                    if (equals(op.-(substring.len(), 1), j), =>(
+
+                        # brings i to the parent context
                         i.export(),
+
+                        # leaves the private context
                         break(),
                         print('this should never be printed')
                     ))
                 )),
             ))
         ))
-    ))  
-))
+    )))
 
 # assert the correct answer
-assert(i.equals(string.index(substring)))
+if (assert(i.equals(string.index(substring))), print(
+    '[+] test passed'
+))

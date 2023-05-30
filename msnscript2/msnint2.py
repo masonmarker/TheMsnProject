@@ -764,6 +764,16 @@ class Interpreter:
                         
                         # return the filtered list
                         return self.vars[vname].value
+                    
+                    # basic arithmetic, non-destructive
+                    if objfunc == '+':
+                        return object + self.parse(0, line, f, sp, args)[2]
+                    if objfunc == '-':
+                        return object - self.parse(0, line, f, sp, args)[2]
+                    if objfunc == '*':
+                        return object * self.parse(0, line, f, sp, args)[2]
+                    if objfunc == '/':
+                        return object / self.parse(0, line, f, sp, args)[2]
 
                     # reverses the iterable
                     if objfunc == 'reverse':
