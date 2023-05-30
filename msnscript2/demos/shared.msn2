@@ -1,66 +1,51 @@
-# demonstrates both new syntactical advantages to writing code
-# as well as threads accessing a shared resource
+# Demonstrates a shared resource between threads.
+# Pongs the resource between two threads.
+#
 # author : Mason Marker
-# date : 11/10/2022
+# date : 5/30/2023
 
-# fresh console
-if (windows(), console('cls'), console('clear'))
+# clearing the console
+console('cls')
 
-# import semaphore as shared resource
-import ('lib/semaphore.msn2')
 
-# create instance of shared resource
-var('resource', semaphore(False, ''))
 
-# delay to grant opposing thread an opportunity
-# to write to the resource
-~ offer_resource() -> __offered
--- sleep(0.1)
+# shared resource
+@ message = '1'
 
-# only 1 thread can write at a time to the buffer
-thread('thread1', =>(
+# iterations
+@ iterations = 10
 
-    # waits for resource to be available
-    for (0, 10, 'i1', =>(
-        wait(not(resource . held())),
+# starting thread 1
+thread('t1', => (
+    
+    # perform the operation a certain amount of times
+    for(0, iterations, '_', =>(
+        
+        # wait for the second thread to release the resource
+        wait(message.endswith('2')),
 
-        # critical section for writing to resource
-        resource.held(True),
-        resource.message(cat(resource.message(), '1 ')),
-        print('thread 1 wrote'),
-        resource.held(False),
-
-        # delay to grant opposing thread an opportunity
-        # to write to the resource
-        offer_resource()
+        # write to the resource
+        message.add('1'),
     ))
 ))
 
-# start second thread
-thread('thread2', =>(
 
-    # waits for resource to be available
-    for (0, 10, 'i2', =>(
-        wait(not(resource . held())),
+# starting thread 2
+thread('t2', =>(
 
-        # critical section for writing to resource
-        resource.held(True),
-        resource.message(cat(resource.message(), '2 ')),
-        print('thread 2 wrote'),
-        resource.held(False),
+    # perform the operation a certain amount of times
+    for(0, iterations, '_', =>(
 
-        # delay to grant opposing thread an opportunity
-        # to write to the resource
-        offer_resource()
+        # wait for the first thread to release the resource
+        wait(message.endswith('1')),
+
+        # write to the resource
+        message.add('2')
     ))
 ))
 
-# wait for subthreads to finish writing to resource
-join('thread1')
-join('thread2')
+# join the threads
+join('t1', 't2')
 
-# assert threads ping-ponged wrote back and forth
-assert(not(resource.held()))
-
-# prints the results of the shared resource
-print(<<resource: |?resource?| >>)
+# print the message
+message.print('message: ')
