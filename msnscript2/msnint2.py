@@ -1446,7 +1446,61 @@ class Interpreter:
                         else:
                             # return the root
                             return self.AppElement(root, root.window_text())
-                        
+
+                    # presses multiple keys at the same time
+                    def press_simul(kys):
+                        sending = ''
+                        # keys down
+                        for key in kys:
+                            sending += '{' + key + ' down}'
+                        # keys up
+                        for key in kys:
+                            sending += '{' + key + ' up}'
+                        return sending
+                    
+                    # function for converting keys requiring a shift press
+                    #   example: a '3' should be converted to {VK_SHIFT down}3{VK_SHIFT up}
+                    #   example: a '"' should be converted to {VK_SHIFT down}'{VK_SHIFT up}
+                    #   example: a 'E' should be converted to {VK_SHIFT down}e{VK_SHIFT up}
+                    # this function is mainly for converting an exerpt of code to a typable
+                    # string for pywinauto to type
+                    def convert_keys(keystrokes):
+                        new = ''
+                        special = {
+                            '!' : '1',
+                            '@' : '2',
+                            '#' : '3',
+                            '$' : '4',
+                            '%' : '5',
+                            '^' : '6',
+                            '&' : '7',
+                            '*' : '8',
+                            '(' : '9',
+                            ')' : '0',
+                            '_' : '-',
+                            '+' : '=',
+                            '{' : '[',
+                            '}' : ']',
+                            '|' : '\\',
+                            ':' : ';',
+                            '"' : "'",
+                            '<' : ',',
+                            '>' : '.',
+                            '?' : '/',
+                            '~' : '`'
+                        }
+                        # for each keystroke
+                        for key in keystrokes:
+                            if key in special:
+                                # if the key is a special character
+                                new += '{VK_SHIFT down}' + special[key] + '{VK_SHIFT up}'
+                            elif key.isupper():
+                                # if the key is uppercase
+                                new += '{VK_SHIFT down}' + key.lower() + '{VK_SHIFT up}'
+                            else:
+                                # if the key is not a special character
+                                new += key
+                        return new
                         
             
                     # if the object is a pywinauto application
@@ -1627,25 +1681,26 @@ class Interpreter:
                         if objfunc == 'write':
                             # sends keystrokes to the application
                             return window.type_keys(self.parse(0, line, f, sp, args)[2], with_spaces=True)
+                        # writes special characters into the console
+                        # takes one argument, being the special characters to write
+                        if objfunc == 'write_special':
+                            # keystrokes
+                            keystrokes = self.parse(0, line, f, sp, args)[2]
+                            # convert to special characters
+                            return window.type_keys(convert_keys(keystrokes), with_spaces=True)
+                            
                         # presses keys at the same time
                         if objfunc == 'press':
                             kys = []
                             for i in range(len(args)):
                                 kys.append(self.parse(i, line, f, sp, args)[2])
-                            sending = ''
-                            # keys down
-                            for key in kys:
-                                sending += '{' + key + ' down}'
-                            # keys up
-                            for key in kys:
-                                sending += '{' + key + ' up}'
                             # presses the keys at the same time
-                            return window.type_keys(sending)
+                            return window.type_keys(press_simul(kys))
                         # sends keystrokes to the application
                         # takes one argument, being the keystrokes to send
                         if objfunc == 'send_keys':
                             # sends keystrokes to the application
-                            return window.send_keys(self.parse(0, line, f, sp, args)[2], with_spaces=True)
+                            return pywinauto.keyboard.send_keys(convert_keys(self.parse(0, line, f, sp, args)[2]), with_spaces=True)
                         
                         # presses the shortcut keys to inspects element
                         # ctrl shift i
