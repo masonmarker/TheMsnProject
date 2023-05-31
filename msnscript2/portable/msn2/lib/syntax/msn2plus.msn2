@@ -10,16 +10,12 @@ import('lib/processes.msn2')
 # setup
 serial_open('msn2plus_thread')
 
-
-
 # utilizing variables
 enclosedsyntax('^', '^', '__MSN2varname', val(strip(val('__MSN2varname'))))
 
 # retrieving a variable with '()'
 # (honestly i dont think this variable extraction technique is all that bad)
 enclosedsyntax('(', ')', '__parenvarname', val(strip(val('__parenvarname'))))
-
-
 
 
 # completes a task, then another task, returning the first task's return value
@@ -84,9 +80,3 @@ macro('in ', '__inline', private(=>(
     # return new list
     __incompret.val()
 )))
-
-
-
-
-
-
