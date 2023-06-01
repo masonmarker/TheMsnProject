@@ -1,0 +1,52 @@
+# Demonstrates how two processes can commmunicate
+# through a local storage: 'projects/processes/local.txt'.
+#
+# author : Mason Marker
+# date : 5/30/2023
+
+# process forking capabilities
+# including fork()
+import ('lib/processes.msn2')
+
+#  clear console
+console('cls')
+
+# path
+@ path = 'projects/processes/local.txt'
+
+# write an initial message to signal one
+# of the processes to start first
+file.write(path, '1')
+
+# creates a new process
+fork('p1', async(=>(
+
+    # location of communication file pipeline
+    @ path = 'projects/processes/local.txt',
+
+    # write to the file a certain amount of times
+    for (0, 5, 'i', =>(
+        wait(as('_t', file.read(path), _t.endswith('2'))),
+        file.append(path, '1')
+
+    ))
+)))
+
+# # creates another process
+fork('p2', async(=>(
+
+    # location of communication file pipeline
+    @ path = 'projects/processes/local.txt',
+
+    # write to the file a certain amount of times
+    for (0, 5, 'i', =>(
+        wait(as('_t', file.read(path), _t.endswith('1'))),
+        file.append(path, '2')
+    ))
+)))
+
+# main thread waits for processes to finish
+wait(equals(len(file.read(path)), 11))
+
+# print the contents of the file
+print(file.read(path))

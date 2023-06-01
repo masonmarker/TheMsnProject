@@ -1,0 +1,20 @@
+# random module with functions for randomness.
+#
+# author : Mason Marker
+# date :  5/12/2023
+
+# import english alphabet
+import ('lib/eng.msn2')
+
+# class for random functions
+class('rand', =>(
+    # gets a random number from an indexable object
+    function ('choice', ret('choice', 
+        __indexable.get(random(0, __indexable.len(),))
+    ), 'self', '__indexable'),
+
+    # shuffles an indexable object
+    function ('shuffle', ret('shuffle', 
+        __indexable.shuffle()
+    ), 'self', '__indexable'),
+))

@@ -20,14 +20,15 @@ for i in range(1, len(sys.argv)):
         filename = 'projects/console/git.msn2'
     elif filename == 'test':
         filename = 'tests/misc.msn2'
-    
-    
-    extension = filename[filename.rindex('.'):]
+    extension = ''
+    try:
+        extension = filename[filename.rindex('.'):]
+    except:
+        ...
 
     # verify file type
     if extension != '.msn2':
-        print("Error: file type not supported")
-        exit()
+        filename += '.msn2'
 
 
     f = open(filename, "r")
