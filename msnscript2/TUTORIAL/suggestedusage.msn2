@@ -22,7 +22,6 @@
 import ('lib/os.msn2')
 
 # importing syntax additions
-# more relevant and optimal syntax for variable extraction with '' and '()'
 # and thread ease of use with '/t'
 import ('lib/syntax/msn2plus.msn2')
 
@@ -151,7 +150,6 @@ var('_sum', =>(
     var('_sum', 0), 
     for (0, 10, 'i', @_sum += i),
 
-    # using one of the variable value extraction enclosing macros ''
     _sum
 ))  
 
@@ -287,13 +285,13 @@ eq(me.age(), 22) ??
 
 # creating an array
 @ array = from()
-eq((array), []) ??
+eq(array, []) ??
 
 @ array = from(None)
-eq((array), [None]) ??
+eq(array, [None]) ??
 
 @array = from('', 2, 3, 4, '')
-eq((array), ['', 2, 3, 4, '']) ??
+eq(array, ['', 2, 3, 4, '']) ??
 
 
 
@@ -305,7 +303,7 @@ eq((array), ['', 2, 3, 4, '']) ??
 
 # creating a dict requiring msn2 code
 @ dict = dictfrom('key', [], 'key2', dictfrom('key', []))
-eq((dict), {'key': [], 'key2': {'key': []}}) ??
+eq(dict, {'key': [], 'key2': {'key': []}}) ??
 
 # class format {humans: name: [eyecolor, hairtype, age]}
 @class1 = =>({'humans': {'joe': ['green', 'curly', 40]}})
@@ -319,15 +317,15 @@ function('human_from', ret('human_from', =>(
         # the indexing system call ->()
         # macros are used to simplify this indexing technique
         # farther down in this file
-        'eyecolor', ->(->(class1.humans(), (__name)), 0),
-        'hairtype', ->(->(class1.humans(), (__name)), 1),
-        'age', ->(->(class1.humans(), (__name)), 2))
+        'eyecolor', ->(->(class1.humans(),__name), 0),
+        'hairtype', ->(->(class1.humans(), __name), 1),
+        'age', ->(->(class1.humans(), __name), 2))
 )), '__name')
 
 
 # creating a more appealing format of a human
 @ joe = human_from('joe')
-eq((joe), {'name': 'joe', 'hairtype': 'curly', 'eyecolor': 'green', 'age': 40})??
+eq(joe, {'name': 'joe', 'hairtype': 'curly', 'eyecolor': 'green', 'age': 40})??
 
 # variable keys can be indexed now
 eq(joe.name(), 'joe') ??
@@ -335,6 +333,16 @@ eq(joe.hairtype(), 'curly')??
 not(eq(joe.hairtype(), 'curlyf')) ??
 eq(joe.eyecolor(), 'green') ??
 eq(joe.age(), 40)??
+
+
+# WORKING WITH ARRAYS PREVIEW
+@ array = [1, 2, 3, 4, 5]
+assert(equals(filter(array, 'el', el.greater(3)), [4, 5]))
+
+# destructive
+array.filter('el', el.less(3))
+array.equals([1, 2]) ??
+
 
 # ------------------------ CODE ISOLATION ------------------------
 
@@ -413,7 +421,7 @@ private(=>(
     )))
 ))
 
-eq((i), 51) ??
+i.equals(51) ??
 
 # see farther below in this file for a break() simplification technique
 # via macros
@@ -456,11 +464,11 @@ join(n)
         @t2_done=1 
     ),
 
-    eq(work, 10) ??,
+    work.equals(10) ??,
     wait(can_continue)
 ))
 
-eq(work, 10) ??
+work.equals(10) ??
 
 
 # -------------------- python fallback <<>> --------------------
@@ -477,7 +485,7 @@ var('ip', api_local.host())
 # this allows for Pythonically syntactical capabilities in msn2
 # ------------------------------------V----V---------------
 var('ip_split', << [int(el) for el in |ip|.split('.')] >>)
-eq(ip_split, [127, 0, 0, 1]) ??
+ip_split.equals([127, 0, 0, 1]) ??
 
 
 # optimizing with a user defined function
@@ -486,7 +494,7 @@ eq(ip_split, [127, 0, 0, 1]) ??
 
 @ip_split=0
 var('ip_split', to_int(ip.split('.')))  
-eq(ip_split, [127, 0, 0, 1]) ??
+ip_split.equals([127, 0, 0, 1]) ??
 
 
 
@@ -648,7 +656,7 @@ not(exists('__v'))??
 assert(@variable = assert(1))
 assert(equals(@variable+=assert(1)))
 
-assert(equals(variable, 2))
+assert(variable.equals(2))
 
 
 # working with complex variables
@@ -802,12 +810,11 @@ TEST arr AND [15, 12, 9, 6, 3]
 @ e = 3
 equals(3, @ e = 3) ??
 
-# extracting a variable with ()
-equals((e), 3) ??
+e.equals(3) ??
 
 @ string = 'this\nis\y\ra string'
 
-equals((string), 'this\nis\y\ra string') ??
+string.equals('this\nis\y\ra string') ??
 
 # for lines that absolutely need to be on multiple lines,
 # you can use aggregate syntax '!{}'
@@ -822,7 +829,7 @@ equals((string), 'this\nis\y\ra string') ??
 
 @ object = {'key': 4, 'key2': 'value'}
 !{
-    equals((object), (object)) ??}
+    object.equals(object) ??}
 
 
 
@@ -844,23 +851,23 @@ equals((string), 'this\nis\y\ra string') ??
 @v2 = 1
 @ v3 = 1
 @ v4 = 0.00
-(v2) ??
-(v3) ??
+v2 ??
+v3 ??
 
-v.less((v2)) ??
-v2.greater((v)) ??
+v.less(v2) ??
+v2.greater(v) ??
 
-v.lessequal(( v4 )) ??
-v.greaterequal((v4)) ??
+v.lessequal(v4) ??
+v.greaterequal(v4) ??
 
-v2.greaterequal((v3)) ??
-v2.greaterequal((v)) ??
+v2.greaterequal(v3) ??
+v2.greaterequal(v) ??
 
 # defining an in between function
 function('in_between', =>(
 
     # method 2: using Python fallback <<>>
-    ret('in_between', << |(__min)| <= |(__is_in)| and |(__is_in)| <= |(__max)| >>)
+    ret('in_between', << |__min| <= |__is_in| and |__is_in| <= |__max| >>)
 
 # defining function arguments
 ), '__min', '__is_in', '__max')
@@ -869,9 +876,9 @@ function('in_between', =>(
 @v = 50
 
 # testing
-in_between(-1, (v), 51) ??   
-in_between(50, (v), 50) ??
-in_between(20, (v), 100) ??
+in_between(-1, v, 51) ??   
+in_between(50, v, 50) ??
+in_between(20, v, 100) ??
 
 
 
@@ -895,7 +902,7 @@ in_between(20, (v), 100) ??
 # other examples than those below can be found in tests/validator.msn2
 
 
-redirect('__line', assert(-((__line))))
+redirect('__line', assert(-(__line)))
     1
     not False
     1
@@ -906,8 +913,8 @@ startredirect()
 # this syntax can be simplified for personal need with MSN2 syntax alteration
 
 # simplify redirect definition
-macro('verify:', '__unused', redirect('__line', if(not(-((__line))), =>(
-    print('[-] assertion error : ', (__line))
+macro('verify:', '__unused', redirect('__line', if(not(-(__line)), =>(
+    print('[-] assertion error : ', __line)
 ))))
 
 # !!! IMPORTANT !!!
@@ -947,16 +954,16 @@ macro('func ', '__funcdec', =>(
     @__fname = strip(__sp.get(0)),
 
     # declares the basics of the new function
-    function((__fname),),
+    function(__fname,),
 
     # add each argument variable to the function
     each(split(strip(__sp.get(1)), ' '), '__var', =>(
-        function.addarg((__fname), (__var))
+        function.addarg(__fname, __var)
     )),
 
     # requests for an Interpreter redirect
     redirect('__funcline', =>(
-        function.addbody((__fname), (__funcline))
+        function.addbody(__fname, __funcline)
     ))
 ))
 
@@ -973,10 +980,10 @@ macro('end', '__unused', =>(stopredirect(), startredirect()))
 func array_index :  __array __element
 
     # store return variable (for no reason, just testing)
-    var('_ret', __array.index((__element)))
+    var('_ret', __array.index(__element))
 
     # return a value to a function
-    ret('array_index', (_ret))
+    ret('array_index', _ret)
 end
 
 
@@ -1069,7 +1076,7 @@ end
 
 # reverting to the original user definition syntax for demonstration
 ~ leave(__vars)->_
-    -- each((__vars), '__var', export((__var)))
+    -- each(__vars, '__var', export(__var))
     -- break()
 
 # execute for loop in isolation 
@@ -1080,20 +1087,8 @@ private(=>(
     for (0, 100, 'i', if (i . greater(75), leave(['i', 'a'])))
 ))
 
-TEST (i) AND 76
-TEST (a) AND ['a', 'b']
-
-
-
-# -------------------- SIMPLIFYING PROCESS CREATION --------------------
-
-macro('process', '__processline', =>(
-
-    # tries to import process specific methods
-    import('processes.msn2'),
-
-))
-
+TEST i AND 76
+TEST a AND ['a', 'b']
 
 
 

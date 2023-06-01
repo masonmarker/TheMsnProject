@@ -1,0 +1,15 @@
+# Common applications for automation with MSN2.
+#
+# author : Mason Marker
+# date : 5/26/2023
+
+# class for applications
+class('common', =>(
+    # gets a notepad instance
+    function('notepad', ret('notepad', app('notepad.exe')), 'self'),
+    # gets a chrome instance
+    function('chrome', ret('chrome', app('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')), 'self'),
+))
+
+# instance of common to export to the main environment
+@ common = common()

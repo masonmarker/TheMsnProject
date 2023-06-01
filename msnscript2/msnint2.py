@@ -271,16 +271,12 @@ class Interpreter:
         # process (as it should)
         # msn1 fallback
         if line[0] == '@':
-            line = line[1:]
-            return self.interpret_msnscript_1(line)
+            return self.interpret_msnscript_1(line[1:])
 
-        # creating functions (METHOD 2/3)
-        # added 5/28/2022
-        if line.startswith('f:'):
-            ...
-
+        # python fallback mode specification, 
+        # both <<>> and
         if line.startswith('<<'):
-
+            
             # parse all text in the line for text surrounded by |
             funccalls = []
             infunc = False
@@ -705,6 +701,30 @@ class Interpreter:
                     if objfunc == 'slice':
                         return self.vars[vname].value[self.parse(0, line, f, sp, args)[2]:self.parse(1, line, f, sp, args)[2]]
 
+                    # gets the index of the object
+                    if objfunc == 'index':
+                        return self.vars[vname].value.index(self.parse(0, line, f, sp, args)[2])
+
+                    # exports a variable to the parent context
+                    if objfunc == 'export':
+                        name = vname
+                        # if an argument is provided
+                        # export as name
+                        if args[0][0] != '':
+                            name = self.parse(0, line, f, sp, args)[2]
+                        self.parent.vars[name] = Var(name, object)
+                        return object
+                    
+                    # if no objfunc, there has been a request
+                    # for repeated method calls/access
+                    if objfunc == '':
+                        ret = self.vars[vname].value
+                        # for each block
+                        for arg in args:
+                            block = arg[0]
+                            ret = self.interpret(f"{vname}.{block}")
+                        return ret
+
                     # performs a function for each element in the iterable
                     if objfunc == 'each':
 
@@ -726,6 +746,57 @@ class Interpreter:
                                 self.interpret(func)
 
                         return object
+
+                    # filters the iterable
+                    if objfunc == 'filter':
+                        
+                        # get the variable name
+                        varname = self.parse(0, line, f, sp, args)[2]
+
+                        # get the function
+                        block = args[1][0]
+                        
+                        # filtered
+                        filtered = []
+                        
+                        # filter the iterable
+                        for el in object:
+                            self.vars[varname] = Var(varname, el)
+                            if self.interpret(block):
+                                filtered.append(el)
+                                
+                        # set the variable to the filtered list
+                        self.vars[vname].value = filtered
+                        
+                        # return the filtered list
+                        return self.vars[vname].value
+                    
+                    # basic arithmetic, non-destructive
+                    if objfunc == '+':
+                        return object + self.parse(0, line, f, sp, args)[2]
+                    if objfunc == '-':
+                        return object - self.parse(0, line, f, sp, args)[2]
+                    if objfunc == '*':
+                        return object * self.parse(0, line, f, sp, args)[2]
+                    if objfunc == '/':
+                        return object / self.parse(0, line, f, sp, args)[2]
+                    if objfunc == '%':
+                        return object % self.parse(0, line, f, sp, args)[2]
+                    if objfunc == '**':
+                        return object ** self.parse(0, line, f, sp, args)[2]
+                    if objfunc == '//':
+                        return object // self.parse(0, line, f, sp, args)[2]
+
+                    # applies methods to to the object, considering
+                    # the method takes one argument
+                    if objfunc == 'func':
+                        ret = object
+                        # apply the function to the object
+                        for arg in args:
+                            method = arg[0]
+                            ret = self.interpret(f"{method}({ret})")
+                        
+                        return ret 
 
                     # reverses the iterable
                     if objfunc == 'reverse':
@@ -955,14 +1026,6 @@ class Interpreter:
                         # determines if a list is empty
                         if objfunc == 'empty':
                             return len(self.vars[vname].value) == 0
-
-                        # gets the index of an item in an array
-                        if objfunc == 'index':
-                            el = self.parse(0, line, f, sp, args)[2]
-                            try:
-                                return self.vars[vname].value.index(el)
-                            except:
-                                return self.vars[vname].index(el)
 
                         # determines if this list contains an element
                         if objfunc == 'contains' or objfunc == 'has' or objfunc == 'includes':
@@ -3269,19 +3332,6 @@ class Interpreter:
                 elif func == 'lessequal' or func == 'le':
                     return self.parse(0, line, f, sp, args)[2] <= self.parse(1, line, f, sp, args)[2]
 
-                # inline function, takes any amount of instructions
-                # returns the result of the last instruction
-                elif func == "=>":
-                    ret = None
-                    for i in range(len(args)):
-                        arguments = args[i]
-
-                        # current instruction
-                        ins_s = arguments[0]
-
-                        line, ret = self.convert_arg(ins_s, line, f, sp, args)
-                    return ret
-
                 # data structure for holding multiple items
                 elif func == 'class':
                     # new interpreter
@@ -4041,6 +4091,20 @@ class Interpreter:
                         except:
                             None
                     return ret
+                
+                # inline function, takes any amount of instructions
+                # returns the result of the last instruction
+                elif func == "=>" or (func == '' and objfunc == ''):
+                    ret = None
+                    for i in range(len(args)):
+                        arguments = args[i]
+
+                        # current instruction
+                        ins_s = arguments[0]
+
+                        line, ret = self.convert_arg(ins_s, line, f, sp, args)
+                    return ret
+
 
                 # fallback
                 else:
