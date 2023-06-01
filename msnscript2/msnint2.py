@@ -3332,19 +3332,6 @@ class Interpreter:
                 elif func == 'lessequal' or func == 'le':
                     return self.parse(0, line, f, sp, args)[2] <= self.parse(1, line, f, sp, args)[2]
 
-                # inline function, takes any amount of instructions
-                # returns the result of the last instruction
-                elif func == "=>":
-                    ret = None
-                    for i in range(len(args)):
-                        arguments = args[i]
-
-                        # current instruction
-                        ins_s = arguments[0]
-
-                        line, ret = self.convert_arg(ins_s, line, f, sp, args)
-                    return ret
-
                 # data structure for holding multiple items
                 elif func == 'class':
                     # new interpreter
@@ -4104,6 +4091,20 @@ class Interpreter:
                         except:
                             None
                     return ret
+                
+                # inline function, takes any amount of instructions
+                # returns the result of the last instruction
+                elif func == "=>" or (func == '' and objfunc == ''):
+                    ret = None
+                    for i in range(len(args)):
+                        arguments = args[i]
+
+                        # current instruction
+                        ins_s = arguments[0]
+
+                        line, ret = self.convert_arg(ins_s, line, f, sp, args)
+                    return ret
+
 
                 # fallback
                 else:

@@ -18,10 +18,10 @@ to do this, under VS Code's language mode tab, configure file association of .ms
 
 
     see /TUTORIAL for the SUGGESTED syntax that should be used in a .msn2 program.
-    other syntax likely exists outside of the suggested syntax, however the syntax works in very
+    other syntax likely exists outside of the suggested syntax, however outside syntax works in very
     specific scenarios, and are not recommended to be used. 
 
-    the suggested syntax is the most updated, and safest way to code with complex types.
+    the suggested syntax is the most updated, and safest way to code.
 
 see /demos for demonstrations
 see /tests for syntax specific usage (find the most recent validator in /tests)
