@@ -13,19 +13,19 @@ chrome.write(url)
 chrome.enter()
 
 # presses keys at the same time to inspect element
-chrome.inspect()
+chrome.press('VK_CONTROL', 'VK_SHIFT', 'i')
 
 # waits for the console tab item to appear
 wait(@ console_button = first(chrome.find_tabitems('Console')))
 
-# clicks the console
+# enters the console tab
 console_button.click()
 
-# enters the console tab
+# clears the console
 chrome.press('VK_CONTROL', 'l')
 
 # writes into the console a string
-# with characters requiring simultaneous key presses,
+# with special characters requiring simultaneous key presses,
 # such as '!' or ')', and even capital letters
 chrome.write_special(script(
     const elements = document.getElementsByClassName('button blue btnsml caps');
