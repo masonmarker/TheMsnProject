@@ -1,0 +1,77 @@
+# optimal syntax library
+# 
+# author : Mason Marker
+# date : 12/17/2022
+
+# imports
+import('lib/serial.msn2')
+import('lib/processes.msn2')
+
+# setup
+serial_open('msn2plus_thread')
+
+# utilizing variables
+enclosedsyntax('^', '^', '__MSN2varname', val(strip(val('__MSN2varname'))))
+
+# completes a task, then another task, returning the first task's return value
+# syntax : DO task1() THEN task2() -> task1.return
+macro('DO ', '__DOline', private(=>(
+    @ DO_split = __DOline.split(' THEN '),
+    @ DO_ret = -(DO_split.get(0)),
+    -(DO_split.get(1)),
+    destroy('DO_split'),
+    ^DO_ret^    
+)))
+
+# threads
+# starts a thread with an ardered name 't0, t1..'
+macro('/t', '__threadline', =>(
+    var('__name', cat('t', serial_next('msn2plus_thread'))),
+    thread(^__name^, -(val('__threadline'))),
+    DO ^__name^ THEN destroy('__name')
+))
+
+
+# faster assertions
+postmacro('??', '__assertline', =>(
+    @__block = ^__assertline^,
+    @__ev = -(^__block^),
+    if(not(^__ev^), print('[-] assertion error :', ^__block^)),
+    DO ^__ev^ THEN destroy('__ev', '__block')
+))
+
+# basic list comprehension
+macro('in ', '__inline', private(=>(
+    @__incompret = [],
+
+    # with keyword should be surrounded with whitespace
+    @ __sp1 = __inline.split('<<<'),
+
+    # no need for whitespace around >>> because its symbolic
+    # and readability is not a concern
+    @ __sp2 = split(__sp1.get(1), '>>>'),
+
+    # the first part of the with statement is the iterable
+    @ __iterable = -(__sp1.get(0)),
+
+    # the second part of the with statement is the variable name for each
+    # element
+    @ __varname = strip(__sp2.get(0)),
+
+    # the third part of the with statement is the expression to be evaluated
+    # for each element
+    @ __expr = __sp2.get(1),
+
+    # iterate over the iterable
+    __iterable.each('__inel', =>(
+            
+            # set the variable name to the current element
+            var(__varname.val(), __inel.val()),
+    
+            # append the expression value to the return list
+            __incompret.append(-(__expr.val()))
+    )),
+
+    # return new list
+    __incompret.val()
+)))
