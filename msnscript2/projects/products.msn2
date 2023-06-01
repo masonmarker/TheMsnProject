@@ -1,0 +1,30 @@
+# Receives input being cost (and shipping if specified),
+# calculating a price value and compare price value
+# based on a profit margin and the result's difference
+# from a compare to price value.
+#
+# author : Mason Marker
+# date : 6/1/2023
+
+# # profit margin
+# @ margin = int(input('profit margin: $'))
+
+# # increase price by difference of compare_to
+# @ compare_to = int(input('compare to increase: $'))
+
+# # determines if the shipping is the same
+# # for every product
+# @ shipping_is_same = equals(input('shipping is same for all products? (y/n): '), 'y')
+
+# # 'stop' to exit
+# print('enter \'stop\' to exit')
+
+# # current product number
+# @ product = 0
+
+# compute price for each product
+while (not(equals(@ prices = input('(Cost) (Shipping cost): '), 'stop')), (
+
+    prices.print("prices: ")
+    
+))
