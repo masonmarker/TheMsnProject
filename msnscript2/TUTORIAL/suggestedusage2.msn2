@@ -1,0 +1,70 @@
+# Updated suggested usage.
+#
+# Usage not seen here is recommended in the 
+# previous version of this file.
+#
+# author : Mason Marker
+# date : 5/30/2023
+
+# fresh console
+import ('lib/os.msn2')
+clear()
+
+# variables and types
+@ a = 1
+
+# repeated access syntax method 1
+a.(add(1, 2, 3),add(4, 5))
+assert(a.equals(16))
+
+# repeated access syntax method 2
+a.(sub(1, 2, 3), sub(4, 5))
+assert(a.equals(1))
+
+
+# arrays
+@ array = [1, 2, 3, 4, 5]
+
+array.(add(6),remove(3),filter('el', el.greater(2)))
+assert(array.equals([4, 5, 6]))
+
+# strings
+@ string = 'hello this is a string'
+@ char = string.(reverse(),upper(),get(0))
+assert(string.equals('GNIRTS A SI SIHT OLLEH'))
+assert(char.equals('G'))
+
+# classes
+class('person', =>(
+    @ age = -1,
+    @ name = 'Unknown',
+
+    # advances time for this person
+    function('advance_time', self.age(years.+(self.age())), 'self', 'years')
+))
+
+# creates a person
+@ mason = person(22, 'mason')
+
+# advances time for a few years
+mason.(advance_time(3), advance_time(1))
+assert(equals(mason.age(), 26))
+
+
+# class with constructor
+class('person', =>(
+    @ age = -1,
+    @ name = 'Unknown',
+
+    function('const', self.name(as('_t', self.name(), _t.upper())) , 'self')
+))
+
+# creates a person
+@ mason = person(22, 'mason')
+assert(equals(mason.name(), 'MASON'))
+
+# ----------------------- THREADS -----------------------
+# threads are started with the thread(name, code) system call
+
+thread('t1', wait())
+
