@@ -1,7 +1,0 @@
-# contains tests for new MSN2 base syntax
-#
-# author : Mason Marker
-# date : 1/21/2022
-
-
-print(test( "hello", "sup", [ 3 ] ) + "hey")

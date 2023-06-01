@@ -271,16 +271,12 @@ class Interpreter:
         # process (as it should)
         # msn1 fallback
         if line[0] == '@':
-            line = line[1:]
-            return self.interpret_msnscript_1(line)
+            return self.interpret_msnscript_1(line[1:])
 
-        # creating functions (METHOD 2/3)
-        # added 5/28/2022
-        if line.startswith('f:'):
-            ...
-
+        # python fallback mode specification, 
+        # both <<>> and
         if line.startswith('<<'):
-
+            
             # parse all text in the line for text surrounded by |
             funccalls = []
             infunc = False
@@ -718,6 +714,16 @@ class Interpreter:
                             name = self.parse(0, line, f, sp, args)[2]
                         self.parent.vars[name] = Var(name, object)
                         return object
+                    
+                    # if no objfunc, there has been a request
+                    # for repeated method calls/access
+                    if objfunc == '':
+                        ret = self.vars[vname].value
+                        # for each block
+                        for arg in args:
+                            block = arg[0]
+                            ret = self.interpret(f"{vname}.{block}")
+                        return ret
 
                     # performs a function for each element in the iterable
                     if objfunc == 'each':
@@ -780,7 +786,17 @@ class Interpreter:
                         return object ** self.parse(0, line, f, sp, args)[2]
                     if objfunc == '//':
                         return object // self.parse(0, line, f, sp, args)[2]
-                    
+
+                    # applies methods to to the object, considering
+                    # the method takes one argument
+                    if objfunc == 'func':
+                        ret = object
+                        # apply the function to the object
+                        for arg in args:
+                            method = arg[0]
+                            ret = self.interpret(f"{method}({ret})")
+                        
+                        return ret 
 
                     # reverses the iterable
                     if objfunc == 'reverse':
