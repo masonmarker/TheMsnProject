@@ -1,0 +1,42 @@
+# Injecting JavaScript into a webpage
+#
+# author : Mason Marker
+# date : 6/2/2023
+
+# injects JavaScript into a Chrome URL,
+# opens a new instance of Chrome without killing
+# any existing instances
+function('inject', ret('inject', (
+
+    # declares and starts a new Chrome instance
+    @ chrome = app('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'),
+    chrome.start(),
+
+    # writes the URL to Chrome,
+    # and searches
+    chrome.write(_url),
+    chrome.enter(),
+
+    # presses keys at the same time to inspect element
+    chrome.press('VK_CONTROL', 'VK_SHIFT', 'i'),
+
+    # waits for the console tab item to appear
+    wait(@ console_button = first(chrome.find_tabitems('Console'))),
+
+    # enters the console tab
+    console_button.click(),
+
+    # clears the console
+    chrome.press('VK_CONTROL', 'l'),
+
+    # writes into the console a string
+    # with special characters requiring simultaneous key presses,
+    # such as '!' or ')', and even capital letters
+    chrome.write_special(_script),
+
+    # execute the script
+    chrome.enter()
+
+    # _url: the URL to navigate to
+    # _script: the script to execute        
+)), '_url', '_script')
