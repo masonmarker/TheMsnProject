@@ -3397,18 +3397,22 @@ class Interpreter:
                 # imports resources from another location
                 elif func == 'import' or func == 'launch' or func == 'include' or func == 'using':
 
-                    line, as_s, path = self.parse(0, line, f, sp, args)
-                    if path in self.imports:
-                        continue
-                    self.imports.add(path)
-                    contents = ''
-                    with open(path) as f:
-                        contents = f.readlines()
-                        script = ''
-                        for line in contents:
-                            script += line
-                        self.logg("importing library", str(args[0][0]))
-                        self.execute(script)
+                    # for each import
+                    for i in range(len(args)):
+                        line, as_s, path = self.parse(i, line, f, sp, args)
+                        if path in self.imports:
+                            continue
+                        if not path.endswith('.msn2'):
+                            path += '.msn2'
+                        self.imports.add(path)
+                        contents = ''
+                        with open(path) as f:
+                            contents = f.readlines()
+                            script = ''
+                            for line in contents:
+                                script += line
+                            self.logg("importing library", str(args[0][0]))
+                            self.execute(script)
                     return
 
                 # interpreter printing mechanism
@@ -4059,14 +4063,18 @@ class Interpreter:
                     # get the path to the application
                     path = self.parse(0, line, f, sp, args)[2]            
 
-                    # get the name of the application
-                    name = path.split('\\')[-1]
+                    # if there is not second argument, we do not kill any
+                    # existing instances of the application
                     
-                    # use taskkill to kill the application
-                    # taskkill should end the program by name, and should kill
-                    # all child processes forcefully, it should also not print
-                    # anything to the console                    
-                    os.system(f'taskkill /f /im {name} >nul 2>&1')                    
+                    if len(args) == 1:
+                        # get the name of the application
+                        name = path.split('\\')[-1]
+                        
+                        # use taskkill to kill the application
+                        # taskkill should end the program by name, and should kill
+                        # all child processes forcefully, it should also not print
+                        # anything to the console                    
+                        os.system(f'taskkill /f /im {name} >nul 2>&1')                    
                     
                     # creates an App variable
                     return self.App(path=path)
