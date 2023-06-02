@@ -772,20 +772,42 @@ class Interpreter:
                         return self.vars[vname].value
                     
                     # basic arithmetic, non-destructive
+                    # takes any amount of arguments
                     if objfunc == '+':
-                        return object + self.parse(0, line, f, sp, args)[2]
+                        ret = object
+                        for i in range(len(args)):
+                            ret += self.parse(i, line, f, sp, args)[2]
+                        return ret
                     if objfunc == '-':
-                        return object - self.parse(0, line, f, sp, args)[2]
+                        ret = object
+                        for i in range(len(args)):
+                            ret -= self.parse(i, line, f, sp, args)[2]
+                        return ret
                     if objfunc == '*':
-                        return object * self.parse(0, line, f, sp, args)[2]
+                        ret = object
+                        for i in range(len(args)):
+                            ret *= self.parse(i, line, f, sp, args)[2]
+                        return ret
                     if objfunc == '/':
-                        return object / self.parse(0, line, f, sp, args)[2]
+                        ret = object
+                        for i in range(len(args)):
+                            ret /= self.parse(i, line, f, sp, args)[2]
+                        return ret
                     if objfunc == '%':
-                        return object % self.parse(0, line, f, sp, args)[2]
+                        ret = object
+                        for i in range(len(args)):
+                            ret %= self.parse(i, line, f, sp, args)[2]
+                        return ret
                     if objfunc == '**':
-                        return object ** self.parse(0, line, f, sp, args)[2]
+                        ret = object
+                        for i in range(len(args)):
+                            ret **= self.parse(i, line, f, sp, args)[2]
+                        return ret
                     if objfunc == '//':
-                        return object // self.parse(0, line, f, sp, args)[2]
+                        ret = object
+                        for i in range(len(args)):
+                            ret //= self.parse(i, line, f, sp, args)[2]
+                        return ret
 
                     # applies methods to to the object, considering
                     # the method takes one argument

@@ -6,25 +6,50 @@
 # author : Mason Marker
 # date : 6/1/2023
 
-# # profit margin
-# @ margin = int(input('profit margin: $'))
+# profit margin
+@ margin = int(input('profit margin: $'))
 
-# # increase price by difference of compare_to
-# @ compare_to = int(input('compare to increase: $'))
+# increase price by difference of compare_to
+@ compare_to = int(input('compare to increase: $'))
 
-# # determines if the shipping is the same
-# # for every product
-# @ shipping_is_same = equals(input('shipping is same for all products? (y/n): '), 'y')
+# determines if the shipping is the same
+# for every product
+if (@ shipping_is_same = equals(input('shipping is same for all products? (y/n): '), 'y'), (
+    @ shipping = float(input('Shipping: $')),
+))
+# 'stop' to exit
+print('enter \'stop\' to exit')
 
-# # 'stop' to exit
-# print('enter \'stop\' to exit')
-
-# # current product number
-# @ product = 0
+# current product number
+@ product = 0
 
 # compute price for each product
-while (not(equals(@ prices = input('(Cost) (Shipping cost): '), 'stop')), (
+while (not(equals(
+    @ prices = ? shipping_is_same (
+        input('(Cost): ')
+        ,
+        input('(Cost) (Shipping Cost): ')
+    ), 
+'stop')), (
 
-    prices.print("prices: ")
+    # determine cost and shipping
+    ? shipping_is_same (
+        @ cost = float(strip(prices))
+        ,
+        (
+            unpack(prices.split(),'cost','shipping_cost'),
+            @cost = float(cost),
+            @shipping = float(shipping_cost)
+        )
+    ),
     
+    # print shipping
+    print('shipping: $', shipping),
+    print ('cost: $', cost),
+    print ('margin: $', margin),
+
+    # calculate price value
+    @ price_value = cost.+(shipping, margin),
+    @ compare_price_value = price_value.+(compare_to),
+    print(price_value, compare_price_value)
 ))
