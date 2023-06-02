@@ -7,16 +7,15 @@
 # date : 6/1/2023
 
 # profit margin
-@ margin = int(input('profit margin: $'))
+@ margin = float(input('profit margin: $'))
 
 # increase price by difference of compare_to
-@ compare_to = int(input('compare to increase: $'))
+@ compare_to = float(input('compare to increase: $'))
 
 # determines if the shipping is the same
 # for every product
-if (@ shipping_is_same = equals(input('shipping is same for all products? (y/n): '), 'y'), (
-    @ shipping = float(input('Shipping: $')),
-))
+if (@ shipping_is_same = equals(input('shipping is same for all products? (y/n): '), 'y'), @ shipping = float(input('Shipping: $')))
+
 # 'stop' to exit
 print('enter \'stop\' to exit')
 
@@ -42,11 +41,6 @@ while (not(equals(
             @shipping = float(shipping_cost)
         )
     ),
-    
-    # print shipping
-    print('shipping: $', shipping),
-    print ('cost: $', cost),
-    print ('margin: $', margin),
 
     # calculate price value
     @ price_value = cost.+(shipping, margin),
