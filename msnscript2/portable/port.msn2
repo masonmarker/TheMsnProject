@@ -73,6 +73,10 @@ print('[*] Copying list of dependencies...')
 # copy dependencies
 file.copy('dependencies.txt', package_dir.val())
 
+print('[*] Copying msn2python script...')
+# copy msn2python script
+file.copy('msn2python.py', package_dir.val())
+
 print('[*] Creating README.txt...')
 
 # write README
