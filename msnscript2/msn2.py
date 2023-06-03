@@ -2,7 +2,7 @@
 
 
 # prepare msn2 interpreter
-import msnint2
+from msn2python import run
 
 # cmd argument support
 import sys
@@ -12,30 +12,11 @@ if len(sys.argv) <= 1:
     print('[-] at least one .msn2 file needs to be specified')
     exit(1)
 
+# for each command line argument
 for i in range(1, len(sys.argv)):
+    
+    # obtain the filename
     filename = sys.argv[i]
     
-    # pushes changes to GitHub
-    if filename == 'push':
-        filename = 'projects/console/git.msn2'
-    elif filename == 'test':
-        filename = 'tests/misc.msn2'
-    extension = ''
-    try:
-        extension = filename[filename.rindex('.'):]
-    except:
-        ...
-
-    # verify file type
-    if extension != '.msn2':
-        filename += '.msn2'
-
-
-    f = open(filename, "r")
-    script = f.read()
-
-    interpreter = msnint2.Interpreter()
-    interpreter.execute(script)
-
-    if interpreter.out != '':
-        print(interpreter.out)
+    # run the script
+    run(filename, None)

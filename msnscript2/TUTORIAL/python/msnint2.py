@@ -3420,17 +3420,19 @@ class Interpreter:
                 
                 # imports values from an enclosing Python script
                 elif func == 'in':
-                    
-                    # value of the imports
                     inval = self.vars['_msn2_reserved_in__'].value
-                    
                     # if no arguments, return the value
                     if args[0][0] == '':
                         return inval
-                    # otherwise, an integer represents the index of the value
-                    # within inval
-                    else:
+                    # if 1 argument, get index of value from input
+                    elif len(args) == 1:
                         return inval[self.parse(0, line, f, sp, args)[2]]
+                    # if 2 arguments, get slice of input
+                    elif len(args) == 2:
+                        start = self.parse(0, line, f, sp, args)[2]
+                        end = self.parse(1, line, f, sp, args)[2]
+                        return inval[start:end]
+                    return inval
                     
                 # exports values to an enclosing Python script
                 elif func == 'out':

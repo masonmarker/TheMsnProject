@@ -7,6 +7,7 @@ import math
 import shutil
 import pywinauto
 import win32api
+import warnings
 
 # pywinauto automation
 from pywinauto.application import Application
@@ -28,6 +29,9 @@ import subprocess
 
 # web scraping
 from bs4 import BeautifulSoup
+
+warnings.filterwarnings("ignore", category=SyntaxWarning)
+
 
 
 class Err:
@@ -461,6 +465,15 @@ class Interpreter:
                 objfunc = ''
                 continue
 
+                                    
+            # function to attempt to pull an integer out of the function
+            # if it is an integer, then it is a loop that runs func times
+            def get_int(func):
+                try:
+                    return int(func)
+                except:
+                    return None
+
             # basic method creation
             if c == '~':
                 returnvariable = ''
@@ -818,7 +831,8 @@ class Interpreter:
                             method = arg[0]
                             ret = self.interpret(f"{method}({ret})")
                         
-                        return ret 
+                        return ret
+        
 
                     # reverses the iterable
                     if objfunc == 'reverse':
@@ -1402,6 +1416,31 @@ class Interpreter:
                     def find_tabitems_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, tabitems)
                     
+                    # for EditWrapper
+                    def inputs(parent_window):
+                        return recursive_search(parent_window, pywinauto.controls.uia_controls.EditWrapper, self.Input)
+                    def input(parent_window, index):
+                        return inputs(parent_window)[index]
+                    def print_inputs(parent_window):
+                        return print_elements(parent_window, inputs)
+                    def find_inputs(parent_window, subtext):
+                        return find_elements(parent_window, subtext, inputs)
+                    def find_inputs_exact(parent_window, text):
+                        return find_elements_exact(parent_window, text, inputs)
+                    
+                    # for ButtonWrapper but endswith CheckBox
+                    def checkboxes(parent_window):
+                        return recursive_search(parent_window, int, self.Button, object_string_endswith="CheckBox")
+                    def checkbox(parent_window, index):
+                        return checkboxes(parent_window)[index]
+                    def print_checkboxes(parent_window):
+                        return print_elements(parent_window, checkboxes)
+                    def find_checkboxes(parent_window, subtext):
+                        return find_elements(parent_window, subtext, checkboxes)
+                    def find_checkboxes_exact(parent_window, text):
+                        return find_elements_exact(parent_window, text, checkboxes)
+                        
+                    
                     # for decendants
                     def descendants(parent_window):
                         return recursive_search(parent_window, int, self.AppElement)
@@ -1556,8 +1595,7 @@ class Interpreter:
                                 # if the key is not a special character
                                 new += key
                         return new
-                        
-            
+
                     # if the object is a pywinauto application
                     # KNOWN ISSUES:
                     #   - I've tested this on a Windows 11 laptop and it doesn't
@@ -1658,6 +1696,36 @@ class Interpreter:
                                     'find_links', find_links)) != '<msnint2 no callable>': 
                             return lnks
                         
+                        # gets all Inputs
+                        if (inpts := callables(window,
+                                    'inputs', inputs,
+                                    'print_inputs', print_inputs,
+                                    'input', input,
+                                    'find_inputs', find_inputs,
+                                    objfunc6='wait_for_input_exact', objfunc6_method=wait_for_type_exact_all,
+                                        type1=pywinauto.controls.uia_controls.EditWrapper,
+                                        as_type1=self.Input,
+                                    objfunc7='wait_for_input', objfunc7_method=wait_for_type_subtext_all,
+                                        type2=pywinauto.controls.uia_controls.EditWrapper,
+                                        as_type2=self.Input
+                            )) != '<msnint2 no callable>': 
+                            return inpts
+                        
+                        # gets all checkboxes
+                        if (chks := callables(window,
+                                    'checkboxes', checkboxes,
+                                    'print_checkboxes', print_checkboxes,
+                                    'checkbox', checkbox,
+                                    'find_checkboxes', find_checkboxes,
+                                    objfunc6='wait_for_checkbox_exact', objfunc6_method=wait_for_type_exact_all,
+                                        type1=pywinauto.controls.uia_controls.ButtonWrapper,
+                                        as_type1=self.Button,
+                                    objfunc7='wait_for_checkbox', objfunc7_method=wait_for_type_subtext_all,
+                                        type2=pywinauto.controls.uia_controls.ButtonWrapper,
+                                        as_type2=self.Button
+                            )) != '<msnint2 no callable>': 
+                            return chks
+                        
                         # gets the top_window
                         if objfunc == 'print_tree':
                             return app.dump_tree()
@@ -1734,8 +1802,13 @@ class Interpreter:
                         # sends keystrokes to the application
                         # takes one argument, being the keystrokes to send
                         if objfunc == 'write':
-                            # sends keystrokes to the application
-                            return window.type_keys(self.parse(0, line, f, sp, args)[2], with_spaces=True)
+                            writing = self.parse(0, line, f, sp, args)[2]
+                            try:
+                                # sends keystrokes to the application
+                                return window.type_keys(writing, with_spaces=True)
+                            except:
+                                # with_spaces not allowed
+                                return window.type_keys(writing)
                         # writes special characters into the console
                         # takes one argument, being the special characters to write
                         if objfunc == 'write_special':
@@ -1760,13 +1833,22 @@ class Interpreter:
                         # presses the shortcut keys to inspects element
                         # ctrl shift i
                         if objfunc == 'inspect':
+                            
                             # presses the shortcut keys to inspects element
-                            return window.type_keys('{VK_CONTROL down}{VK_SHIFT down}{i down}{VK_CONTROL up}{VK_SHIFT up}{i up}')
+                            r = window.type_keys('{VK_CONTROL down}{VK_SHIFT down}{i down}{VK_CONTROL up}{VK_SHIFT up}{i up}')
+                            
+                            # waits for the inspect window to appear
+                            wait_for_text_all(window, 'Console')
+                            return r
                         
                         # presses the enter key
                         if objfunc == 'enter':
                             # presses the enter key
                             return window.type_keys('{ENTER}')
+                        # presses the escape key
+                        if objfunc == 'escape':
+                            # presses the escape key
+                            return window.type_keys('{ESC}')
                         # page down
                         if objfunc == 'page_down':
                             # presses the page down key
@@ -1836,15 +1918,21 @@ class Interpreter:
 
                         # computes the diameter of the window
                         if objfunc == 'width':
-                            left = window.get_properties()['rectangle'].left
-                            right = window.get_properties()['rectangle'].right
-                            return right - left
+                            try:
+                                left = window.get_properties()['rectangle'].left
+                                right = window.get_properties()['rectangle'].right
+                                return right - left
+                            except:
+                                return
                         # computes the height of the window
                         if objfunc == 'height':
-                            top = window.get_properties()['rectangle'].top
-                            bottom = window.get_properties()['rectangle'].bottom
-                            return bottom - top
-                        
+                            try:
+                                top = window.get_properties()['rectangle'].top
+                                bottom = window.get_properties()['rectangle'].bottom
+                                return bottom - top
+                            except:
+                                return 
+                            
                         # getting adjacent elements
                         # could or could not be decendants
                         # operation is very slow, should be used mainly
@@ -1920,8 +2008,21 @@ class Interpreter:
                         # sends keystrokes to the application
                         # takes one argument, being the keystrokes to send
                         if objfunc == 'write':
-                            # sends keystrokes to the application
-                            return window.type_keys(self.parse(0, line, f, sp, args)[2], with_spaces=True)
+                            writing = self.parse(0, line, f, sp, args)[2]
+                            try:
+                                # sends keystrokes to the application
+                                return window.type_keys(writing, with_spaces=True)
+                            except:
+                                # with spaces not allowed
+                                window.set_focus()
+                                
+                                # sends keystrokes to the application
+                                return pywinauto.keyboard.send_keys(writing, with_spaces=True)
+                        
+                        # presses the enter key
+                        if objfunc == 'enter':
+                            return window.type_keys('{ENTER}')
+                        
                         # hovers over the window
                         if objfunc == 'hover':
                             # hovers the mouse over the window, using the mid point of the element
@@ -2199,7 +2300,6 @@ class Interpreter:
                     value = self.parse(1, line, f, sp, args)[2]
 
                     vname = f"{fname}__return__"
-
                     self.vars[vname].value = value
                     return value
 
@@ -2231,17 +2331,22 @@ class Interpreter:
 
                     # execute method
                     method.run(func_args, self)
-
+                    
+                    # if its a variable
+                    if ret_name in self.vars:
+                        return self.vars[ret_name].value
+                    
                     try:
-                        return eval(str(self.vars[method.returns[0]].value))
+                        return eval(str(self.vars[ret_name].value))
                     except:
-                        try:
-                            return str(self.vars[method.returns[0]].value)
-                        except:
-                            return str(self.vars[method.returns[0]])
+                        pass
+                    try:
+                        return str(self.vars[ret_name].value)
+                    except:
+                        return str(self.vars[ret_name])
 
                 # creating a list
-                if func == 'from':
+                if func == 'arr' or func == 'from':
                     arr = []
                     if args[0][0] == '':
                         return arr
@@ -3414,6 +3519,40 @@ class Interpreter:
                             self.logg("importing library", str(args[0][0]))
                             self.execute(script)
                     return
+                
+                # imports values from an enclosing Python script
+                elif func == 'in':
+                    inval = self.vars['_msn2_reserved_in__'].value
+                    # if no arguments, return the value
+                    if args[0][0] == '':
+                        return inval
+                    # if 1 argument, get index of value from input
+                    elif len(args) == 1:
+                        return inval[self.parse(0, line, f, sp, args)[2]]
+                    # if 2 arguments, get slice of input
+                    elif len(args) == 2:
+                        start = self.parse(0, line, f, sp, args)[2]
+                        end = self.parse(1, line, f, sp, args)[2]
+                        return inval[start:end]
+                    return inval
+                    
+                # exports values to an enclosing Python script
+                elif func == 'out':
+                        
+                    # variables to output
+                    outting = []
+                
+                    # for each argument
+                    for i in range(len(args)):
+                        outting.append(self.parse(i, line, f, sp, args)[2])        
+                        
+                    _out = '_msn2_reserved_out__'
+                    # create a variable for the enclosing Python script
+                    # to access
+                    self.vars[_out] = Var(_out, outting)
+                    
+                    # return outting
+                    return outting
 
                 # interpreter printing mechanism
                 elif func == 'prnt':
@@ -4134,6 +4273,14 @@ class Interpreter:
 
                         line, ret = self.convert_arg(ins_s, line, f, sp, args)
                     return ret
+                
+                # if the function, when parsed, is an integer,
+                # then it is a loop that runs func times
+                elif (_i := get_int(func)) != None:
+                    ret = None
+                    for i in range(_i):
+                        ret = self.interpret(args[0][0])
+                    return ret
 
 
                 # fallback
@@ -4785,12 +4932,16 @@ class Interpreter:
         
         # computes the height of the window
         def height(self):
-            return self.window.get_properties()['rectangle'].bottom - self.window.get_properties()['rectangle'].top
-        
+            try:
+                return self.window.get_properties()['rectangle'].bottom - self.window.get_properties()['rectangle'].top
+            except:
+                return
         # computes the width of the window
         def width(self):
-            return self.window.get_properties()['rectangle'].right - self.window.get_properties()['rectangle'].left
-        
+            try:
+                return self.window.get_properties()['rectangle'].right - self.window.get_properties()['rectangle'].left
+            except:
+                return
         # string
         def __str__(self):
             return Interpreter.bordered(f'Text: {self.name if self.name else "[No Text Found]"}\nSize:\
@@ -4857,3 +5008,15 @@ class Interpreter:
 
             # call super constructor
             super().__init__(window, name)  
+    
+    # class for Inputs
+    class Input(AppElement):
+        # constructor
+        def __init__(self, window, name):
+
+            # call super constructor
+            super().__init__(window, name)  
+            
+        # types text into the input
+        def type_keys(self, text):
+            self.window.type_keys(text)

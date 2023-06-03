@@ -4,34 +4,28 @@
 # date : 6/2/2023
 
 
-# Helper method for _console_open, returns the Console button
-function('_console_open_navigate', (
-    # if the console button has not been found, find it
-    wait(@ _console_button = first(_appinstance.find_tabitems('Console'))),
-
-    # enters the console tab
-    _console_button.set_focus(),
-    _console_button.click(),
-
-    # clears the console
-    _appinstance.press('VK_CONTROL', 'l'),
-
-    # returns the console button
-    _console_button
-), '_appinstance')
 
 # Helper method, opens the element inspection console,
 # opens, and navigates to it
 # 
 # _appinstance: the browser instance to open the console in
 # returns the Console button found within the inspect element panel
-function('_console_open_start', ret('_console_open_start', (
+function('_console_open', ret('_console_open', (
      # presses keys at the same time to inspect element
     # equivalent to _appinstance.press('VK_CONTROL', 'VK_SHIFT', 'i')
     _appinstance.inspect(),
 
-    # navigates to the console
-    _console_open_navigate(_appinstance)
+    # if the console button has not been found, find it
+    wait(@ _console_button = first(_appinstance.find_tabitems('Console'))),
+
+    # enters the console tab
+    _console_button.click(),
+
+    # clears the console
+    _appinstance.press('VK_CONTROL', 'l'),
+
+    # returns the console button
+    console_button
 )),'_appinstance')
 
 
@@ -64,7 +58,7 @@ function('_console_write_special', if (isstr(_scripts), (
 # Retrieves the output of the most recently executed script in the
 # element inspection console.
 # 
-# The script executed must print to the console for output to be retrieved.
+# To safely execute, the script should only exist in the console
 #
 # _appinstance: the browser instance to retrieve the console output from
 # _distance, the distance from the script's entry to its output, default is listed if
@@ -108,7 +102,7 @@ function('inject', ret('inject', (
     _appinstance.enter(),
 
     # opens the element inspection
-    @inject:console_button = _console_open_start(_appinstance),
+    @inject:console_button = _console_open(_appinstance),
 
     # write the scripts to the console
     _console_write_special(_appinstance, _scripts),
@@ -136,11 +130,9 @@ function('inject', ret('inject', (
 # so the button does not have to be found again
 function('active_inject', (
 
-    # inspect is open, navigate, otherwise open and navigate
-    @active_inject:console_button = if(_inspect_is_open, 
-        _console_open_navigate(_appinstance), 
-        _console_open_start(_appinstance)
-    ),
+    # if the inspection is not open, open 
+    # and navigate
+    if (not(_inspect_is_open), @active_inject:console_button = _console_open(_appinstance)),
 
     # write the scripts to the console
     _console_write_special(_appinstance, _scripts),

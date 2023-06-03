@@ -1052,6 +1052,9 @@ var('terminate', False)
 # two integers, and an index variable before the loop's block arguments within the ()
 # the arguments to the simple loop between the || cannot be anything but an integer
 
+# 6/3/2023: added an integer as a syscall, running its block that many times
+# this works for any integer
+
 # tests another loop approach
 ~ test_simple_loops() -> _
 
@@ -1082,6 +1085,20 @@ var('terminate', False)
     # nested simple loops
     -- 2 | 6 | i    (1|4|j  (add('a', 1)))
     -- assert(?a? == 12)
+
+
+    # testing integer syscall
+    -- @ a = 0
+    -- 5 (add('a', 1))
+    -- assert(a.equals(5))
+
+    -- @ a = 0
+    -- 300(a.add(1))
+    -- assert(a.equals(300))
+
+
+
+
 
     # uses msn1 fallback to simplify returning process, see returning tests for returning requirements
     -- @ _ = 1
