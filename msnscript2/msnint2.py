@@ -14,6 +14,9 @@ from pywinauto.application import Application
 from pywinauto import mouse
 from pywinauto import timings
 
+# automating Excel
+import openpyxl
+
 import openai
 import random
 import time
@@ -615,7 +618,141 @@ class Interpreter:
                             object[keys[-1]] = to_set
                             return to_set
                         return object
+                    
+                    # working with Excel sheets
+                    elif isinstance(object, self.Sheet):
+                        
+                        # active elements
+                        title = object.title
+                        workbook = object.workbook
+                        path = object.path
+                        sheet = object.sheet
+                        
+                        # gets the value of a cell
+                        if objfunc == 'get':
+                            
+                            # column of the cell
+                            column = self.parse(0, line, f, sp, args)[2]
+                            
+                            # row of the cell
+                            row = self.parse(1, line, f, sp, args)[2]
 
+                            # returns the value of the cell
+                            return sheet.cell(row + 1, column + 1).value
+                    
+                        # sets the value of a cell
+                        if objfunc == 'set':
+
+                            # column of the cell
+                            column = self.parse(0, line, f, sp, args)[2]
+                            
+                            # row of the cell
+                            row = self.parse(1, line, f, sp, args)[2]
+                            
+                            # value to set the cell to
+                            value = self.parse(2, line, f, sp, args)[2]
+                            
+                            # sets the value of the cell
+                            sheet.cell(row + 1, column + 1, value)
+                            
+                            # returns the sheet
+                            return value
+                        
+                        # sets a column to an array of values
+                        if objfunc == 'set_column':
+                            
+                            # column number
+                            column = self.parse(0, line, f, sp, args)[2] + 1
+                            
+                            # array of values
+                            values = self.parse(1, line, f, sp, args)[2]
+                            
+                            # sets the column to the values
+                            for i in range(len(values)):
+                                sheet.cell(i + 1, column, values[i])
+                                
+                            return values
+                                
+                        # sets a row to an array of values
+                        if objfunc == 'set_row':
+                            
+                            # row number
+                            row = self.parse(0, line, f, sp, args)[2] + 1
+                            
+                            # array of values
+                            values = self.parse(1, line, f, sp, args)[2]
+                            
+                            # sets the row to the values
+                            for i in range(len(values)):
+                                sheet.cell(row, i + 1, values[i])
+                                
+                            return values
+                                
+                        # adds a value to a column
+                        if objfunc == 'add_to_column':
+                            # column
+                            column = self.parse(0, line, f, sp, args)[2] + 1
+                            # value to add
+                            value = self.parse(1, line, f, sp, args)[2]
+                            # find the first empty cell in the column
+                            for i in range(sheet.max_row):
+                                if sheet.cell(i + 1, column).value == None:
+                                    sheet.cell(i + 1, column, value)
+                                    return value
+                            return value
+                            
+                            
+                        # adds a value to a row
+                        if objfunc == 'add_to_row':
+                                
+                            # row number
+                            row = self.parse(0, line, f, sp, args)[2] + 1
+                            
+                            # value to add
+                            value = self.parse(1, line, f, sp, args)[2]
+                            
+                            # find the first empty cell in the row
+                            for i in range(sheet.max_column):
+                                if sheet.cell(row, i + 1).value == None:
+                                    sheet.cell(row, i + 1, value)
+                                    return value
+                            return value
+                        
+                        
+                        # clears the sheet
+                        if objfunc == 'clear':
+                                
+                            # clears the sheet
+                            for row in sheet.iter_rows():
+                                for cell in row:
+                                    cell.value = None
+                                                        
+                            # returns the sheet
+                            return object
+                        
+                        # gets the populated cell values of a column
+                        if objfunc == 'column':
+                            col = self.parse(0, line, f, sp, args)[2] + 1
+                            column_values = []
+                            for cell in sheet.iter_cols(min_col=col, max_col=col):
+                                for row in cell:
+                                    if row.value != None:
+                                        column_values.append(row.value)
+                            return column_values
+                            
+                        # gets the populated cell values of a row
+                        if objfunc == 'row':
+                            row = self.parse(0, line, f, sp, args)[2] + 1
+                            row_values = []
+                            for cell in sheet.iter_rows(min_row=row, max_row=row):
+                                for col in cell:
+                                    if col.value != None:
+                                        row_values.append(col.value)
+                            return row_values
+                        
+                        # if nothing else, return the object
+                        return object
+                    
                     # methods available to all types
                     if objfunc == 'copy':
                         return object.copy()
@@ -676,6 +813,7 @@ class Interpreter:
 
                     if objfunc == 'dict':
                         return dict(object)
+                    
 
                     # gets values from the object if the statement is true for each object
                     # runs the function on each element / kv pair
@@ -1220,6 +1358,44 @@ class Interpreter:
                         # endswith
                         if objfunc == 'endswith':
                             return object.endswith(self.parse(0, line, f, sp, args)[2])
+                        
+                    # working with Excel    
+                    elif isinstance(object, self.Workbook):
+                        
+                        # active workbook
+                        workbook = object.workbook
+                        path = object.path
+                        
+                        # gets or creates a sheet in the workbook
+                        if objfunc == 'sheet':
+                            
+                            # title of the new sheet
+                            title = self.parse(0, line, f, sp, args)[2]
+
+                            # if the sheet has already been created,
+                            # return the created sheet
+                            for name in workbook.sheetnames:
+                                if name.lower() == title.lower():
+                                    return self.Sheet(workbook[name], name, workbook, path)
+                            
+                            # creates the sheet
+                            sheet = workbook.create_sheet(title)
+                            
+                            # returns the sheet
+                            return self.Sheet(sheet, title, workbook, path)
+                            
+                        # saves the workbook
+                        if objfunc == 'save':
+                            workbook.save(path)
+                            return object
+                        # closes the workbook
+                        if objfunc == 'close' or objfunc == 'stop' or objfunc == 'kill':
+                            workbook.close()
+                            return object
+                        
+                        # otherwise return the object
+                        return object
+                        
                             
                     # GENERAL METHODS
                     # gets the immediate children of the parent window
@@ -4217,6 +4393,19 @@ class Interpreter:
                     
                     # creates an App variable
                     return self.App(path=path)
+                
+                # starts and retrieves an instance of an Excel workbook
+                # using the openpyxl library
+                #
+                # this method works better than the app() system call
+                # as it utilizes an Excel-specific library for stability
+                # and speed
+                #
+                # creation of a workbook can be done with the 'file' msn2 class
+                elif func == 'excel':
+                    path = self.parse(0, line, f, sp, args)[2]
+                    # creates and returns a Workbook
+                    return self.Workbook(openpyxl.load_workbook(path), path)
 
                 # functional syntax I decided to add to make loops a tiny bit faster,
                 # cannot receive non literal arguments
@@ -5020,3 +5209,21 @@ class Interpreter:
         # types text into the input
         def type_keys(self, text):
             self.window.type_keys(text)
+            
+            
+    # ------------------------------------
+    # working with Excel
+    class Workbook:
+        
+        # constructor
+        def __init__(self, workbook, path) -> None:
+            self.workbook = workbook
+            self.path = path
+            
+    # sheet class
+    class Sheet(Workbook):
+        
+        def __init__(self, sheet, title, workbook, path) -> None:
+            super().__init__(workbook, path)
+            self.sheet = sheet
+            self.title = title

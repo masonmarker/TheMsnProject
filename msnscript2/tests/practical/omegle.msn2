@@ -45,8 +45,11 @@ messages.each('message', (
     3(chrome.escape())
 ))
 
+# sleep for 3 seconds
+sleep(3)
+
 # close Chrome
 chrome.stop()
 
+# we're done!
 print('[+] finished!')
-sleep(3)
