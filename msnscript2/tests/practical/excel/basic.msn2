@@ -1,10 +1,10 @@
-# Performs basic Excel operations
+# Tests basic Excel operations.
 #
 # author : Mason Marker
 # date : 6/3/2023
 
 # obtains an existing Excel Workbook
-@ book = excel('C:\\Users\\mason\\OneDrive\\Desktop\\book.xlsx')
+@ book = excel('C:\\Users\\mason\\OneDrive\\Desktop\\msn\\book.xlsx')
 
 # creates an Excel sheet
 # (or gets it if it already exists)
@@ -102,9 +102,87 @@ assert(equals(
     ['hey2', 'hey2', 'hey2', 'hey2', 'hey2']
 ))
 
+# clear the sheet
+sheet.clear()
+
+# sets the column
+sheet.set_column(1, ['hello', 'world', 'goodbye'])
+
+# gets a column by title
+assert(equals(
+    sheet.column('hello'), 
+    ['hello', 'world', 'goodbye']
+))
+
+# sets a row
+sheet.set_row(1, ['hello', 'world', 'goodbye'])
+
+# gets a row by title
+assert(equals(
+    sheet.row('hello'), 
+    ['hello', 'world', 'goodbye']
+))
 
 
+# setting a column with a title
+sheet.set_column('hello', ['hello', 'USA', 'nerds'])
 
+# assert the column is set
+assert(equals(
+    sheet.column('hello'), 
+    ['hello', 'USA', 'nerds']
+))
+
+# setting a row with a title
+sheet.set_row('hello', ['hello', 'USA', 'nerds'])
+
+# assert the row is set
+assert(equals(
+    sheet.row('hello'), 
+    ['hello', 'USA', 'nerds']
+))
+
+# adding to a column by name
+sheet.add_to_column('hello', 'world')
+
+# assert the column is set
+assert(equals(
+    sheet.column('hello'), 
+    ['hello', 'USA', 'nerds', 'world']
+))
+
+# adding to a row by name
+sheet.add_to_row('hello', 'world')
+
+# assert the row is set
+assert(equals(
+    sheet.row('hello'), 
+    ['hello', 'USA', 'nerds', 'world']
+))
+
+# creating new sheets
+@ sheet2 = book.sheet('sheet2')
+@ sheet3 = book.sheet('sheet3')
+
+# assert the sheets are empty
+assert(equals(sheet2.column(0), []))
+assert(equals(sheet3.column(0), []))
+
+# set a column in sheet2
+sheet2.set_column(0, ['hello', 'world'])
+
+# assert the column is set
+assert(equals(sheet2.column(0), ['hello', 'world']))
+
+# set a column in sheet3
+sheet3.set_column(0, ['goodbye', 'world'])
+
+# assert the columns are different
+assert(not(equals(sheet2.column(0), sheet3.column(0))))
+
+# assert what the columns are
+assert(equals(sheet2.column(0), ['hello', 'world']))
+assert(equals(sheet3.column(0), ['goodbye', 'world']))
 
 
 

@@ -53,7 +53,7 @@ function('ask_gpt', (
                 'flex flex-col text-sm dark:bg-gray-800'
             )[0];
             let lm = m.children[m.children.length-2];
-            console.log(lm.innerText);
+            console.log(lm.innerText+"%$@".repeat(1000));
         ), True))
     )),
 

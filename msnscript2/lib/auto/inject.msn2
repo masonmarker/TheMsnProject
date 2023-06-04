@@ -76,13 +76,50 @@ function('retrieve_output', ret('retrieve_output', (
     @ _lastchildwithscript = last(_appinstance.find_links('_app-')),
 
     # if not distance, set to default
-    if (not(_distance), @ _distance = 5),
+    if (not(_distance), @ _distance = 30),
 
     # gets the output
     @ _lastchildwithscript_result = _lastchildwithscript.element_below(_distance),
 
+    # try to get the mouse in the right place
+    # depending on the calling function
+    # for detecting the _app- link
+    if(not(_lastchildwithscript_result), (
+        if (inject:console_button, (
+            inject:console_button.hover(),
+            inject:console_button.click(),
+            
+        )),
+        if (active_inject:console_button, (
+            active_inject:console_button.hover(),
+            active_inject:console_button.click(),
+        )),
+
+        # move the mouse down 50 pixels and
+        # go to the top of the console
+        pointer.down(50),
+        _appinstance.page_up()
+
+    )),
+
+    # try to find the result while None
+    while(not(_lastchildwithscript_result), (
+        @ _lastchildwithscript_result = _lastchildwithscript.element_below(_distance.add(10)),
+    )),
+
     # returns the output
-    _lastchildwithscript_result.text()
+    @ _lastchildwithscript_fixed = _lastchildwithscript_result.text(),
+
+    # replace the %$@ placeholder with nothing
+    _lastchildwithscript_fixed.replace("%$@" * 1000, ''),
+
+    # remove the initial ChatGPT message
+    if(_lastchildwithscript_fixed.startswith('ChatGPT'), (
+        @ _lastchildwithscript_fixed = strip(_lastchildwithscript_fixed.slice(
+            7, _lastchildwithscript_fixed.len()))
+    )),
+
+    _lastchildwithscript_fixed
 
 )), '_appinstance', '_distance')
 
