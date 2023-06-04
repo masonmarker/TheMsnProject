@@ -658,66 +658,6 @@ class Interpreter:
                             # returns the sheet
                             return value
                         
-                        # sets a column to an array of values
-                        if objfunc == 'set_column':
-                            
-                            # column number
-                            column = self.parse(0, line, f, sp, args)[2] + 1
-                            
-                            # array of values
-                            values = self.parse(1, line, f, sp, args)[2]
-                            
-                            # sets the column to the values
-                            for i in range(len(values)):
-                                sheet.cell(i + 1, column, values[i])
-                                
-                            return values
-                                
-                        # sets a row to an array of values
-                        if objfunc == 'set_row':
-                            
-                            # row number
-                            row = self.parse(0, line, f, sp, args)[2] + 1
-                            
-                            # array of values
-                            values = self.parse(1, line, f, sp, args)[2]
-                            
-                            # sets the row to the values
-                            for i in range(len(values)):
-                                sheet.cell(row, i + 1, values[i])
-                                
-                            return values
-                                
-                        # adds a value to a column
-                        if objfunc == 'add_to_column':
-                            # column
-                            column = self.parse(0, line, f, sp, args)[2] + 1
-                            # value to add
-                            value = self.parse(1, line, f, sp, args)[2]
-                            # find the first empty cell in the column
-                            for i in range(sheet.max_row):
-                                if sheet.cell(i + 1, column).value == None:
-                                    sheet.cell(i + 1, column, value)
-                                    return value
-                            return value
-                            
-                            
-                        # adds a value to a row
-                        if objfunc == 'add_to_row':
-                                
-                            # row number
-                            row = self.parse(0, line, f, sp, args)[2] + 1
-                            
-                            # value to add
-                            value = self.parse(1, line, f, sp, args)[2]
-                            
-                            # find the first empty cell in the row
-                            for i in range(sheet.max_column):
-                                if sheet.cell(row, i + 1).value == None:
-                                    sheet.cell(row, i + 1, value)
-                                    return value
-                            return value
-                        
                         
                         # clears the sheet
                         if objfunc == 'clear':
@@ -729,26 +669,206 @@ class Interpreter:
                                                         
                             # returns the sheet
                             return object
-                        
+                                                
                         # gets the populated cell values of a column
+                        # if the argument is a number, it gets the value of that column
+                        # if the argument is a string, it gets the value of the column with that title
                         if objfunc == 'column':
-                            col = self.parse(0, line, f, sp, args)[2] + 1
+                            
+                            # column, either an integer or string
+                            col = self.parse(0, line, f, sp, args)[2]
+                            
                             column_values = []
-                            for cell in sheet.iter_cols(min_col=col, max_col=col):
-                                for row in cell:
-                                    if row.value != None:
-                                        column_values.append(row.value)
+                            
+                            # if number
+                            if isinstance(col, int):
+                                col += 1
+                                for cell in sheet.iter_cols(min_col=col, max_col=col):
+                                    for row in cell:
+                                        if row.value != None:
+                                            column_values.append(row.value)
+                                            
+                            # otherwise, get column by title
+                            elif isinstance(col, str):
+                                
+                                # for each column
+                                for cell in sheet.iter_cols():
+                                        # if the title matches
+                                        if cell[0].value == col:
+                                            
+                                            # get the column values
+                                            for row in cell:
+                                                if row.value != None:
+                                                    column_values.append(row.value)
                             return column_values
                             
                         # gets the populated cell values of a row
+                        # if the argument is a number, it gets the value of that column
+                        # if the argument is a string, it gets the value of the column with that title
                         if objfunc == 'row':
-                            row = self.parse(0, line, f, sp, args)[2] + 1
+                            
+                            # row, either an integer or string
+                            r = self.parse(0, line, f, sp, args)[2]
+                            
                             row_values = []
-                            for cell in sheet.iter_rows(min_row=row, max_row=row):
-                                for col in cell:
-                                    if col.value != None:
-                                        row_values.append(col.value)
+                            
+                            # if number
+                            if isinstance(r, int):
+                                r += 1
+                                for cell in sheet.iter_rows(min_row=r, max_row=r):
+                                    for row in cell:
+                                        if row.value != None:
+                                            row_values.append(row.value)     
+                            # otherwise, get row by title
+                            elif isinstance(r, str):
+                                
+                                # for each row
+                                for cell in sheet.iter_rows():
+                                        # if the title matches
+                                        if cell[0].value == r:
+                                            
+                                            # get the row values
+                                            for row in cell:
+                                                if row.value != None:
+                                                    row_values.append(row.value)
                             return row_values
+                    
+                        # gets the index of a column with a given title
+                        def get_column_index(title):
+                            for cell in sheet.iter_cols():
+                                if cell[0].value == title:
+                                    return cell[0].column
+                            return None
+                        def get_row_index(title):
+                            for cell in sheet.iter_rows():
+                                if cell[0].value == title:
+                                    return cell[0].row
+                            return None
+                    
+                        # rewrite the above method, but with
+                        # if the argument is a number, it gets the value of that column
+                        # if the argument is a string, it gets the value of the column with that title
+                        if objfunc == 'set_column':
+                                
+                            # column, either an integer or string
+                            col = self.parse(0, line, f, sp, args)[2]
+                            
+                            # array of values
+                            values = self.parse(1, line, f, sp, args)[2]
+                            
+                            # if number
+                            if isinstance(col, int):
+                                col += 1
+                                for i in range(len(values)):
+                                    sheet.cell(i + 1, col, values[i])
+                                    
+                            # otherwise, get column by title
+                            elif isinstance(col, str):
+                                
+                                # for each column
+                                for cell in sheet.iter_cols():
+                                        # if the title matches
+                                        if cell[0].value == col:
+                                            
+                                            # get the column values
+                                            for i in range(len(values)):
+                                                sheet.cell(i + 1, get_column_index(col), values[i])
+                                                
+                            return values
+                                
+                        # sets a row to an array of values
+                        # if the argument is a number, it gets the value of that column
+                        # if the argument is a string, it gets the value of the column with that title
+                        if objfunc == 'set_row':
+                            
+                            # row, either an integer or string
+                            r = self.parse(0, line, f, sp, args)[2]
+                            
+                            # array of values
+                            values = self.parse(1, line, f, sp, args)[2]
+                            
+                            # if number
+                            if isinstance(r, int):
+                                r += 1
+                                for i in range(len(values)):
+                                    sheet.cell(r, i + 1, values[i])
+                                    
+                            # otherwise, get row by title
+                            elif isinstance(r, str):
+                                
+                                # for each row
+                                for cell in sheet.iter_rows():
+                                        # if the title matches
+                                        if cell[0].value == r:
+                                            
+                                            # get the row values
+                                            for i in range(len(values)):
+                                                sheet.cell(get_row_index(r), i + 1, values[i])          
+                            return values
+                        
+                    
+                        # reqrite the above method, but with
+                        # if the argument is a number, it gets the value of that column
+                        # if the argument is a string, it gets the value of the column with that title
+                        if objfunc == 'add_to_column':
+                            
+                            # column
+                            column = self.parse(0, line, f, sp, args)[2]
+                            
+                            # value to add
+                            value = self.parse(1, line, f, sp, args)[2]
+                            
+                            # if number
+                            if isinstance(column, int):
+                                column += 1
+                                # find the first empty cell in the column
+                                for i in range(sheet.max_row):
+                                    if sheet.cell(i + 1, column).value == None:
+                                        sheet.cell(i + 1, column, value)
+                                        return value
+                                return value
+                                
+                            # otherwise, get column by title
+                            elif isinstance(column, str):
+                                column_index = get_column_index(column)
+                                # find the first empty cell in the column
+                                for i in range(sheet.max_row):
+                                    if sheet.cell(i + 1, column_index).value == None:
+                                        sheet.cell(i + 1, column_index, value)
+                                        return value
+                            return value
+                            
+                        # adds a value to a row
+                        # if the argument is a number, it gets the value of that column
+                        # if the argument is a string, it gets the value of the column with that title
+                        if objfunc == 'add_to_row':
+                                
+                            # row
+                            row = self.parse(0, line, f, sp, args)[2]
+                            
+                            # value to add
+                            value = self.parse(1, line, f, sp, args)[2]
+                            
+                            # if number
+                            if isinstance(row, int):
+                                row += 1
+                                # find the first empty cell in the row
+                                for i in range(sheet.max_column):
+                                    if sheet.cell(row, i + 1).value == None:
+                                        sheet.cell(row, i + 1, value)
+                                        return value
+                                return value
+                                
+                            # otherwise, get row by title
+                            elif isinstance(row, str):
+                                row_index = get_row_index(row)
+                                # find the first empty cell in the row
+                                for i in range(sheet.max_column):
+                                    if sheet.cell(row_index, i + 1).value == None:
+                                        sheet.cell(row_index, i + 1, value)
+                                        return value
+                            return value
+                            
                         
                         # if nothing else, return the object
                         return object
@@ -1799,7 +1919,7 @@ class Interpreter:
 
                             return object.application
                         # kills the application
-                        if objfunc == 'stop' or objfunc == 'kill':
+                        if objfunc == 'stop' or objfunc == 'kill' or objfunc == 'close':
                             # kill the application
                             return app.kill()
 
@@ -2029,6 +2149,10 @@ class Interpreter:
                         if objfunc == 'page_down':
                             # presses the page down key
                             return window.type_keys('{PGDN}')
+                        # page up
+                        if objfunc == 'page_up':
+                            # presses the page up key
+                            return window.type_keys('{PGUP}')
                         
                         # # collects all children within the entire page
                         # # finds all scrollbars and scrolls throughout the entire page
@@ -3078,10 +3202,12 @@ class Interpreter:
                             return mouse.double_click(coords=win32api.GetCursorPos())
                     # scrolls the mouse wheel to the bottom of the page
                     if objfunc == 'scroll_bottom':
-                        return mouse.scroll(wheel_dist=9999999)
+                        return mouse.scroll(wheel_dist=9999999, coords=win32api.GetCursorPos())
                     # scrolls the mouse wheel to the top of the page
                     if objfunc == 'scroll_top':
-                        return mouse.scroll(wheel_dist=-9999999)
+                        return mouse.scroll(wheel_dist=-9999999, coords=win32api.GetCursorPos())
+                    if objfunc == 'scroll':
+                        return mouse.scroll(wheel_dist=self.parse(0, line, f, sp, args)[2], coords=win32api.GetCursorPos())
                         
 
 
@@ -3538,6 +3664,31 @@ class Interpreter:
                     if objfunc == 'asin':
                         return math.asin(self.parse(0, line, f, sp, args)[2])
                     return '<msnint2 class>'
+
+                # inserts a value into the iterable at the specified index
+                elif func == 'map':
+                    
+                    # iterable
+                    iterable = self.parse(0, line, f, sp, args)[2]
+                    
+                    # varname
+                    varname = self.parse(1, line, f, sp, args)[2]
+                    
+                    # function
+                    function = args[2][0]
+                    
+                    # map the function to each element in the iterable
+                    for i, el in enumerate(iterable):
+                        self.vars[varname] = Var(varname, el)
+                        iterable[i] = self.interpret(function)
+                    return iterable
+                        
+                        
+                        
+                    
+                # inserts a value into the iterable at the specified index
+                elif func == 'insert':
+                    return self.parse(0, line, f, sp, args)[2].insert(self.parse(1, line, f, sp, args)[2], self.parse(2, line, f, sp, args)[2])
 
                 # gets the type of the first argument passed
                 elif func == 'type':
@@ -4404,9 +4555,9 @@ class Interpreter:
                 # creation of a workbook can be done with the 'file' msn2 class
                 elif func == 'excel':
                     path = self.parse(0, line, f, sp, args)[2]
+
                     # creates and returns a Workbook
                     return self.Workbook(openpyxl.load_workbook(path), path)
-
                 # functional syntax I decided to add to make loops a tiny bit faster,
                 # cannot receive non literal arguments
                 # syntax:     3|5|i (prnt(i))
