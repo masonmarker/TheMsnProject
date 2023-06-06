@@ -1,0 +1,21 @@
+# waits for a mouse click
+#
+# author : Mason Marker
+# date : 6/4/2023
+
+
+# element discovery
+import ('lib/auto/discover')
+
+# starts Google Chrome
+@ chrome = app('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
+chrome.start()
+chrome.write('https://orteil.dashnet.org/cookieclicker/')
+chrome.enter()
+
+
+discover_click(chrome, 20, script(less(len(child.text()), 50)))
+
+
+
+chrome.stop()

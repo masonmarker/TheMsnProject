@@ -1,0 +1,34 @@
+# Assists in element discovery.
+#
+# author : Mason Marker
+# date : 6/4/2023
+
+
+# prints the elements being clicked for 
+# '_seconds' amount of seconds
+# 
+# _appinstance : the application instance to search on
+# _seconds : the amount of seconds to wait for clicks
+# _text_condition : print a discovered element if a condition
+# regarding the child is met, condition variable is 'child'
+function('discover_click', private((
+    # times clicked
+    @ _dc_times_clicked = 0,
+    # interval for waiting for a mouse click
+    interval(0.001, (
+        # waits for a mouse click
+        pointer.wait_left(),
+
+        print('-' * 50),
+        # increments the times clicked
+        print('Click #', _dc_times_clicked.inc()),
+        print('Clicked at', pointer.position()),
+        # prints the element at the mouse position
+        each(_appinstance.hovered(), 'child', if(-(_text_condition), child.print())),
+        print('-' * 50)
+
+), _seconds))), '_appinstance', '_seconds', '_text_condition')
+
+# explores a webpage, allows the user to click around
+# on a Google Chrome URL to discover web elements
+function ('discover_explore', , )

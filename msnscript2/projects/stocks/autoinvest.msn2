@@ -1,0 +1,26 @@
+# Automatically invests money into the latest stock 
+# found on OpenInsider website.
+
+
+# open Google Chrome
+@ chrome = app('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
+chrome.start()
+chrome.write('http://openinsider.com/')
+chrome.enter()
+chrome.wait_for_text('Latest')
+
+@ latest = first(chrome.find_links('Latest'))
+
+latest.click()
+
+@ top_insider_purchases = first(chrome.find_links('Latest CEO/CFO Purchases'))
+top_insider_purchases.click()
+
+
+
+
+
+sleep(6)
+
+# stop Chrome
+chrome.stop()
