@@ -65,6 +65,9 @@ def ai_response(model, prompt, creativity):
     ).choices[0].text
 
 
+# msn2 implementation of None
+msn2_none = '___msn2_None_'
+
 # global vars
 lock = threading.Lock()
 auxlock = threading.Lock()
@@ -1377,6 +1380,13 @@ class Interpreter:
                             except:
                                 return self.vars[vname].split(arg)
 
+                        # determines if the string is a digit
+                        if objfunc == 'isdigit':
+                            return self.vars[vname].value.isdigit()
+                        # determines if the string is a letter
+                        if objfunc == 'isalpha':
+                            return self.vars[vname].value.isalpha()
+
                         # replaces all instances of the first argument with the second argument
                         if objfunc == 'replace':
 
@@ -1735,6 +1745,18 @@ class Interpreter:
                         return find_elements(parent_window, subtext, checkboxes)
                     def find_checkboxes_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, checkboxes)
+                    
+                    # for Image
+                    def images(parent_window):
+                        return recursive_search(parent_window, int, self.AppElement, object_string_endswith="Image")
+                    def image(parent_window, index):
+                        return images(parent_window)[index]
+                    def print_images(parent_window):
+                        return print_elements(parent_window, images)
+                    def find_images(parent_window, subtext):
+                        return find_elements(parent_window, subtext, images)
+                    def find_images_exact(parent_window, text):
+                        return find_elements_exact(parent_window, text, images)
                         
                     
                     # for decendants
@@ -1836,6 +1858,22 @@ class Interpreter:
                         else:
                             # return the root
                             return self.AppElement(root, root.window_text())
+                    
+                    # get all objects that have the point
+                    def get_all(root, x, y):
+                        all = []
+                        # if the root has children
+                        if root.children():
+                            # for each child
+                            for child in root.children():
+                                # if the child has the point
+                                if has_point(child, x, y):
+                                    # add the child to the list
+                                    all.append(self.AppElement(child, child.window_text()))
+                                    # get all of the child's children
+                                    all += get_all(child, x, y)
+                        # return the list
+                        return all
 
                     # presses multiple keys at the same time
                     def press_simul(kys):
@@ -2022,6 +2060,15 @@ class Interpreter:
                             )) != '<msnint2 no callable>': 
                             return chks
                         
+                        # gets all images
+                        if (imgs := callables(window,
+                                    'images', images,
+                                    'print_images', print_images,
+                                    'image', image,
+                                    'find_images', find_images)) != '<msnint2 no callable>': 
+                            return imgs
+                        
+                        
                         # gets the top_window
                         if objfunc == 'print_tree':
                             return app.dump_tree()
@@ -2126,6 +2173,20 @@ class Interpreter:
                             # sends keystrokes to the application
                             return pywinauto.keyboard.send_keys(convert_keys(self.parse(0, line, f, sp, args)[2]), with_spaces=True)
                         
+                        # gets the element that is currently hovered over
+                        # recurses through all children, determining which elements have
+                        # the mouses position
+                        if objfunc == 'hovered':                            
+                            # get the root window of this application
+                            root = window.top_level_parent()
+                            
+                            # get the current mouse position
+                            x, y = win32api.GetCursorPos()
+                            
+                            # recursively find all children from the root window
+                            # that have the point specified
+                            return get_all(root, x, y)     
+                        
                         # presses the shortcut keys to inspects element
                         # ctrl shift i
                         if objfunc == 'inspect':
@@ -2136,6 +2197,11 @@ class Interpreter:
                             # waits for the inspect window to appear
                             wait_for_text_all(window, 'Console')
                             return r
+                        
+                        # refreshes the page
+                        if objfunc == 'refresh':
+                            # presses the shortcut keys to refresh the page
+                            return window.type_keys('{F5}')
                         
                         # presses the enter key
                         if objfunc == 'enter':
@@ -2326,7 +2392,7 @@ class Interpreter:
                         # hovers over the window
                         if objfunc == 'hover':
                             # hovers the mouse over the window, using the mid point of the element
-                            return mouse.move(coords=(window.get_properties()['rectangle'].mid_point()))
+                            return mouse.move(coords=(window.get_properties()['rectangle'].mid_point()))                       
                         
                         # different types of AppElements
                         # if the appelement is a button
@@ -2890,6 +2956,61 @@ class Interpreter:
                         self.interpret(block_s)
                     return array
                 
+                # sorting an array by an attribute of each element
+                elif func == 'sortby':
+                    
+                    # iterable to sort
+                    iterable = self.parse(0, line, f, sp, args)[2]
+                    
+                    # variable name
+                    varname = self.parse(1, line, f, sp, args)[2]
+                    
+                    # block of code to interpret, the sorting
+                    # is based on the interpretation of this block
+                    block = args[2][0]
+                    
+                    # pairing elements to their interpretations
+                    pairing = []
+                    for i in range(len(iterable)):
+                        self.vars[varname] = Var(varname, iterable[i])
+                        pairing.append((self.interpret(block), iterable[i]))
+                    # sort the pairing based on the first element of each pair
+                    pairing.sort(key=lambda x: x[0])
+                    # return the sorted array containing the second element
+                    # of each pair
+                    return [pair[1] for pair in pairing]
+                                
+                # performs list comprehension
+                elif func == 'comp':
+                    lst = []
+                    
+                    # array to comprehend
+                    arr = self.parse(0, line, f, sp, args)[2]
+                    
+                    # varname for the element
+                    varname = self.parse(1, line, f, sp, args)[2]
+                    
+                    # block to perform
+                    block = args[2][0]
+                    
+                    # performs the list comprehension
+                    for v in arr:
+                        self.vars[varname] = Var(varname, v)
+                        r = self.interpret(block)
+                        if r != msn2_none:
+                            lst.append(r)
+                    return lst
+                
+                # returns the first argument, then performs the second argument as a block
+                elif func == 'do':
+                    ret = self.parse(0, line, f, sp, args)[2]
+                    self.interpret(args[1][0])
+                    return ret
+                
+                # special value for msn2 to return None
+                elif func == 'None':
+                    return msn2_none
+                
                 # filters an iterable to retain all elements that satisfy the second argument as
                 # a block
                 # the first argument is a string for a variable for each element
@@ -3002,6 +3123,13 @@ class Interpreter:
                             arg2 = self.parse(i, line, f, sp, args)[2]
                             arg1 /= arg2
                         return arg1
+                    
+                    # integer division
+                    if objfunc == 'idiv' or objfunc == 'intdiv' or objfunc == 'intdivide' or objfunc == 'intover' or objfunc == '//' or objfunc == '÷÷':
+                        for i in range(1, len(args)):
+                            arg2 = self.parse(i, line, f, sp, args)[2]
+                            arg1 //= arg2
+                        return arg1
 
                     if objfunc == 'mod' or objfunc == 'modulo' or objfunc == 'modulus' or objfunc == '%' or objfunc == 'remainder':
                         for i in range(1, len(args)):
@@ -3014,6 +3142,14 @@ class Interpreter:
                             arg2 = self.parse(i, line, f, sp, args)[2]
                             arg1 **= arg2
                         return arg1
+                    
+                    if objfunc == 'root' or objfunc == 'nthroot' or objfunc == 'nthrt' or objfunc == '√':
+                        for i in range(1, len(args)):
+                            arg2 = self.parse(i, line, f, sp, args)[2]
+                            arg1 **= (1 / arg2)
+                        return arg1
+                    
+                    
 
                     return '<msnint2 class>'
 
@@ -3182,8 +3318,10 @@ class Interpreter:
                         if len(args) == 2:
                             return mouse.click(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
                         # if no args are provided
-                        else:
+                        elif args[0][0] == '':
                             return mouse.click(coords=win32api.GetCursorPos())
+                        else:
+                            return mouse.click()
                     # right clicks the mouse
                     if objfunc == 'right_click':
                         # if args are provided
@@ -3209,11 +3347,46 @@ class Interpreter:
                     if objfunc == 'scroll':
                         return mouse.scroll(wheel_dist=self.parse(0, line, f, sp, args)[2], coords=win32api.GetCursorPos())
                         
-
-
-
-
-
+                    # determines if the left mouse button is down
+                    if objfunc == 'left_down':
+                        return win32api.GetKeyState(0x01) < 0   
+                    # determines if the right mouse button is down
+                    if objfunc == 'right_down':
+                        return win32api.GetKeyState(0x02) < 0
+                    # waits for the left button to be pressed
+                    if objfunc == 'wait_left':
+                        while True:
+                            if win32api.GetKeyState(0x01) < 0:
+                                break
+                        return True
+                    # waits for the right button to be pressed
+                    if objfunc == 'wait_right':
+                        while True:
+                            if win32api.GetKeyState(0x02) < 0:
+                                break
+                        return True
+                    # waits for a click
+                    # waits for the left button to be pressed down
+                    # then waits for it to be released
+                    if objfunc == 'wait_left_click':
+                        while True:
+                            if win32api.GetKeyState(0x01) < 0:
+                                break
+                        while True:
+                            if win32api.GetKeyState(0x01) >= 0:
+                                break
+                        return True
+                    # waits for the right button to be pressed down
+                    # then waits for it to be released
+                    if objfunc == 'wait_right_click':
+                        while True:
+                            if win32api.GetKeyState(0x02) < 0:
+                                break
+                        while True:
+                            if win32api.GetKeyState(0x02) >= 0:
+                                break
+                        return True
+                        
                     # DIRECTIONAL MOVEMENTS
                     # moves the mouse down from its current location
                     elif objfunc == 'down':
@@ -3978,6 +4151,13 @@ class Interpreter:
                     line, as_s, string = self.parse(0, line, f, sp, args)
                     return self.interpret(string)
 
+                # determines if a string is a digit
+                elif func == 'isdigit':
+                    return self.parse(0, line, f, sp, args)[2].isdigit()
+                # determines if a string is alpha
+                elif func == 'isalpha':
+                    return self.parse(0, line, f, sp, args)[2].isalpha()
+
                 # does something with a value as a temporary
                 # variable
                 elif func == 'as':
@@ -4087,14 +4267,73 @@ class Interpreter:
                 # creates a new thread to execute the block, thread
                 # starts on the same interpreter
                 elif func == "thread":
-                    name = self.parse(0, line, f, sp, args)[2]
+                    name = str(self.parse(0, line, f, sp, args)[2])
                     thread = threading.Thread(
                         target=self.interpret, args=(args[1][0],))
                     thread.name = name
                     self.threads[name] = [thread, self]
                     thread.start()
                     return True
-
+                
+                # creates or edits thread variable
+                elif func == 'tvar':
+                    
+                    # thread name
+                    name = str(self.parse(0, line, f, sp, args)[2])
+                    
+                    # variable name
+                    varname = str(self.parse(1, line, f, sp, args)[2])
+                    
+                    # variable value
+                    val = self.parse(2, line, f, sp, args)[2]
+                    
+                    # thread var name
+                    tvarname = f"_msn2_tvar_{name}_{varname}"
+                    
+                    # sets a thread specific variable
+                    self.vars[tvarname] = Var(varname, val)
+                    return val
+                    
+                # gets a thread variable
+                elif func == 'gettvar':
+                    
+                    # thread name
+                    name = str(self.parse(0, line, f, sp, args)[2])
+                    
+                    # variable name
+                    varname = str(self.parse(1, line, f, sp, args)[2])
+                    
+                    # thread var name
+                    tvarname = f"_msn2_tvar_{name}_{varname}"
+                    
+                    # gets the variable
+                    return self.vars[tvarname].value
+                
+                # creates a string variable name for functions
+                # that require a string variable name
+                elif func == 'tvarstr':
+                        
+                    # thread name
+                    name = str(self.parse(0, line, f, sp, args)[2])
+                    
+                    # variable name
+                    varname = str(self.parse(1, line, f, sp, args)[2])
+                    
+                    # returns the string
+                    return f"_msn2_tvar_{name}_{varname}"
+                
+                # interprets a variable by variable name
+                # a and a variable method
+                elif func == 'varmethod':
+                    
+                    # variable name
+                    varname = str(self.parse(0, line, f, sp, args)[2])
+                    
+                    # method block
+                    block = args[1][0]
+                    
+                    return self.interpret(f"{varname}.{block}")
+                    
                 # acquires the global lock
                 elif func == 'acquire':
                     return auxlock.acquire()
@@ -4178,10 +4417,24 @@ class Interpreter:
                 # exports a quantity of variables or methods from the working context to the parent context,
                 # ex private context -> boot context
                 elif func == 'export':
+                    
+                    # if last argument is True, 
+                    # we add the variables to the parent context's variable
+                    last_arg = self.parse(len(args) - 1, line, f, sp, args)[2]
+                    
                     for i in range(len(args)):
                         varname = self.parse(i, line, f, sp, args)[2]
                         if varname in self.vars:
-                            self.parent.vars[varname] = self.vars[varname]
+                            if isinstance(last_arg, bool):
+                                # if self.vars[varname].value is any type of number
+                                if isinstance(self.vars[varname].value, (int, float, complex)):
+                                    self.parent.vars[varname].value += self.vars[varname].value
+                                # otherwise add every element to the parent context's variable
+                                elif isinstance(self.vars[varname].value, list):
+                                    for element in self.vars[varname].value:
+                                        self.parent.vars[varname].value.append(element)
+                            else: 
+                                self.parent.vars[varname] = self.vars[varname]
                         elif varname in self.methods:
                             self.parent.methods[varname] = self.methods[varname]
                     return True

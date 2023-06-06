@@ -1,0 +1,30 @@
+# Plays Cookie Clicker!
+#
+# author : Mason Marker
+# date : 6/5/2023
+
+# define and open Google Chrome
+@ chrome = app('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
+chrome.start()
+
+# navigate to Cookie Clicker
+chrome.write('https://orteil.dashnet.org/cookieclicker/')
+chrome.enter()
+
+# wait for the Copyright link to appear
+wait(chrome.find_links('Orteil'))
+
+# ----------- page loaded! -----------
+
+# get the picture of the main Cookie
+@ cookie = chrome.image(1)
+cookie.hover()
+
+# create a bunch of threads to help click faster
+for(0, 100, 'i', thread(i, interval(0, (
+    # click the cookie
+    pointer.click(),
+
+    # jiggle the mouse
+    pointer.up(1), pointer.down(1)
+), 10)))
