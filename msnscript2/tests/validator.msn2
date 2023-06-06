@@ -868,8 +868,6 @@ import ('lib/processes.msn2')
     -- for(0, 2, 'i', =>(
         fork(?i?, async(=>(
 
-            print('[+] testing process', cat(?i?, '...')),
-
             # process specific variables
             var('a', 0),
             var('b', 0),
@@ -1096,7 +1094,22 @@ var('terminate', False)
     -- 300(a.add(1))
     -- assert(a.equals(300))
 
+    # testing variable integer name syscall
+    # if integer, performs a loop that many times
+    -- @ a = 5
+    -- @ test = 0
+    -- a(test.add(1))
+    -- assert(test.equals(5))
 
+    -- a (test.add(1))
+    -- assert(test.equals(10))
+    -- @ integer = 3
+    -- integer (test.add(1))
+    -- assert(test.equals(13))
+
+    -- @ test = 0
+    -- integer(integer(test.add(1)))
+    -- assert(test.equals(9))
 
 
 

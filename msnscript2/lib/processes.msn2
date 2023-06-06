@@ -19,7 +19,7 @@ clean_processes()
 
 # starts a process from the code in the file at the path passed
 ~ start_process(path, serial) -> name
-    -- var('name', 'process' + str(serial))
+    -- var('name', cat('process', str(serial)))
 
     # process() takes a path to a .msn2 file to execute
     -- thread(name, =>(

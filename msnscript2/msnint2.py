@@ -11,8 +11,7 @@ import warnings
 
 # pywinauto automation
 from pywinauto.application import Application
-from pywinauto import mouse
-from pywinauto import timings
+from pywinauto import mouse, timings
 
 # automating Excel
 import openpyxl
@@ -33,15 +32,24 @@ import subprocess
 # web scraping
 from bs4 import BeautifulSoup
 
+# remove warnings for calling of integers: "10()"
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
+# remove click delay
+timings.Timings.after_clickinput_wait = 0
+# remove set cursor position delay
+timings.Timings.after_setcursorpos_wait = 0
+# remove send keys delay
+timings.Timings.after_sendkeys_key_wait = 0
+# remove menu wait
+timings.Timings.after_menu_wait = 0
 
-
+# error reporting
 class Err:
     def __init__(self, errorcode):
         self.errorcode = errorcode
 
-
+# variable
 class Var:
 
     # constructs a new Var
@@ -67,6 +75,9 @@ def ai_response(model, prompt, creativity):
 
 # msn2 implementation of None
 msn2_none = '___msn2_None_'
+
+# thread serial
+thread_serial = 0
 
 # global vars
 lock = threading.Lock()
@@ -154,7 +165,6 @@ class Interpreter:
     def execute(self, script):
 
         # # convert script to lines
-        # self.lines = list(filter(None, script.split("\n")))
         self.lines = []
 
         # for aggregate syntax support !{}
@@ -346,7 +356,8 @@ class Interpreter:
                 except:
                     return line
 
-        # offers a way to repetively call methods on a variable
+        # offers a way to repetively call methods on a variable.
+        # generally unsafe, yet retained for specific cases
         if line.startswith('()'):
             line = line[2:]
 
@@ -401,6 +412,7 @@ class Interpreter:
                 # execute function
                 return self.interpret(function)
 
+        # user defined postmacro
         for token in postmacros:
             if line.endswith(token):
                 # if the macro returns a value instead of executing a function
@@ -412,6 +424,7 @@ class Interpreter:
                 self.vars[varname] = Var(varname, val)
                 return self.interpret(function)
 
+        # variable replacement, generally unsafe
         if line[0] == '*':
             line = self.replace_vars(line[1:])
             return self.interpret(line)
@@ -3320,8 +3333,6 @@ class Interpreter:
                         # if no args are provided
                         elif args[0][0] == '':
                             return mouse.click(coords=win32api.GetCursorPos())
-                        else:
-                            return mouse.click()
                     # right clicks the mouse
                     if objfunc == 'right_click':
                         # if args are provided
@@ -4267,9 +4278,18 @@ class Interpreter:
                 # creates a new thread to execute the block, thread
                 # starts on the same interpreter
                 elif func == "thread":
-                    name = str(self.parse(0, line, f, sp, args)[2])
+                    
+                    # name not provided
+                    if len(args) == 1:
+                        global thread_serial
+                        name = f"__msn2_thread_id_{thread_serial}"
+                        block = args[0][0]
+                    # name provided (2 arguments provided)
+                    else:
+                        name = self.parse(0, line, f, sp, args)[2]
+                        block = args[1][0]
                     thread = threading.Thread(
-                        target=self.interpret, args=(args[1][0],))
+                        target=self.interpret, args=(block,))
                     thread.name = name
                     self.threads[name] = [thread, self]
                     thread.start()
@@ -4355,7 +4375,6 @@ class Interpreter:
 
                 # exits the working thread
                 elif func == 'stop':
-
                     return os._exit(0)
 
                 # tries the first argument, if it fails, code falls to the catch/except block
@@ -4691,7 +4710,9 @@ class Interpreter:
                     return self.parse(0, line, f, sp, args)[2].value
 
                 # object instance requested
-                elif func in self.vars:
+                # if the function is in the variables
+                # and the variable is a class
+                elif func in self.vars and isinstance(self.vars[func].value, dict):
 
                     # get classname to create
                     classname = func
@@ -4871,10 +4892,30 @@ class Interpreter:
                 # then it is a loop that runs func times
                 elif (_i := get_int(func)) != None:
                     ret = None
-                    for i in range(_i):
-                        ret = self.interpret(args[0][0])
+                    for _ in range(_i):
+                        for arguments in args:
+                            ins_s = arguments[0]
+                            line, ret = self.convert_arg(ins_s, line, f, sp, args)
                     return ret
 
+                # # if the function is a variable name
+                elif func in self.vars:
+                    # value
+                    val = self.vars[func].value
+                    # if the variable is an integer,
+                    # run the arguments as blocks inside
+                    # that many times
+                    if isinstance(val, int):
+                        ret = None
+                        for _ in range(val):
+                            for arguments in args:
+                                ins_s = arguments[0]
+                                line, ret = self.convert_arg(ins_s, line, f, sp, args)
+                        return ret
+                    
+                    
+                    # otherwise return the value
+                    return val
 
                 # fallback
                 else:

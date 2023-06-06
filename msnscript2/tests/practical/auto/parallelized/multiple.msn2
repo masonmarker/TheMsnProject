@@ -44,7 +44,7 @@ thread('=', @ equals_button = first(chrome.find_all_children_exact('=')))
 
 # divides the search within the children
 # among 4 threads
-for(0, threads, 'i', thread(i, private((
+for(0, threads, 'i', thread(str(i), private((
     @ start = i.*(work_size),
     each(children.slice(start, start.+(work_size)), 'child', if(
         and(
