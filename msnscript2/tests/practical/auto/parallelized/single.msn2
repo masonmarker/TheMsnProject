@@ -36,6 +36,8 @@ timer_start()
 # sorts the numbers by a child's text
 @ numbers = reverse(sortby(numbers, 'child', child.text()))
 
+print('numbers ready in ', timer_runtime(), 'seconds')
+
 # type in the equation
 each(numbers.slice(0, 5), 'button', button.click())
 plus_button.click()

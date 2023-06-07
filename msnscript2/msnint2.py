@@ -2,6 +2,13 @@
 # Author : Mason Marker
 # Date : 09/15/2022
 
+
+# TODO
+# speed up function interpretation
+# by determining obj and func by argument count first
+# as opposed to iterating through all functions 
+
+
 import os
 import math
 import shutil
@@ -15,6 +22,7 @@ from pywinauto import mouse, timings
 
 # automating Excel
 import openpyxl
+import concurrent.futures
 
 import openai
 import random
@@ -35,14 +43,10 @@ from bs4 import BeautifulSoup
 # remove warnings for calling of integers: "10()"
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
-# remove click delay
-timings.Timings.after_clickinput_wait = 0
-# remove set cursor position delay
-timings.Timings.after_setcursorpos_wait = 0
-# remove send keys delay
-timings.Timings.after_sendkeys_key_wait = 0
-# remove menu wait
-timings.Timings.after_menu_wait = 0
+timings.Timings.after_clickinput_wait = 0.001
+timings.Timings.after_setcursorpos_wait = 0.001
+timings.Timings.after_sendkeys_key_wait = 0.001
+timings.Timings.after_menu_wait = 0.001
 
 # error reporting
 class Err:
@@ -82,6 +86,12 @@ thread_serial = 0
 # global vars
 lock = threading.Lock()
 auxlock = threading.Lock()
+
+# lock for pointer controls
+pointer_lock = threading.Lock()
+
+# pywinauto automation lock
+auto_lock = threading.Lock()
 
 # user defined syntax
 syntax = {}
@@ -252,6 +262,8 @@ class Interpreter:
         global total_ints
         global lock
         global auxlock
+        global auto_lock
+        global pointer_lock
 
         # accounting
         total_ints += 1
@@ -1559,12 +1571,15 @@ class Interpreter:
                     
                         
                     # recursively searches the child tree for a certain object type
+                    # dont allow ElementAmbiguousError
                     def recursive_search(parent_window, type, as_type, object_string_endswith=None):
                         found = []
+                        # get the children
                         for child in parent_window.children():
                             if isinstance(child, type) or (object_string_endswith and str(child).endswith(object_string_endswith)):
                                 found += [as_type(child, child.window_text())]
                             found += recursive_search(child, type, as_type, object_string_endswith)
+                            
                         return found
                     # prints all elements
                     def print_elements(parent_window, retrieve_elements):
@@ -1948,6 +1963,9 @@ class Interpreter:
                     #   - I've tested this on a Windows 11 laptop and it doesn't
                     #     work for some reason
                     if isinstance(object, self.App):
+                        
+                        # return for an app
+                        ret = object
 
                         # path to the application to work with
                         path = object.path
@@ -1955,6 +1973,15 @@ class Interpreter:
                         app = object.application
                         # window
                         window = app.window() if app else None
+
+                        # thread based operation
+                        p_thread = False
+                        if objfunc.endswith(':lock'):
+                            p_thread = True
+                            objfunc = objfunc[:-5]
+                            auto_lock.acquire()
+                        
+
 
                         # STARTING AND STOPPING APPLICATIONS
                         # creates and starts the application
@@ -1968,48 +1995,48 @@ class Interpreter:
                             global apps
                             apps[len(apps) + 1] = object
 
-                            return object.application
+                            ret = object.application
                         # kills the application
-                        if objfunc == 'stop' or objfunc == 'kill' or objfunc == 'close':
+                        elif objfunc == 'stop' or objfunc == 'kill' or objfunc == 'close':
                             # kill the application
-                            return app.kill()
+                            ret = app.kill()
 
                         # RETRIEVING CHILDREN
                         # gets the available child reference keywords
-                        if  (chldrn := callables(window,
+                        elif  (chldrn := callables(window,
                                     'children', children,
                                     'print_children', print_children,
                                     'child', child,
                                     'find_children', find_children)) != '<msnint2 no callable>': 
-                            return chldrn
+                            ret = chldrn
                         
                         # working with the entire child tree
-                        if (all_chldrn := callables(window,
+                        elif (all_chldrn := callables(window,
                                     'all_children', all_children,
                                     'print_all_children', print_all_children,
                                     'all_child', all_child,
                                     'find_all_children', find_all_children,
                                     'find_all_children_exact', find_all_children_exact)) != '<msnint2 no callable>': 
-                            return all_chldrn
+                            ret = all_chldrn
 
                         # getting all menus
-                        if (mns := callables(window,
+                        elif (mns := callables(window,
                                     'menus', menus,
                                     'print_menus', print_menus,
                                     'menu', menu,
                                     'find_menus', find_menus)) != '<msnint2 no callable>': 
-                            return mns
+                            ret = mns
                         
                         # gets all toolbars
-                        if (tbrs := callables(window,
+                        elif (tbrs := callables(window,
                                     'toolbars', toolbars,
                                     'print_toolbars', print_toolbars,
                                     'toolbar', toolbar,
                                     'find_toolbars', find_toolbars)) != '<msnint2 no callable>': 
-                            return tbrs
+                            ret = tbrs
                         
                         # gets all buttons
-                        if (btns := callables(window,
+                        elif (btns := callables(window,
                                     'buttons', buttons,
                                     'print_buttons', print_buttons,
                                     'button', button,
@@ -2025,26 +2052,26 @@ class Interpreter:
                                         as_type2=self.Button
                                         
                                     )) != '<msnint2 no callable>':  
-                            return btns
+                            ret = btns
                         
                         # gets all tabitems
-                        if (tbs := callables(window,
+                        elif (tbs := callables(window,
                                     'tabitems', tabitems,
                                     'print_tabitems', print_tabitems,
                                     'tabitem', tabitem,
                                     'find_tabitems', find_tabitems)) != '<msnint2 no callable>': 
-                            return tbs
+                            ret = tbs
                         
                         # gets all links
-                        if (lnks := callables(window,
+                        elif (lnks := callables(window,
                                     'links', links,
                                     'print_links', print_links,
                                     'link', link,
                                     'find_links', find_links)) != '<msnint2 no callable>': 
-                            return lnks
+                            ret = lnks
                         
                         # gets all Inputs
-                        if (inpts := callables(window,
+                        elif (inpts := callables(window,
                                     'inputs', inputs,
                                     'print_inputs', print_inputs,
                                     'input', input,
@@ -2056,10 +2083,10 @@ class Interpreter:
                                         type2=pywinauto.controls.uia_controls.EditWrapper,
                                         as_type2=self.Input
                             )) != '<msnint2 no callable>': 
-                            return inpts
+                            ret = inpts
                         
                         # gets all checkboxes
-                        if (chks := callables(window,
+                        elif (chks := callables(window,
                                     'checkboxes', checkboxes,
                                     'print_checkboxes', print_checkboxes,
                                     'checkbox', checkbox,
@@ -2071,125 +2098,125 @@ class Interpreter:
                                         type2=pywinauto.controls.uia_controls.ButtonWrapper,
                                         as_type2=self.Button
                             )) != '<msnint2 no callable>': 
-                            return chks
+                            ret = chks
                         
                         # gets all images
-                        if (imgs := callables(window,
+                        elif (imgs := callables(window,
                                     'images', images,
                                     'print_images', print_images,
                                     'image', image,
                                     'find_images', find_images)) != '<msnint2 no callable>': 
-                            return imgs
+                            ret = imgs
                         
                         
                         # gets the top_window
-                        if objfunc == 'print_tree':
-                            return app.dump_tree()
+                        elif objfunc == 'print_tree':
+                            ret = app.dump_tree()
 
                         # gets information about this application
                         # gets the text of the window
-                        if objfunc == 'text':
-                            return window.window_text()
+                        elif objfunc == 'text':
+                            ret = window.window_text()
                         # gets the window
-                        if objfunc == 'window':
-                            return window
+                        elif objfunc == 'window':
+                            ret = window
                         # gets the handle
-                        if objfunc == 'handle':
-                            return window.handle
+                        elif objfunc == 'handle':
+                            ret = window.handle
                         
                         # chrome based children collection
                         def chrome_children_():
                             chrome_window = app.window(title_re='.*Chrome.')
                             chrome_handle = chrome_window.handle
                             wd = app.window(handle=chrome_handle)
-                            document = wd.child_window(class_name='Chrome_RenderWidgetHostHWND')
+                            document = wd.child_window(found_index=0, class_name='Chrome_RenderWidgetHostHWND')
                             return document.descendants()
                         
                         # GOOGLE CHROME ONLY
                         if objfunc == 'chrome_children':
                             # if not arguments
                             if args[0][0] == '':
-                                return chrome_children_()
+                                ret = chrome_children_()
                             # if one argument, check if the first argument is contained
                             elif len(args) == 1:
                                 subtext = self.parse(0, line, f, sp, args)[2].lower()
-                                return [self.AppElement(d, d.window_text()) for d in chrome_children_() if subtext in d.window_text().lower()]
+                                ret = [self.AppElement(d, d.window_text()) for d in chrome_children_() if subtext in d.window_text().lower()]
                             # if two arguments, check if the first argument is exact
                             elif len(args) == 2:
                                 subtext = self.parse(0, line, f, sp, args)[2]
-                                return [self.AppElement(d, d.window_text()) for d in chrome_children_() if subtext == d.window_text()]
+                                ret = [self.AppElement(d, d.window_text()) for d in chrome_children_() if subtext == d.window_text()]
                         
                         # waits for a child containing text
-                        if objfunc == 'wait_for_text':
+                        elif objfunc == 'wait_for_text':
                             # if no timeout provided
                             if len(args) == 1:
-                                return wait_for_text(window, self.parse(0, line, f, sp, args)[2])
+                                ret = wait_for_text(window, self.parse(0, line, f, sp, args)[2])
                             # if timeout provided
                             elif len(args) == 2:
-                                return wait_for_text(window, self.parse(0, line, f, sp, args)[2], 
+                                ret = wait_for_text(window, self.parse(0, line, f, sp, args)[2], 
                                                      timeout=self.parse(1, line, f, sp, args)[2])
                         # waits for a child containing text in the entire child tree
-                        if objfunc == 'wait_for_text_all':
+                        elif objfunc == 'wait_for_text_all':
                             # if no timeout provided
                             if len(args) == 1:
-                                return wait_for_text_all(window, self.parse(0, line, f, sp, args)[2])
+                                ret = wait_for_text_all(window, self.parse(0, line, f, sp, args)[2])
                             elif len(args) == 2:
-                                return wait_for_text_all(window, self.parse(0, line, f, sp, args)[2], 
+                                ret = wait_for_text_all(window, self.parse(0, line, f, sp, args)[2], 
                                                      timeout=self.parse(1, line, f, sp, args)[2])
                                 
                         # waits for a child containing the exact text
-                        if objfunc == 'wait_for_text_exact':
+                        elif objfunc == 'wait_for_text_exact':
                             # if no timeout provided
                             if len(args) == 1:
-                                return wait_for_text_exact(window, self.parse(0, line, f, sp, args)[2])
+                                ret = wait_for_text_exact(window, self.parse(0, line, f, sp, args)[2])
                             elif len(args) == 2:
-                                return wait_for_text_exact(window, self.parse(0, line, f, sp, args)[2], 
+                                ret = wait_for_text_exact(window, self.parse(0, line, f, sp, args)[2], 
                                                      timeout=self.parse(1, line, f, sp, args)[2])
                         # waits for a child containing the exact text in the entire child tree
-                        if objfunc == 'wait_for_text_exact_all':
+                        elif objfunc == 'wait_for_text_exact_all':
                             # if no timeout provided
                             if len(args) == 1:
-                                return wait_for_text_exact_all(window, self.parse(0, line, f, sp, args)[2])
+                                ret = wait_for_text_exact_all(window, self.parse(0, line, f, sp, args)[2])
                             elif len(args) == 2:
-                                return wait_for_text_exact_all(window, self.parse(0, line, f, sp, args)[2], 
+                                ret = wait_for_text_exact_all(window, self.parse(0, line, f, sp, args)[2], 
                                                      timeout=self.parse(1, line, f, sp, args)[2])
 
                         # APPLICATION ACTIONS
                         # sends keystrokes to the application
                         # takes one argument, being the keystrokes to send
-                        if objfunc == 'write':
+                        elif objfunc == 'write':
                             writing = self.parse(0, line, f, sp, args)[2]
                             try:
                                 # sends keystrokes to the application
-                                return window.type_keys(writing, with_spaces=True)
+                                ret = window.type_keys(writing, with_spaces=True)
                             except:
                                 # with_spaces not allowed
-                                return window.type_keys(writing)
+                                ret = window.type_keys(writing)
                         # writes special characters into the console
                         # takes one argument, being the special characters to write
-                        if objfunc == 'write_special':
+                        elif objfunc == 'write_special':
                             # keystrokes
                             keystrokes = self.parse(0, line, f, sp, args)[2]
                             # convert to special characters
-                            return window.type_keys(convert_keys(keystrokes), with_spaces=True)
+                            ret = window.type_keys(convert_keys(keystrokes), with_spaces=True)
                             
                         # presses keys at the same time
-                        if objfunc == 'press':
+                        elif objfunc == 'press':
                             kys = []
                             for i in range(len(args)):
                                 kys.append(self.parse(i, line, f, sp, args)[2])
                             # presses the keys at the same time
-                            return window.type_keys(press_simul(kys))
+                            ret = window.type_keys(press_simul(kys))
                         # sends keystrokes to the application
                         # takes one argument, being the keystrokes to send
-                        if objfunc == 'send_keys':
+                        elif objfunc == 'send_keys':
                             # sends keystrokes to the application
-                            return pywinauto.keyboard.send_keys(convert_keys(self.parse(0, line, f, sp, args)[2]), with_spaces=True)
+                            ret = pywinauto.keyboard.send_keys(convert_keys(self.parse(0, line, f, sp, args)[2]), with_spaces=True)
                         
                         # gets the element that is currently hovered over
                         # recurses through all children, determining which elements have
                         # the mouses position
-                        if objfunc == 'hovered':                            
+                        elif objfunc == 'hovered':                            
                             # get the root window of this application
                             root = window.top_level_parent()
                             
@@ -2198,40 +2225,37 @@ class Interpreter:
                             
                             # recursively find all children from the root window
                             # that have the point specified
-                            return get_all(root, x, y)     
+                            ret = get_all(root, x, y)     
                         
-                        # presses the shortcut keys to inspects element
-                        # ctrl shift i
-                        if objfunc == 'inspect':
-                            
-                            # presses the shortcut keys to inspects element
-                            r = window.type_keys('{VK_CONTROL down}{VK_SHIFT down}{i down}{VK_CONTROL up}{VK_SHIFT up}{i up}')
+                        # opens the developer tools
+                        elif objfunc == 'inspect':
+                            # presses the shortcut keys to open the developer tools
+                            ret = window.type_keys('{F12}')
                             
                             # waits for the inspect window to appear
                             wait_for_text_all(window, 'Console')
-                            return r
                         
                         # refreshes the page
-                        if objfunc == 'refresh':
+                        elif objfunc == 'refresh':
                             # presses the shortcut keys to refresh the page
-                            return window.type_keys('{F5}')
+                            ret = window.type_keys('{F5}')
                         
                         # presses the enter key
-                        if objfunc == 'enter':
+                        elif objfunc == 'enter':
                             # presses the enter key
-                            return window.type_keys('{ENTER}')
+                            ret = window.type_keys('{ENTER}')
                         # presses the escape key
-                        if objfunc == 'escape':
+                        elif objfunc == 'escape':
                             # presses the escape key
-                            return window.type_keys('{ESC}')
+                            ret = window.type_keys('{ESC}')
                         # page down
-                        if objfunc == 'page_down':
+                        elif objfunc == 'page_down':
                             # presses the page down key
-                            return window.type_keys('{PGDN}')
+                            ret = window.type_keys('{PGDN}')
                         # page up
-                        if objfunc == 'page_up':
+                        elif objfunc == 'page_up':
                             # presses the page up key
-                            return window.type_keys('{PGUP}')
+                            ret = window.type_keys('{PGUP}')
                         
                         # # collects all children within the entire page
                         # # finds all scrollbars and scrolls throughout the entire page
@@ -2250,73 +2274,87 @@ class Interpreter:
                         #     wd = window.child_window(control_type="Scroll")
                         #     return self.ScrollBar(wd, 'vertical')
                                 
+                        # release auto_lock
+                        if p_thread:
+                            auto_lock.release()
 
                         # return the object
-                        return object
+                        return ret
 
                     # if the object is a pywinauto window element
                     elif isinstance(object, self.AppElement):
-
+                        # returning
+                        ret = object
                         # get the window of the AppElement object
                         window = object.window
                         # get the text of the AppElement object
                         name = object.name
 
+                        p_thread = False
+
+                        # thread based functions
+                        # if the function is a thread based function
+                        if objfunc.endswith(':lock'):
+                            p_thread = True
+                            auto_lock.acquire()
+                            objfunc = objfunc[:-5]
+                                
+                        
                         # OBTAINING DIFFERENT TYPES OF CHILDREN
                         # get the element window
                         if objfunc == 'window':
-                            return window
+                            ret = window
                         
                         # working with children, performs the same logic as the above
                         # application
-                        if (chldrn := callables(window,
+                        elif (chldrn := callables(window,
                                     'children', children,
                                     'print_children', print_children,
                                     'child', child,
                                     'find_children', find_children)) != '<msnint2 no callable>': 
-                            return chldrn
+                            ret = chldrn
 
                         # getting information about the current window
                         # gets the window text
-                        if objfunc == 'text':
-                            return window.window_text()
+                        elif objfunc == 'text':
+                            ret = window.window_text()
                         # GETTING LOCATION OF THE WINDOW
-                        if objfunc == 'top':
-                            return window.get_properties()['rectangle'].top
-                        if objfunc == 'bottom':
-                            return window.get_properties()['rectangle'].bottom
-                        if objfunc == 'left':
-                            return window.get_properties()['rectangle'].left
-                        if objfunc == 'right':
-                            return window.get_properties()['rectangle'].right
-                        if objfunc == 'center' or objfunc == 'mid_point':
-                            return window.get_properties()['rectangle'].mid_point()
+                        elif objfunc == 'top':
+                            ret = window.get_properties()['rectangle'].top
+                        elif objfunc == 'bottom':
+                            ret = window.get_properties()['rectangle'].bottom
+                        elif objfunc == 'left':
+                            ret = window.get_properties()['rectangle'].left
+                        elif objfunc == 'right':
+                            ret = window.get_properties()['rectangle'].right
+                        elif objfunc == 'center' or objfunc == 'mid_point':
+                            ret = window.get_properties()['rectangle'].mid_point()
                         # getting the rectangle overall
-                        if objfunc == 'rectangle':
-                            return [window.get_properties()['rectangle'].top, window.get_properties()['rectangle'].bottom, window.get_properties()['rectangle'].left, window.get_properties()['rectangle'].right]
+                        elif objfunc == 'rectangle':
+                            ret = [window.get_properties()['rectangle'].top, window.get_properties()['rectangle'].bottom, window.get_properties()['rectangle'].left, window.get_properties()['rectangle'].right]
 
                         # computes the diameter of the window
-                        if objfunc == 'width':
+                        elif objfunc == 'width':
                             try:
                                 left = window.get_properties()['rectangle'].left
                                 right = window.get_properties()['rectangle'].right
-                                return right - left
+                                ret = right - left
                             except:
-                                return
+                                ret = None
                         # computes the height of the window
-                        if objfunc == 'height':
+                        elif objfunc == 'height':
                             try:
                                 top = window.get_properties()['rectangle'].top
                                 bottom = window.get_properties()['rectangle'].bottom
-                                return bottom - top
+                                ret = bottom - top
                             except:
-                                return 
+                                ret = None 
                             
                         # getting adjacent elements
                         # could or could not be decendants
                         # operation is very slow, should be used mainly
                         # for element discovery
-                        if objfunc == 'element_above':
+                        elif objfunc == 'element_above':
                             # pixels above
                             pixels = self.parse(0, line, f, sp, args)[2]
                             # get the root window of this application
@@ -2330,8 +2368,8 @@ class Interpreter:
                                 mouse.move(coords=(mid, top))
                             # recursively find all children from the root window
                             # that have the point specified
-                            return rec(root, mid, top)
-                        if objfunc == 'element_below':
+                            ret = rec(root, mid, top)
+                        elif objfunc == 'element_below':
                             # pixels above
                             pixels = self.parse(0, line, f, sp, args)[2]
                             # get the root window of this application
@@ -2343,8 +2381,8 @@ class Interpreter:
                                 mouse.move(coords=(mid, bottom))
                             # recursively find all children from the root window
                             # that have the point specified
-                            return rec(root, mid, bottom)
-                        if objfunc == 'element_left':
+                            ret = rec(root, mid, bottom)
+                        elif objfunc == 'element_left':
                             # pixels to the left
                             pixels = self.parse(0, line, f, sp, args)[2]
                             # get the root window of this application
@@ -2357,8 +2395,8 @@ class Interpreter:
                                 mouse.move(coords=(left, mid))
                             # recursively find all children from the root window
                             # that have the point specified
-                            return rec(root, left, mid)
-                        if objfunc == 'element_right':
+                            ret = rec(root, left, mid)
+                        elif objfunc == 'element_right':
                             # pixels to the right
                             pixels = self.parse(0, line, f, sp, args)[2]
                             # get the root window of this application
@@ -2371,41 +2409,41 @@ class Interpreter:
                                 mouse.move(coords=(right, mid))
                             # recursively find all children from the root window
                             # that have the point specified
-                            return rec(root, right, mid)
+                            ret = rec(root, right, mid)
                         
                         # focus on the window
-                        if objfunc == 'focus':
-                            return window.set_focus()
+                        elif objfunc == 'focus':
+                            ret = window.set_focus()
                         
                         # scrolls to the window
-                        if objfunc == 'scroll':
+                        elif objfunc == 'scroll':
                             x = window.get_properties()['rectangle'].mid_point()[0]
                             y = window.get_properties()['rectangle'].mid_point()[1]
-                            return mouse.scroll(coords=(x, y))
+                            ret = mouse.scroll(coords=(x, y))
                             
                         # WINDOW ACTIONS
                         # sends keystrokes to the application
                         # takes one argument, being the keystrokes to send
-                        if objfunc == 'write':
+                        elif objfunc == 'write':
                             writing = self.parse(0, line, f, sp, args)[2]
                             try:
                                 # sends keystrokes to the application
-                                return window.type_keys(writing, with_spaces=True)
+                                ret = window.type_keys(writing, with_spaces=True)
                             except:
                                 # with spaces not allowed
                                 window.set_focus()
                                 
                                 # sends keystrokes to the application
-                                return pywinauto.keyboard.send_keys(writing, with_spaces=True)
+                                ret = pywinauto.keyboard.send_keys(writing, with_spaces=True)
                         
                         # presses the enter key
-                        if objfunc == 'enter':
-                            return window.type_keys('{ENTER}')
+                        elif objfunc == 'enter':
+                            ret = window.type_keys('{ENTER}')
                         
                         # hovers over the window
-                        if objfunc == 'hover':
+                        elif objfunc == 'hover':
                             # hovers the mouse over the window, using the mid point of the element
-                            return mouse.move(coords=(window.get_properties()['rectangle'].mid_point()))                       
+                            ret = mouse.move(coords=(window.get_properties()['rectangle'].mid_point()))                       
                         
                         # different types of AppElements
                         # if the appelement is a button
@@ -2413,60 +2451,64 @@ class Interpreter:
                             
                             # clicks the button
                             if objfunc == 'click' or objfunc == 'left_click':
-                                return object.click()
+                                ret = object.click()
                             # left clicks the button
-                            if objfunc == 'right_click':
-                                return object.right_click()
-                            return object
+                            elif objfunc == 'right_click':
+                                ret = object.right_click()
+                            ret = object
 
                         # working with Links
-                        if isinstance(object, self.Link):           
+                        elif isinstance(object, self.Link):           
                             waittime = self.parse(0, line, f, sp, args)[2] if args[0][0] != '' else 1                 
                             # clicks the link
                             if objfunc == 'click' or objfunc == 'left_click':
-                                return clk(window, waittime=waittime)
+                                ret = clk(window, waittime=waittime)
                             # right clicks the link
-                            if objfunc == 'right_click':
-                                return clk(window, button='right', waittime=waittime)
-                            return object
+                            elif objfunc == 'right_click':
+                                ret = clk(window, button='right', waittime=waittime)
+                            ret = object
 
                             
 
                             
                         # working with ToolBars
-                        if isinstance(object, self.ToolBar):
+                        elif isinstance(object, self.ToolBar):
                             toolbar_window = object.window
                             # gets the buttons of the toolbar
                             if objfunc == 'buttons':
-                                return [toolbar_window.button(i) for i in range(toolbar_window.button_count())]
+                                ret = [toolbar_window.button(i) for i in range(toolbar_window.button_count())]
                             # prints the buttons of this toolbar
                             if objfunc == 'print_buttons':
                                 for i in range(toolbar_window.button_count()):
                                     print(i, ':', toolbar_window.button(i))
-                                return None
+                                ret = None
                             # gets a button at an index
                             if objfunc == 'button':
-                                return toolbar_window.button(self.parse(0, line, f, sp, args)[2])
+                                ret = toolbar_window.button(self.parse(0, line, f, sp, args)[2])
                             # finds all buttons with subtext in their names
                             if objfunc == 'find_buttons':
-                                return find_buttons(toolbar_window, self.parse(0, line, f, sp, args)[2])
-                            return object
+                                ret = find_buttons(toolbar_window, self.parse(0, line, f, sp, args)[2])
+                            ret = object
                         
                         # working with scrollbars
-                        if isinstance(object, self.ScrollBar):
+                        elif isinstance(object, self.ScrollBar):
                             scrollbar_window = object.window
                             
                             if objfunc == 'scroll_down':
-                                return scrollbar_window.scroll_down(amount='page', count=1)
-                                    
-                                    
+                                ret = scrollbar_window.scroll_down(amount='page', count=1)
+                                       
                         # extra methods such that this AppElement requires different logic
                         if objfunc == 'click' or objfunc == 'left_click':
-                            return clk(window, waittime=self.parse(0, line, f, sp, args)[2] if args[0][0] != '' else 1)              
-                        if objfunc == 'right_click':
-                            return clk(window, button='right', waittime=self.parse(0, line, f, sp, args)[2] if args[0][0] != '' else 1)
+                            ret = clk(window, waittime=self.parse(0, line, f, sp, args)[2] if args[0][0] != '' else 1)              
+                        elif objfunc == 'right_click':
+                            ret = clk(window, button='right', waittime=self.parse(0, line, f, sp, args)[2] if args[0][0] != '' else 1)
 
-                        return object
+
+                        # if thread based, release the lock
+                        if p_thread:
+                            auto_lock.release()
+                        
+                        return ret
 
                     # if the object is a dictionary
                     elif isinstance(object, dict):
@@ -3315,113 +3357,6 @@ class Interpreter:
 
                     return '<msnint2 class>'
 
-                # mouse pointer operations
-                elif obj == 'pointer':
-                    
-                    # gets the current position of the mouse
-                    if objfunc == 'getpos' or objfunc == 'pos' or objfunc == 'position':
-                        return win32api.GetCursorPos()
-                    
-                    # moves the mouse to an x, y position
-                    if objfunc == 'move':
-                        return mouse.move(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
-                    # right clicks the mouse
-                    if objfunc == 'click' or objfunc == 'left_click':
-                        # if args are provided
-                        if len(args) == 2:
-                            return mouse.click(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
-                        # if no args are provided
-                        elif args[0][0] == '':
-                            return mouse.click(coords=win32api.GetCursorPos())
-                    # right clicks the mouse
-                    if objfunc == 'right_click':
-                        # if args are provided
-                        if len(args) == 2:
-                            return mouse.right_click(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
-                        # if no args are provided
-                        else:
-                            return mouse.right_click(coords=win32api.GetCursorPos())
-                    # double clicks the mouse
-                    if objfunc == 'double_click':
-                        # if args are provided
-                        if len(args) == 2:
-                            return mouse.double_click(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
-                        # if no args are provided
-                        else:
-                            return mouse.double_click(coords=win32api.GetCursorPos())
-                    # scrolls the mouse wheel to the bottom of the page
-                    if objfunc == 'scroll_bottom':
-                        return mouse.scroll(wheel_dist=9999999, coords=win32api.GetCursorPos())
-                    # scrolls the mouse wheel to the top of the page
-                    if objfunc == 'scroll_top':
-                        return mouse.scroll(wheel_dist=-9999999, coords=win32api.GetCursorPos())
-                    if objfunc == 'scroll':
-                        return mouse.scroll(wheel_dist=self.parse(0, line, f, sp, args)[2], coords=win32api.GetCursorPos())
-                        
-                    # determines if the left mouse button is down
-                    if objfunc == 'left_down':
-                        return win32api.GetKeyState(0x01) < 0   
-                    # determines if the right mouse button is down
-                    if objfunc == 'right_down':
-                        return win32api.GetKeyState(0x02) < 0
-                    # waits for the left button to be pressed
-                    if objfunc == 'wait_left':
-                        while True:
-                            if win32api.GetKeyState(0x01) < 0:
-                                break
-                        return True
-                    # waits for the right button to be pressed
-                    if objfunc == 'wait_right':
-                        while True:
-                            if win32api.GetKeyState(0x02) < 0:
-                                break
-                        return True
-                    # waits for a click
-                    # waits for the left button to be pressed down
-                    # then waits for it to be released
-                    if objfunc == 'wait_left_click':
-                        while True:
-                            if win32api.GetKeyState(0x01) < 0:
-                                break
-                        while True:
-                            if win32api.GetKeyState(0x01) >= 0:
-                                break
-                        return True
-                    # waits for the right button to be pressed down
-                    # then waits for it to be released
-                    if objfunc == 'wait_right_click':
-                        while True:
-                            if win32api.GetKeyState(0x02) < 0:
-                                break
-                        while True:
-                            if win32api.GetKeyState(0x02) >= 0:
-                                break
-                        return True
-                        
-                    # DIRECTIONAL MOVEMENTS
-                    # moves the mouse down from its current location
-                    elif objfunc == 'down':
-                        curr_x, curr_y = win32api.GetCursorPos()
-                        return mouse.move(coords=(curr_x, curr_y + self.parse(0, line, f, sp, args)[2]))
-                    # moves the mouse up from its current location
-                    elif objfunc == 'up':
-                        curr_x, curr_y = win32api.GetCursorPos()
-                        return mouse.move(coords=(curr_x, curr_y - self.parse(0, line, f, sp, args)[2]))
-                    # moves the mouse left from its current location
-                    elif objfunc == 'left':
-                        curr_x, curr_y = win32api.GetCursorPos()
-                        return mouse.move(coords=(curr_x - self.parse(0, line, f, sp, args)[2], curr_y))
-                    # moves the mouse right from its current location
-                    elif objfunc == 'right':
-                        curr_x, curr_y = win32api.GetCursorPos()
-                        return mouse.move(coords=(curr_x + self.parse(0, line, f, sp, args)[2], curr_y))
-                    
-                    
-                    return '<msnint2 class>'
-                    
-                        
-                        
-
                 # html parsing simplified
                 elif obj == 'html':
 
@@ -3820,6 +3755,9 @@ class Interpreter:
 
                     if objfunc == 'root':
                         return self.parse(0, line, f, sp, args)[2] ** (1 / self.parse(1, line, f, sp, args)[2])
+
+                    if objfunc == 'sqrt':
+                        return self.parse(0, line, f, sp, args)[2] ** 0.5
 
                     if objfunc == 'mod':
                         return self.parse(0, line, f, sp, args)[2] % self.parse(1, line, f, sp, args)[2]
@@ -4295,6 +4233,19 @@ class Interpreter:
                     thread.start()
                     return True
                 
+                # creates a thread pool to execute the block
+                elif func == "threadpool":
+                    # get the amount of threads to create
+                    thread_count = self.parse(0, line, f, sp, args)[2]
+                    # get the block to execute
+                    block = args[1][0]
+                    # create the thread pool
+                    pool = concurrent.futures.ThreadPoolExecutor(thread_count)
+                    # submit the block to the pool
+                    pool.submit(self.interpret, block)
+                    return True
+                
+                
                 # creates or edits thread variable
                 elif func == 'tvar':
                     
@@ -4361,6 +4312,12 @@ class Interpreter:
                 # releases the global lock
                 elif func == 'release':
                     return auxlock.release()
+                
+                # acquires the pointer lock
+                elif func == 'acquire:pointer':
+                    return pointer_lock.acquire()
+                elif func == 'release:pointer':
+                    return pointer_lock.release()
 
                 # joins the current working thread with the thread name specified
                 elif func == 'join':
@@ -4832,33 +4789,7 @@ class Interpreter:
 
                     # creates and returns a Workbook
                     return self.Workbook(openpyxl.load_workbook(path), path)
-                # functional syntax I decided to add to make loops a tiny bit faster,
-                # cannot receive non literal arguments
-                # syntax:     3|5|i (prnt(i))
-                # prnts 3\n4\n5
-                elif func.count('|') == 2:
-                    loop_args = func.split('|')
-                    start = self.interpret(loop_args[0])
-                    end = self.interpret(loop_args[1])
-                    loopvar = loop_args[2]
 
-                    # prepare loop variable
-                    self.vars[loopvar] = Var(loopvar, start)
-
-                    # obtain loop block
-                    block_s = args[0][0]
-
-                    if start < end:
-                        for i in range(start, end):
-                            self.vars[loopvar].value = i
-                            self.interpret(block_s)
-
-                    # reversed iteration
-                    else:
-                        for i in reversed(range(end, start)):
-                            self.vars[loopvar].value = i
-                            self.interpret(block_s)
-                    return
 
                 # quicker conditional operator as functional prefix
                 elif len(func) > 0 and func[0] == '?':
@@ -4916,6 +4847,152 @@ class Interpreter:
                     
                     # otherwise return the value
                     return val
+                
+                # mouse pointer operations
+                elif obj.startswith('pointer'):
+                    
+                    # thread based action?
+                    p_thread = False
+                    
+                    # return
+                    ret = '<msnint2 class>'
+                    
+                    # determine if thread based pointer action has been requested
+                    if obj.endswith(':lock'):
+                        p_thread = True
+                        pointer_lock.acquire()
+                    
+                    # gets the current position of the mouse
+                    if objfunc == 'getpos' or objfunc == 'pos' or objfunc == 'position':
+                        ret = win32api.GetCursorPos()
+                    
+                    # moves the mouse to an x, y position
+                    elif objfunc == 'move':
+                        ret = mouse.move(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
+                    # right clicks the mouse
+                    elif objfunc == 'click' or objfunc == 'left_click':
+                        # if args are provided
+                        if len(args) == 2:
+                            ret = mouse.click(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
+                        # if no args are provided
+                        else:
+                            ret = mouse.click(coords=win32api.GetCursorPos())
+                            
+                    # right clicks the mouse
+                    elif objfunc == 'right_click':
+                        # if args are provided
+                        if len(args) == 2:
+                            ret = mouse.right_click(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
+                        # if no args are provided
+                        else:
+                            ret = mouse.right_click(coords=win32api.GetCursorPos())
+                    # double clicks the mouse
+                    elif objfunc == 'double_click':
+                        # if args are provided
+                        if len(args) == 2:
+                            ret = mouse.double_click(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
+                        # if no args are provided
+                        else:
+                            ret = mouse.double_click(coords=win32api.GetCursorPos())
+                    # scrolls the mouse wheel to the bottom of the page
+                    elif objfunc == 'scroll_bottom':
+                        ret = mouse.scroll(wheel_dist=9999999, coords=win32api.GetCursorPos())
+                    # scrolls the mouse wheel to the top of the page
+                    elif objfunc == 'scroll_top':
+                        ret = mouse.scroll(wheel_dist=-9999999, coords=win32api.GetCursorPos())
+                    elif objfunc == 'scroll':
+                        ret = mouse.scroll(wheel_dist=self.parse(0, line, f, sp, args)[2], coords=win32api.GetCursorPos())
+                        
+                    # determines if the left mouse button is down
+                    elif objfunc == 'left_down':
+                        ret = win32api.GetKeyState(0x01) < 0   
+                    # determines if the right mouse button is down
+                    elif objfunc == 'right_down':
+                        ret = win32api.GetKeyState(0x02) < 0
+                    # waits for the left button to be pressed
+                    elif objfunc == 'wait_left':
+                        while True:
+                            if win32api.GetKeyState(0x01) < 0:
+                                break
+                        ret = True
+                    # waits for the right button to be pressed
+                    elif objfunc == 'wait_right':
+                        while True:
+                            if win32api.GetKeyState(0x02) < 0:
+                                break
+                        ret = True
+                    # waits for a click
+                    # waits for the left button to be pressed down
+                    # then waits for it to be released
+                    elif objfunc == 'wait_left_click':
+                        while True:
+                            if win32api.GetKeyState(0x01) < 0:
+                                break
+                        while True:
+                            if win32api.GetKeyState(0x01) >= 0:
+                                break
+                        ret = True
+                    # waits for the right button to be pressed down
+                    # then waits for it to be released
+                    elif objfunc == 'wait_right_click':
+                        while True:
+                            if win32api.GetKeyState(0x02) < 0:
+                                break
+                        while True:
+                            if win32api.GetKeyState(0x02) >= 0:
+                                break
+                        ret = True
+                        
+                    # DIRECTIONAL MOVEMENTS
+                    # moves the mouse down from its current location
+                    elif objfunc == 'down':
+                        curr_x, curr_y = win32api.GetCursorPos()
+                        ret = mouse.move(coords=(curr_x, curr_y + self.parse(0, line, f, sp, args)[2]))
+                    # moves the mouse up from its current location
+                    elif objfunc == 'up':
+                        curr_x, curr_y = win32api.GetCursorPos()
+                        ret = mouse.move(coords=(curr_x, curr_y - self.parse(0, line, f, sp, args)[2]))
+                    # moves the mouse left from its current location
+                    elif objfunc == 'left':
+                        curr_x, curr_y = win32api.GetCursorPos()
+                        ret = mouse.move(coords=(curr_x - self.parse(0, line, f, sp, args)[2], curr_y))
+                    # moves the mouse right from its current location
+                    elif objfunc == 'right':
+                        curr_x, curr_y = win32api.GetCursorPos()
+                        ret = mouse.move(coords=(curr_x + self.parse(0, line, f, sp, args)[2], curr_y))
+                    
+                    # release the lock
+                    if p_thread:
+                        pointer_lock.release()
+                    return ret
+
+                # functional syntax I decided to add to make loops a tiny bit faster,
+                # cannot receive non literal arguments
+                # syntax:     3|5|i (prnt(i))
+                # prnts 3\n4\n5
+                elif func.count('|') == 2:
+                    loop_args = func.split('|')
+                    start = self.interpret(loop_args[0])
+                    end = self.interpret(loop_args[1])
+                    loopvar = loop_args[2]
+
+                    # prepare loop variable
+                    self.vars[loopvar] = Var(loopvar, start)
+
+                    # obtain loop block
+                    block_s = args[0][0]
+
+                    if start < end:
+                        for i in range(start, end):
+                            self.vars[loopvar].value = i
+                            self.interpret(block_s)
+
+                    # reversed iteration
+                    else:
+                        for i in reversed(range(end, start)):
+                            self.vars[loopvar].value = i
+                            self.interpret(block_s)
+                    return
 
                 # fallback
                 else:

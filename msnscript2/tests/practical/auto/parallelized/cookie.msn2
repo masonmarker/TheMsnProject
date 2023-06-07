@@ -33,12 +33,14 @@
             # every 0 seconds, perform the block
             # for a total of 10 seconds
             interval(0, (
+
                 # click the cookie
                 pointer.click(),
 
                 # jiggle the mouse to increase
                 # mouse event count
-                pointer.up(1), pointer.down(1)
+                pointer.up(1), pointer.down(1),
+
             ), 10),
 
             # close Chrome
