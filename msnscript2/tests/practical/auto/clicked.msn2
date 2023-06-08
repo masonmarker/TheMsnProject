@@ -14,7 +14,11 @@ chrome.write(input('type a website: '))
 chrome.enter()
 
 
-discover_click(chrome, 45, script(less(len(child.text()), 100)))
+discover_click(chrome, 45, script(
+    and(greater(len(child.children()), 5), 
+        less(len(child.children()), 10)
+    )
+))
 
 
 

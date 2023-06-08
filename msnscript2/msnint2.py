@@ -1810,7 +1810,29 @@ class Interpreter:
                     def find_groupboxes_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, groupboxes)
                     
+                    # for Panes
+                    def panes(parent_window):
+                        return recursive_search(parent_window, int, self.AppElement, object_string_endswith="Pane")
+                    def pane(parent_window, index):
+                        return panes(parent_window)[index]
+                    def print_panes(parent_window):
+                        return print_elements(parent_window, panes)
+                    def find_panes(parent_window, subtext):
+                        return find_elements(parent_window, subtext, panes)
+                    def find_panes_exact(parent_window, text):
+                        return find_elements_exact(parent_window, text, panes)
                     
+                    # for ListItems
+                    def listitems(parent_window):
+                        return recursive_search(parent_window, pywinauto.controls.uia_controls.ListItemWrapper, self.AppElement, object_string_endswith="ListItem")
+                    def listitem(parent_window, index):
+                        return listitems(parent_window)[index]
+                    def print_listitems(parent_window):
+                        return print_elements(parent_window, listitems)
+                    def find_listitems(parent_window, subtext):
+                        return find_elements(parent_window, subtext, listitems)
+                    def find_listitems_exact(parent_window, text):
+                        return find_elements_exact(parent_window, text, listitems)
                     
                     # for decendants
                     def descendants(parent_window):
@@ -2191,6 +2213,36 @@ class Interpreter:
                                         as_type2=self.AppElement
                                     )) != '<msnint2 no callable>': 
                             ret = grps
+                            
+                        # for Panes
+                        elif (pns := callables(window,
+                                    'panes', panes,
+                                    'print_panes', print_panes,
+                                    'pane', pane,
+                                    'find_panes', find_panes,
+                                    objfunc6='wait_for_pane_exact', objfunc6_method=wait_for_type_exact_all,
+                                        type1=int,
+                                        as_type1=self.AppElement,
+                                    objfunc7='wait_for_pane', objfunc7_method=wait_for_type_subtext_all,
+                                        type2=int,
+                                        as_type2=self.AppElement
+                                    )) != '<msnint2 no callable>':
+                            ret = pns
+                            
+                        # for ListItems
+                        elif (lsts := callables(window,
+                                    'listitems', listitems,
+                                    'print_listitems', print_listitems,
+                                    'listitem', listitem,
+                                    'find_listitems', find_listitems,
+                                    objfunc6='wait_for_listitem_exact', objfunc6_method=wait_for_type_exact_all,
+                                        type1=pywinauto.controls.uia_controls.ListItemWrapper,
+                                        as_type1=self.AppElement,
+                                    objfunc7='wait_for_listitem', objfunc7_method=wait_for_type_subtext_all,
+                                        type2=pywinauto.controls.uia_controls.ListItemWrapper,
+                                        as_type2=self.AppElement
+                                    )) != '<msnint2 no callable>':
+                            ret = lsts
                             
                         
                         
