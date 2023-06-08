@@ -1915,8 +1915,13 @@ class Interpreter:
                     
                     # determines if a point is visible within a rectangle
                     def has_point(object, x, y):
-                        return object.get_properties()['rectangle'].top <= y <= object.get_properties()['rectangle'].bottom and object.get_properties()['rectangle'].left <= x <= object.get_properties()['rectangle'].right
-                    
+                        try:
+                            rect = object.get_properties()['rectangle']
+                            # if implemented
+                            return rect.top <= y <= rect.bottom and rect.left <= x <= rect.right
+                        except:
+                            print(str(object))
+                            return True
                     # recursively get the first object that has the point
                     # the first object that has the point and no children
                     def rec(root, x, y):
@@ -2613,9 +2618,23 @@ class Interpreter:
                             # gets a row by index, based on the above logic
                             def row(index):
                                 row = []
-                                for i in range(table.column_count()):
+                                items = []
+                                try:
+                                    cols = table.column_count()
+                                except NotImplementedError:
+                                    # not implemented
+                                    cols = 5
+                                    items = table.items()
+                                for i in range(cols):
                                     try:
-                                        wrapper = table.cell(row=index, column=i)
+                                        try:
+                                            wrapper = table.cell(row=index, column=i)
+                                        except:
+                                            # table.items() gets a 1D list of items,
+                                            # compute the index of the item
+                                            # based on 'i' and 'index'
+                                            wrapper = items[i + index * cols]
+                                            
                                         row.append(self.AppElement(wrapper, wrapper.window_text()))
                                     except:
                                         break
@@ -3309,6 +3328,20 @@ class Interpreter:
 
                     return iterable
                 
+                # determines if the array has all elements specified
+                # takes any amount of arguments
+                # first argument is the iterable
+                # the rest are elements to check for
+                elif func == 'has':
+                    # iterable to check
+                    iterable = self.parse(0, line, f, sp, args)[2]
+                    
+                    # iterate through each element
+                    for i in range(len(args) - 1):
+                        if self.parse(i + 1, line, f, sp, args)[2] not in iterable:
+                            return False
+                    return True
+                
                 # gets the first element in the iterable
                 elif func == 'first' or func == 'head':
                     try:
@@ -3939,12 +3972,17 @@ class Interpreter:
                     # gets the largest element from a list of elements
                     if objfunc == 'largest':
                         elements = self.parse(0, line, f, sp, args)[2]
+                        if not elements:
+                            return elements
                         largest = elements[0]
                         for element in elements:
-                            width = element.width()
-                            height = element.height()
-                            if width > largest.width() and height > largest.height():
-                                largest = element
+                            try:
+                                # element has width and height
+                                if element.width() > largest.width() and element.height() > largest.height():
+                                    largest = element
+                            except:
+                                # element does not have width and height
+                                return element
                         return largest
                     return '<msnint2 class>'
                 
