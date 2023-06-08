@@ -1785,7 +1785,19 @@ class Interpreter:
                         return find_elements(parent_window, subtext, images)
                     def find_images_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, images)
-                        
+                    
+                    # for Tables
+                    def tables(parent_window):
+                        return recursive_search(parent_window, int, self.Table, object_string_endswith="Table")
+                    def table(parent_window, index):
+                        return tables(parent_window)[index]
+                    def print_tables(parent_window):
+                        return print_elements(parent_window, tables)
+                    def find_tables(parent_window, subtext):
+                        return find_elements(parent_window, subtext, tables)
+                    def find_tables_exact(parent_window, text):
+                        return find_elements_exact(parent_window, text, tables)
+                    
                     
                     # for decendants
                     def descendants(parent_window):
@@ -2107,6 +2119,22 @@ class Interpreter:
                                     'image', image,
                                     'find_images', find_images)) != '<msnint2 no callable>': 
                             ret = imgs
+                            
+                        # gets all tables
+                        elif (tbls := callables(window,
+                                    'tables', tables,
+                                    'print_tables', print_tables,
+                                    'table', table,
+                                    'find_tables', find_tables,
+                                    objfunc6='wait_for_table_exact', objfunc6_method=wait_for_type_exact_all,
+                                        type1=pywinauto.controls.uia_controls.ListViewWrapper,
+                                        as_type1=self.Table,
+                                    objfunc7='wait_for_table', objfunc7_method=wait_for_type_subtext_all,
+                                        type2=pywinauto.controls.uia_controls.ListViewWrapper,
+                                        as_type2=self.Table
+                                    )) != '<msnint2 no callable>': 
+                            ret = tbls
+                            
                         
                         
                         # gets the top_window
@@ -2467,6 +2495,66 @@ class Interpreter:
                             elif objfunc == 'right_click':
                                 ret = clk(window, button='right', waittime=waittime)
                             ret = object
+                            
+                        # working with Tables
+                        elif isinstance(object, self.Table):
+                            # get table
+                            table = object.window
+                            
+                            # gets a row by index, based on the above logic
+                            def row(index):
+                                row = []
+                                for i in range(table.column_count()):
+                                    try:
+                                        wrapper = table.cell(row=index, column=i)
+                                        row.append(self.AppElement(wrapper, wrapper.window_text()))
+                                    except:
+                                        break
+                                return row
+                            # gets a column by index
+                            def col(index):
+                                col = []
+                                for i in range(table.column_count()):
+                                    try:
+                                        wrapper = table.cell(row=i, column=index)
+                                        col.append(self.AppElement(wrapper, wrapper.window_text()))
+                                    except:
+                                        break
+                                return col
+                            
+                            
+                            # gets a cell at a row and column
+                            if objfunc == 'get':
+                                
+                                # get column
+                                col = self.parse(0, line, f, sp, args)[2]
+                                # get row
+                                row = self.parse(1, line, f, sp, args)[2]
+                                wrapper = table.cell(row=row, column=col)
+                                # gets the cell
+                                ret = self.AppElement(wrapper, wrapper.window_text())
+                                
+                            # try to accumulate all the rows
+                            # up to sys.maxsize
+                            elif objfunc == 'matrix':
+                                matrix = []
+                                for i in range(sys.maxsize):
+                                    try:
+                                        if (_r := row(i)):
+                                            matrix.append(_r)
+                                        else:
+                                            break
+                                    except:
+                                        break
+                                ret = matrix                                   
+                            # gets a row
+                            elif objfunc == 'row':
+                                ret = row(self.parse(0, line, f, sp, args)[2])
+                            # gets a column
+                            elif objfunc == 'column':
+                                ret = col(self.parse(0, line, f, sp, args)[2])
+                                
+                            
 
                             
 
@@ -3736,6 +3824,21 @@ class Interpreter:
                     lock.release()
                     return True
 
+                # automation operations
+                elif obj == 'auto':
+                    
+                    # gets the largest element from a list of elements
+                    if objfunc == 'largest':
+                        elements = self.parse(0, line, f, sp, args)[2]
+                        largest = elements[0]
+                        for element in elements:
+                            width = element.width()
+                            height = element.height()
+                            if width > largest.width() and height > largest.height():
+                                largest = element
+                        return largest
+                    return '<msnint2 class>'
+                
                 # # performs math operations
                 elif obj == 'math':
                     if objfunc == 'add':
@@ -5731,6 +5834,14 @@ class Interpreter:
         # types text into the input
         def type_keys(self, text):
             self.window.type_keys(text)
+            
+    # class for Tables
+    class Table(AppElement):
+        # constructor
+        def __init__(self, window, name):
+
+            # call super constructor
+            super().__init__(window, name)  
             
             
     # ------------------------------------

@@ -10,7 +10,7 @@ import ('lib/auto/discover')
 # starts Google Chrome
 @ chrome = app('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
 chrome.start()
-chrome.write('https://orteil.dashnet.org/cookieclicker/')
+chrome.write('http://openinsider.com/latest-ceo-cfo-purchases-25k')
 chrome.enter()
 
 

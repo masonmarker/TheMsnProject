@@ -18,5 +18,15 @@ for i in range(1, len(sys.argv)):
     # obtain the filename
     filename = sys.argv[i]
     
+    # quick file access
+    if filename == 'test':
+        filename = 'tests/misc.msn2'
+    elif filename == 'elements':
+        filename = 'tests/practical/auto/clicked.msn2'
+        
+    # if the file does not end in .msn2, add it
+    if not filename.endswith('.msn2'):
+        filename += '.msn2'
+    
     # run the script
     run(filename, None)
