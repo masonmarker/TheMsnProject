@@ -10,11 +10,11 @@ import ('lib/auto/discover')
 # starts Google Chrome
 @ chrome = app('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
 chrome.start()
-chrome.write('http://openinsider.com/latest-ceo-cfo-purchases-25k')
+chrome.write(input('type a website: '))
 chrome.enter()
 
 
-discover_click(chrome, 20, script(less(len(child.text()), 50)))
+discover_click(chrome, 45, script(less(len(child.text()), 100)))
 
 
 

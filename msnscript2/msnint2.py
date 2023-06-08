@@ -1798,6 +1798,19 @@ class Interpreter:
                     def find_tables_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, tables)
                     
+                    # for GroupBoxes
+                    def groupboxes(parent_window):
+                        return recursive_search(parent_window, int, self.AppElement, object_string_endswith="GroupBox")
+                    def groupbox(parent_window, index):
+                        return groupboxes(parent_window)[index]
+                    def print_groupboxes(parent_window):
+                        return print_elements(parent_window, groupboxes)
+                    def find_groupboxes(parent_window, subtext):
+                        return find_elements(parent_window, subtext, groupboxes)
+                    def find_groupboxes_exact(parent_window, text):
+                        return find_elements_exact(parent_window, text, groupboxes)
+                    
+                    
                     
                     # for decendants
                     def descendants(parent_window):
@@ -2028,7 +2041,15 @@ class Interpreter:
                                     'print_all_children', print_all_children,
                                     'all_child', all_child,
                                     'find_all_children', find_all_children,
-                                    'find_all_children_exact', find_all_children_exact)) != '<msnint2 no callable>': 
+                                    'find_all_children_exact', find_all_children_exact, 
+                                    objfunc6='wait_for_child', objfunc6_method=wait_for_type_exact_all,
+                                        type1=pywinauto.controls.uiawrapper.UIAWrapper,
+                                        as_type1=self.AppElement,
+                                    objfunc7='wait_for_child_exact', objfunc7_method=wait_for_type_subtext_all,
+                                        type2=pywinauto.controls.uiawrapper.UIAWrapper,
+                                        as_type2=self.AppElement
+                                        
+                                    )) != '<msnint2 no callable>': 
                             ret = all_chldrn
 
                         # getting all menus
@@ -2036,7 +2057,15 @@ class Interpreter:
                                     'menus', menus,
                                     'print_menus', print_menus,
                                     'menu', menu,
-                                    'find_menus', find_menus)) != '<msnint2 no callable>': 
+                                    'find_menus', find_menus, 
+                                    objfunc5=None, objfunc5_method=None,
+                                    objfunc6='wait_for_menu_exact', objfunc6_method=wait_for_type_exact_all,
+                                        type1=pywinauto.controls.uia_controls.MenuWrapper,
+                                        as_type1=self.Menu,
+                                    objfunc7='wait_for_menu', objfunc7_method=wait_for_type_subtext_all,
+                                        type2=pywinauto.controls.uia_controls.MenuWrapper,
+                                        as_type2=self.Menu
+                                    )) != '<msnint2 no callable>': 
                             ret = mns
                         
                         # gets all toolbars
@@ -2044,7 +2073,15 @@ class Interpreter:
                                     'toolbars', toolbars,
                                     'print_toolbars', print_toolbars,
                                     'toolbar', toolbar,
-                                    'find_toolbars', find_toolbars)) != '<msnint2 no callable>': 
+                                    'find_toolbars', find_toolbars, 
+                                    objfunc5=None, objfunc5_method=None,
+                                    objfunc6='wait_for_toolbar_exact', objfunc6_method=wait_for_type_exact_all,
+                                        type1=pywinauto.controls.uia_controls.ToolbarWrapper,
+                                        as_type1=self.ToolBar,
+                                    objfunc7='wait_for_toolbar', objfunc7_method=wait_for_type_subtext_all,
+                                        type2=pywinauto.controls.uia_controls.ToolbarWrapper,
+                                        as_type2=self.ToolBar
+                                    )) != '<msnint2 no callable>': 
                             ret = tbrs
                         
                         # gets all buttons
@@ -2054,15 +2091,12 @@ class Interpreter:
                                     'button', button,
                                     'find_buttons', find_buttons,
                                     objfunc5=None, objfunc5_method=None,
-                                    
                                     objfunc6='wait_for_button_exact', objfunc6_method=wait_for_type_exact_all, 
                                         type1=pywinauto.controls.uia_controls.ButtonWrapper, 
                                         as_type1=self.Button,
-                                    
                                     objfunc7='wait_for_button', objfunc7_method=wait_for_type_subtext_all, 
                                         type2=pywinauto.controls.uia_controls.ButtonWrapper,
                                         as_type2=self.Button
-                                        
                                     )) != '<msnint2 no callable>':  
                             ret = btns
                         
@@ -2071,7 +2105,15 @@ class Interpreter:
                                     'tabitems', tabitems,
                                     'print_tabitems', print_tabitems,
                                     'tabitem', tabitem,
-                                    'find_tabitems', find_tabitems)) != '<msnint2 no callable>': 
+                                    'find_tabitems', find_tabitems, 
+                                    objfunc5=None, objfunc5_method=None,
+                                    objfunc6='wait_for_tabitem_exact', objfunc6_method=wait_for_type_exact_all,
+                                        type1=int,
+                                        as_type1=self.TabItem,
+                                    objfunc7='wait_for_tabitem', objfunc7_method=wait_for_type_subtext_all,
+                                        type2=int,
+                                        as_type2=self.TabItem  
+                                    )) != '<msnint2 no callable>': 
                             ret = tbs
                         
                         # gets all links
@@ -2134,6 +2176,21 @@ class Interpreter:
                                         as_type2=self.Table
                                     )) != '<msnint2 no callable>': 
                             ret = tbls
+                        
+                        # get all GroupBoxes
+                        elif (grps := callables(window,
+                                    'groupboxes', groupboxes,
+                                    'print_groupboxes', print_groupboxes,
+                                    'groupbox', groupbox,
+                                    'find_groupboxes', find_groupboxes,
+                                    objfunc6='wait_for_groupbox_exact', objfunc6_method=wait_for_type_exact_all,
+                                        type1=int,
+                                        as_type1=self.AppElement,
+                                    objfunc7='wait_for_groupbox', objfunc7_method=wait_for_type_subtext_all,
+                                        type2=int,
+                                        as_type2=self.AppElement
+                                    )) != '<msnint2 no callable>': 
+                            ret = grps
                             
                         
                         
