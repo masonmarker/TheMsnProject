@@ -22,14 +22,6 @@ import msnint2
 # inputs: a list of values to be passed to the script
 def run(filename, inputs):
 
-    # quick file access
-    if filename == 'test':
-        filename = 'tests/misc.msn2'
-        
-    # if the file does not end in .msn2, add it
-    if not filename.endswith('.msn2'):
-        filename += '.msn2'
-
     # opens the file for reading
     f = open(filename, "r")
     script = f.read()
