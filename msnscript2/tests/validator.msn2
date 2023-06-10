@@ -770,7 +770,7 @@ import ('lib/semaphore.msn2')
     -- thread('t1', =>(
         var('count', 0),
         for (0, 10, 'i', =>(
-            add('count', 1)
+            count.add(1)
         )),
         assert(?count? == 10)
     ))
@@ -795,7 +795,7 @@ import ('lib/semaphore.msn2')
         sem.held(True),
 
         # perform work
-        add('a', 1),
+        a.add(1),
 
         # release the semaphore
         sem.message('finished'),
@@ -1169,7 +1169,7 @@ var('terminate', False)
     -- syntax('!!!', 'line', =>(
         assert(exists('line')),
         assert(?line? == ' 5 + 2 - 6 * 2 '),
-        assert(<< |eval(?line?)| == -5 >>),
+        assert(equals(-(line), -5)),
     ))
 
     # demonstrating the syntax
@@ -1979,11 +1979,6 @@ function('test_redirect', =>(
 ~ test_other_stuff() -> _
 
     -- print('[+] testing other stuff...')
-
-    # directly utilizing Python's imports
-    # pre-imported math class
-    -- @ v1 = @v2 = <<math.ceil(|3 + 0.5|)>>
-    -- and(v1.equals(4), v2.equals(4)) ??
 
     # messing around with <2><2>
     -- assert(<2>%1%<2>)
