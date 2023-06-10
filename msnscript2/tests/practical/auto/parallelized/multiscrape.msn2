@@ -1,8 +1,43 @@
 # Scrapes two webpages at the same time
 #
 # This is an alternative to html.from() (BeautifulSoup)
-# web scraping, however is capable of retrieving live data
+# web scraping, however is capable of 
+# retrieving data as it updates
 #
 # author : Mason Marker
 # date : 6/10/2023
 
+# only one argument to app() force closes any 
+# instances of Chrome,
+# and opens a clean instance
+@ chrome = app(
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
+chrome.start()
+
+# create a connection to the
+# Chrome process
+@ chrome2 = chrome.connection()
+
+# adds another tab
+as(
+    'newtab', get(chrome.find_all_children('New Tab'), 1), 
+    newtab.click())
+
+# get the first tab
+@ t = chrome.tabitem(0)
+
+# drags the first tab into a new window
+pointer.drag(
+    # starting at the tab's center
+    first(t.center()), 
+    get(t.center(), 1), 
+
+    # ending at the new tab's center
+    op.+(first(t.center()), 50), 
+    op.+(get(t.center(), 1), 50),
+
+    # speed of the drag from 0-100
+    # not a required argument, and it defaults
+    # to 50 if not provided
+    100
+)
