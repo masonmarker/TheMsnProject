@@ -18,7 +18,8 @@ import warnings
 
 # pywinauto automation
 from pywinauto.application import Application
-from pywinauto import mouse, timings
+from pywinauto import mouse, timings, controls
+from pywinauto import findwindows, ElementAmbiguousError, ElementNotFoundError
 
 # automating Excel
 import openpyxl
@@ -36,6 +37,7 @@ import logging
 import socket
 import sys
 import subprocess
+import six
 
 # web scraping
 from bs4 import BeautifulSoup
@@ -43,10 +45,12 @@ from bs4 import BeautifulSoup
 # remove warnings for calling of integers: "10()"
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
+# pywinauto defaults
 timings.Timings.after_clickinput_wait = 0.001
 timings.Timings.after_setcursorpos_wait = 0.001
 timings.Timings.after_sendkeys_key_wait = 0.001
 timings.Timings.after_menu_wait = 0.001
+
 
 # error reporting
 class Err:
@@ -57,9 +61,9 @@ class Err:
 class Var:
 
     # constructs a new Var
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
+    def __init__(self, _msn2_reserved_varname, _msn2_reserved_varvalue):
+        self.name = _msn2_reserved_varname
+        self.value = _msn2_reserved_varvalue
 
     # determines equality of another Var
     def __eq__(self, other):
@@ -249,7 +253,7 @@ class Interpreter:
             try:
 
                 boo = boo.replace(varname, str(
-                    self.get_var(eval(f'"{varname}"'))))
+                    self.get_var(eval(f'"{varname}"', {}, {}))))
             except:
                 None
         return boo
@@ -364,7 +368,7 @@ class Interpreter:
                 return self.interpret(line)
             except:
                 try:
-                    return eval(line)
+                    return eval(line, {}, {})
                 except:
                     return line
 
@@ -465,7 +469,7 @@ class Interpreter:
             if not line.startswith('--'):
                 
                 # try evaluating the line
-                _ret = eval(line)
+                _ret = eval(line, {}, {})
                 
                 # eval cannot be a python class, because names of variables
                 # could result in python classes
@@ -604,7 +608,7 @@ class Interpreter:
                                 method.run(to_pass, self)
 
                                 try:
-                                    return eval(str(self.vars[method.returns[0]].value))
+                                    return eval(str(self.vars[method.returns[0]].value), {}, {})
                                 except:
                                     try:
                                         return str(self.vars[method.returns[0]].value)
@@ -634,7 +638,7 @@ class Interpreter:
                             # get the value on this object at the keys
                             for key in keys:
                                 try:
-                                    object = object[eval(key)]
+                                    object = object[eval(key, {}, {})]
                                 except:
                                     object = object[key]
 
@@ -1405,6 +1409,10 @@ class Interpreter:
                             except:
                                 return self.vars[vname].split(arg)
 
+                        # gets the lines of this string
+                        if objfunc == 'lines':
+                            return self.vars[vname].value.split('\n')
+
                         # determines if the string is a digit
                         if objfunc == 'isdigit':
                             return self.vars[vname].value.isdigit()
@@ -1575,11 +1583,14 @@ class Interpreter:
                     def recursive_search(parent_window, type, as_type, object_string_endswith=None):
                         found = []
                         # get the children
-                        for child in parent_window.children():
+                        # use kwargs to avoid ElementAmbiguousError
+                        # kwargs is a criteria to reduce a list by process, class_name, control_type, content_only and/or title.
+                        kwargs = {'process': parent_window.process_id()}
+                        c = parent_window.children(**kwargs)
+                        for child in c:
                             if isinstance(child, type) or (object_string_endswith and str(child).endswith(object_string_endswith)):
                                 found += [as_type(child, child.window_text())]
                             found += recursive_search(child, type, as_type, object_string_endswith)
-                            
                         return found
                     # prints all elements
                     def print_elements(parent_window, retrieve_elements):
@@ -2009,6 +2020,19 @@ class Interpreter:
                                 # if the key is not a special character
                                 new += key
                         return new
+                    
+                    # types keys with a delay between each key
+                    def type_keys_with_delay(window, text, delay):
+                        e = False
+                        for char in text:
+                            try:
+                                window.type_keys(char, with_spaces=True)
+                            except:
+                                if not e:
+                                    window.set_focus()
+                                    e = True
+                                pywinauto.keyboard.send_keys(char)
+                            time.sleep(delay)
 
                     # if the object is a pywinauto application
                     # KNOWN ISSUES:
@@ -2568,16 +2592,33 @@ class Interpreter:
                         # takes one argument, being the keystrokes to send
                         elif objfunc == 'write':
                             writing = self.parse(0, line, f, sp, args)[2]
-                            try:
-                                # sends keystrokes to the application
-                                ret = window.type_keys(writing, with_spaces=True)
-                            except:
-                                # with spaces not allowed
-                                window.set_focus()
-                                
-                                # sends keystrokes to the application
-                                ret = pywinauto.keyboard.send_keys(writing, with_spaces=True)
-                        
+                            timeout = False
+                            # if a timeout between keystrokes is offered
+                            if len(args) == 2:
+                                timeout = True
+                            
+                            if timeout:
+                                ret = type_keys_with_delay(window, writing, self.parse(1, line, f, sp, args)[2])
+                            else:
+                                try:
+                                    ret = window.type_keys(writing, with_spaces=True)
+                                except:
+                                    window.set_focus()
+                                    ret = window.type_keys(writing)
+                                    
+                        # presses backspace
+                        # if no arguments, presses it one time
+                        # else, presses it the first argument many times
+                        if objfunc == 'backspace':
+                            window.set_focus()
+                            # no argument
+                            if args[0][0] == '':
+                                ret = window.type_keys('{BACKSPACE}')
+                            # else, send {BACKSPACE} that many times
+                            else:
+                                times = self.parse(0, line, f, sp, args)[2]
+                                ret = window.type_keys('{BACKSPACE}' * times)
+
                         # presses the enter key
                         elif objfunc == 'enter':
                             ret = window.type_keys('{ENTER}')
@@ -2586,7 +2627,7 @@ class Interpreter:
                         elif objfunc == 'hover':
                             # hovers the mouse over the window, using the mid point of the element
                             ret = mouse.move(coords=(window.get_properties()['rectangle'].mid_point()))                       
-                        
+                            
                         # different types of AppElements
                         # if the appelement is a button
                         if isinstance(object, self.Button):
@@ -2974,7 +3015,7 @@ class Interpreter:
                         return self.vars[ret_name].value
                     
                     try:
-                        return eval(str(self.vars[ret_name].value))
+                        return eval(str(self.vars[ret_name].value), {}, {})
                     except:
                         pass
                     try:
@@ -5249,7 +5290,7 @@ class Interpreter:
                     try:
                         line = self.replace_vars2(line)
                         # python piggyback attempt
-                        return eval(line)
+                        return eval(line, {}, {})
                     except:
                         # maybe its a variable?
                         try:
@@ -5275,10 +5316,10 @@ class Interpreter:
             None
         # get value of line
         try:
-            return eval(line)
+            return eval(line, {}, {})
         except:
             try:
-                return eval(str(self.replace_vars(line)))
+                return eval(str(self.replace_vars(line)), {}, {})
             except:
                 return None
     # adds a new program wide syntax
@@ -5308,7 +5349,7 @@ class Interpreter:
                 val = var.value
             except:
                 try:
-                    val = eval(str(var))
+                    val = eval(str(var), {}, {})
                 except:
                     val = str(var)
             if isinstance(val, str):
@@ -5708,15 +5749,15 @@ class Interpreter:
     def evaluate(self, postop, type):
         new = postop
         try:
-            return eval(new)
+            return eval(new, {}, {})
         except:
             None
         if type == 'number':
             new = self.replace_vars(new)
             try:
-                return eval(new)
+                return eval(new, {}, {})
             except:
-                return eval(str(new))
+                return eval(str(new), {}, {})
         elif type == 'string':
             return self.string(postop)
         elif type == 'array':
@@ -5724,16 +5765,16 @@ class Interpreter:
         elif type == 'unknown':
             new = self.replace_vars(new)
             try:
-                evaluation = eval(str(self.string(new)))
+                evaluation = eval(str(self.string(new)), {}, {})
             except:
                 try:
                     evaluation = self.array(self.vars[new])
                 except:
                     try:
-                        evaluation = self.vars[self.string(eval(new))]
+                        evaluation = self.vars[self.string(eval(new, {}, {}))]
                     except:
                         try:
-                            evaluation = eval(new)
+                            evaluation = eval(new, {}, {})
                         except:
                             evaluation = new
 
@@ -5755,7 +5796,7 @@ class Interpreter:
         # if isv and '"' not in string:
         #     string = '"' + string + '"'
         try:
-            strn = eval(string)
+            strn = eval(string, {}, {})
         except:
             None
         try:
@@ -5774,7 +5815,7 @@ class Interpreter:
     def array(self, postop):
         array = []
         try:
-            array = eval(postop)
+            array = eval(postop, {}, {})
         except:
             None
         return array
@@ -5866,8 +5907,10 @@ class Interpreter:
         # constructor
         def __init__(self, window, name):
 
-            # set the window
+            # creates a modified window
             self.window = window
+            # # set the window
+            # self.window = window
             # set the name
             self.name = name
             
