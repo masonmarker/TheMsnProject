@@ -1,5 +1,12 @@
 # Interpreters MSNScript 2.0
 #
+# See documentation for more information,
+# documentation could lack functions or
+# capabilities in this interpreter, as
+# this is a work in progress.
+#
+# docs: masonmarker.com/#/msn2docs
+#
 # Author : Mason Marker
 # Start date : 09/15/2022
 
@@ -141,6 +148,7 @@ postmacros = {}
 inlines = {}
 
 # OpenAI model presets
+# these are the latest models at the time of creation
 models = {
 
     # standard model, answers questions will little to no creativity
