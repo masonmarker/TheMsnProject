@@ -1,13 +1,31 @@
 # Interpreters MSNScript 2.0
+#
 # Author : Mason Marker
-# Date : 09/15/2022
+# Start date : 09/15/2022
 
 
 # TODO
 # speed up function interpretation
 # by determining obj and func by argument count first
-# as opposed to iterating through all functions 
-
+# as opposed to iterating through all functions.
+# this also entails testing and reordering function priority to
+# maximize speed.
+#
+# TODO
+# implement string parsing of the same character at which
+# it was defined. ex: "hello \"world\"" -> hello "world"
+# currently, this is not possible
+#
+# TODO
+# Determine absolutely necessary dependencies
+#
+# TODO (less important)
+# split interpreter up into multiple files
+# for better readability
+#
+# TODO
+# implement warnings and warning handling, as this
+# language was designed to be safe yet flexible
 
 import os
 import math
@@ -18,26 +36,35 @@ import warnings
 
 # pywinauto automation
 from pywinauto.application import Application
-from pywinauto import mouse, timings, controls
-from pywinauto import findwindows, ElementAmbiguousError, ElementNotFoundError
+from pywinauto import mouse, \
+                timings, \
+                controls, \
+                findwindows, \
+                ElementAmbiguousError, \
+                ElementNotFoundError
 
 # automating Excel
 import openpyxl
 import concurrent.futures
 
+# ChatGPT API (just in case)
 import openai
-import random
-import time
+
+# multiprogramming
+import subprocess
 import threading
-import time
+
+# APIs
 import requests
 from flask import Flask, request
 from flask_restful import Resource, Api
+
+# general
+import random
+import time
 import logging
 import socket
 import sys
-import subprocess
-import six
 
 # web scraping
 from bs4 import BeautifulSoup
@@ -2352,12 +2379,14 @@ class Interpreter:
                         # takes one argument, being the keystrokes to send
                         elif objfunc == 'write':
                             writing = self.parse(0, line, f, sp, args)[2]
+                            print('writing')
                             try:
                                 # sends keystrokes to the application
                                 ret = window.type_keys(writing, with_spaces=True)
                             except:
                                 # with_spaces not allowed
                                 ret = window.type_keys(writing)
+                            print('written')
                         # writes special characters into the console
                         # takes one argument, being the special characters to write
                         elif objfunc == 'write_special':
