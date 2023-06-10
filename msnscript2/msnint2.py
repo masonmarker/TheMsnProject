@@ -37,6 +37,7 @@
 import os
 import math
 import shutil
+import psutil
 import pywinauto
 import win32api
 import warnings
@@ -2096,12 +2097,27 @@ class Interpreter:
 
                         # STARTING AND STOPPING APPLICATIONS
                         # creates and starts the application
+                        # TODO
                         if objfunc == 'start':
                             # create and start the application
                             if not object.application:
-                                object.application = Application(
-                                    backend="uia").start(path)
-                            
+                                # Check if the application is already running
+                                existing_app = None
+                                for proc in psutil.process_iter(['name', 'exe']):
+                                    try:
+                                        if proc.info['name'] == f"{object.name}.{object.extension}":
+                                            existing_app = proc
+                                            break
+                                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                                        pass
+                                if existing_app:
+                                    ...
+                                    # Connect to the existing application
+                                    # Implement your logic here for connecting to the existing process
+                                    # Example: object.application = Application().connect(process=existing_app.pid)
+                                else:
+                                    # Start a new instance of the application
+                                    object.application = Application(backend="uia").start(path)
                             # add to global apps
                             global apps
                             apps[len(apps) + 1] = object
@@ -2387,14 +2403,12 @@ class Interpreter:
                         # takes one argument, being the keystrokes to send
                         elif objfunc == 'write':
                             writing = self.parse(0, line, f, sp, args)[2]
-                            print('writing')
                             try:
                                 # sends keystrokes to the application
                                 ret = window.type_keys(writing, with_spaces=True)
                             except:
                                 # with_spaces not allowed
                                 ret = window.type_keys(writing)
-                            print('written')
                         # writes special characters into the console
                         # takes one argument, being the special characters to write
                         elif objfunc == 'write_special':
@@ -5083,6 +5097,8 @@ class Interpreter:
                 # of an application on the local machine
                 # only properly implemented for Windows
                 # uses pywinauto to do all of this
+                # one argument: path to application
+                # any more arguments: the existing application doesn't close
                 elif func == 'app':
                                         
                     # get the path to the application
@@ -5099,7 +5115,7 @@ class Interpreter:
                         # taskkill should end the program by name, and should kill
                         # all child processes forcefully, it should also not print
                         # anything to the console                    
-                        os.system(f'taskkill /f /im {name} >nul 2>&1')                    
+                        os.system(f'taskkill /f /im {name} >nul 2>&1')
                     
                     # creates an App variable
                     return self.App(path=path)
@@ -5934,7 +5950,14 @@ class Interpreter:
 
             # path of application being launched
             self.path = path
-
+            
+            _spl = path.split('\\')[-1].split('.')
+            # extension of the application
+            self.extension = _spl[-1]
+            # name of the application
+            self.name = _spl[0]
+            print(self.name, self.extension)
+            
             # pwinauto application object
             self.application = None
 

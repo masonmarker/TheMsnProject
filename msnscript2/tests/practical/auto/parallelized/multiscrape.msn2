@@ -1,0 +1,8 @@
+# Scrapes two webpages at the same time
+#
+# This is an alternative to html.from() (BeautifulSoup)
+# web scraping, however is capable of retrieving live data
+#
+# author : Mason Marker
+# date : 6/10/2023
+
