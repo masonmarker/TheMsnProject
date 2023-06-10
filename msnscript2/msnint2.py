@@ -1797,6 +1797,18 @@ class Interpreter:
                     def find_tabitems_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, tabitems)
                     
+                    # for tabcontrols
+                    def tabcontrols(parent_window):
+                        return recursive_search(parent_window, int, self.AppElement, object_string_endswith="TabControl")
+                    def tabcontrol(parent_window, index):
+                        return tabcontrols(parent_window)[index]
+                    def print_tabcontrols(parent_window):
+                        return print_elements(parent_window, tabcontrols)
+                    def find_tabcontrols(parent_window, subtext):
+                        return find_elements(parent_window, subtext, tabcontrols)
+                    def find_tabcontrols_exact(parent_window, text):
+                        return find_elements_exact(parent_window, text, tabcontrols)
+                    
                     # for EditWrapper
                     def inputs(parent_window):
                         return recursive_search(parent_window, pywinauto.controls.uia_controls.EditWrapper, self.Input)
@@ -2069,68 +2081,15 @@ class Interpreter:
                                     e = True
                                 pywinauto.keyboard.send_keys(char)
                             time.sleep(delay)
-
-                    # if the object is a pywinauto application
-                    # KNOWN ISSUES:
-                    #   - I've tested this on a Windows 11 laptop and it doesn't
-                    #     work for some reason
-                    if isinstance(object, self.App):
+                            
+                    # parses object functions for discovering types
+                    # of elements
+                    def search(window):
+                        ret = '<msnint2 no callable>'
                         
-                        # return for an app
-                        ret = object
-
-                        # path to the application to work with
-                        path = object.path
-                        # actual pwinauto application object
-                        app = object.application
-                        # window
-                        window = app.window() if app else None
-
-                        # thread based operation
-                        p_thread = False
-                        if objfunc.endswith(':lock'):
-                            p_thread = True
-                            objfunc = objfunc[:-5]
-                            auto_lock.acquire()
-                        
-
-
-                        # STARTING AND STOPPING APPLICATIONS
-                        # creates and starts the application
-                        # TODO
-                        if objfunc == 'start':
-                            # create and start the application
-                            if not object.application:
-                                # Check if the application is already running
-                                existing_app = None
-                                for proc in psutil.process_iter(['name', 'exe']):
-                                    try:
-                                        if proc.info['name'] == f"{object.name}.{object.extension}":
-                                            existing_app = proc
-                                            break
-                                    except (psutil.NoSuchProcess, psutil.AccessDenied):
-                                        pass
-                                if existing_app:
-                                    ...
-                                    # Connect to the existing application
-                                    # Implement your logic here for connecting to the existing process
-                                    # Example: object.application = Application().connect(process=existing_app.pid)
-                                else:
-                                    # Start a new instance of the application
-                                    object.application = Application(backend="uia").start(path)
-                            # add to global apps
-                            global apps
-                            apps[len(apps) + 1] = object
-
-                            ret = object.application
-                        # kills the application
-                        elif objfunc == 'stop' or objfunc == 'kill' or objfunc == 'close':
-                            # kill the application
-                            ret = app.kill()
-
-                        # RETRIEVING CHILDREN
+                         # RETRIEVING CHILDREN
                         # gets the available child reference keywords
-                        elif  (chldrn := callables(window,
+                        if  (chldrn := callables(window,
                                     'children', children,
                                     'print_children', print_children,
                                     'child', child,
@@ -2323,12 +2282,80 @@ class Interpreter:
                                         as_type2=self.AppElement
                                     )) != '<msnint2 no callable>':
                             ret = lsts
+                        
+                        # for TabControls
+                        elif (tabs := callables(window,
+                                    'tabcontrols', tabcontrols,
+                                    'print_tabcontrols', print_tabcontrols,
+                                    'tabcontrol', tabcontrol,
+                                    'find_tabcontrols', find_tabcontrols,
+                                    objfunc6='wait_for_tabcontrol_exact', objfunc6_method=wait_for_type_exact_all,
+                                        type1=int,
+                                        as_type1=self.AppElement,
+                                    objfunc7='wait_for_tabcontrol', objfunc7_method=wait_for_type_subtext_all,
+                                        type2=int,
+                                        as_type2=self.AppElement
+                                    )) != '<msnint2 no callable>':
+                            ret = tabs
+                        return ret
+
+                    # if the object is a pywinauto application
+                    # KNOWN ISSUES:
+                    #   - I've tested this on a Windows 11 laptop and it doesn't
+                    #     work for some reason
+                    if isinstance(object, self.App):
+                        
+                        # return for an app
+                        ret = object
+
+                        # path to the application to work with
+                        path = object.path
+                        # actual pwinauto application object
+                        app = object.application
+                        # window
+                        window = app.window() if app else None
+
+                        # thread based operation
+                        p_thread = False
+                        if objfunc.endswith(':lock'):
+                            p_thread = True
+                            objfunc = objfunc[:-5]
+                            auto_lock.acquire()
+                        
+                        # element discovery with search()
+                        if (srch := search(window)) != '<msnint2 no callable>':
+                            ret = srch
+
+
+                        # STARTING AND STOPPING APPLICATIONS
+                        # creates and starts the application
+                        # TODO
+                        if objfunc == 'start':
+                            # create and start the application
+                            if not object.application:
+                                object.application = Application(backend="uia").start(path)
+
+                            # add to global apps
+                            global apps
+                            apps[len(apps) + 1] = object
+
+                            ret = object.application
+                        # kills the application
+                        elif objfunc == 'stop' or objfunc == 'kill' or objfunc == 'close':
+                            # kill the application
+                            ret = app.kill()
+
                             
                         
                         
                         # gets the top_window
                         elif objfunc == 'print_tree':
                             ret = app.dump_tree()
+                            
+                        # gets a connection to this application
+                        elif objfunc == 'connection':
+                            ret = self.App(object.path, Application(backend="uia").connect(process=object.application.process))
+                                                    
 
                         # gets information about this application
                         # gets the text of the window
@@ -2515,21 +2542,15 @@ class Interpreter:
                             p_thread = True
                             auto_lock.acquire()
                             objfunc = objfunc[:-5]
-                                
-                        
+
                         # OBTAINING DIFFERENT TYPES OF CHILDREN
                         # get the element window
                         if objfunc == 'window':
                             ret = window
                         
-                        # working with children, performs the same logic as the above
-                        # application
-                        elif (chldrn := callables(window,
-                                    'children', children,
-                                    'print_children', print_children,
-                                    'child', child,
-                                    'find_children', find_children)) != '<msnint2 no callable>': 
-                            ret = chldrn
+                        # element discovery with search()
+                        if (srch := search(window)) != '<msnint2 no callable>':
+                            ret = srch
 
                         # getting information about the current window
                         # gets the window text
@@ -2637,7 +2658,30 @@ class Interpreter:
                             x = window.get_properties()['rectangle'].mid_point()[0]
                             y = window.get_properties()['rectangle'].mid_point()[1]
                             ret = mouse.scroll(coords=(x, y))
+                        
+                        # drags this element to either another AppElement
+                        # or coordinates
+                        elif objfunc == 'drag':
+                            print('gragging')
+                            # mid points of this element
+                            x = window.get_properties()['rectangle'].mid_point()[0]
+                            y = window.get_properties()['rectangle'].mid_point()[1]
                             
+                            # if one argument and that argument isinstance(AppElement)
+                            first = self.parse(0, line, f, sp, args)[2]
+                            if len(args) == 1 and isinstance(first, self.AppElement):
+                                dragging_to = first
+                                # midpoint of the element to drag to
+                                x2 = dragging_to.get_properties()['rectangle'].mid_point()[0]
+                                y2 = dragging_to.get_properties()['rectangle'].mid_point()[1]
+                                ret = window.drag_mouse(press_coords=(x, y), release_coords=(x2, y2))
+                                
+                            # otherwise they're coordinates
+                            elif len(args) == 2:
+                                x2 = first
+                                y2 = self.parse(1, line, f, sp, args)[2]
+                                ret = window.drag_mouse(press_coords=(x, y), release_coords=(x2, y2))
+                        
                         # WINDOW ACTIONS
                         # sends keystrokes to the application
                         # takes one argument, being the keystrokes to send
@@ -3525,9 +3569,6 @@ class Interpreter:
                             arg2 = self.parse(i, line, f, sp, args)[2]
                             arg1 **= (1 / arg2)
                         return arg1
-                    
-                    
-
                     return '<msnint2 class>'
 
                 # more support for functions
@@ -5119,6 +5160,15 @@ class Interpreter:
                     
                     # creates an App variable
                     return self.App(path=path)
+            
+                # connects to the first argument given that 
+                # the first argument is an instance of self.App
+                elif func == 'connect':
+                    # connecting to
+                    appl = self.parse(0, line, f, sp, args)[2]
+                    a = Application(backend="uia").connect(process=appl.application.process)
+                    # connect to the application
+                    return self.App(path=appl.path)
                 
                 # starts and retrieves an instance of an Excel workbook
                 # using the openpyxl library
@@ -5305,6 +5355,42 @@ class Interpreter:
                         curr_x, curr_y = win32api.GetCursorPos()
                         ret = mouse.move(coords=(curr_x + self.parse(0, line, f, sp, args)[2], curr_y))
                     
+                    # drags the mouse
+                    # takes 4 or 5 arguments
+                    # the first two are the starting coordinates
+                    # the second two are the ending coordinates
+                    # 5th argument is speed from 0-100
+                    elif objfunc == 'drag':
+                        start = (self.parse(0, line, f, sp, args)[2], 
+                                    self.parse(1, line, f, sp, args)[2])
+                        end = (self.parse(2, line, f, sp, args)[2], 
+                                     self.parse(3, line, f, sp, args)[2])
+                        # presses the mouse down at the coordinates
+                        mouse.press(coords=start)
+
+                        # slowly moves the mouse to the end coordinates
+                        # this is to prevent the mouse from moving too fast
+                        # and not dragging the object
+                        # the farther the distance, the longer it takes
+                        # to move the mouse
+                        
+                        speed = 50
+                        if len(args) == 5:
+                            speed = self.parse(4, line, f, sp, args)[2]
+                        
+                        # reverse the speed, so a speed of 50 gives
+                        # end_range of 50, and a speed of 75 gives
+                        # end_range of 25
+                        end_range = 100 - speed
+                        for i in range(0, end_range):
+                            mouse.move(coords=(int(start[0] + (end[0] - start[0]) / 100 * i), 
+                                                int(start[1] + (end[1] - start[1]) / 100 * i)))
+                            time.sleep(0.001)
+
+                        # releases the mouse at the end coordinates
+                        mouse.release(coords=end)
+                        ret = True
+                        
                     # release the lock
                     if p_thread:
                         pointer_lock.release()
@@ -5946,7 +6032,7 @@ class Interpreter:
 
     class App:
         # constructor
-        def __init__(self, path):
+        def __init__(self, path, application=None):
 
             # path of application being launched
             self.path = path
@@ -5956,10 +6042,9 @@ class Interpreter:
             self.extension = _spl[-1]
             # name of the application
             self.name = _spl[0]
-            print(self.name, self.extension)
             
             # pwinauto application object
-            self.application = None
+            self.application = application
 
     # element for an application
     class AppElement:
