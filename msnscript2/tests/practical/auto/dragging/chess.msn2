@@ -1,0 +1,13 @@
+
+
+
+
+# define and open Google Chrome
+@ chrome = app('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
+chrome.start()
+# go to Chess.com
+chrome.write('chess.com')
+chrome.enter()
+
+@ learn = chrome.wait_for_link_exact('Learn')
+learn.click() 
