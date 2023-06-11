@@ -1893,6 +1893,18 @@ class Interpreter:
                     def find_listitems_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, listitems)
                     
+                    # for documents
+                    def documents(parent_window):
+                        return recursive_search(parent_window, int, self.AppElement, object_string_endswith="Document")
+                    def document(parent_window, index):
+                        return documents(parent_window)[index]
+                    def print_documents(parent_window):
+                        return print_elements(parent_window, documents)
+                    def find_documents(parent_window, subtext):
+                        return find_elements(parent_window, subtext, documents)
+                    def find_documents_exact(parent_window, text):
+                        return find_elements_exact(parent_window, text, documents)
+                    
                     # for decendants
                     def descendants(parent_window):
                         return recursive_search(parent_window, int, self.AppElement)
@@ -2297,6 +2309,22 @@ class Interpreter:
                                         as_type2=self.AppElement
                                     )) != '<msnint2 no callable>':
                             ret = tabs
+                        
+                        # for Documents
+                        elif (docs := callables(window,
+                                    'documents', documents,
+                                    'print_documents', print_documents,
+                                    'document', document,
+                                    'find_documents', find_documents,
+                                    objfunc6='wait_for_document_exact', objfunc6_method=wait_for_type_exact_all,
+                                        type1=int,
+                                        as_type1=self.AppElement,
+                                    objfunc7='wait_for_document', objfunc7_method=wait_for_type_subtext_all,
+                                        type2=int,
+                                        as_type2=self.AppElement
+                                    )) != '<msnint2 no callable>':
+                            ret = docs
+                            
                         return ret
 
                     # if the object is a pywinauto application
@@ -4733,17 +4761,24 @@ class Interpreter:
 
                 # waits for a certain condition to be true
                 elif func == 'wait':
-
+                    ret = None
                     # no block per tick provided
-                    if (len(args)) == 1:
-                        while not self.interpret(args[0][0]):
+                    if len(args) == 1:
+                        while not (ret := self.interpret(args[0][0])):
                             None
 
                     # block provided
-                    else:
-                        while not self.interpret(args[0][0]):
+                    elif len(args) == 2:
+                        while not (ret := self.interpret(args[0][0])):
                             self.interpret(args[1][0])
-                    return True
+
+                    # block with tick provided
+                    elif len(args) == 3:
+                        s = self.parse(2, line, f, sp, args)[2]
+                        while not (ret := self.interpret(args[0][0])):
+                            self.interpret(args[1][0])
+                            time.sleep(s)
+                    return ret
                 
                 # performs a an action every certain amount of seconds
                 # where the amount of seconds is the first argument
