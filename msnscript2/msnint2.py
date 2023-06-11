@@ -1784,6 +1784,8 @@ class Interpreter:
                         return print_elements(parent_window, links)
                     def find_links(parent_window, subtext):
                         return find_elements(parent_window, subtext, links)
+                    def find_links_exact(parent_window, text):
+                        return find_elements_exact(parent_window, text, links)
                     
                     # for tabitems
                     def tabitems(parent_window):
@@ -1968,7 +1970,7 @@ class Interpreter:
 
                     
                     # moves the mouse to the center of an element, and clicks it
-                    def clk(window, button='left', waittime=1):
+                    def clk(window, button='left', waittime=0):
                         # set the focus to this element
                         window.set_focus()
                         
@@ -2186,7 +2188,7 @@ class Interpreter:
                                     objfunc7='wait_for_tabitem', objfunc7_method=wait_for_type_subtext_all,
                                         type2=int,
                                         as_type2=self.TabItem  
-                                    )) != '<msnint2 no callable>': 
+                                    )) != '<msnint2 no callable>':
                             ret = tbs
                         
                         # gets all links
@@ -2194,7 +2196,15 @@ class Interpreter:
                                     'links', links,
                                     'print_links', print_links,
                                     'link', link,
-                                    'find_links', find_links)) != '<msnint2 no callable>': 
+                                    'find_links', find_links,
+                                    objfunc5=None, objfunc5_method=None,
+                                    objfunc6='wait_for_link_exact', objfunc6_method=wait_for_type_exact_all,
+                                        type1=int,
+                                        as_type1=self.Link,
+                                    objfunc7='wait_for_link', objfunc7_method=wait_for_type_subtext_all,
+                                        type2=int,
+                                        as_type2=self.Link
+                                    )) != '<msnint2 no callable>': 
                             ret = lnks
                         
                         # gets all Inputs
@@ -2562,6 +2572,25 @@ class Interpreter:
                         # get the text of the AppElement object
                         name = object.name
 
+                        # function to move the mouse from start to end,
+                        # with a speed of speed
+                        def movemouse(start, end, speed):
+                            # reverse the speed, so a speed of 50 gives
+                            # end_range of 50, and a speed of 75 gives
+                            # end_range of 25
+                            # dragging the mouse
+                            # presses the mouse down at the coordinates
+                            mouse.press(coords=start)
+                            end_range = 100 - speed
+                            for i in range(0, end_range):
+                                mouse.move(coords=(int(start[0] + (end[0] - start[0]) / 100 * i), 
+                                                    int(start[1] + (end[1] - start[1]) / 100 * i)))
+                                time.sleep(0.001)
+                                    
+                            # releases the mouse at the end coordinates
+                            mouse.release(coords=end)
+
+
                         p_thread = False
 
                         # thread based functions
@@ -2683,33 +2712,47 @@ class Interpreter:
                         
                         # scrolls to the window
                         elif objfunc == 'scroll':
-                            x = window.get_properties()['rectangle'].mid_point()[0]
-                            y = window.get_properties()['rectangle'].mid_point()[1]
-                            ret = mouse.scroll(coords=(x, y))
+                            ret = mouse.scroll(coords=(window.get_properties()['rectangle'].mid_point()[0],
+                                                       window.get_properties()['rectangle'].mid_point()[1]))
                         
                         # drags this element to either another AppElement
-                        # or coordinates
-                        elif objfunc == 'drag':
-                            print('gragging')
-                            # mid points of this element
-                            x = window.get_properties()['rectangle'].mid_point()[0]
-                            y = window.get_properties()['rectangle'].mid_point()[1]
-                            
+                        elif objfunc == 'drag':                            
                             # if one argument and that argument isinstance(AppElement)
                             first = self.parse(0, line, f, sp, args)[2]
-                            if len(args) == 1 and isinstance(first, self.AppElement):
-                                dragging_to = first
-                                # midpoint of the element to drag to
-                                x2 = dragging_to.get_properties()['rectangle'].mid_point()[0]
-                                y2 = dragging_to.get_properties()['rectangle'].mid_point()[1]
-                                ret = window.drag_mouse(press_coords=(x, y), release_coords=(x2, y2))
-                                
-                            # otherwise they're coordinates
-                            elif len(args) == 2:
-                                x2 = first
-                                y2 = self.parse(1, line, f, sp, args)[2]
-                                ret = window.drag_mouse(press_coords=(x, y), release_coords=(x2, y2))
-                        
+                            # midpoint of the element to drag to
+                            start = (window.get_properties()['rectangle'].mid_point()[0],
+                                        window.get_properties()['rectangle'].mid_point()[1])
+                            end = (first.get_properties()['rectangle'].mid_point()[0],
+                                        first.get_properties()['rectangle'].mid_point()[1])
+
+                            # slowly moves the mouse to the end coordinates
+                            # this is to prevent the mouse from moving too fast
+                            # and not dragging the object
+                            # the farther the distance, the longer it takes
+                            # to move the mouse
+                            speed = 50
+                            if len(args) == 2:
+                                speed = self.parse(1, line, f, sp, args)[2]
+                            # drags the mouse
+                            movemouse(start, end, speed) 
+                            ret = True
+                            
+                        # drags this AppElement to coordinates
+                        elif objfunc == 'drag_coords':
+                            
+                            start = (window.get_properties()['rectangle'].mid_point()[0],
+                                      window.get_properties()['rectangle'].mid_point()[1])
+                            end = (self.parse(0, line, f, sp, args)[2], 
+                                     self.parse(1, line, f, sp, args)[2])
+                            
+                            # gets the speed, if specified
+                            speed = 50
+                            if len(args) == 3:
+                                speed = self.parse(2, line, f, sp, args)[2]
+                            # drags the mouse
+                            movemouse(start, end, speed)
+                            ret = True
+                            
                         # WINDOW ACTIONS
                         # sends keystrokes to the application
                         # takes one argument, being the keystrokes to send
