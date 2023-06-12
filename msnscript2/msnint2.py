@@ -890,7 +890,7 @@ class Interpreter:
                             if isinstance(column, int):
                                 column += 1
                                 # find the first empty cell in the column
-                                for i in range(sheet.max_row):
+                                for i in range(sheet.max_row + 1):
                                     if sheet.cell(i + 1, column).value == None:
                                         sheet.cell(i + 1, column, value)
                                         return value
@@ -900,7 +900,7 @@ class Interpreter:
                             elif isinstance(column, str):
                                 column_index = get_column_index(column)
                                 # find the first empty cell in the column
-                                for i in range(sheet.max_row):
+                                for i in range(sheet.max_row + 1):
                                     if sheet.cell(i + 1, column_index).value == None:
                                         sheet.cell(i + 1, column_index, value)
                                         return value
@@ -1184,6 +1184,12 @@ class Interpreter:
                         elif objfunc == '--' or objfunc == 'dec':
                             self.vars[vname].value -= 1
                             return self.vars[vname].value
+
+                        # determines if the number is even
+                        elif objfunc == 'even':
+                            return self.vars[vname].value % 2 == 0
+                        elif objfunc == 'odd':
+                            return self.vars[vname].value % 2 != 0
 
                         # all of the below methods take any amount of arguments
                         # and perform the operation on the variable
@@ -2200,10 +2206,10 @@ class Interpreter:
                                     objfunc5=None, objfunc5_method=None,
                                     objfunc6='wait_for_link_exact', objfunc6_method=wait_for_type_exact_all,
                                         type1=int,
-                                        as_type1=self.Link,
+                                        as_type1=self.Hyperlink,
                                     objfunc7='wait_for_link', objfunc7_method=wait_for_type_subtext_all,
                                         type2=int,
-                                        as_type2=self.Link
+                                        as_type2=self.Hyperlink
                                     )) != '<msnint2 no callable>': 
                             ret = lnks
                         
@@ -5339,7 +5345,7 @@ class Interpreter:
                         ret = win32api.GetCursorPos()
                     
                     # moves the mouse to an x, y position
-                    elif objfunc == 'move':
+                    elif objfunc == 'move' or objfunc == 'hover':
                         ret = mouse.move(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
                     # right clicks the mouse
                     elif objfunc == 'click' or objfunc == 'left_click':
@@ -6235,6 +6241,14 @@ class Interpreter:
 
             # call super constructor
             super().__init__(window, name)  
+            
+    # class for Hyperlink
+    class Hyperlink(AppElement):
+        # constructor
+        def __init__(self, window, name):
+
+            # call super constructor
+            super().__init__(window, name)
     
     # class for Inputs
     class Input(AppElement):
