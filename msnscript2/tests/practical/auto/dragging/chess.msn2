@@ -55,30 +55,23 @@ chrome.page_up()
 # obtain the main board
 @ board = chrome.image(1)
 
-# makes a move on the board
+# makes a move on the board, and
+# writes the move to Excel,
+# computes the resulting square given
+# from the letter and number of the two
+# squares, e4 -> 'e' and '4', 
+# use the positions of both directional squares
 function('move_and_write', (
 
     # strip the starting and ending squares
     sq1.strip(), sq2.strip(),
-    
-    # nested function to retrieve a pixel value
-    # to assist with pointer dragging
-    function(@pxl='pixel', ret(pxl, 
-        get(
-            as (
-                'sq', 
-                first(board.find_children(sqnum.get(index))), 
-                sq.center()
-            ), 
-        index2)
-    ), 'sqnum', 'index', 'index2'),
 
     # drags from one square to another
     pointer.drag(
-        pixel(sq1, 0, 0), 
-        pixel(sq1, 1, 1), 
-        pixel(sq2, 0, 0), 
-        pixel(sq2, 1, 1)
+        get(as('sq', first(board.find_children(sq1.get(0))), sq.center()), 0),
+        get(as('sq', first(board.find_children(sq1.get(1))), sq.center()), 1),
+        get(as('sq', first(board.find_children(sq2.get(0))), sq.center()), 0),
+        get(as('sq', first(board.find_children(sq2.get(1))), sq.center()), 1)
     # at the fastest possible speed
     , 100),
 

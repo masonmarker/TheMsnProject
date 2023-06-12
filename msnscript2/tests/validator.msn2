@@ -2075,6 +2075,22 @@ function('test_redirect', =>(
     ), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) ??
     
     
+    # tests the maximum() and minimum() system calls
+    -- @ v = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    -- @ n = 20
+
+    -- assert(equals(maximum(v), 10))
+    -- assert(equals(maximum(n), 20))
+    -- assert(equals(maximum(v, n), 20))
+
+    # finding the max between numbers
+    -- assert(equals(maximum(10, 20, 30), 30))
+    -- assert(equals(maximum(10, 20, 30, 40), 40))
+    -- assert(equals(maximum(10, 20, 30, 40, 50), 50))
+
+    # finding the min between lists
+    -- assert(equals(maximum([1, 2, 3], [1, 2, 3, 4])), 4)
+    -- assert(equals(maximum([1, 2, 3], [1, 2, 3, 4], [1, 2, 3, 4, 5], 12)), 12)
 
 
 
