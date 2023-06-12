@@ -56,25 +56,35 @@ chrome.page_up()
 @ board = chrome.image(1)
 
 # makes a move on the board
-function('move', (
+function('move_and_write', (
+
+    # strip the starting and ending squares
+    sq1.strip(), sq2.strip(),
+    
+    # nested function to retrieve a pixel value
+    # to assist with pointer dragging
+    function(@pxl='pixel', ret(pxl, 
+        get(
+            as (
+                'sq', 
+                first(board.find_children(sqnum.get(index))), 
+                sq.center()
+            ), 
+        index2)
+    ), 'sqnum', 'index', 'index2'),
+
     # drags from one square to another
     pointer.drag(
-        get(as('sq', first(board.find_children(sq1.get(0))), sq.center()), 0), 
-        get(as('sq', first(board.find_children(sq1.get(1))), sq.center()), 1), 
-        get(as('sq', first(board.find_children(sq2.get(0))), sq.center()), 0), 
-        get(as('sq', first(board.find_children(sq2.get(1))), sq.center()), 1)
-        # at the fastest possible speed
-        , 100)
-), 'sq1', 'sq2')
+        pixel(sq1, 0, 0), 
+        pixel(sq1, 1, 1), 
+        pixel(sq2, 0, 0), 
+        pixel(sq2, 1, 1)
+    # at the fastest possible speed
+    , 100),
 
-
-# makes a move, and writes the move to Excel
-function('move_and_write', (
-    # make the move
-    move(start.strip(), end.strip()),
-    # write the move to Excel
+    # writes the move to Excel
     sheet.add_to_column(color, cat(start, '->', end))
-), 'color', 'start', 'end')
+), 'color', 'sq1', 'sq2')
 
 
 # for each move, make a move
