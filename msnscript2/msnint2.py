@@ -3647,6 +3647,32 @@ class Interpreter:
                             arg1 **= (1 / arg2)
                         return arg1
                     return '<msnint2 class>'
+                
+                # computes the maximum value from all arguments
+                # takes any amount of arguments, all being
+                # either numbers or lists
+                elif func == 'maximum':
+                    maxval = max(_f) if isinstance((_f := self.parse(0, line, f, sp, args)[2]), list) else _f
+                    for i in range(1, len(args)):
+                        val = self.parse(i, line, f, sp, args)[2]
+                        # is a list argument
+                        if isinstance(val, list):
+                            maxval = max(maxval, max(val))
+                        # is a number
+                        else:
+                            maxval = max(maxval, val)
+                    return maxval
+                elif func == 'minimum':
+                    minval = min(_f) if isinstance((_f := self.parse(0, line, f, sp, args)[2]), list) else _f
+                    for i in range(1, len(args)):
+                        val = self.parse(i, line, f, sp, args)[2]
+                        # is a list argument
+                        if isinstance(val, list):
+                            minval = min(minval, min(val))
+                        # is a number
+                        else:
+                            minval = min(minval, val)
+                    return minval
 
                 # more support for functions
                 elif obj == 'function':
@@ -4431,7 +4457,10 @@ class Interpreter:
                 
                 # imports values from an enclosing Python script
                 elif func == 'in':
-                    inval = self.vars['_msn2_reserved_in__'].value
+                    reserved_name = '_msn2_reserved_in__'
+                    if reserved_name not in self.vars:
+                        return None
+                    inval = self.varsreserved_name].value
                     # if no arguments, return the value
                     if args[0][0] == '':
                         return inval
