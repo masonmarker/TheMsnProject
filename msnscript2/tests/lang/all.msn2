@@ -4,7 +4,3 @@
 # author : Mason Marker
 # date : 6/13/2023
 
-
-
-@ b = 1
--(script(print('hello, i am <msn2>b<msn2>')))
