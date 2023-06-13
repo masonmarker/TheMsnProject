@@ -202,6 +202,9 @@ var('f', 6)
 
     -- assert(?a? / ?a? == 1.0, ?b? / ?b? == 1.0, ?c? / ?c? == 1.0, ?d? / ?d? == 1.0, ?e? / ?e? == 1.0, ?f? / ?f? == 1.0)
 
+    # see the latest suggested usage in /TUTORIAL for better math
+    # arithmetic syntax
+
     -- var('_', True)
 # -------------------------------------------
 

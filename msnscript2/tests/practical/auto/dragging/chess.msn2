@@ -25,10 +25,10 @@ chrome.start()
             active_ask_gpt(
                 chrome, 
                 [
-                    'give strictly an EXACT answer to this question with no other words,
-                    and include the example squares in your answer:
-                    give me a random chess opening starting with these squares and 6-
-                    8 more squares in this format: e2 e4, e7 e5...'
+'give strictly an EXACT answer to this question with no other words,
+and include the example squares in your answer:
+give me a random chess opening starting with these squares and 6-
+8 more squares in this format: e2 e4, e7 e5...'
                 ]
             ), 
         0), 
@@ -67,11 +67,11 @@ function('move_and_write', (
     sq1.strip(), sq2.strip(),
 
     # drags from one square to another
-    pointer.drag(
+     pointer.drag(
         get(as('sq', first(board.find_children(sq1.get(0))), sq.center()), 0),
         get(as('sq', first(board.find_children(sq1.get(1))), sq.center()), 1),
         get(as('sq', first(board.find_children(sq2.get(0))), sq.center()), 0),
-        get(as('sq', first(board.find_children(sq2.get(1))), sq.center()), 1)
+        get(as('sq', first(board.find_children(sq2.get(1))), sq.center()), 1) 
     # at the fastest possible speed
     , 100),
 
