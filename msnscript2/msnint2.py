@@ -43,6 +43,15 @@
 # implement an interpretation for block syntax
 # that permits the existence of whitespace / tabs / carriage returns
 # in the multilined block to interpret
+#
+# TODO
+# ensure no code repetition
+# (it definitely exists)
+
+
+# the current logical implementation is conceptual,
+# deoptimized, and exists to prove functionality as speed can 
+# be enhanced later
 
 import os
 import math
@@ -4723,15 +4732,15 @@ class Interpreter:
                     script = args[0][0]
                     
                     tag = '<msn2>'
-                    # replaces all function calls with their return values
-                    funccalls = []
+                    # replaces whats in between the tags
+                    # with the interpretation of whats between the tags
+                    # ex: 'hello<msn2>5+5<msn2>world' -> 'hello10world'
+                    # same logic as between()
                     while script.count(tag) > 1:
-                        script = script[script.index(tag) + len(tag):]
-                        funccalls.append(
-                            script[:script.index(tag)])
-                        script = script[script.index(tag) + len(tag):]
-                    for funccall in funccalls:
-                        script = script.replace(tag + funccall + tag, str(self.interpret(funccall)))
+                        start = script.find(tag)
+                        end = script.find(tag, start + len(tag))
+                        script = script[:start] + str(self.interpret(script[start + len(tag):end])) + script[end + len(tag):]
+
                     return script
 
                 # gets the current time

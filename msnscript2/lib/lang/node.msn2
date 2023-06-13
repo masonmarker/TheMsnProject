@@ -2,3 +2,15 @@
 #
 # author : Mason Marker
 # date : 6/13/2023
+
+# Node class for running JS files
+class ('node', (
+    # runs node
+    function('run', (
+        
+    ))
+))
+
+
+# exporting the node class
+@ node = node()
