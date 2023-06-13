@@ -1122,7 +1122,7 @@ class Interpreter:
                         for i in range(len(args)):
                             ret -= self.parse(i, line, f, sp, args)[2]
                         return ret
-                    if objfunc == '*':
+                    if objfunc == '*' or objfunc == 'x':
                         ret = object
                         for i in range(len(args)):
                             ret *= self.parse(i, line, f, sp, args)[2]
@@ -4460,7 +4460,7 @@ class Interpreter:
                     reserved_name = '_msn2_reserved_in__'
                     if reserved_name not in self.vars:
                         return None
-                    inval = self.varsreserved_name].value
+                    inval = self.vars[reserved_name].value
                     # if no arguments, return the value
                     if args[0][0] == '':
                         return inval
@@ -4584,10 +4584,51 @@ class Interpreter:
                         print(strenv)
                     return strenv
 
+
+                # arithmetic, equivalent to the op class
+
                 # executes MSNScript2 from its string representation
+                
                 elif func == '-':
-                    line, as_s, string = self.parse(0, line, f, sp, args)
-                    return self.interpret(string)
+                    if len(args) == 1:
+                        return self.interpret(self.parse(0, line, f, sp, args)[2])
+                    
+                    # subtracts all arguments from the first argument
+                    else:
+                        ret = self.parse(0, line, f, sp, args)[2]
+                        for i in range(1, len(args)):
+                            ret -= self.parse(i, line, f, sp, args)[2]
+                        return ret
+                elif func == '+':
+                    ret = self.parse(0, line, f, sp, args)[2]
+                    for i in range(1, len(args)):
+                        ret += self.parse(i, line, f, sp, args)[2]
+                    return ret
+                elif func == 'x':
+                    ret = self.parse(0, line, f, sp, args)[2]
+                    for i in range(1, len(args)):
+                        ret *= self.parse(i, line, f, sp, args)[2]
+                    return ret
+                elif func == '/':
+                    ret = self.parse(0, line, f, sp, args)[2]
+                    for i in range(1, len(args)):
+                        ret /= self.parse(i, line, f, sp, args)[2]
+                    return ret
+                elif func == '//':
+                    ret = self.parse(0, line, f, sp, args)[2]
+                    for i in range(1, len(args)):
+                        ret //= self.parse(i, line, f, sp, args)[2]
+                    return ret
+                elif func == '%':
+                    ret = self.parse(0, line, f, sp, args)[2]
+                    for i in range(1, len(args)):
+                        ret %= self.parse(i, line, f, sp, args)[2]
+                    return ret
+                elif func == '^':
+                    ret = self.parse(0, line, f, sp, args)[2]
+                    for i in range(1, len(args)):
+                        ret **= self.parse(i, line, f, sp, args)[2]
+                    return ret
 
                 # determines if a string is a digit
                 elif func == 'isdigit':
@@ -5260,19 +5301,22 @@ class Interpreter:
 
                     # if there is not second argument, we do not kill any
                     # existing instances of the application
-                    
+                    name = None
+                    extension = None
                     if len(args) == 1:
-                        # get the name of the application
-                        name = path.split('\\')[-1]
+                        # get the name and extension of the application
+                        _sp = path.split('\\')
+                        name = _sp[-1].split('.')[0]
+                        extension = _sp[-1].split('.')[1]
                         
                         # use taskkill to kill the application
                         # taskkill should end the program by name, and should kill
                         # all child processes forcefully, it should also not print
                         # anything to the console                    
-                        os.system(f'taskkill /f /im {name} >nul 2>&1')
+                        os.system(f'taskkill /f /im {name}.{extension} >nul 2>&1')
                     
                     # creates an App variable
-                    return self.App(path=path)
+                    return self.App(path=path, name=name, extension=extension)
             
                 # connects to the first argument given that 
                 # the first argument is an instance of self.App
@@ -6145,16 +6189,19 @@ class Interpreter:
 
     class App:
         # constructor
-        def __init__(self, path, application=None):
+        def __init__(self, path, application=None, name=None, extension=None):
 
             # path of application being launched
             self.path = path
             
-            _spl = path.split('\\')[-1].split('.')
-            # extension of the application
-            self.extension = _spl[-1]
-            # name of the application
-            self.name = _spl[0]
+            if name:
+                self.name = name
+                self.extension = extension
+            else:
+                _spl = path.split('\\')[-1].split('.')
+                # extension of the application
+                self.extension = _spl[-1]
+                self.name = _spl[0]
             
             # pwinauto application object
             self.application = application

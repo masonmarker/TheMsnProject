@@ -189,3 +189,27 @@ assert(g.equals(5))
 ? t (assert(1), assert(0))
 @ f = not(t)
 ? f (assert(0), assert(1))
+
+
+# arithmetic
+#
+# 6/13/2023
+# added more efficient math system calls
+# (these really should have been added a long time ago)
+# +() -() *() /() //() %() ^()
+#
+# note that -() with 1 argument takes a string of msn2 code
+# any more and it acts as a subtraction mechanism
+
+@ a = 1
+@ b = 2
+assert(equals(+(a, b, 1), 4))
+assert(equals(-(a, b, 1), -2))
+assert(equals(x(a, b, 2), 4))
+assert(equals(/(a, b, 2), 0.25))
+assert(equals(//(a, b, 2), 0))
+assert(equals(%(a, b, 2), 1))
+assert(equals(^(a, b, 2), 1))
+
+assert(equals(^(2, 4), 16))
+
