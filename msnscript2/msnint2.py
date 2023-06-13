@@ -33,6 +33,16 @@
 # TODO
 # implement warnings and warning handling, as this
 # language was designed to be safe yet flexible
+#
+# TODO
+# implement linear interpretation in areas of heavy logic, this applies
+# easily non linear approaches in several blocks
+# such as <<>> or system calls such as script()
+#
+# TODO
+# implement an interpretation for block syntax
+# that permits the existence of whitespace / tabs / carriage returns
+# in the multilined block to interpret
 
 import os
 import math
@@ -73,6 +83,7 @@ import time
 import logging
 import socket
 import sys
+import re
 
 # web scraping
 from bs4 import BeautifulSoup
@@ -4709,7 +4720,19 @@ class Interpreter:
 
                 # returns the MSNScript2 passed as a string
                 elif func == 'async' or func == 'script':
-                    return args[0][0]
+                    script = args[0][0]
+                    
+                    tag = '<msn2>'
+                    # replaces all function calls with their return values
+                    funccalls = []
+                    while script.count(tag) > 1:
+                        script = script[script.index(tag) + len(tag):]
+                        funccalls.append(
+                            script[:script.index(tag)])
+                        script = script[script.index(tag) + len(tag):]
+                    for funccall in funccalls:
+                        script = script.replace(tag + funccall + tag, str(self.interpret(funccall)))
+                    return script
 
                 # gets the current time
                 elif func == 'now':
