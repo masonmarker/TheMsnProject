@@ -847,7 +847,7 @@ class Interpreter:
                         # sets a row to an array of values
                         # if the argument is a number, it gets the value of that column
                         # if the argument is a string, it gets the value of the column with that title
-                        if objfunc == 'set_row':
+                        elif objfunc == 'set_row':
                             
                             # row, either an integer or string
                             r = self.parse(0, line, f, sp, args)[2]
@@ -878,7 +878,7 @@ class Interpreter:
                         # reqrite the above method, but with
                         # if the argument is a number, it gets the value of that column
                         # if the argument is a string, it gets the value of the column with that title
-                        if objfunc == 'add_to_column':
+                        elif objfunc == 'add_to_column':
                             
                             # column
                             column = self.parse(0, line, f, sp, args)[2]
@@ -909,7 +909,7 @@ class Interpreter:
                         # adds a value to a row
                         # if the argument is a number, it gets the value of that column
                         # if the argument is a string, it gets the value of the column with that title
-                        if objfunc == 'add_to_row':
+                        elif objfunc == 'add_to_row':
                                 
                             # row
                             row = self.parse(0, line, f, sp, args)[2]
@@ -936,6 +936,37 @@ class Interpreter:
                                         sheet.cell(row_index, i + 1, value)
                                         return value
                             return value
+                        
+                        # writes a matrix (2D array) to this Excel Worksheet
+                        # with the offsets given by the second and third arguments,
+                        # if no second or third arguments, then the matrix is written
+                        # starting at the first cell
+                        elif objfunc == 'import_matrix':
+                            
+                            # get the 2D list
+                            matrix = self.parse(0, line, f, sp, args)[2]
+                            
+                            # default offset
+                            offsetx = 0
+                            offsety = 0
+                            
+                            # if there is a second argument
+                            if len(args) == 2:
+                                offsetx = self.parse(1, line, f, sp, args)[2]
+                            if len(args) == 3:
+                                offsetx = self.parse(1, line, f, sp, args)[2]
+                                offsety = self.parse(2, line, f, sp, args)[2]
+                            
+                            # for each row
+                            for i in range(len(matrix)):
+                                # for each column
+                                for j in range(len(matrix[i])):
+                                    w = matrix[i][j]
+                                    # if w is an AppElement, write its name
+                                    if 'name' in dir(w):
+                                        w = w.name
+                                    sheet.cell(i + offsety + 1, j + offsetx + 1, w)
+                            return matrix    
                             
                         
                         # if nothing else, return the object
@@ -1577,17 +1608,28 @@ class Interpreter:
                             # title of the new sheet
                             title = self.parse(0, line, f, sp, args)[2]
 
-                            # if the sheet has already been created,
-                            # return the created sheet
-                            for name in workbook.sheetnames:
-                                if name.lower() == title.lower():
-                                    return self.Sheet(workbook[name], name, workbook, path)
-                            
-                            # creates the sheet
-                            sheet = workbook.create_sheet(title)
-                            
-                            # returns the sheet
-                            return self.Sheet(sheet, title, workbook, path)
+                            # if title is a string
+                            if isinstance(title, str):
+
+                                # if the sheet has already been created,
+                                # return the created sheet
+                                for name in workbook.sheetnames:
+                                    if name.lower() == title.lower():
+                                        return self.Sheet(workbook[name], name, workbook, path)
+                                
+                                # creates the sheet
+                                sheet = workbook.create_sheet(title)
+                                
+                                # returns the sheet
+                                return self.Sheet(sheet, title, workbook, path)
+                            # title is integer,
+                            # return the sheet at that index
+                            else:
+                                for i, sheet in enumerate(workbook.sheetnames):
+                                    if i == title:
+                                        return self.Sheet(workbook[sheet], sheet, workbook, path)
+                            return None
+                                
                             
                         # saves the workbook
                         if objfunc == 'save':
