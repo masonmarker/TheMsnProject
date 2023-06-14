@@ -20,8 +20,10 @@ function('rt', print('timer runtime:', timer_runtime()))
 
 
 
+# -------------------- JavaScript --------------------
 # start the timer
 timer_start()
+
 
 
 # running JavaScript via 'node __filepath__'
@@ -51,10 +53,12 @@ rt()
 
 
 # print JavaScripts output
-print(env.out())
+print('JavaScript:', env.out())
+# ------------------------------------------------------
 
 
 
+# -------------------- C --------------------
 # start timer again
 timer_start()
 
@@ -79,7 +83,7 @@ timer_start()
     }
 
     int main() {
-        int size = <msn2>len<msn2>;
+        int size = <msn2><msn2>;
         int* arr = malloc(sizeof(int) * size);
         if (arr == NULL) {
             printf("Error allocating memory");
@@ -99,7 +103,10 @@ timer_start()
 # print the runtime
 rt()
 
-print(env.out())
+# print C's output
+print('C:', env.out())
+# ------------------------------------------------------
+
 
 
 # cleanup lang directory
