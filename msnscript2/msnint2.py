@@ -529,7 +529,8 @@ class Interpreter:
                 
                 # eval cannot be a python class, because names of variables
                 # could result in python classes
-                if not isinstance(_ret, type):
+                # should also not be a built in function
+                if not isinstance(_ret, type) and not isinstance(_ret, type(eval)):
                     return _ret
         except:
             None
@@ -4729,19 +4730,8 @@ class Interpreter:
 
                 # returns the MSNScript2 passed as a string
                 elif func == 'async' or func == 'script':
-                    script = args[0][0]
-                    
-                    tag = '<msn2>'
-                    # replaces whats in between the tags
-                    # with the interpretation of whats between the tags
-                    # ex: 'hello<msn2>5+5<msn2>world' -> 'hello10world'
-                    # same logic as between()
-                    while script.count(tag) > 1:
-                        start = script.find(tag)
-                        end = script.find(tag, start + len(tag))
-                        script = script[:start] + str(self.interpret(script[start + len(tag):end])) + script[end + len(tag):]
-
-                    return script
+                    # inserts key tokens
+                    return self.msn2_replace(args[0][0])
 
                 # gets the current time
                 elif func == 'now':
@@ -5431,6 +5421,150 @@ class Interpreter:
                             None
                     return ret
                 
+                # executes C code and retrieves the environment
+                elif func == 'C':
+                    
+                    # get the C code
+                    c_code = self.msn2_replace(args[0][0])
+
+                    # create a directory for the C code
+                    # if it does not exist
+                    exec_folder_path = '_exec'
+                    
+                    # if the folder does not exist, create it
+                    if not os.path.exists(exec_folder_path):
+                        os.mkdir(exec_folder_path)
+                    
+                    # create a file for the C code
+                    # and write the C code to it
+
+                    # get the amount of files in the directory
+                    # and use that as the file name
+                    file_num = len(os.listdir(exec_folder_path))
+                    file_name = f'{exec_folder_path}/c{file_num}.c'
+                    with open(file_name, 'w') as f:
+                        f.write(c_code)
+
+                    
+                    # creates a new process
+                    # and executes the C code
+                    # returns the environment
+                    # including the out and variables
+                    def retrieve_c_environment(c_code):
+                        import subprocess
+
+                        # executable
+                        executable = f'{exec_folder_path}/c{file_num}.exe'
+
+                        # create a new process
+                        # and execute the C code
+                        compiled_code = subprocess.run(
+                            ['gcc', file_name, '-o', executable],
+                            
+                            # capture the output
+                            capture_output=True,
+                            text=True
+                        )
+                        
+                        # if there's an error, print it
+                        if len(compiled_code.stderr) > 0:
+                            return {'out': '', 'err': compiled_code.stderr}
+
+                        # run the executable
+                        compiled_code = subprocess.run(
+                            [executable],
+                            # capture the output
+                            capture_output=True,
+                            text=True
+                        )
+
+                        # get the output and error
+                        out = compiled_code.stdout
+                        err = compiled_code.stderr
+                        
+                        # get the environment
+                        # env = out.split('\n')[-2]
+                        # env = env.replace('\'', '"')
+                        # env = json.loads(env)
+                        return {'out': out, 'err': err}
+
+                    # execute the C code
+                    return retrieve_c_environment(c_code)
+                
+                # executes JavaScript code and retrieves the environment
+                # no compilation is needed, the code is executed via
+                # node __filename__.js
+                elif func == 'JS':
+                    
+                    # get the JavaScript code
+                    js_code = self.msn2_replace(args[0][0])
+
+                    # create a directory for the JavaScript code
+                    # if it does not exist
+                    exec_folder_path = '_exec'
+                    
+                    # if the folder does not exist, create it
+                    if not os.path.exists(exec_folder_path):
+                        os.mkdir(exec_folder_path)
+                    
+                    # create a file for the JavaScript code
+                    # and write the JavaScript code to it
+
+                    # get the amount of files in the directory
+                    # and use that as the file name
+                    file_num = len(os.listdir(exec_folder_path))
+                    file_name = f'{exec_folder_path}/js{file_num}.js'
+                    with open(file_name, 'w') as f:
+                        f.write(js_code)
+
+                    
+                    # creates a new process
+                    # and executes the JavaScript code
+                    # returns the environment
+                    # including the out and variables
+                    def retrieve_js_environment(js_code):
+                        import subprocess
+
+                        # executable
+                        executable = f'{exec_folder_path}/js{file_num}.js'
+        
+                        # create a new process
+                        # and execute the JavaScript code
+                        compiled_code = subprocess.run(
+                            ['node', file_name],
+                            
+                            # capture the output
+                            capture_output=True,
+                            text=True
+                        )
+
+                        # get the output and error
+                        out = compiled_code.stdout
+                        err = compiled_code.stderr
+
+                        # # remove '/temp.exe'
+                        # os.remove('temp.exe')
+                        # if there is an error, print it
+                        if len(err) > 0:
+                            print(err)
+                        
+                        # get the environment
+                        # env = out.split('\n')[-2]
+                        # env = env.replace('\'', '"')
+                        # env = json.loads(env)
+                        
+                        # remove a succeeding newline
+                        # if it exists
+                        if len(out) > 0 and out[-1] == '\n':
+                            out = out[:-1]
+                        
+                        return {'out': out, 'err': err}
+
+                    # execute the JavaScript code
+                    return retrieve_js_environment(js_code)
+                    
+                    
+                
                 # inline function, takes any amount of instructions
                 # returns the result of the last instruction
                 elif func == "=>" or (func == '' and objfunc == ''):
@@ -5696,6 +5830,33 @@ class Interpreter:
     def add_syntax(self, token, between, function):
         syntax[token] = [between, function]
         return [token, between, function]
+
+    # replaces tokens in the string with certain
+    # characters or values
+    def msn2_replace(self, script):
+                            
+        # replace hashtag marker with a hashtag
+        script = script.replace('<tag>', '#')
+        script = script.replace('<nl>', '\n')
+        # reverse through the script, replacing all
+        # '\n' with '\\n'
+        # this is so that the script can be passed as a string
+        # and still have newlines
+        # a '\n' consists of two characters,
+        # so script[i] is either '\' or 'n', this does not work
+
+        
+        tag = '<msn2>'
+        # replaces whats in between the tags
+        # with the interpretation of whats between the tags
+        # ex: 'hello<msn2>5+5<msn2>world' -> 'hello10world'
+        # same logic as between()
+        while script.count(tag) > 1:
+            start = script.find(tag)
+            end = script.find(tag, start + len(tag))
+            script = script[:start] + str(self.interpret(script[start + len(tag):end])) + script[end + len(tag):]
+            
+        return script
 
     def run_syntax(self, key, line):
         # get everything between after syntax and before next index of syntax

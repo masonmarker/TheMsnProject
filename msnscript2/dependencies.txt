@@ -1,3 +1,5 @@
+
+--- GENERAL DEPENDENCIES
 pip install bs4
 pip install html5lib
 pip install openai
@@ -7,3 +9,7 @@ pip install flask_restful
 pip install -U pywinauto
 pip install openpyxl
 pip install psutil
+
+-- LANG DEPENDENCIES
+JavaScript: node.js
+C / C++: gcc  (easily installed with 'choco install mingw')
