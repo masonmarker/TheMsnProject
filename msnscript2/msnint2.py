@@ -4729,7 +4729,7 @@ class Interpreter:
                     return self.parse(0, line, f, sp, args)[2].strip()
 
                 # returns the MSNScript2 passed as a string
-                elif func == 'async' or func == 'script':
+                elif func == 'async' or func == 'script' or func == 'HTML':
                     # inserts key tokens
                     return self.msn2_replace(args[0][0])
 
@@ -5854,7 +5854,10 @@ class Interpreter:
         while script.count(tag) > 1:
             start = script.find(tag)
             end = script.find(tag, start + len(tag))
-            script = script[:start] + str(self.interpret(script[start + len(tag):end])) + script[end + len(tag):]
+            v = self.interpret(script[start + len(tag):end])
+            if isinstance(v, str):
+                v = f'"{v}"'
+            script = script[:start] + str(v) + script[end + len(tag):]
             
         return script
 

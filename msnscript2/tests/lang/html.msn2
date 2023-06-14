@@ -1,0 +1,93 @@
+# Tests basic HTML interpretation and visuals.
+#
+# author : Mason Marker
+# date : 6/14/2023
+
+# import lang directory
+import ('lib/lang/dir')
+
+@ local_path = 'tests/lang/site.html'
+
+# creates an HTML file for writing
+file.create(local_path)
+
+
+# get new joke
+function (
+    @_n='new_joke', 
+    ret(_n, get(request('https://api.chucknorris.io/jokes/random'), 'value')))
+
+
+# write some HTML to the file
+file.write(local_path, HTML(
+    <html>
+        <head>
+            <title>Test</title>
+        </head>
+        <body style=
+            <msn2>
+                cat('font-size: ', @ size = int(get(C(
+                    <tag> include <stdio.h><nl>
+
+                    int main() {
+                        printf("%d", 40 + 10);
+                        return 0;
+                    }
+
+                ), 'out'), 'px;'))
+            <msn2>
+        >
+
+
+        
+            <h1 style=
+                <msn2>
+                    cat('color:', get(JS(const color="green"; console.log(color)), 'out'))
+                <msn2>
+            >Test</h1>
+
+            <h1 style="font-size: 50px">Joke:</h1>
+            <p id='joke' style=
+                <msn2>
+                    cat("margin-left: 3rem; font-size:", //(size, 2))
+                <msn2>
+            >
+                <msn2>
+                    print(@ joke = new_joke())
+                <msn2>
+            </p>
+
+            <button onclick=
+                <msn2>
+                    cat('alert(`', joke, '`)')
+                <msn2>
+            >Tell joke</button>
+
+            <button onclick=
+                <msn2>
+                    cat('document.getElementById(`joke`).innerHTML = `', 
+                        @ joke = new_joke()
+                    , '`')
+                <msn2>
+            >New joke</button>
+
+        </body>
+    </html>
+))
+
+
+
+
+
+# open the HTML file in Chrome
+@ chrome = app(
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
+chrome.start()
+chrome.write(
+    'C:\\Users\\mason\\OneDrive\\
+    Desktop\\TheMsnProject\\msnscript2\\tests\\lang\\site.html')
+chrome.enter()
+
+
+# cleanup
+__lang_dir_.end()
