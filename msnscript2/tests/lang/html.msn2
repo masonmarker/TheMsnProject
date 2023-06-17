@@ -1,85 +1,209 @@
 # Tests basic HTML interpretation and visuals.
 #
+# Also tests web development with MSN2,
+# intertwining with C, Node, Python,
+# and Python's Flask libraries.
+#
+# This makes idk how many things possible lol
+#
 # author : Mason Marker
-# date : 6/14/2023
+# date : 6/16/2023
 
 # import lang directory
 import ('lib/lang/dir')
 
+# path to HTML file
 @ local_path = 'tests/lang/site.html'
 
 # creates an HTML file for writing
 file.create(local_path)
 
-
-# get new joke
+# request a new joke
+# from API
 function (
     @_n='new_joke', 
     ret(_n, get(request('https://api.chucknorris.io/jokes/random'), 'value')))
 
-
 # write some HTML to the file
-file.write(local_path, HTML(
+function('render', file.write(local_path, HTML(
     <html>
         <head>
-            <title>Test</title>
+            <title>Testing MSN2 x HTML/CSS/JS</title>
         </head>
+
+        # uses a C program to perform some heavy computation
+        # to determine the font size of the text
         <body style=
             <msn2>
-                cat('font-size: ', @ size = int(get(C(
+            # using MSN2 fallback to run a C program
+            # for speed
+
+                # creating the font-size tag
+                # results in "font-size: 50px;"
+                cat('font-size: ', @ size = x(50, int(get(C(
+
+                    # include STDIO, using necessary <> 
+                    # for C compilation
                     <tag> include <stdio.h><nl>
 
+                    # computing the Collatz Conjecture
+                    # result for the number
+                    void collatzConjecture(int num) {                        
+                        while (num != 1) {
+                            if (num % 2 == 0) {
+                                num = num / 2;
+                            } else {
+                                num = (3 * num) + 1;
+                            }
+                        }
+
+                        # send the result to STDOUT
+                        # and therefore to MSN2
+                        printf("%d ", num);
+                    }
+
+                    # run program
                     int main() {
-                        printf("%d", 40 + 10);
+                        # large number to use
+                        int number = 99999999;
+                        # run Collatz Conjecture
+                        collatzConjecture(number);
                         return 0;
                     }
 
-                ), 'out'), 'px;'))
+                    # get STDOUT and convert to int,
+                    # then multiply by 50
+                ), 'out'), 'px;')))
             <msn2>
         >
 
-
-        
+            # Runs a Node script to obtain a random color
             <h1 style=
                 <msn2>
-                    cat('color:', get(JS(const color="green"; console.log(color)), 'out'))
-                <msn2>
-            >Test</h1>
+                # using MSN2 fallback to run a Node script
+
+                    # creating the style tag
+                    # result in "color: *random color*;"
+                    cat('color:', get(
+
+                        # starts Node script
+                        JS(
+                            # getting a random color
+                            const colors = [
+                                'red', 'orange', 'yellow', 
+                                'green', 'blue', 'purple'
+                            ];
+                            # sends the random color to out
+                            console.log(
+                                colors[Math.floor(Math.random() * 
+                                colors.length)]
+                            );
+                        )
+                        # gets the out of the JS script,
+                        # or what was printed
+                        , 'out'))
+                <msn2> 
+            >MSN2 in the web!</h1>
 
             <h1 style="font-size: 50px">Joke:</h1>
+
+            # requests an initial joke,
+            # and logs it in the global scope
             <p id='joke' style=
                 <msn2>
+                    # MSN2 fallback to generate style tag,
+                    # with the font-size being the result
+                    # of the previously computed sizex
+                    # of the title from C, and divided by 2
                     cat("margin-left: 3rem; font-size:", //(size, 2))
                 <msn2>
             >
+                # makes a request to the API for a new joke
                 <msn2>
-                    print(@ joke = new_joke())
+                    @ last_joke = new_joke()
                 <msn2>
             </p>
 
+            # button to request a new joke
             <button onclick=
                 <msn2>
-                    cat('alert(`', joke, '`)')
-                <msn2>
-            >Tell joke</button>
+                # MSN2 fallback to generate JS script
+                # without the need for quotes
 
-            <button onclick=
-                <msn2>
-                    cat('document.getElementById(`joke`).innerHTML = `', 
-                        @ joke = new_joke()
-                    , '`')
+                    # local path of the API
+                    const path = 'http:\/\/127.0.0.1:8080/';
+
+                    # makes a get request to the local endpoint
+                    fetch(path, {
+                        headers: {
+                        'Content-Type': 'application/json'
+                    }}).then(
+                        res => res.json().then(
+                            data => {
+
+                                # after retrieved, set the
+                                # element with the id of 'joke'
+                                const joke = data.joke;
+                                document.getElementById('joke').innerHTML = joke;
+
+                                # send a post request to the local endpoint
+                                # that this button was clicked
+                                fetch(path, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({new_click: 1})
+                                })
+                            }
+                        )
+                    )
                 <msn2>
             >New joke</button>
 
+            <br/><br/>
+
+            # generates direct code,
+            # in this case, HTML
+            <msn2element>
+                # multiple lines of HTML,
+                # in this case we generate
+                # 3 buttons that do the same thing
+                x(
+
+                    # instead of using <msn2> to write
+                    # direct JavaScript, we just use "",
+                    # this just shows what can be done
+                    <button onclick=
+                        "
+                            # send a post request to the local endpoint
+                            # that this button was clicked
+                            fetch('http:\/\/127.0.0.1:8080/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({write_clicked: 1})
+                            })
+                        "
+                    >
+                        Write to notepad
+                    </button>
+
+                # again, multiplying this block by 3
+                , 3)
+            <msn2element>
         </body>
     </html>
-))
+)))
+# render the HTML file
+render()
 
 
 
 
 
-# open the HTML file in Chrome
+# -------- OPEN HTML FILE IN CHROME --------
 @ chrome = app(
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
 chrome.start()
@@ -87,7 +211,104 @@ chrome.write(
     'C:\\Users\\mason\\OneDrive\\
     Desktop\\TheMsnProject\\msnscript2\\tests\\lang\\site.html')
 chrome.enter()
+# -------------------------------------------
+
+# setting 'py' alias for Python runner
+# this is for starting new processes
+alias('py')
+
+# import API class for ease of use
+import('lib/apis/api')
+# creates an instance of the cors_api class
+# defaults to 'http://127.0.0.1:8080/'
+@ local = cors_api()
+
+# starts the endpoint in a new process
+# code inside proc()'s block may be repeated,
+# as it has its own scope, being a new process
+proc('server', ENDPOINT(
+    '127.0.0.1',
+    8080,
+    '/',
+
+    # initial JSON at the endpoint
+    dictfrom(
+        'joke', get(request('https://api.chucknorris.io/jokes/random'), 'value'),
+        'new_click', 0,
+        'write_clicked', 0
+    ),
+
+    # using CORS
+    'CORS'
+))
 
 
-# cleanup
+# computed wait times for thread intervals
+# and sleep times, these were found
+# through continuous testing
+# (theres prob a better way to do this)
+@ interval_wait = 0.05
+@ sleep_wait = 0.09
+
+
+# starts a thread that waits for a new joke 
+# to be requested, then updates the joke
+# performs the coroutine every 0.09 seconds
+# waits for a field to be set by JavaScript
+# and checks every 0.05 seconds
+#
+# this should be performed in a private context
+# to avoid conflicts with other threads,
+# in other words, make api functions thread-safe
+thread(private(interval(interval_wait, (
+    
+    # waits for a click on the 'new joke' button
+    local.wait_for_field('new_click', 1, sleep_wait),
+
+    # logs the previous joke (current joke on screen)
+    # for use by other threads
+    @ last_joke = get(local.GET(), 'joke'),
+
+    # update the joke
+    local.POSTENTRY('joke', new_joke()),
+
+    # switch the 'new_click' field back to 0
+    local.POSTENTRY('new_click', 0),
+
+    # exports the last joke to the global scope
+    export('last_joke')
+))))
+
+# starts a thread that waits for the 'write to notepad'
+# button to be clicked, then writes the joke to notepad
+# on the local machine
+thread(private(interval(interval_wait, (
+    # waits for the 'write' button to be clicked
+    local.wait_for_field('write_clicked', 1, sleep_wait),
+
+    # get joke
+    @ joke = get(local.GET(), 'joke'),
+
+    # open notepad and write the joke
+    @ notepad = app('notepad.exe'),
+    notepad.start(),
+    notepad.write((
+
+        # imports the last joke from the global scope
+        inherit:single('last_joke'),
+        # return the joke
+        last_joke
+    )),
+    sleep(6),
+    notepad.close(),
+
+    # switch the 'write_clicked' field back to 0
+    local.POSTENTRY('write_clicked', 0)
+))))
+
+
+
+
+# cleanup the execution directory 
+# (c-based files, js files, etc.)
 __lang_dir_.end()

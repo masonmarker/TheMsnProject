@@ -16,10 +16,10 @@ class('api', =>(
 ))
 
 # network api
-var('api_network', api(?network?, 5000, '/', {}))
+var('api_network', api(network, 5000, '/', {}))
 
 # local api
-var('api_local', api(?localhost?, 5000, '/', {}))
+var('api_local', api(localhost, 5000, '/', {}))
 
 # gets from an api endpoint
 ~ api_get(__api__) -> response
@@ -43,8 +43,60 @@ var('api_local', api(?localhost?, 5000, '/', {}))
 -- var('thread_name', api_url(?__api__?))
 
 # starts an api endpoint on a new thread
-~ api_start(__api__) -> started
+# DEPRECATED
+~ api_start(__api__) -> __started__
 -- thread(api_get_path(?__api__?), =>(
     ENDPOINT(__api__.host(), __api__.port(), __api__.path(), __api__.init_data())
 ))
--- var('started', True)
+-- var('__started__', True)
+
+# API with CORS
+class('cors_api', (
+
+    # vars
+    @ host = '127.0.0.1',
+    @ port = 8080,
+    @ path = '/',
+    @ init_data = {},
+
+    # methods
+
+    # creates the path for the api
+    function('url', (
+        ret('url', cat('http://', host, ':', port, path))
+    ), 'self'),
+
+    # gets from the API
+    function('GET', (
+        ret('GET', GET(self.host(), self.port(), self.path()))
+    ), 'self'),
+
+    # posts to the API
+    function('POST', (
+        ret('POST', POST(self.host(), self.port(), self.path(), _data_))
+    ), 'self', '_data_'),
+
+    # posts a single entry to the API
+    function('POSTENTRY', (
+        ret('POSTENTRY', POST(self.host(), self.port(), self.path(), dictfrom(__key, __value)))
+    ), 'self', '__key', '__value'),
+
+    # deletes from the API
+    function('DELETE', (
+        ret('DELETE', DELETE(self.host(), self.port(), self.path()))
+    ), 'self'),
+
+    # waits for a field to exist in an endpoint's json
+    function('wait_for_field', (
+        wait(try((
+            equals(get(self.GET(), __field), __eq)
+        )),,__interval)
+    ), 'self', '__field', '__eq', '__interval'),
+
+    # switches a field on or off
+    function('switch', (
+        self.POST(dictfrom(__field, not(get(self.GET(), __field))))
+    ), '__field')
+
+))
+
