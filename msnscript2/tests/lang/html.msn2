@@ -29,6 +29,20 @@ function('render', file.write(local_path, HTML(
     <html>
         <head>
             <title>Testing MSN2 x HTML/CSS/JS</title>
+            <script>
+                # function for posting a 'ping' to the Flask endpoint
+                function ping(field) {
+                    const posting = {};
+                    posting[field] = 1;
+                    fetch('http:\/\/127.0.0.1:8080/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(posting)
+                    })
+                }
+            </script>
         </head>
 
         # uses a C program to perform some heavy computation
@@ -148,13 +162,7 @@ function('render', file.write(local_path, HTML(
 
                                 # send a post request to the local endpoint
                                 # that this button was clicked
-                                fetch(path, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({new_click: 1})
-                                })
+                                ping('new_click')
                             }
                         )
                     )
@@ -178,13 +186,7 @@ function('render', file.write(local_path, HTML(
                         "
                             # send a post request to the local endpoint
                             # that this button was clicked
-                            fetch('http:\/\/127.0.0.1:8080/', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({write_clicked: 1})
-                            })
+                            ping('write_clicked')
                         "
                     >
                         Write to notepad
