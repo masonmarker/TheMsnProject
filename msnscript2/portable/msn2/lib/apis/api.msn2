@@ -44,7 +44,7 @@ var('api_local', api(?localhost?, 5000, '/', {}))
 
 # starts an api endpoint on a new thread
 ~ api_start(__api__) -> started
--- thread(api_get_path(?__api__?), =>(
+-- thread((
     ENDPOINT(__api__.host(), __api__.port(), __api__.path(), __api__.init_data())
 ))
 -- var('started', True)

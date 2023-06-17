@@ -3,7 +3,12 @@
 
 
 
+class ('thing', (
+    @ hello = 3,
+
+    function('print_self', print(self.hello()), 'self')
+))
 
 
-
-
+@ t = thing(4)
+t.print_self()

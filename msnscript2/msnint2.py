@@ -83,8 +83,10 @@ import threading
 
 # APIs
 import requests
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_restful import Resource, Api
+from flask_cors import CORS
+
 
 # general
 import random
@@ -135,6 +137,8 @@ def ai_response(model, prompt, creativity):
         temperature=creativity
     ).choices[0].text
 
+# alias to run Python in the terminal
+python_alias = 'python'
 
 # msn2 implementation of None
 msn2_none = '___msn2_None_'
@@ -324,6 +328,7 @@ class Interpreter:
         global auxlock
         global auto_lock
         global pointer_lock
+        global python_alias
 
         # accounting
         total_ints += 1
@@ -526,7 +531,6 @@ class Interpreter:
                 
                 # try evaluating the line
                 _ret = eval(line, {}, {})
-                
                 # eval cannot be a python class, because names of variables
                 # could result in python classes
                 # should also not be a built in function
@@ -4773,6 +4777,15 @@ class Interpreter:
                     for varname in self.parent.vars:
                         self.vars[varname] = self.parent.vars[varname]
                     return True
+                
+                # inherits a single variable or function
+                elif func == 'inherit:single':
+                    name = self.parse(0, line, f, sp, args)[2]
+                    if name in self.parent.vars:
+                        self.vars[name] = self.parent.vars[name]
+                    elif name in self.parent.methods:
+                        self.methods[name] = self.parent.methods[name]
+                    return True
 
                 # creates a new execution environment
                 # new env is executed by a fresh interpreter
@@ -4782,6 +4795,11 @@ class Interpreter:
                     inter.parent = self
                     return inter.interpret(args[0][0])
 
+                # sets the python alias
+                elif func == 'alias':
+                    python_alias = self.parse(0, line, f, sp, args)[2]
+                    return python_alias
+
                 # starts a new process with the first argument as the target
                 elif func == 'process':
 
@@ -4790,18 +4808,30 @@ class Interpreter:
 
                     # if windows:
                     if os.name == 'nt':
-
                         # runs the process
                         sub = subprocess.run(
-                            args=['python', 'msn2.py', path], shell=True)
+                            args=[python_alias, 'msn2.py', path], shell=True)
                         self.processes[path] = sub
                         return sub
 
                     # if linux
                     elif os.name == 'posix':
-
+                        print('[-] posix not supported yet')
                         return None
                     return None
+                
+                # starts a process via MSN2 code
+                elif func == 'proc':
+                    
+                    # name of the process
+                    name = self.parse(0, line, f, sp, args)[2]
+                    
+                    # block for the process
+                    block = args[1][0]
+                                        
+                    # import the processes library and
+                    # create a new process
+                    return self.interpret(f"(import('lib/processes'),fork('{name}', async({block})))")
 
                 # gets the pid of the working process
                 elif func == 'pid':
@@ -4977,10 +5007,18 @@ class Interpreter:
                     # block to execute
                     block = args[1][0]
                     
+                    
                     # if the interval should last for a certain amount of seconds
                     # should account for the first argument to correctly wait
                     if len(args) == 3:
-                        end = time.time() + self.parse(2, line, f, sp, args)[2]
+                        
+                        extra = self.parse(2, line, f, sp, args)[2] 
+                        
+                        # if time is negative, we set it to infinity
+                        if extra == -1:
+                            extra = float('inf')
+                        
+                        end = time.time() + extra
                         while time.time() < end:
                             time.sleep(seconds)
                             self.interpret(block)
@@ -5103,12 +5141,14 @@ class Interpreter:
                     init_data = {}
                     port = 5000
                     host = '127.0.0.1'
+                    last_arg = None
 
                     # 1 argument, defaults to 127.0.0.1:5000/path = {}
                     if len(args) == 1:
 
                         # path to endpoint
                         path = self.parse(0, line, f, sp, args)[2]
+                        last_arg = path
 
                     # 2 arguments, defaults to 127.0.0.1:5000/path = init_data
                     elif len(args) == 2:
@@ -5118,9 +5158,11 @@ class Interpreter:
 
                         # json to initialize at the endpoint
                         init_data = self.parse(1, line, f, sp, args)[2]
+                        
+                        last_arg = init_data
 
                     # 3 arguments, defaults to host:port/path = init_data
-                    elif len(args) == 4:
+                    else:
 
                         # host to endpoint as first argument
                         host = self.parse(0, line, f, sp, args)[2]
@@ -5133,10 +5175,23 @@ class Interpreter:
 
                         # json to initialize at the endpoint
                         init_data = self.parse(3, line, f, sp, args)[2]
+                        
+                        last_arg = init_data
+                        if len(args) == 5:
+                            last_arg = self.parse(4, line, f, sp, args)[2]
 
                     # prepare endpoint
                     print('serving on http://' + host + ':' + str(port) + path)
                     app = Flask(__name__)
+                    cors = False
+                    # if the last argument is a string with 'CORS' in it
+                    # then enable CORS
+                    if isinstance(last_arg, str) and 'CORS' in last_arg:
+                        # enable CORS
+                        print('starting with cors')
+                        cors = True
+                        CORS(app)
+
 
                     # disable flask messages that aren't error-related
                     log = logging.getLogger('werkzeug')
@@ -5144,9 +5199,7 @@ class Interpreter:
                     app.logger.disabled = True
 
                     # gets Flask Api
-                    api = Api(app)
-
-                    # makes a response to itself, carrying data to endpoint as a response
+                    api = Api(app)     
                     curr_endpoint = self.EndPoint.make_api(init_data)
 
                     # logs newly created endpoint
@@ -5514,6 +5567,12 @@ class Interpreter:
                     # and use that as the file name
                     file_num = len(os.listdir(exec_folder_path))
                     file_name = f'{exec_folder_path}/js{file_num}.js'
+                    
+                    # if JS() has two arguments, the second is the name of
+                    # the file, excluding .js
+                    if len(args) == 2:
+                        file_name = f'{exec_folder_path}/{self.parse(1, line, f, sp, args)[2]}.js'
+                    
                     with open(file_name, 'w') as f:
                         f.write(js_code)
 
@@ -5526,7 +5585,7 @@ class Interpreter:
                         import subprocess
 
                         # executable
-                        executable = f'{exec_folder_path}/js{file_num}.js'
+                        executable = file_name
         
                         # create a new process
                         # and execute the JavaScript code
@@ -5844,9 +5903,28 @@ class Interpreter:
         # and still have newlines
         # a '\n' consists of two characters,
         # so script[i] is either '\' or 'n', this does not work
-
+        
+        # <msn2local/> tag for a JavaScript function requesting
+        # for something from the localhost Node server
+        # 
+        script = script.replace('<msn2local/>', 
+"""
+<script>
+    function msn2(req) {
+        return 'request from script';
+    }
+</script>
+""")
         
         tag = '<msn2>'
+        
+        # TODO
+        # temporary algorithm for finding and replacing tags
+        # with their interpretations, needs optimization as it's
+        # not linear, nor is it recursive
+        def temp_replace(tag, script):
+            ...
+        
         # replaces whats in between the tags
         # with the interpretation of whats between the tags
         # ex: 'hello<msn2>5+5<msn2>world' -> 'hello10world'
@@ -5857,6 +5935,19 @@ class Interpreter:
             v = self.interpret(script[start + len(tag):end])
             if isinstance(v, str):
                 v = f'"{v}"'
+            script = script[:start] + str(v) + script[end + len(tag):]
+            
+        tag = '<msn2element>'
+        # replaces whats in between the tags
+        # with the interpretation of whats between the tags
+        # ex: 'hello<msn2>5+5<msn2>world' -> 'hello10world'
+        # same logic as between()
+        while script.count(tag) > 1:
+            start = script.find(tag)
+            end = script.find(tag, start + len(tag))
+            v = self.interpret(script[start + len(tag):end])
+            if isinstance(v, str):
+                v = f'{v}'
             script = script[:start] + str(v) + script[end + len(tag):]
             
         return script
