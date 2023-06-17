@@ -30,11 +30,14 @@ function('render', file.write(local_path, HTML(
         <head>
             <title>Testing MSN2 x HTML/CSS/JS</title>
             <script>
+        
+                    # local path of the API
+                    const path = 'http:\/\/127.0.0.1:8080/';
                 # function for posting a 'ping' to the Flask endpoint
                 function ping(field) {
                     const posting = {};
                     posting[field] = 1;
-                    fetch('http:\/\/127.0.0.1:8080/', {
+                    fetch(path, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -143,9 +146,6 @@ function('render', file.write(local_path, HTML(
                 <msn2>
                 # MSN2 fallback to generate JS script
                 # without the need for quotes
-
-                    # local path of the API
-                    const path = 'http:\/\/127.0.0.1:8080/';
 
                     # makes a get request to the local endpoint
                     fetch(path, {
