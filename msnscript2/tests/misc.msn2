@@ -1,14 +1,21 @@
 
 
 
+@ array = [1, 2, 3, 4, 5]
 
 
-class ('thing', (
-    @ hello = 3,
-
-    function('print_self', print(self.hello()), 'self')
-))
 
 
-@ t = thing(4)
-t.print_self()
+function('do_thing', (
+    print(name_array)
+), 'name_array')
+
+function('other_thing', (
+    print(norm)
+), 'norm')
+
+
+do_thing('array')
+do_thing(array)
+
+# other_thing('string')
