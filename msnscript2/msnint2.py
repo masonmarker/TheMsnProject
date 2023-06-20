@@ -531,6 +531,7 @@ class Interpreter:
                 
                 # try evaluating the line
                 _ret = eval(line, {}, {})
+
                 # eval cannot be a python class, because names of variables
                 # could result in python classes
                 # should also not be a built in function
@@ -666,7 +667,7 @@ class Interpreter:
                                     self.vars[ret_name] = Var(ret_name, None)
 
                                 # execute method
-                                method.run(to_pass, self)
+                                method.run(to_pass, self, args[1:])
 
                                 try:
                                     return eval(str(self.vars[method.returns[0]].value), {}, {})
@@ -1119,6 +1120,10 @@ class Interpreter:
                             block = arg[0]
                             ret = self.interpret(f"{vname}.{block}")
                         return ret
+                    
+                    # string_name() returns the string name of the object
+                    if objfunc == 'string_name':
+                        return vname
 
                     # performs a function for each element in the iterable
                     if objfunc == 'each':
@@ -3245,14 +3250,16 @@ class Interpreter:
 
                     if ret_name not in self.vars:
                         self.vars[ret_name] = Var(ret_name, None)
-
+                    # print('before:')
+                    # self.interpret('env(1)')
                     # execute method
-                    method.run(func_args, self)
-                    
+                    method.run(func_args, self, args)
+                    # print('after:')
+                    # self.interpret('env(1)')
                     # if its a variable
                     if ret_name in self.vars:
                         return self.vars[ret_name].value
-                    
+                                        
                     try:
                         return eval(str(self.vars[ret_name].value), {}, {})
                     except:
@@ -5349,7 +5356,7 @@ class Interpreter:
                             if var_obj[name].value.name == 'const':
                                 # run the function with the argument being
                                 # this instance
-                                var_obj[name].value.run([instance], self)
+                                var_obj[name].value.run([instance], self, actual_args=args[1:])
                             continue
 
                         # if attribute is a variable
@@ -5866,7 +5873,7 @@ class Interpreter:
                 objfunc += c
             else:
                 func += c
-        
+                
         # try a variable
         if line in self.vars:
             return self.vars[line].value
@@ -6473,9 +6480,23 @@ class Interpreter:
         def add_return(self, ret):
             self.returns.append(ret)
 
-        def run(self, args, inter):
+        def run(self, args, inter, actual_args=None):
             for i in range(len(self.args)):
+               # print(i, self.args[i], args[i])
+                
+                # print('function arg:', self.args[i], '\ninserting:', args[i], '\anctual:', actual_args[i])
+
+                
+                if actual_args:
+                  #  print(actual_args[i])
+                    if self.is_str(actual_args[i][0]):
+                        try:
+                            inter.vars[self.args[i]] = Var(self.args[i], args[i])
+                        except:
+                            inter.vars[self.args[i]] = args[i]        
+                        continue        
                 try:
+
                     inter.vars[self.args[i]] = inter.vars[args[i]]
                 except:
                     try:
@@ -6484,6 +6505,9 @@ class Interpreter:
                         inter.vars[self.args[i]] = args[i]
             for line in self.body:
                 inter.interpret(line)
+                
+        def is_str(self, value):
+            return (value[0] == '"' and value[-1] == '"') or (value[0] == "'" and value[-1] == "'")
 
     class EndPoint(Resource):
 

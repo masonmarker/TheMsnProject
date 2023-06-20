@@ -1,0 +1,83 @@
+# Assisted C programming.
+#
+# author : Mason Marker
+# date : 6/17/2023
+
+# lang directory cleanup
+import ('lib/lang/dir')
+
+# constructs an include directive
+function(@_inc='Include', ret(_inc, script(
+    <tag>include <msn2>_library<msn2><nl>
+)), '_library')
+
+# main function
+function(@_main="Main", ret(_main, script(
+    int main() {
+        <msn2element>
+            _main_body
+        <msn2element>
+    }
+)), '_main_body')
+
+# initializes an int[]
+function(@_ia="IntArray", ret(_ia, (
+
+    # creates an instance of the variable in
+    # MSN2 context
+    var(__intarrname, content),
+
+    @ content = content.str(),
+    # slice from 1:
+    @ content = content.slice(1,),
+
+    # converts to a line of code
+    +('int ', __intarrname, '[]=', 
+        +('{', str(content.slice(,-1)),'}'), ';')
+)), '__intarrname', 'content')
+
+# prints an int array
+function(@_pia='PrintIntArray', ret(_pia, (print(__printintarrayname), script(
+    for (int i = 0; i < <msn2element>len(__printintarrayname)<msn2element>; i++) {
+        printf("%d ", <msn2element>__printintarrayname<msn2element>[i]);
+    }
+))), '__printintarrayname')
+
+
+
+
+print(IntArray('array', [1, 2, 3, 4, 5, 6]))
+
+
+print(PrintIntArray('array'))
+
+env(1)
+
+
+# # run C program
+# @ env = C(
+
+#     # incorporate MSN2
+#     # elements into the C program
+#     <msn2element>
+#         # include stdio
+#         # for printing
+#         Include('stdio.h')
+#     <msn2element>
+
+#     # int main() {}
+#     <msn2element>
+#         Main(cat(
+#             IntArray('array', [1, 2, 3, 4, 5, 6]),
+#             PrintIntArray('array')
+#         ))
+#     <msn2element>
+# )
+
+# print(env)
+
+
+
+
+# cleanup
+# __lang_dir_.end()
