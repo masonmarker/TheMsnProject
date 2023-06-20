@@ -3213,6 +3213,8 @@ class Interpreter:
                 # returns a value to a function
                 # first argument is the function to return to
                 # second argument is the value to return
+                # ret() is used to create a return buffer for
+                #   multiprogramming.
                 elif func == 'ret':
 
                     # function to return to
@@ -3248,17 +3250,21 @@ class Interpreter:
                     # create return variable
                     ret_name = method.returns[0]
 
+                    # add the return variable if not exists
                     if ret_name not in self.vars:
                         self.vars[ret_name] = Var(ret_name, None)
-                    # print('before:')
-                    # self.interpret('env(1)')
+                        
                     # execute method
                     method.run(func_args, self, args)
-                    # print('after:')
-                    # self.interpret('env(1)')
+
                     # if its a variable
                     if ret_name in self.vars:
                         return self.vars[ret_name].value
+                    
+                    #                     # create return variable
+                    # created_return_name = f"{func}__return__"
+                    # if created_return_name not in self.vars:
+                    #     self.vars[created_return_name].value = r
                                         
                     try:
                         return eval(str(self.vars[ret_name].value), {}, {})
@@ -6481,30 +6487,26 @@ class Interpreter:
             self.returns.append(ret)
 
         def run(self, args, inter, actual_args=None):
+            
+            def try_var(func_var, func_insert):
+                try:
+                    inter.vars[func_var] = Var(func_var, func_insert)
+                except:
+                    inter.vars[func_var] = func_insert 
+            
             for i in range(len(self.args)):
-               # print(i, self.args[i], args[i])
-                
-                # print('function arg:', self.args[i], '\ninserting:', args[i], '\anctual:', actual_args[i])
-
-                
                 if actual_args:
-                  #  print(actual_args[i])
                     if self.is_str(actual_args[i][0]):
-                        try:
-                            inter.vars[self.args[i]] = Var(self.args[i], args[i])
-                        except:
-                            inter.vars[self.args[i]] = args[i]        
+                        try_var(self.args[i], args[i])
                         continue        
                 try:
-
                     inter.vars[self.args[i]] = inter.vars[args[i]]
                 except:
-                    try:
-                        inter.vars[self.args[i]] = Var(self.args[i], args[i])
-                    except:
-                        inter.vars[self.args[i]] = args[i]
+                    try_var(self.args[i], args[i])
+            method_ret = None
             for line in self.body:
-                inter.interpret(line)
+                method_ret = inter.interpret(line)
+            return method_ret
                 
         def is_str(self, value):
             return (value[0] == '"' and value[-1] == '"') or (value[0] == "'" and value[-1] == "'")

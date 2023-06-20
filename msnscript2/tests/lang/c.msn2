@@ -26,8 +26,7 @@ function(@_ia="IntArray", ret(_ia, (
     # creates an instance of the variable in
     # MSN2 context
     var(__intarrname, content),
-
-    @ content = content.str(),
+    @ content = str(content),
     # slice from 1:
     @ content = content.slice(1,),
 
@@ -37,44 +36,36 @@ function(@_ia="IntArray", ret(_ia, (
 )), '__intarrname', 'content')
 
 # prints an int array
-function(@_pia='PrintIntArray', ret(_pia, (print(__printintarrayname), script(
-    for (int i = 0; i < <msn2element>len(__printintarrayname)<msn2element>; i++) {
+function(@_pia='PrintIntArray', ret(_pia, script(
+    for (int i = 0; i < <msn2element>len(val(__printintarrayname))<msn2element>; i++) {
         printf("%d ", <msn2element>__printintarrayname<msn2element>[i]);
     }
-))), '__printintarrayname')
+)), '__printintarrayname')
 
 
 
+# run C program
+@ env = C(
 
-print(IntArray('array', [1, 2, 3, 4, 5, 6]))
+    # incorporate MSN2
+    # elements into the C program
+    <msn2element>
+        # include stdio
+        # for printing
+        Include('stdio.h')
+    <msn2element>
 
+    # int main() {}
+    <msn2element>
+        Main(+(
+            IntArray('array', list(range(10))),
+            PrintIntArray('array')
+        ))
+    <msn2element>
+)
 
-print(PrintIntArray('array'))
-
-env(1)
-
-
-# # run C program
-# @ env = C(
-
-#     # incorporate MSN2
-#     # elements into the C program
-#     <msn2element>
-#         # include stdio
-#         # for printing
-#         Include('stdio.h')
-#     <msn2element>
-
-#     # int main() {}
-#     <msn2element>
-#         Main(cat(
-#             IntArray('array', [1, 2, 3, 4, 5, 6]),
-#             PrintIntArray('array')
-#         ))
-#     <msn2element>
-# )
-
-# print(env)
+# print the C program's STDOUT
+print(env.out())
 
 
 

@@ -1472,6 +1472,8 @@ serial_open('thread')
 # 
 # function() is a simply a better alternative to '~'
 # the context rules still apply to these functions the same way as '~'
+#
+# ret() is used to create a return buffer for multiprogramming purposes
 ~ test_function()->_
 
     -- print('[+] testing functions...')
@@ -1502,6 +1504,7 @@ serial_open('thread')
 
     # NOTE : function()'s first argument should be a hard coded string
     # avoid not using a hard coded string when creating class() inner methods
+
 
     -- @ _ = 1
 
