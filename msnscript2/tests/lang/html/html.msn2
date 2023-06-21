@@ -31,8 +31,8 @@ function('render', file.write(local_path, HTML(
             <title>Testing MSN2 x HTML/CSS/JS</title>
             <script>
         
-                    # local path of the API
-                    const path = 'http:\/\/127.0.0.1:8080/';
+                # local path of the API
+                const path = 'http:\/\/127.0.0.1:8080/';
                 # function for posting a 'ping' to the Flask endpoint
                 function ping(field) {
                     const posting = {};
@@ -93,6 +93,15 @@ function('render', file.write(local_path, HTML(
                 ), 'out'), 'px;')))
             <msn2>
         >
+            <section class="container">
+                <h1>
+                    <span class="title">This is</span>
+                    <span class="title">a long</span>
+                    <span class="title">long title</span>
+                </h1>
+                
+                <div class="button">restart</div>
+            </section>
 
             # Runs a Node script to obtain a random color
             <h1 style=
@@ -120,7 +129,7 @@ function('render', file.write(local_path, HTML(
                         # or what was printed
                         , 'out'))
                 <msn2> 
-            >MSN2 in the web!</h1>
+            >MSN2 in HTML!</h1>
 
             <h1 style="font-size: 50px">Joke:</h1>
 
@@ -224,6 +233,8 @@ import('lib/apis/api')
 # creates an instance of the cors_api class
 # defaults to 'http://127.0.0.1:8080/'
 @ local = cors_api()
+
+local.print()
 
 # starts the endpoint in a new process
 # code inside proc()'s block may be repeated,

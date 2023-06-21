@@ -631,7 +631,13 @@ var('f', 6)
                 @_name=self.name(),
                 _name.upper()
             )))
-        ),'self')
+        ),'self'),
+
+        # does things
+        function('do_things', (
+            assert(1),
+            assert(not(0)),
+        ),'self', 'arg1', 'arg2', 'arg3'),
 
     ))
 
@@ -640,6 +646,8 @@ var('f', 6)
     -- @ dude1 = dude('bruh')
     -- assert(equals(dude1.name(), 'BRUH'))
     -- assert(equals(dude1.age(), -1))
+
+    -- dude1.do_things('hello', 'world', '!')
 
 
 

@@ -96,7 +96,7 @@ class('cors_api', (
     # switches a field on or off
     function('switch', (
         self.POST(dictfrom(__field, not(get(self.GET(), __field))))
-    ), '__field')
+    ), 'self', '__field')
 
 ))
 

@@ -1,0 +1,39 @@
+# Connects an HTML calculator to a
+# Flask server for running calculations
+# in C.
+#
+# author : Mason Marker
+# date : 6/20/2023
+
+
+
+# writes the HTML to the HTML file
+file.write('tests/lang/site.html', HTML(
+    
+    <html>
+        <head>
+            <title>Calculator with C</title>
+        </head>
+        <body>
+            <div id="wrapper">
+                <div id="app">
+                    hello!
+                </div>
+            </div>
+        </body>
+    </html>
+
+))
+
+
+
+
+
+# opens the HTML file in the browser
+@ chrome = app(
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
+chrome.start()
+chrome.write(
+    'C:\\Users\\mason\\OneDrive\\
+    Desktop\\TheMsnProject\\msnscript2\\tests\\lang\\site.html')
+chrome.enter()
