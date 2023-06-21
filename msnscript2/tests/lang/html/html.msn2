@@ -12,6 +12,9 @@
 # import lang directory
 import ('lib/lang/dir')
 
+# import css and js
+import ('tests/lang/html/css')
+
 # path to HTML file
 @ local_path = 'tests/lang/site.html'
 
@@ -44,7 +47,36 @@ function('render', file.write(local_path, HTML(
                         },
                         body: JSON.stringify(posting)
                     })
-                }
+                };
+            </script>
+
+            # setting up imported CSS
+            <style>
+                <msn2element>css<msn2element>
+            </style>
+
+            # demonstrating variable setup for
+            # variables used throughout the HTML
+            <script>
+                <msn2>
+                    (
+                        # main font color
+                        @ main_font = '#DBAB4C',
+                        @ button_style = '
+                            border-radius: 5px;
+                            border: 1px solid gray;
+                            padding: 0.5rem;
+                            margin-left: 3rem;
+                            margin-top: 1rem;
+                            margin-bottom: 1rem;
+                            font-size: 1rem;
+                            color: white;
+                            cursor: pointer;
+                            font-weight: bold;
+                            font-family: "Rakkas";
+                        '
+                    )
+                <msn2>
             </script>
         </head>
 
@@ -93,45 +125,22 @@ function('render', file.write(local_path, HTML(
                 ), 'out'), 'px;')))
             <msn2>
         >
-            <section class="container">
-                <h1>
-                    <span class="title">This is</span>
-                    <span class="title">a long</span>
-                    <span class="title">long title</span>
-                </h1>
-                
-                <div class="button">restart</div>
-            </section>
 
             # Runs a Node script to obtain a random color
             <h1 style=
                 <msn2>
                 # using MSN2 fallback to run a Node script
 
-                    # creating the style tag
-                    # result in "color: *random color*;"
-                    cat('color:', get(
-
-                        # starts Node script
-                        JS(
-                            # getting a random color
-                            const colors = [
-                                'red', 'orange', 'yellow', 
-                                'green', 'blue', 'purple'
-                            ];
-                            # sends the random color to out
-                            console.log(
-                                colors[Math.floor(Math.random() * 
-                                colors.length)]
-                            );
-                        )
-                        # gets the out of the JS script,
-                        # or what was printed
-                        , 'out'))
+                    # creating the color for the title
+                    +('color:', main_font)
                 <msn2> 
             >MSN2 in HTML!</h1>
 
-            <h1 style="font-size: 50px">Joke:</h1>
+            <h1 style=
+                <msn2>
+                    +("font-size: 50px;", 'color:', main_font)
+                <msn2>
+            >Joke:</h1>
 
             # requests an initial joke,
             # and logs it in the global scope
@@ -141,7 +150,8 @@ function('render', file.write(local_path, HTML(
                     # with the font-size being the result
                     # of the previously computed sizex
                     # of the title from C, and divided by 2
-                    cat("margin-left: 3rem; font-size:", //(size, 2))
+                    cat("margin-left: 3rem; font-size:", //(size, 2), 'px;'
+                        "color:", main_font)
                 <msn2>
             >
                 # makes a request to the API for a new joke
@@ -152,30 +162,35 @@ function('render', file.write(local_path, HTML(
 
             # button to request a new joke
             <button onclick=
-                <msn2>
-                # MSN2 fallback to generate JS script
-                # without the need for quotes
+                    <msn2>
+                    # MSN2 fallback to generate JS script
+                    # without the need for quotes
 
-                    # makes a get request to the local endpoint
-                    fetch(path, {
-                        headers: {
-                        'Content-Type': 'application/json'
-                    }}).then(
-                        res => res.json().then(
-                            data => {
+                        # makes a get request to the local endpoint
+                        fetch(path, {
+                            headers: {
+                            'Content-Type': 'application/json'
+                        }}).then(
+                            res => res.json().then(
+                                data => {
 
-                                # after retrieved, set the
-                                # element with the id of 'joke'
-                                const joke = data.joke;
-                                document.getElementById('joke').innerHTML = joke;
+                                    # after retrieved, set the
+                                    # element with the id of 'joke'
+                                    const joke = data.joke;
+                                    document.getElementById('joke').innerHTML = joke;
 
-                                # send a post request to the local endpoint
-                                # that this button was clicked
-                                ping('new_click')
-                            }
+                                    # send a post request to the local endpoint
+                                    # that this button was clicked
+                                    ping('new_click')
+                                }
+                            )
                         )
-                    )
-                <msn2>
+                    <msn2>
+
+                    style=
+                        <msn2>
+                            button_style
+                        <msn2>
             >New joke</button>
 
             <br/><br/>
@@ -197,8 +212,14 @@ function('render', file.write(local_path, HTML(
                             # that this button was clicked
                             ping('write_clicked')
                         "
+                            style=
+                            <msn2>
+                                button_style
+                            <msn2>
                     >
                         Write to notepad
+            
+
                     </button>
 
                 # again, multiplying this block by 3
@@ -233,8 +254,6 @@ import('lib/apis/api')
 # creates an instance of the cors_api class
 # defaults to 'http://127.0.0.1:8080/'
 @ local = cors_api()
-
-local.print()
 
 # starts the endpoint in a new process
 # code inside proc()'s block may be repeated,
