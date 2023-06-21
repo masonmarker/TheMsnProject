@@ -213,3 +213,18 @@ assert(equals(^(a, b, 2), 1))
 
 assert(equals(^(2, 4), 16))
 
+
+# ----------------------- MULTIPROGRAMMING -----------------------
+
+# use the proc() system call to create a new process
+proc('p1', assert(1))
+
+# use the thread() system call with or without a
+# name to start a new thread
+thread('t1', assert(1))
+thread(assert(1))
+
+# use the threadpool(count, block) system call to create a new  
+# threadpool
+threadpool(3, assert(1))
+
