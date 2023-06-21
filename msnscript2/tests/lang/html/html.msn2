@@ -36,15 +36,17 @@ function('render', file.write(local_path, HTML(
         
                 # local path of the API
                 const path = 'http:\/\/127.0.0.1:8080/';
+                # common header
+                const header = {
+                    'Content-Type': 'application/json'
+                };
                 # function for posting a 'ping' to the Flask endpoint
                 function ping(field) {
                     const posting = {};
                     posting[field] = 1;
                     fetch(path, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: header,
                         body: JSON.stringify(posting)
                     })
                 };
@@ -168,9 +170,8 @@ function('render', file.write(local_path, HTML(
 
                         # makes a get request to the local endpoint
                         fetch(path, {
-                            headers: {
-                            'Content-Type': 'application/json'
-                        }}).then(
+                            headers: header
+                        }).then(
                             res => res.json().then(
                                 data => {
 
