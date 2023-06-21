@@ -248,10 +248,19 @@ class Interpreter:
         # for block syntax
         inblock = False
         p = 0
+        
+        # whether or not to keep 
+        keep_space = False
 
         for line in filter(None, script.split("\n")):
             self.lines.append(line)
-            line = line.strip()
+            if line.startswith('\\\\'):
+                keep_space = True
+                line = line[2:]
+            elif keep_space:
+                ...
+            else:
+                line = line.strip()
             if line.startswith("::") or line.startswith("#"):
                 self.current_line += 1
                 continue
@@ -297,11 +306,11 @@ class Interpreter:
                             inter = multiline
                             multiline = ''
                             inblock = False
-                            self.interpret(inter)
+                            self.interpret(inter, keep_space=keep_space)
                             break
                         multiline += c
                 else:
-                    self.interpret(line)
+                    self.interpret(line, keep_space=keep_space)
 
             self.current_line += 1
         return self.out
@@ -320,7 +329,7 @@ class Interpreter:
 
     # interprets a line
 
-    def interpret(self, line, block={}):
+    def interpret(self, line, block={}, keep_space=False):
 
         # acquiring globals
         global total_ints
@@ -340,7 +349,8 @@ class Interpreter:
 
         # strip line for interpretation
         try:
-            line = line.strip()
+            if not keep_space:
+                line = line.strip()
         except:
             return
         l = len(line)
@@ -665,9 +675,15 @@ class Interpreter:
                                 # if the return variable doesn't exist
                                 if ret_name not in self.vars:
                                     self.vars[ret_name] = Var(ret_name, None)
+                                    
+                                # # insert vname into args[0]
+                                args.insert(0, [vname])
 
+                                    
                                 # execute method
-                                method.run(to_pass, self, args[1:])
+                                # if objfunc == 'wait_for_field':
+                                #     print(to_pass, args)
+                                method.run(to_pass, self, args)
 
                                 try:
                                     return eval(str(self.vars[method.returns[0]].value), {}, {})
@@ -6487,13 +6503,12 @@ class Interpreter:
             self.returns.append(ret)
 
         def run(self, args, inter, actual_args=None):
-            
+
             def try_var(func_var, func_insert):
                 try:
                     inter.vars[func_var] = Var(func_var, func_insert)
                 except:
                     inter.vars[func_var] = func_insert 
-            
             for i in range(len(self.args)):
                 if actual_args:
                     if self.is_str(actual_args[i][0]):
