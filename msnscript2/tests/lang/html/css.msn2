@@ -30,5 +30,3 @@
         font-size:5em;
     }
 )
-
-css.print()
