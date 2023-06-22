@@ -336,33 +336,33 @@ class Interpreter:
                 except:
                     return line
 
-        # offers a way to repetively call methods on a variable
-        if line.startswith('()'):
-            line = line[2:]
+        # # offers a way to repetively call methods on a variable
+        # if line.startswith('()'):
+        #     line = line[2:]
 
-            # split line by --> macro
-            line = line.split('-->')
-            ret = None
-            varname = ''
+        #     # split line by --> macro
+        #     line = line.split('-->')
+        #     ret = None
+        #     varname = ''
 
-            # iterate to the first '.', this will be the literal or variable name
-            for i in range(len(line[0])):
-                if line[0][i] != ' ':
-                    if line[0][i] == '.':
-                        break
-                    varname += line[0][i]
+        #     # iterate to the first '.', this will be the literal or variable name
+        #     for i in range(len(line[0])):
+        #         if line[0][i] != ' ':
+        #             if line[0][i] == '.':
+        #                 break
+        #             varname += line[0][i]
 
-            if varname in self.vars:
-                # interpret the first instruction
-                ret = self.interpret(line[0])
+        #     if varname in self.vars:
+        #         # interpret the first instruction
+        #         ret = self.interpret(line[0])
 
-                # interpret the rest of the instructions prefixed with the variable name and '.'
-                for i in range(1, len(line)):
-                    ret = self.interpret(f"{varname}.{line[i]}")
-            else:
-                self.vars[varname]
+        #         # interpret the rest of the instructions prefixed with the variable name and '.'
+        #         for i in range(1, len(line)):
+        #             ret = self.interpret(f"{varname}.{line[i]}")
+        #     else:
+        #         self.vars[varname]
 
-            return ret
+        #     return ret
 
         # user defined syntax
         for key in syntax:
