@@ -1,0 +1,34 @@
+# Demonstrates interpretation capabilities when
+# faced with several interweaved languages.
+#
+# No practical implementation, this is just for
+# fun, and a test
+#
+# author : Mason Marker
+# date : 6/21/2023
+
+
+@ v = [1, 2, 3, 4, 5]
+
+@ test = script(
+
+    <msn2element>'hello1'</msn2element>
+
+    
+
+    <msn2element>
+        cat('hello', 
+            <msn2>
+                script(
+                    function() {
+                        <msn2>
+                            "hello"
+                        </msn2>
+                    }
+                )
+            </msn2>
+        )
+    </msn2element>
+)
+
+test.print()

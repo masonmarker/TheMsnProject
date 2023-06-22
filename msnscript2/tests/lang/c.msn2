@@ -8,7 +8,7 @@ import ('lib/lang/dir')
 
 # constructs an include directive
 function(@_inc='Include', ret(_inc, script(
-    <tag>include <msn2>_library<msn2><nl>
+    <tag>include <msn2>_library</msn2><nl>
 )), '_library')
 
 # main function
@@ -16,7 +16,7 @@ function(@_main="Main", ret(_main, script(
     int main() {
         <msn2element>
             _main_body
-        <msn2element>
+        </msn2element>
     }
 )), '_main_body')
 
@@ -37,8 +37,8 @@ function(@_ia="IntArray", ret(_ia, (
 
 # prints an int array
 function(@_pia='PrintIntArray', ret(_pia, script(
-    for (int i = 0; i < <msn2element>len(val(__printintarrayname))<msn2element>; i++) {
-        printf("%d ", <msn2element>__printintarrayname<msn2element>[i]);
+    for (int i = 0; i < <msn2element>len(val(__printintarrayname))</msn2element>; i++) {
+        printf("%d ", <msn2element>__printintarrayname</msn2element>[i]);
     }
 )), '__printintarrayname')
 
@@ -53,7 +53,7 @@ function(@_pia='PrintIntArray', ret(_pia, script(
         # include stdio
         # for printing
         Include('stdio.h')
-    <msn2element>
+    </msn2element>
 
     # int main() {}
     <msn2element>
@@ -61,7 +61,7 @@ function(@_pia='PrintIntArray', ret(_pia, script(
             IntArray('array', list(range(10))),
             PrintIntArray('array')
         ))
-    <msn2element>
+    </msn2element>
 )
 
 # print the C program's STDOUT

@@ -42,7 +42,7 @@ timer_start()
     
     var a = [];
     
-    for (let i = 0; i < <msn2>len<msn2>; i++) {
+    for (let i = 0; i < <msn2element>len</msn2element>; i++) {
         a.push(1);
     }
     console.log(sum(a));
@@ -83,7 +83,7 @@ timer_start()
     }
 
     int main() {
-        int size = <msn2><msn2>;
+        int size = <msn2element>len</msn2element>;
         int* arr = malloc(sizeof(int) * size);
         if (arr == NULL) {
             printf("Error allocating memory");

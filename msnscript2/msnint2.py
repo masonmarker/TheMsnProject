@@ -5926,60 +5926,94 @@ class Interpreter:
         # replace hashtag marker with a hashtag
         script = script.replace('<tag>', '#')
         script = script.replace('<nl>', '\n')
-        # reverse through the script, replacing all
-        # '\n' with '\\n'
-        # this is so that the script can be passed as a string
-        # and still have newlines
-        # a '\n' consists of two characters,
-        # so script[i] is either '\' or 'n', this does not work
         
-        # <msn2local/> tag for a JavaScript function requesting
-        # for something from the localhost Node server
-        # 
-        script = script.replace('<msn2local/>', 
-"""
-<script>
-    function msn2(req) {
-        return 'request from script';
-    }
-</script>
-""")
+        # tag = '<msn2>'
+    
         
-        tag = '<msn2>'
-        
-        # TODO
-        # temporary algorithm for finding and replacing tags
-        # with their interpretations, needs optimization as it's
-        # not linear, nor is it recursive
-        def temp_replace(tag, script):
-            ...
-        
-        # replaces whats in between the tags
-        # with the interpretation of whats between the tags
-        # ex: 'hello<msn2>5+5<msn2>world' -> 'hello10world'
-        # same logic as between()
-        while script.count(tag) > 1:
-            start = script.find(tag)
-            end = script.find(tag, start + len(tag))
-            v = self.interpret(script[start + len(tag):end])
-            if isinstance(v, str):
-                v = f'"{v}"'
-            script = script[:start] + str(v) + script[end + len(tag):]
+
             
         tag = '<msn2element>'
+        endtag = '</msn2element>'
         # replaces whats in between the tags
         # with the interpretation of whats between the tags
-        # ex: 'hello<msn2>5+5<msn2>world' -> 'hello10world'
-        # same logic as between()
-        while script.count(tag) > 1:
-            start = script.find(tag)
-            end = script.find(tag, start + len(tag))
-            v = self.interpret(script[start + len(tag):end])
-            if isinstance(v, str):
-                v = f'{v}'
-            script = script[:start] + str(v) + script[end + len(tag):]
+        #
+        # interpretation  is with self.interpret(script) 
+        #
+        #script(
+        #     <msn2element>'hello1'</msn2element>
+
             
-        return script
+
+        #     <msn2element>
+        #         cat('hello', 
+        #             <msn2element>'hi there'</msn2element>
+        #         )
+        #     </msn2element>
+        # )
+        #
+        # correct output of script() = hello1hellohi there
+        
+        # interpret the tags similar to the way
+        # parantheticals are interpreted
+        # this is a recursive function
+        # open paren = tag
+        # close paren = endtag
+        
+        def recurse_tags(scr, force_string=False):
+            # get the first tag
+            # if there is no tag, return the script
+            if (first := scr.find(tag)) == -1:
+                return scr
+
+            # find the matching end tag
+            stack = []
+            i = first + len(tag)
+            while i < len(scr):
+                if scr[i:i+len(endtag)] == endtag:
+                    if len(stack) == 0:
+                        break
+                    stack.pop()
+                    i += len(endtag)
+                elif scr[i:i+len(tag)] == tag:
+                    stack.append(tag)
+                    i += len(tag)
+                else:
+                    i += 1
+
+            # recursively interpret the code between the tags
+            inner_code = scr[first+len(tag):i]
+            inner_code = recurse_tags(inner_code)
+           # scr = recurse_tags(inner_code)
+            interpreted_code = self.interpret(inner_code)
+            
+            if force_string:
+                interpreted_code = f'"{interpreted_code}"'
+            
+            try:
+                # replace the tags with the interpreted code
+                new_scr = scr[:first] + interpreted_code + scr[i+len(endtag):]
+            except:
+                # interpreted code is a string
+                new_scr = scr[:first] + str(interpreted_code) + scr[i+len(endtag):]
+            
+            
+            # recursively continue replacing tags in the remaining script
+            return recurse_tags(new_scr)
+        
+        # applying <msn2element> tags
+        with_msn2elements = recurse_tags(script)
+        
+        # switch tags
+        tag = '<msn2>'
+        endtag = '</msn2>'
+
+        # applying <msn2> tags
+        # for string based needs
+        with_msn2 = recurse_tags(with_msn2elements, force_string=True)
+        
+        # applying <asd
+
+        return with_msn2
 
     def run_syntax(self, key, line):
         # get everything between after syntax and before next index of syntax

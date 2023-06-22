@@ -54,7 +54,7 @@ function('render', file.write(local_path, HTML(
 
             # setting up imported CSS
             <style>
-                <msn2element>css<msn2element>
+                <msn2element>css</msn2element>
             </style>
 
             # demonstrating variable setup for
@@ -75,10 +75,9 @@ function('render', file.write(local_path, HTML(
                             color: white;
                             cursor: pointer;
                             font-weight: bold;
-                            font-family: "Rakkas";
                         '
                     )
-                <msn2>
+                </msn2>
             </script>
         </head>
 
@@ -90,8 +89,8 @@ function('render', file.write(local_path, HTML(
             # for speed
 
                 # creating the font-size tag
-                # results in "font-size: 50px;"
-                cat('font-size: ', @ size = x(50, int(get(C(
+                # results in 'font-size: 50px;'
+                +('"', cat('font-size: ', @ size = x(50, int(get(C(
 
                     # include STDIO, using necessary <> 
                     # for C compilation
@@ -124,8 +123,8 @@ function('render', file.write(local_path, HTML(
 
                     # get STDOUT and convert to int,
                     # then multiply by 50
-                ), 'out'), 'px;')))
-            <msn2>
+                ), 'out'), 'px;'))), '"')
+            </msn2>
         >
 
             # Runs a Node script to obtain a random color
@@ -134,14 +133,14 @@ function('render', file.write(local_path, HTML(
                 # using MSN2 fallback to run a Node script
 
                     # creating the color for the title
-                    +('color:', main_font)
-                <msn2> 
+                    +('"color:', main_font, '"')
+                </msn2> 
             >MSN2 in HTML!</h1>
 
             <h1 style=
                 <msn2>
-                    +("font-size: 50px;", 'color:', main_font)
-                <msn2>
+                    +("'font-size: 30px;", 'color:', main_font, "'")
+                </msn2>
             >Joke:</h1>
 
             # requests an initial joke,
@@ -152,14 +151,14 @@ function('render', file.write(local_path, HTML(
                     # with the font-size being the result
                     # of the previously computed sizex
                     # of the title from C, and divided by 2
-                    cat("margin-left: 3rem; font-size:", //(size, 2), 'px;'
-                        "color:", main_font)
-                <msn2>
+                    cat("'margin-left: 3rem; font-size:", //(size, 2), 'px;'
+                        "color:", main_font, "'")
+                </msn2>
             >
                 # makes a request to the API for a new joke
                 <msn2>
                     @ last_joke = new_joke()
-                <msn2>
+                </msn2>
             </p>
 
             # button to request a new joke
@@ -169,7 +168,7 @@ function('render', file.write(local_path, HTML(
                     # without the need for quotes
 
                         # makes a get request to the local endpoint
-                        fetch(path, {
+                        +('"', fetch(path, {
                             headers: header
                         }).then(
                             res => res.json().then(
@@ -185,13 +184,13 @@ function('render', file.write(local_path, HTML(
                                     ping('new_click')
                                 }
                             )
-                        )
-                    <msn2>
+                        ), '"')
+                    </msn2>
 
                     style=
                         <msn2>
-                            button_style
-                        <msn2>
+                            +('"', button_style, '"')
+                        </msn2>
             >New joke</button>
 
             <br/><br/>
@@ -215,8 +214,8 @@ function('render', file.write(local_path, HTML(
                         "
                             style=
                             <msn2>
-                                button_style
-                            <msn2>
+                                +('"', button_style, '"')
+                            </msn2>
                     >
                         Write to notepad
             
@@ -225,7 +224,7 @@ function('render', file.write(local_path, HTML(
 
                 # again, multiplying this block by 3
                 , 3)
-            <msn2element>
+            </msn2element>
         </body>
     </html>
 )))
