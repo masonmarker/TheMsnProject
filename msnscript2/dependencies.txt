@@ -6,6 +6,7 @@ pip install openai
 pip install requests
 pip install flask
 pip install flask_restful
+pip install flask_cors
 pip install -U pywinauto
 pip install openpyxl
 pip install psutil
@@ -13,3 +14,5 @@ pip install psutil
 -- LANG DEPENDENCIES
 JavaScript: node.js
 C / C++: gcc  (easily installed with 'choco install mingw')
+              (this switches Python alias to 'py', and you
+               may have to reinstall dependencies)
