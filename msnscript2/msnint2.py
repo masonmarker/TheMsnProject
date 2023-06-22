@@ -5650,6 +5650,88 @@ class Interpreter:
 
                     # execute the JavaScript code
                     return retrieve_js_environment(js_code)
+                
+                # compiles and executes Java code and retrieves the environment
+                elif func == 'JAVA':
+                    
+                    java_code = self.msn2_replace(args[0][0])
+                    
+                    # create a directory for the Java code
+                    # if it does not exist
+                    exec_folder_path = '_exec'
+                    
+                    # if the folder does not exist, create it
+                    if not os.path.exists(exec_folder_path):
+                        os.mkdir(exec_folder_path)
+                        
+                    # create a file for the Java code
+                    # and write the Java code to it
+
+                    # get the amount of files in the directory
+                    # and use that as the file name
+                    file_num = len(os.listdir(exec_folder_path))
+                    file_name = f'{exec_folder_path}/java{file_num}.java'
+
+                    # if JAVA() has two arguments, the second is the name of
+                    # the file, excluding .java
+                    if len(args) == 2:
+                        file_name = f'{exec_folder_path}/{self.parse(1, line, f, sp, args)[2]}.java'
+
+                    with open(file_name, 'w') as f:
+                        f.write(java_code)
+
+                        
+                    # creates a new process
+                    # and executes the Java code
+                    # returns the environment
+                    # including the out and variables
+                    def retrieve_java_environment(java_code):
+                        import subprocess
+
+                        # create a new process
+                        # and execute the Java code
+                        compiled_code = subprocess.run(
+                            ['javac', file_name],
+                            
+                            # capture the output
+                            capture_output=True,
+                            text=True
+                        )
+                        
+                        # run the code
+                        compiled_code = subprocess.run(
+                            ['java', '-cp', exec_folder_path, f'{file_name}'],
+                            
+                            # capture the output
+                            capture_output=True,
+                            text=True
+                        )
+
+                        # get the output and error
+                        out = compiled_code.stdout
+                        err = compiled_code.stderr
+
+                        # # remove '/temp.exe'
+                        # os.remove('temp.exe')
+                        # if there is an error, print it
+                        if len(err) > 0:
+                            print(err)
+                        
+                        # get the environment
+                        # env = out.split('\n')[-2]
+                        # env = env.replace('\'', '"')
+                        # env = json.loads(env)
+                        
+                        # remove a succeeding newline
+                        # if it exists
+                        if len(out) > 0 and out[-1] == '\n':
+                            out = out[:-1]
+                        
+                        return {'out': out, 'err': err}
+                    
+                    # execute the Java code
+                    return retrieve_java_environment(java_code)
+                    
                     
                     
                 
