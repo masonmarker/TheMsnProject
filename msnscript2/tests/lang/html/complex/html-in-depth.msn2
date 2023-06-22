@@ -1,0 +1,61 @@
+# Tests a more in-depth web page
+# with a Python backend.
+#
+# Also tests management of page events
+# with a single thread for processing
+# speed improvements
+#
+# date : 6/22/2023
+# author : Mason Marker
+
+
+
+
+
+
+# for asking ChatGPT questions
+# asks questions for free,
+# with no API key, and retaining
+# the entire past conversation
+# via algorithms written by OpenAI's
+# teams
+import ('lib/auto/chatgpt')
+
+# get local CORS endpoint
+# information
+import ('lib/apis/api')
+@ local = cors_api()
+
+# alias 'py' for Python runner
+alias('py')
+
+# start a local Flask endpoint in
+# a new process
+#
+# because this is a new process scope,
+# it cannot access existing variables
+# and methods, so we use <msn2element>
+# inserts to pass data to the endpoint
+proc('flask', ENDPOINT(
+    '127.0.0.1',
+    8080,
+    '/',
+    # initial endpoint data
+    {
+        # questions to ask ChatGPT
+        'ask_gpt_questions': [],
+        # GPT's responses to the questions
+        'ask_gpt_responses': []
+    },
+    # using CORS
+    "CORS"
+))
+
+# thread for handling page events
+# looks for change in page data
+# every 0.1 seconds
+thread(())
+
+# # user shell for administrative command
+# import ('lib/user')
+# shell('user')

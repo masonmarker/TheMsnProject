@@ -90,7 +90,9 @@ chrome.wait_for_text(key_phrase.val())
 # extract the computed salary from the paragraph
 @ text = take_home_pay.text()
 @ take_home_pay = text.around(key_phrase.val(), 0, 10)
-() take_home_pay.replace(key_phrase.val(), '')-->replace('$', '')-->replace(',', '')
+take_home_pay.replace(key_phrase.val(), '')
+take_home_pay.replace('$', '')
+take_home_pay.replace(',', '')
 @ take_home_pay = take_home_pay.int()
 
 # prints a number as money

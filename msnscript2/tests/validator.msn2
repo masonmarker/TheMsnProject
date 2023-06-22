@@ -1933,53 +1933,13 @@ function('test_redirect', =>(
 # the '() -->' macro allows for a repetitive function call on a variable
 # the '() -->' macro ONLY works with DESTRUCTIVE methods,
 # as its purpose is to repetitively alter a variable
+# DEPRECATED, kinda dumb and computationally
+# expensive
 ~ test_paren_macro() -> _
 
     -- print('[+] testing () built in macro...')
 
-    # testing '() then' containedmacro
-    -- @ v = 1
-
-    # calls these variable methods in sequence
-    # basically does v.add(1).add(2).sub(1)
-    -- () v.add(1)-->add(2)-->sub(1) 
-    -- v.equals(3) ??
-
-
-    # testing on a string
-    -- @ string = 'hello!'
-    -- () string.upper() --> reverse()
-    -- string.equals('!OLLEH') ??
-
-    # testing on a list
-    -- @ v = [1, 2, 3, 4, 5]
-    -- () v.append(6) -->  reverse()
-    -- v.equals([6, 5, 4, 3, 2, 1]) ??
-
-
-    # testing on a dictionary
-    -- @ dict = { 'a': 1, 'b': 2, 'c': 3 }
-    -- () dict.set('d', 4) --> set('e', 5)
-    -- dict.equals({ 'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5 }) ??
-
-    # obtaining its return value
-    -- @ bro = @bro2 = @bro3 = 10
-    -- equals(()bro .++() --> ++() --> ++(), 13) ??
-    -- bro.equals(13) ??
-    -- bro2.equals(10) ??
-    -- bro3.equals(10) ??
-
-    # testing on a float
-    -- @ float = -3.5
-
-    # 3.5 --> 3 --> 3 --> -3
-    -- () float.abs() --> floor() --> ceil() --> neg()
-    -- float.equals(-3) ??
-
-    # testing again on a string
-    -- @ string = 'Hello, World!'
-    -- () string.cut (0, 5) --> upper() --> reverse()
-    -- string.equals('OLLEH') ??
+    -- 'DEPRECATED'
 
     -- @ _ = 1
 
