@@ -174,14 +174,14 @@ function('inject', ret('inject', (
 function('active_inject', (
 
     # inspect is open, navigate, otherwise open and navigate
-    @active_inject:console_button = if(_inspect_is_open, 
+    @active_inject:console_button = private(if(_inspect_is_open, 
         _console_open_navigate(_appinstance), 
         _console_open_start(_appinstance)
-    ),
+    )),
 
     # write the scripts to the console
-    _console_write_special(_appinstance, _scripts),
+    private(_console_write_special(_appinstance, _scripts)),
 
     # attempts to retrieve and return the console output
-    ret('active_inject', retrieve_output(_appinstance,))
+    ret('active_inject', private(retrieve_output(_appinstance,)))
 ), '_appinstance', '_scripts', '_inspect_is_open')

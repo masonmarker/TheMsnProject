@@ -251,7 +251,6 @@ class Interpreter:
         
         # whether or not to keep 
         keep_space = False
-
         for line in filter(None, script.split("\n")):
             self.lines.append(line)
             if line.startswith('\\\\'):
@@ -1143,7 +1142,6 @@ class Interpreter:
 
                     # performs a function for each element in the iterable
                     if objfunc == 'each':
-
                         # get the variable name
                         varname = self.parse(0, line, f, sp, args)[2]
                         # get the function
@@ -6008,6 +6006,7 @@ class Interpreter:
         # replace hashtag marker with a hashtag
         script = script.replace('<tag>', '#')
         script = script.replace('<nl>', '\n')
+        script = script.replace('(,)', ',')
         
         # tag = '<msn2>'
     
@@ -6627,9 +6626,14 @@ class Interpreter:
                     inter.vars[func_var] = func_insert 
             for i in range(len(self.args)):
                 if actual_args:
-                    if self.is_str(actual_args[i][0]):
-                        try_var(self.args[i], args[i])
-                        continue        
+                    try:
+                        if self.is_str(actual_args[i][0]):
+                            try_var(self.args[i], args[i])
+                            continue 
+                        
+                    # index out of bounds     
+                    except IndexError:
+                        None  
                 try:
                     inter.vars[self.args[i]] = inter.vars[args[i]]
                 except:

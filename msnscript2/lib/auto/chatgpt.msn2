@@ -26,7 +26,7 @@ function('ask_gpt', (
     _chrome.enter(),
 
     # waits for the message input to appear
-    @ _message_input = _chrome.wait_for_input('Send a message.'),
+    @ _message_input = _chrome.wait_for_input('Send a message'),
 
     # opens the inspect element panel
     _chrome.inspect(),
@@ -67,12 +67,13 @@ function('active_ask_gpt', (
     _appinstance.enter(),
 
     # waits for the message input to appear
-    @ _message_input = _appinstance.wait_for_input('Send a message.'),
+    @ _message_input = _appinstance.wait_for_input('Send a message'),
     # opens the inspect element panel
     _appinstance.inspect(),
-
+    
     # responses from ChatGPT
     @ _responses = [],
+
 
     # for each message
     _messages.each('_message', (
