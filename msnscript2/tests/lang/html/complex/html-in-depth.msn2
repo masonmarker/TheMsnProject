@@ -12,7 +12,6 @@
 
 
 
-
 # for asking ChatGPT questions
 # asks questions for free,
 # with no API key, and retaining
@@ -20,6 +19,7 @@
 # via algorithms written by OpenAI's
 # teams
 import ('lib/auto/chatgpt')
+
 
 # get local CORS endpoint
 # information
@@ -51,11 +51,30 @@ proc('flask', ENDPOINT(
     "CORS"
 ))
 
+
+# launches the development environment
+# for the web page 
+import ('tests/lang/html/complex/launch-dev')
+
+
 # thread for handling page events
 # looks for change in page data
 # every 0.1 seconds
-thread(())
+thread(interval(0.08, (
 
-# # user shell for administrative command
-# import ('lib/user')
-# shell('user')
+    # wait for a question to be posted
+    wait(get(local.GET(), 'ask_gpt_questions'),, 0.05),
+
+    # print the question
+    print(@ question = get(local.GET(), 'ask_gpt_questions')),
+
+    # click on a new tab
+    @ new_tab = first(chrome.find_buttons('New Tab')),
+    new_tab.click(),
+
+    # ask ChatGPT the question
+    print(@ response = private(active_ask_gpt(chrome, question))),
+
+    # empty the question array
+    local.POSTENTRY('ask_gpt_questions', [])
+)))

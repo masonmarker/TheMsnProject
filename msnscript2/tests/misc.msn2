@@ -1,21 +1,11 @@
 
 
 
-@ array = [1, 2, 3, 4, 5]
+import ('lib/auto/chatgpt')
 
+@ chrome = app('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
+chrome.start()
 
+@ responses = active_ask_gpt(chrome, ['how are you?', 'what is your name?'])
 
-
-function('do_thing', (
-    print(name_array)
-), 'name_array')
-
-function('other_thing', (
-    print(norm)
-), 'norm')
-
-
-do_thing('array')
-do_thing(array)
-
-# other_thing('string')
+responses.print()
