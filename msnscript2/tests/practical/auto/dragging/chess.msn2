@@ -30,7 +30,7 @@ and include the example squares in your answer:
 give me a random chess opening starting with these squares and 6-
 8 more squares in this format: e2 e4, e7 e5...'
                 ]
-            ), 
+            , True), 
         0), 
     response.replace('\n', '')),
 ', ')

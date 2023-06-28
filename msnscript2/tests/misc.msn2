@@ -1,11 +1,138 @@
+# Interpretation demonstration
+#
+# author : Mason Marker
+# date : 6/26/2023
+
+
+# = , += , -= , *= , /=
+@ v = 3
+@v+=1
+
+# Pythonic printing
+print('v:', v)
+
+# MSN2 printing
+v.print('v: ')
 
 
 
-import ('lib/auto/chatgpt')
 
-@ chrome = app('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
-chrome.start()
+# recursive assignment
+@ a = @ b = arr(3, arr(4, 5), "hello!")
 
-@ responses = active_ask_gpt(chrome, ['how are you?', 'what is your name?'])
+# MSN2 printing
+a.print()
+b.print()
 
-responses.print()
+
+
+
+
+
+
+
+
+
+
+
+# write your own syntax
+macro('DIVIDER', 'div_length', print(x(int(div_length), '-')))
+
+# invoke the macro
+DIVIDER 30
+
+# () system call
+@ name = (
+    # complicating just for demonstration
+    @ first = "John",
+    @ last = "Doe",
+    +(first, " ", last)
+)
+
+# print the name
+name.print()
+
+DIVIDER 50
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# read in almost anything without quotes!
+# JS() syscall
+@ js_env = JS(
+    class person {
+        constructor(name) {
+            this.name = name;
+            this.age = 0;
+        }
+        advance_age() {
+            this.age++;
+        }
+    }
+    var john = new person('john doe');
+    for (var i = 0; i < 20; i++) {
+        john.advance_age();
+    }
+    console.log('js:', john.name, john.age);
+)
+
+# print js output
+print(js_env.out())
+
+
+DIVIDER 50
+
+
+# definition of the class in a new process
+# with 'py' terminal alias
+alias('py')
+proc('p', (
+    # complex things!
+    function('func', class('person', (
+        # attributes
+        @ name = "Unknown",
+        @ age = -1,
+
+        # constructor
+        function('const', (
+            self.name(as('name', self.name(), name.upper()))
+        ), 'self'),
+        # advancing time
+        function('advance_age', (
+            self.age(+(self.age(), 1))
+        ), 'self'),
+    ))),
+    # define the class in this context
+    func(),
+    # create instance of class
+    @ john = person('john doe'),
+    # advance time
+    20(john.advance_age()),
+    # print attributes
+    print('msn2:', john.name(), john.age())
+))
+
+
+# remove node directory
+import('lib/lang/dir')
+__lang_dir_.end()

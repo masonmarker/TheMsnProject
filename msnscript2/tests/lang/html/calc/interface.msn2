@@ -1,0 +1,60 @@
+# HTML and JavaScript for the interface
+#
+# author : Mason Marker
+# date : 6/27/2023
+
+# HTML path
+@ html_path = 'tests\\lang\\html\\calc\\interface.html'
+
+# render the HTML
+function('interface:render', file.write(html_path, HTML(
+    <html>
+        <head>
+            <title>Calculator</title>
+        </head>
+        <script>
+            # post the expression to the Flask endpoint
+    
+            # local path
+            const path = 'http:\/\/127.0.0.1:8080/';
+            # common header
+            const header = {
+                'Content-Type': 'application/json'
+            };
+            # post the problem to the Flask endpoint
+            # to be solved by C
+            function calculate() {
+                fetch(path, {
+                    method: 'POST',
+                    headers: header,
+                    body: JSON.stringify({
+                        exp: document.getElementById('expression').value
+                    })
+                })
+            }
+        </script>
+        <body>
+            <h1>Calculator</h1>
+            <p>Enter an expression to calculate.</p>
+            <input type="text" id="expression" />
+            <button onclick="calculate()">Calculate</button>
+            <p id="result"></p>
+        </body>
+
+    </html>
+)))
+
+# function to launch Chrome
+function('interface:show', (
+    # create Chrome instance
+    @ chrome = app(
+        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'),
+    chrome.start(),
+    chrome.write(+(
+        'C:\\Users\\mason\\OneDrive\\
+        Desktop\\TheMsnProject\\msnscript2\\', html_path)),
+    chrome.enter()
+))
+
+# render the HTML
+interface:render()

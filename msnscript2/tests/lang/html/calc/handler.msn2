@@ -1,0 +1,9 @@
+# Handles page events
+#
+# author : Mason Marker
+# date : 6/27/2023
+
+# new thread to wait for an expression
+thread(interval(0.08), (
+    stop()
+))
