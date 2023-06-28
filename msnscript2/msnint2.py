@@ -537,9 +537,6 @@ class Interpreter:
         # try base literal
         try:
             if not line.startswith('--'):
-                                # python piggyback attempt
-                if 'print' in line:
-                    print(line)
                 
                 # try evaluating the line
                 _ret = eval(line, {}, {})

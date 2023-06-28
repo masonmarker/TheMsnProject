@@ -5,11 +5,17 @@
 # author : Mason Marker
 # date : 6/27/2023
 
+# workspace path
+@ wsp = 'tests\\lang\\html\\calc\\'
+
 # import the interface
-import ('tests\\lang\\html\\calc\\interface')
+import (+(wsp, 'interface'))
 
 # import the server
 import ('tests\\lang\\html\\calc\\server')
+
+# import the page event handler
+import ('tests\\lang\\html\\calc\\handler')
 
 # start the server
 server:start()
