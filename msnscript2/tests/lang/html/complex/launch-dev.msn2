@@ -26,7 +26,7 @@ function('render', (file.write(html_path, HTML(
 
             # search box
             <div class="searchBox">
-                <input class="searchInput"type="text" name="" placeholder="Search">
+                <input class="searchInput" type="text" name="" placeholder="Search">
                 <button class="searchButton" href="#" onclick=
                     "
                     # post the question to the endpoint

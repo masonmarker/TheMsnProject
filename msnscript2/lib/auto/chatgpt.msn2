@@ -63,8 +63,12 @@ function('ask_gpt', (
 
 # asks ChatGPT a question on an open browser
 function('active_ask_gpt', (
-    _appinstance.write('https://chat.openai.com/'),
-    _appinstance.enter(),
+
+    # types in the URL and proceeds to the website
+    if (_enterurl, (
+        _appinstance.write('https://chat.openai.com/'),
+        _appinstance.enter()
+    )),
 
     # waits for the message input to appear
     @ _message_input = _appinstance.wait_for_input('Send a message'),
@@ -100,4 +104,4 @@ function('active_ask_gpt', (
 
     # returns the responses and the app instance opened
     ret('active_ask_gpt', _responses)
-), '_appinstance', '_messages')
+), '_appinstance', '_messages', '_enterurl')

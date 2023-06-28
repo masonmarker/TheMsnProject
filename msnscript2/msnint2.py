@@ -537,6 +537,9 @@ class Interpreter:
         # try base literal
         try:
             if not line.startswith('--'):
+                                # python piggyback attempt
+                if 'print' in line:
+                    print(line)
                 
                 # try evaluating the line
                 _ret = eval(line, {}, {})
@@ -5961,7 +5964,6 @@ class Interpreter:
                 else:
                     try:
                         line = self.replace_vars2(line)
-                        # python piggyback attempt
                         return eval(line, {}, {})
                     except:
                         # maybe its a variable?
@@ -6633,7 +6635,7 @@ class Interpreter:
                         
                     # index out of bounds     
                     except IndexError:
-                        None  
+                        pass  
                 try:
                     inter.vars[self.args[i]] = inter.vars[args[i]]
                 except:

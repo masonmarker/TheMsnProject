@@ -8,10 +8,6 @@
 # date : 6/22/2023
 # author : Mason Marker
 
-
-
-
-
 # for asking ChatGPT questions
 # asks questions for free,
 # with no API key, and retaining
@@ -19,7 +15,6 @@
 # via algorithms written by OpenAI's
 # teams
 import ('lib/auto/chatgpt')
-
 
 # get local CORS endpoint
 # information
@@ -56,25 +51,49 @@ proc('flask', ENDPOINT(
 # for the web page 
 import ('tests/lang/html/complex/launch-dev')
 
-
 # thread for handling page events
 # looks for change in page data
 # every 0.1 seconds
 thread(interval(0.08, (
 
     # wait for a question to be posted
-    wait(get(local.GET(), 'ask_gpt_questions'),, 0.05),
+    wait(@ question = 
+        get(local.GET(), 'ask_gpt_questions'),, 0.05),
+    
+    # try to find the ChatGPT button
+    if (try(@ ask_gpt_button = chrome.tabitem(1)),
 
-    # print the question
-    print(@ question = get(local.GET(), 'ask_gpt_questions')),
+        # if found
+        (
+            # click the button
+            ask_gpt_button.click(),
+            # reopen inspect element
+            chrome.write('{F12}'),
+            # active_ask_gpt() does not need to retype the URL
+            @ needs_url = False
+        ),
 
-    # click on a new tab
-    @ new_tab = first(chrome.find_buttons('New Tab')),
-    new_tab.click(),
+        # if not found
+        (
+            # go to a new tab
+            @ new_tab = first(chrome.find_buttons('New Tab')),
+            new_tab.click(),
 
-    # ask ChatGPT the question
-    print(@ response = private(active_ask_gpt(chrome, question))),
+            # active_ask_gpt() does need to retype the URL
+            @ needs_url = True
+        )
+    ),
 
+    # ask v d the question
+    @ response = first(private(active_ask_gpt(chrome, question, needs_url))),
+    
     # empty the question array
-    local.POSTENTRY('ask_gpt_questions', [])
+    local.POSTENTRY('ask_gpt_questions', []),
+
+    # go back to the MSN2 tab
+    @ msn2_tab = first(chrome.find_tabitems('MSN2')),
+    msn2_tab.click(),
+
+    # re-render the HTML with the new response 
+    render(response)
 )))
