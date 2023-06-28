@@ -3,7 +3,19 @@
 # author : Mason Marker
 # date : 6/27/2023
 
+# import CORS local api information
+import ('lib/apis/api')
+@ local = cors_api()
+
 # new thread to wait for an expression
-thread(interval(0.08), (
-    stop()
-))
+thread(interval(0.08, (
+    
+    # wait for 'exp' field to be filled
+    wait(@ exp = get(local.GET(), 'exp')),
+
+    # print the expression
+    exp.print(),
+
+    # reset the field
+    local.POSTENTRY('exp', '')
+)))
