@@ -29,7 +29,8 @@ function('server:start', (
             '/',
             # initial data
             {
-                'exp': ''
+                'exp': '',
+                'result': ''
             },
             # using CORS
             "CORS"
