@@ -5693,7 +5693,8 @@ class Interpreter:
                             
                             # capture the output
                             capture_output=True,
-                            text=True
+                            text=True,
+                            shell=True
                         )
                         
                         # run the code
@@ -5702,7 +5703,8 @@ class Interpreter:
                             
                             # capture the output
                             capture_output=True,
-                            text=True
+                            text=True,
+                            shell=True
                         )
 
                         # get the output and error
