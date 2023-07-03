@@ -3,6 +3,9 @@
 # author : Mason Marker
 # date : 12/11/2022
 
+# as of 7/2/2023, much of this syntax shouldn't be used,
+# including =>() and ??
+
 import('tests/speed/resources.msn2')
 
 # ----------------------------- TESTS -----------------------------

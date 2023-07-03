@@ -1,0 +1,22 @@
+# Common operations for working with Google Chrome
+#
+# author : Mason Marker
+# date : 7/2/2023
+
+
+# launches Chrome and navigates to the given url
+function(@__c_o='chrome_open', ret(__c_o, (
+    # define the application
+    @ chrome_open:chrome = app(chrome_open:path),
+    
+    # start the application
+    chrome_open:chrome.start(),
+
+    # write the URL and press enter to
+    # navigate to that URL
+    chrome_open:chrome.write(chrome_open:url),
+    chrome_open:chrome.enter(),
+
+    # return the instance
+    chrome_open:chrome
+)), 'chrome_open:path', 'chrome_open:url')
