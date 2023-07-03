@@ -2608,6 +2608,11 @@ class Interpreter:
                             
                             # waits for the inspect window to appear
                             wait_for_text_all(window, 'Console')
+                            
+                        # closes the developer tools
+                        elif objfunc == 'close_inspect':
+                            # presses the shortcut keys to close the developer tools
+                            ret = window.type_keys('{F12}')
                         
                         # refreshes the page
                         elif objfunc == 'refresh':
