@@ -1160,6 +1160,17 @@ class Interpreter:
                                 self.interpret(func)
 
                         return object
+                    
+                    # rfind and lfind
+                    # find the index of the first element that satisfies the condition
+                    if objfunc == 'rfind':
+                        return self.vars[vname].value.rfind(self.parse(0, line, f, sp, args)[2])
+                    if objfunc == 'lfind':
+                        return self.vars[vname].value.find(self.parse(0, line, f, sp, args)[2])
+                    # find
+                    # find the index of the first element that satisfies the condition
+                    if objfunc == 'find':
+                        return self.vars[vname].value.find(self.parse(0, line, f, sp, args)[2])
 
                     # filters the iterable
                     if objfunc == 'filter':
@@ -6113,7 +6124,13 @@ class Interpreter:
         # for string based needs
         with_msn2 = recurse_tags(with_msn2elements, force_string=True)
         
-        # applying <asd
+        # applying '{=' '=}' tags
+        # does the same thing as <msn2element> tags
+        
+        tag = '{='
+        endtag = '=}'
+        with_msn2 = recurse_tags(with_msn2)
+
 
         return with_msn2
 
