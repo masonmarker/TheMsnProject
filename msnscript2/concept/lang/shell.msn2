@@ -3,4 +3,18 @@
 # author : Mason Marker
 # date : 7/5/2023
 
+# workspace path
+@ path = 'concept/lang/'
+
 # file generation
+file.write(@shell_file=+(path, 'shell.sh'), script(
+    
+    # print a pretty picture
+    # with shell script
+    echo {="Hello, world!"=}
+
+
+))
+
+# execute shell script
+console(+('bash ', shell_file))

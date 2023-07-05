@@ -5112,9 +5112,24 @@ class Interpreter:
                 # sends a command to the console, console type depends on
                 # executors software of course
                 elif func == 'console':
+                    # os.system all arguments,
+                    # returns the console output
+                    # of the last argument
+                    ret = None
                     for i in range(len(args)):
-                        os.system(self.parse(i, line, f, sp, args)[2])
-                    return True
+                        ret = os.system(self.parse(i, line, f, sp, args)[2])
+                    return ret
+                # Execute the command and capture the output
+                # only takes one argument
+                elif func == 'console:read':
+                    import subprocess
+                    # returns the console output
+                    # of the last argument
+                    process = subprocess.run(self.parse(0, line, f, sp, args)[2], shell=True, capture_output=True, text=True)
+                    if process.returncode == 0:
+                        return process.stdout
+                    else:
+                        return process.stderr
 
                 # performs a get request to an http server
                 # first parameter is the URL
