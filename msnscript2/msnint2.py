@@ -6033,18 +6033,16 @@ class Interpreter:
 
     # replaces tokens in the string with certain
     # characters or values
+    # TODO: implement linear interpretation
     def msn2_replace(self, script):
                             
         # replace hashtag marker with a hashtag
         script = script.replace('<tag>', '#')
         script = script.replace('<nl>', '\n')
+        script = script.replace('<rp>', ')')
+        script = script.replace('<lp>', '(')
         script = script.replace('(,)', ',')
-        
-        # tag = '<msn2>'
-    
-        
-
-            
+                    
         tag = '<msn2element>'
         endtag = '</msn2element>'
         # replaces whats in between the tags
