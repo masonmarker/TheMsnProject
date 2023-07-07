@@ -60,6 +60,7 @@ import psutil
 import pywinauto
 import win32api
 import warnings
+import pyperclip
 
 # pywinauto automation
 from pywinauto.application import Application
@@ -5961,6 +5962,23 @@ class Interpreter:
                     if p_thread:
                         pointer_lock.release()
                     return ret
+                
+                # clipboard operations
+                # if no arguments, the clipboard
+                # is returned
+                # 
+                # if one argument, the text is copied
+                # uses pyperclip
+                elif func == 'clipboard':
+                    
+                    # if no arguments
+                    if args[0][0] == '':
+                        return pyperclip.paste()
+                    # if one argument
+                    else:
+                        copying = self.parse(0, line, f, sp, args)[2]
+                        pyperclip.copy(copying)
+                        return copying
 
                 # functional syntax I decided to add to make loops a tiny bit faster,
                 # cannot receive non literal arguments
@@ -6042,6 +6060,7 @@ class Interpreter:
         script = script.replace('<rp>', ')')
         script = script.replace('<lp>', '(')
         script = script.replace('(,)', ',')
+        script = script.replace('<or>', '||')
                     
         tag = '<msn2element>'
         endtag = '</msn2element>'

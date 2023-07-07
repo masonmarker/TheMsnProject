@@ -54,7 +54,28 @@ function('_console_write_special', if (isstr(_scripts), (
 
         # execute the script
         _appinstance.enter()
-    ))), '_appinstance', '_scripts')
+))), '_appinstance', '_scripts')
+
+# Helper method, does the same thing as _console_write_special,
+# but copies, then pastes the script into the console
+# _appinstance: the browser instance to write to
+# _scripts: either an array of strings, each string being a block of JavaScript to inject,
+#           or a string of a single block of JavaScript
+# returns None
+function('_console_copy_paste', if (isstr(_scripts), (
+        # inject the script
+        clipboard(_scripts),
+        _appinstance.press('VK_CONTROL', 'v'),
+        _appinstance.enter()
+    ), _scripts.each('_js_block', (
+        
+        # copies the script to the clipboard
+        clipboard(_js_block),
+        _appinstance.press('VK_CONTROL', 'v'),
+
+        # execute the script
+        _appinstance.enter()
+))), '_appinstance', '_scripts')
 
 
 # -------------------- END OF HELPER METHODS --------------------
@@ -184,4 +205,33 @@ function('active_inject', (
 
     # attempts to retrieve and return the console output
     ret('active_inject', private(retrieve_output(_appinstance,)))
+), '_appinstance', '_scripts', '_inspect_is_open')
+
+# Pastes code to inject into an already opened Chrome instance
+#
+# Much more versatile than inject(), provides the option
+# to specify whether the inspect element tab is open or not,
+# this could technically be detected automatically, but possibly
+# at an unreasonable and unneccessary time cost.
+#
+# _appinstance: Browser instance to inject into
+# _scripts: either an array of strings, each string being a block of JavaScript to inject,
+#           or a string of a single block of JavaScript
+# _inspect_is_open: whether the inspect element tab is already open or not
+#
+# creates a variable called active_inject_paste:console_button in the global scope
+# so the button does not have to be found again
+function('active_inject_paste', (
+    
+        # inspect is open, navigate, otherwise open and navigate
+        @active_inject_paste:console_button = private(if(_inspect_is_open,
+            _console_open_navigate(_appinstance),
+            _console_open_start(_appinstance)
+        )),
+    
+        # write the scripts to the console
+        private(_console_copy_paste(_appinstance, _scripts)),
+    
+        # attempts to retrieve and return the console output
+        ret('active_inject_paste', private(retrieve_output(_appinstance,)))
 ), '_appinstance', '_scripts', '_inspect_is_open')

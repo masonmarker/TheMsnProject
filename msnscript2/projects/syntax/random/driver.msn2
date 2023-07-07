@@ -4,11 +4,34 @@
 # author : Mason Marker
 # date : 7/5/2023
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # import custom interpretation mechanisms
 import ('projects/syntax/random/inter')
 
 # prints a '3' ??!
-(+: :: : -{:5, ::3}- +) <=
+(your mom: :: : -{:5, ::3}- your mom) <= print i guess
 
 
 
@@ -37,7 +60,7 @@ import ('projects/syntax/random/inter')
 
 
 # + + just adds 1
-assert(equals(+1+, 2))
+assert(equals(your mom1your mom, 2))
 
 
 # : does literally nothing

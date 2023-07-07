@@ -4,7 +4,7 @@
 # date : 7/5/2023
 
 # prints whatever is inside
-postmacro('<=', '<=:before', print(-(<=:before)))
+postmacro('<= print i guess', '<=:before', print(-(<=:before)))
 
 # returns the number '3'
 macro('t', 't:unused', 3)
@@ -29,4 +29,4 @@ macro(':', '_unused', -(_unused))
 
 # syntax that adds 1 to whatever is interpreted on
 # the inside
-syntax('+', 'pl', op.add(-(pl), 1))
+syntax('your mom', 'pl', op.add(-(pl), 1))
