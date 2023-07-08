@@ -4551,10 +4551,10 @@ class Interpreter:
                     # for each import
                     for i in range(len(args)):
                         line, as_s, path = self.parse(i, line, f, sp, args)
-                        if path in self.imports:
-                            continue
                         if not path.endswith('.msn2'):
                             path += '.msn2'
+                        if path in self.imports:
+                            continue                        
                         self.imports.add(path)
                         contents = ''
                         with open(path) as f:
