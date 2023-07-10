@@ -4852,6 +4852,7 @@ class Interpreter:
 
                     # if windows:
                     if os.name == 'nt':
+                        import subprocess
                         # runs the process
                         sub = subprocess.run(
                             args=[python_alias, 'msn2.py', path], shell=True)
