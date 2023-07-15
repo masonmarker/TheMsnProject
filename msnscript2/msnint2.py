@@ -3394,6 +3394,13 @@ class Interpreter:
                 # converts the argument to a list
                 elif func == 'list':
                     return list(self.parse(0, line, f, sp, args)[2])
+                
+                # absolute value
+                elif func == 'abs':
+                    return abs(self.parse(0, line, f, sp, args)[2])
+                # zip
+                elif func == 'zip':
+                    return zip(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
 
                 # determines if a variable exists or not
                 elif func == 'exists':

@@ -1,21 +1,36 @@
 
-function(@_r='min_sort', ret(_r, (
+
+
+
+
+macro('TIME ', 'TIME:inside', (
+    import ('lib/timer'),
+    timer_start(),
+    -(TIME:inside),
+    print(timer_runtime())
+))
+
+
+# finds the sum of an array
+function('rsum', ret('rsum', (
+
+    @ s = 0,
+
+    # recursively accumulates the sum    
+    function('_sum', ret('_sum', (
+        s.add(array.get(0)),
+        if (equals(array.len(), 1), s, 
+            _sum(array.slice(1,))
+        )
+    )), 'array'),
     
-    @ start = 0,
-    @ end = -(len(nums), 1),
+    _sum(array)
+)), 'array')
 
-    while (start.less(end), (
-        @ mid = //(+(start, end), 2),
 
-        if (greater(nums.get(mid), nums.get(end)),
-            start.add(+(mid, 1)),
-        if (less(nums.get(mid), nums.get(start)),
-            end.set(mid),
-        end.sub(1)))
+@ common = [1, 2, 3, 4, 5, 6]
 
-    )),
-    nums.get(start)
-)), 'nums')
+# finds the sum of an array
+TIME print(rsum(common))
 
-print(min_sort([1, 3, 5]))
-print(min_sort([2, 2, 2, 0, 1]))
+TIME print(sum(common))
