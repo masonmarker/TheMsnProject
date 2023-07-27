@@ -65,3 +65,18 @@ function('copydir', =>(
     ))
 
 ), 'src', 'dest')
+
+
+# file class, for simplified file operations.
+# 7/26/2023
+class('msn2file', (
+    # initial path to the file
+    @ path = '',
+    
+    # no constructor needed
+
+    # writes to the file
+    function('write', 
+        file.write(self.path(), f:write:data), 
+    'self', 'f:write:data')
+))

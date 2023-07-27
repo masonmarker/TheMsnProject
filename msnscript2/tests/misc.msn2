@@ -3,34 +3,14 @@
 
 
 
-macro('TIME ', 'TIME:inside', (
-    import ('lib/timer'),
-    timer_start(),
-    -(TIME:inside),
-    print(timer_runtime())
-))
 
 
-# finds the sum of an array
-function('rsum', ret('rsum', (
 
-    @ s = 0,
-
-    # recursively accumulates the sum    
-    function('_sum', ret('_sum', (
-        s.add(array.get(0)),
-        if (equals(array.len(), 1), s, 
-            _sum(array.slice(1,))
-        )
-    )), 'array'),
-    
-    _sum(array)
-)), 'array')
+import ('lib/files')
 
 
-@ common = [1, 2, 3, 4, 5, 6]
+@ f = msn2file('test.txt')
 
-# finds the sum of an array
-TIME print(rsum(common))
+f.write('hello world')
 
-TIME print(sum(common))
+env(1)
