@@ -7,3 +7,6 @@
 ~ clear() -> _
     -- if (windows(), console('cls'), console('clear'))
 
+# duplicate function for clarity
+function('os:clear', ret(
+    'os:clear', if(windows(), console('cls'), console('clear'))))

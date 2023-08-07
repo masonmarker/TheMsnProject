@@ -1,0 +1,8 @@
+# Tests a module.
+#
+# author : Mason Marker
+# date : 8/2/2023
+
+# importing the module
+import ('lib/extend/array')
+

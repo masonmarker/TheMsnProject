@@ -1,0 +1,65 @@
+# MSN2 package wizard
+#
+# author : Mason Marker
+# date : 8/5/2023
+
+# console printing styles
+import ('lib/console')
+
+# for clearing the console
+import ('lib/os')
+
+# clear the console
+os:clear()
+
+
+# main
+console:print(
+    [
+        {
+            'text': '   MSN2 PACKAGE WIZARD   ',
+            'back': 'green',
+            'style': 'italic'
+        }
+    ]
+)
+# subtitle
+console:print(
+    [
+        {
+            'text': 'This wizard will guide you in handling MSN2 packages.',
+            'style': 'bold'
+        }
+    ]
+)
+print()
+
+# get the installing packages
+@ installing = in(1,)
+
+# list packages
+console:print(
+    arr(
+        object(
+            'text', 'query(s): ',
+            'style', 'bold'
+        ),
+        object(
+            'text', installing.join(', '),
+            'fore', 'cyan'
+        )
+    )
+)
+print()
+
+console:print(
+    arr(
+        object(
+            'text', '   PACKAGE HANDLING IS A WIP   ',
+            'style', 'italic',
+            'back', 'red' 
+        )
+    )
+)
+
+# WIPWIPWIPWIPWIPWIPWIP

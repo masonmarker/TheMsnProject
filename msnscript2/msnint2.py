@@ -1,4 +1,6 @@
-# Interpreters MSNScript 2.0
+# Interpreters MSNScript2
+#
+# Package version 2.0.381
 #
 # See documentation for more information,
 # documentation could lack functions or
@@ -50,7 +52,7 @@
 
 
 # the current logical implementation is conceptual,
-# deoptimized, and exists to prove functionality as speed can 
+# deoptimized, and exists to prove functionality as speed can
 # be enhanced later
 
 import os
@@ -65,11 +67,11 @@ import pyperclip
 # pywinauto automation
 from pywinauto.application import Application
 from pywinauto import mouse, \
-                timings, \
-                controls, \
-                findwindows, \
-                ElementAmbiguousError, \
-                ElementNotFoundError
+    timings, \
+    controls, \
+    findwindows, \
+    ElementAmbiguousError, \
+    ElementNotFoundError
 
 # automating Excel
 import openpyxl
@@ -116,6 +118,8 @@ class Err:
         self.errorcode = errorcode
 
 # variable
+
+
 class Var:
 
     # constructs a new Var
@@ -137,6 +141,7 @@ def ai_response(model, prompt, creativity):
         prompt=prompt,
         temperature=creativity
     ).choices[0].text
+
 
 # alias to run Python in the terminal
 python_alias = 'python'
@@ -197,6 +202,8 @@ total_ints = 0
 apps = {}
 
 # interprets MSNScript2, should create a new interpreter for each execution iteration
+
+
 class Interpreter:
 
     # initializer
@@ -235,7 +242,7 @@ class Interpreter:
 
         self.processes = {}
         self.breaking_return = []
-    
+
     # executes stored script
     def execute(self, script):
 
@@ -249,19 +256,23 @@ class Interpreter:
         # for block syntax
         inblock = False
         p = 0
-        
-        # whether or not to keep 
+
+        # whether or not to keep
         keep_space = False
         for line in filter(None, script.split("\n")):
             self.lines.append(line)
-            if line.startswith('\\\\'):
+            if not keep_space and line.endswith('\\\\'):
                 keep_space = True
-                line = line[2:]
+                line = line[:-2]
+            elif keep_space and line.endswith('\\\\'):
+                keep_space = False
+                line = line[:-2]
             elif keep_space:
-                ...
+                print('here:', line)
             else:
                 line = line.strip()
-            if line.startswith("::") or line.startswith("#"):
+            if line.startswith("::") or line.startswith("#") or  \
+                    keep_space:
                 self.current_line += 1
                 continue
 
@@ -380,10 +391,10 @@ class Interpreter:
         if line[0] == '@':
             return self.interpret_msnscript_1(line[1:])
 
-        # python fallback mode specification, 
+        # python fallback mode specification,
         # both <<>> and
         if line.startswith('<<'):
-            
+
             # parse all text in the line for text surrounded by |
             funccalls = []
             infunc = False
@@ -538,7 +549,7 @@ class Interpreter:
         # try base literal
         try:
             if not line.startswith('--'):
-                
+
                 # try evaluating the line
                 _ret = eval(line, {}, {})
 
@@ -572,9 +583,9 @@ class Interpreter:
                 objfunc = ''
                 continue
 
-                                    
             # function to attempt to pull an integer out of the function
             # if it is an integer, then it is a loop that runs func times
+
             def get_int(func):
                 try:
                     return int(func)
@@ -675,11 +686,10 @@ class Interpreter:
                                 # if the return variable doesn't exist
                                 if ret_name not in self.vars:
                                     self.vars[ret_name] = Var(ret_name, None)
-                                    
+
                                 # # insert vname into args[0]
                                 args.insert(0, [vname])
 
-                                    
                                 # execute method
                                 # if objfunc == 'wait_for_field':
                                 #     print(to_pass, args)
@@ -728,68 +738,67 @@ class Interpreter:
                             object[keys[-1]] = to_set
                             return to_set
                         return object
-                    
+
                     # working with Excel sheets
                     elif isinstance(object, self.Sheet):
-                        
+
                         # active elements
                         title = object.title
                         workbook = object.workbook
                         path = object.path
                         sheet = object.sheet
-                        
+
                         # gets the value of a cell
                         if objfunc == 'get':
-                            
+
                             # column of the cell
                             column = self.parse(0, line, f, sp, args)[2]
-                            
+
                             # row of the cell
                             row = self.parse(1, line, f, sp, args)[2]
 
                             # returns the value of the cell
                             return sheet.cell(row + 1, column + 1).value
-                    
+
                         # sets the value of a cell
                         if objfunc == 'set':
 
                             # column of the cell
                             column = self.parse(0, line, f, sp, args)[2]
-                            
+
                             # row of the cell
                             row = self.parse(1, line, f, sp, args)[2]
-                            
+
                             # value to set the cell to
                             value = self.parse(2, line, f, sp, args)[2]
-                            
+
                             # sets the value of the cell
                             sheet.cell(row + 1, column + 1, value)
-                            
+
                             # returns the sheet
                             return value
-                        
-                        
+
                         # clears the sheet
                         if objfunc == 'clear':
-                                
+
                             # clears the sheet
                             for row in sheet.iter_rows():
                                 for cell in row:
                                     cell.value = None
-                                                        
+
                             # returns the sheet
                             return object
-                                                
+
                         # gets the populated cell values of a column
                         # if the argument is a number, it gets the value of that column
                         # if the argument is a string, it gets the value of the column with that title
                         if objfunc == 'column':
-                            
+
                             # column, either an integer or string
                             col = self.parse(0, line, f, sp, args)[2]
-                            
+
                             column_values = []
-                            
+
                             # if number
                             if isinstance(col, int):
                                 col += 1
@@ -797,137 +806,139 @@ class Interpreter:
                                     for row in cell:
                                         if row.value != None:
                                             column_values.append(row.value)
-                                            
+
                             # otherwise, get column by title
                             elif isinstance(col, str):
-                                
+
                                 # for each column
                                 for cell in sheet.iter_cols():
-                                        # if the title matches
-                                        if cell[0].value == col:
-                                            
-                                            # get the column values
-                                            for row in cell:
-                                                if row.value != None:
-                                                    column_values.append(row.value)
+                                    # if the title matches
+                                    if cell[0].value == col:
+
+                                        # get the column values
+                                        for row in cell:
+                                            if row.value != None:
+                                                column_values.append(row.value)
                             return column_values
-                            
+
                         # gets the populated cell values of a row
                         # if the argument is a number, it gets the value of that column
                         # if the argument is a string, it gets the value of the column with that title
                         if objfunc == 'row':
-                            
+
                             # row, either an integer or string
                             r = self.parse(0, line, f, sp, args)[2]
-                            
+
                             row_values = []
-                            
+
                             # if number
                             if isinstance(r, int):
                                 r += 1
                                 for cell in sheet.iter_rows(min_row=r, max_row=r):
                                     for row in cell:
                                         if row.value != None:
-                                            row_values.append(row.value)     
+                                            row_values.append(row.value)
                             # otherwise, get row by title
                             elif isinstance(r, str):
-                                
+
                                 # for each row
                                 for cell in sheet.iter_rows():
-                                        # if the title matches
-                                        if cell[0].value == r:
-                                            
-                                            # get the row values
-                                            for row in cell:
-                                                if row.value != None:
-                                                    row_values.append(row.value)
+                                    # if the title matches
+                                    if cell[0].value == r:
+
+                                        # get the row values
+                                        for row in cell:
+                                            if row.value != None:
+                                                row_values.append(row.value)
                             return row_values
-                    
+
                         # gets the index of a column with a given title
                         def get_column_index(title):
                             for cell in sheet.iter_cols():
                                 if cell[0].value == title:
                                     return cell[0].column
                             return None
+
                         def get_row_index(title):
                             for cell in sheet.iter_rows():
                                 if cell[0].value == title:
                                     return cell[0].row
                             return None
-                    
+
                         # rewrite the above method, but with
                         # if the argument is a number, it gets the value of that column
                         # if the argument is a string, it gets the value of the column with that title
                         if objfunc == 'set_column':
-                                
+
                             # column, either an integer or string
                             col = self.parse(0, line, f, sp, args)[2]
-                            
+
                             # array of values
                             values = self.parse(1, line, f, sp, args)[2]
-                            
+
                             # if number
                             if isinstance(col, int):
                                 col += 1
                                 for i in range(len(values)):
                                     sheet.cell(i + 1, col, values[i])
-                                    
+
                             # otherwise, get column by title
                             elif isinstance(col, str):
-                                
+
                                 # for each column
                                 for cell in sheet.iter_cols():
-                                        # if the title matches
-                                        if cell[0].value == col:
-                                            
-                                            # get the column values
-                                            for i in range(len(values)):
-                                                sheet.cell(i + 1, get_column_index(col), values[i])
-                                                
+                                    # if the title matches
+                                    if cell[0].value == col:
+
+                                        # get the column values
+                                        for i in range(len(values)):
+                                            sheet.cell(
+                                                i + 1, get_column_index(col), values[i])
+
                             return values
-                                
+
                         # sets a row to an array of values
                         # if the argument is a number, it gets the value of that column
                         # if the argument is a string, it gets the value of the column with that title
                         elif objfunc == 'set_row':
-                            
+
                             # row, either an integer or string
                             r = self.parse(0, line, f, sp, args)[2]
-                            
+
                             # array of values
                             values = self.parse(1, line, f, sp, args)[2]
-                            
+
                             # if number
                             if isinstance(r, int):
                                 r += 1
                                 for i in range(len(values)):
                                     sheet.cell(r, i + 1, values[i])
-                                    
+
                             # otherwise, get row by title
                             elif isinstance(r, str):
-                                
+
                                 # for each row
                                 for cell in sheet.iter_rows():
-                                        # if the title matches
-                                        if cell[0].value == r:
-                                            
-                                            # get the row values
-                                            for i in range(len(values)):
-                                                sheet.cell(get_row_index(r), i + 1, values[i])          
+                                    # if the title matches
+                                    if cell[0].value == r:
+
+                                        # get the row values
+                                        for i in range(len(values)):
+                                            sheet.cell(get_row_index(
+                                                r), i + 1, values[i])
                             return values
-                        
-                    
+
                         # reqrite the above method, but with
                         # if the argument is a number, it gets the value of that column
                         # if the argument is a string, it gets the value of the column with that title
                         elif objfunc == 'add_to_column':
-                            
+
                             # column
                             column = self.parse(0, line, f, sp, args)[2]
-                            
+
                             # value to add
                             value = self.parse(1, line, f, sp, args)[2]
-                            
+
                             # if number
                             if isinstance(column, int):
                                 column += 1
@@ -937,7 +948,7 @@ class Interpreter:
                                         sheet.cell(i + 1, column, value)
                                         return value
                                 return value
-                                
+
                             # otherwise, get column by title
                             elif isinstance(column, str):
                                 column_index = get_column_index(column)
@@ -947,18 +958,18 @@ class Interpreter:
                                         sheet.cell(i + 1, column_index, value)
                                         return value
                             return value
-                            
+
                         # adds a value to a row
                         # if the argument is a number, it gets the value of that column
                         # if the argument is a string, it gets the value of the column with that title
                         elif objfunc == 'add_to_row':
-                                
+
                             # row
                             row = self.parse(0, line, f, sp, args)[2]
-                            
+
                             # value to add
                             value = self.parse(1, line, f, sp, args)[2]
-                            
+
                             # if number
                             if isinstance(row, int):
                                 row += 1
@@ -968,7 +979,7 @@ class Interpreter:
                                         sheet.cell(row, i + 1, value)
                                         return value
                                 return value
-                                
+
                             # otherwise, get row by title
                             elif isinstance(row, str):
                                 row_index = get_row_index(row)
@@ -978,27 +989,48 @@ class Interpreter:
                                         sheet.cell(row_index, i + 1, value)
                                         return value
                             return value
-                        
+
+                        # performs code for each row
+                        # takes 2 arguments, a string for the row variable
+                        # and a function to perform on each row
+                        elif objfunc == 'each_row':
+                            # variable
+                            row_var = self.parse(0, line, f, sp, args)[2]
+                            # function
+                            block = args[1][0]
+                            ret = None
+
+                            # for each cell
+                            for cell in sheet.iter_rows():
+
+                                # set the variable to the row
+                                self.vars[row_var] = Var(
+                                    row_var, [cell[i].value for i in range(len(cell))])
+                                # execute the function
+                                ret = self.interpret(block)
+
+                            return ret
+
                         # writes a matrix (2D array) to this Excel Worksheet
                         # with the offsets given by the second and third arguments,
                         # if no second or third arguments, then the matrix is written
                         # starting at the first cell
                         elif objfunc == 'import_matrix':
-                            
+
                             # get the 2D list
                             matrix = self.parse(0, line, f, sp, args)[2]
-                            
+
                             # default offset
                             offsetx = 0
                             offsety = 0
-                            
+
                             # if there is a second argument
                             if len(args) == 2:
                                 offsetx = self.parse(1, line, f, sp, args)[2]
                             if len(args) == 3:
                                 offsetx = self.parse(1, line, f, sp, args)[2]
                                 offsety = self.parse(2, line, f, sp, args)[2]
-                            
+
                             # for each row
                             for i in range(len(matrix)):
                                 # for each column
@@ -1007,13 +1039,13 @@ class Interpreter:
                                     # if w is an AppElement, write its name
                                     if 'name' in dir(w):
                                         w = w.name
-                                    sheet.cell(i + offsety + 1, j + offsetx + 1, w)
-                            return matrix    
-                            
-                        
+                                    sheet.cell(i + offsety + 1,
+                                               j + offsetx + 1, w)
+                            return matrix
+
                         # if nothing else, return the object
                         return object
-                    
+
                     # methods available to all types
                     if objfunc == 'copy':
                         return object.copy()
@@ -1074,7 +1106,6 @@ class Interpreter:
 
                     if objfunc == 'dict':
                         return dict(object)
-                    
 
                     # gets values from the object if the statement is true for each object
                     # runs the function on each element / kv pair
@@ -1126,7 +1157,7 @@ class Interpreter:
                             name = self.parse(0, line, f, sp, args)[2]
                         self.parent.vars[name] = Var(name, object)
                         return object
-                    
+
                     # if no objfunc, there has been a request
                     # for repeated method calls/access
                     if objfunc == '':
@@ -1136,7 +1167,7 @@ class Interpreter:
                             block = arg[0]
                             ret = self.interpret(f"{vname}.{block}")
                         return ret
-                    
+
                     # string_name() returns the string name of the object
                     if objfunc == 'string_name':
                         return vname
@@ -1161,7 +1192,7 @@ class Interpreter:
                                 self.interpret(func)
 
                         return object
-                    
+
                     # rfind and lfind
                     # find the index of the first element that satisfies the condition
                     if objfunc == 'rfind':
@@ -1175,28 +1206,28 @@ class Interpreter:
 
                     # filters the iterable
                     if objfunc == 'filter':
-                        
+
                         # get the variable name
                         varname = self.parse(0, line, f, sp, args)[2]
 
                         # get the function
                         block = args[1][0]
-                        
+
                         # filtered
                         filtered = []
-                        
+
                         # filter the iterable
                         for el in object:
                             self.vars[varname] = Var(varname, el)
                             if self.interpret(block):
                                 filtered.append(el)
-                                
+
                         # set the variable to the filtered list
                         self.vars[vname].value = filtered
-                        
+
                         # return the filtered list
                         return self.vars[vname].value
-                    
+
                     # basic arithmetic, non-destructive
                     # takes any amount of arguments
                     if objfunc == '+':
@@ -1243,9 +1274,8 @@ class Interpreter:
                         for arg in args:
                             method = arg[0]
                             ret = self.interpret(f"{method}({ret})")
-                        
+
                         return ret
-        
 
                     # reverses the iterable
                     if objfunc == 'reverse':
@@ -1620,47 +1650,47 @@ class Interpreter:
                                 0, line, f, sp, args)[2]:self.parse(1, line, f, sp, args)[2]]
                             return self.vars[vname].value
 
-                        # gets a string containing a certain amount of characters left and 
+                        # gets a string containing a certain amount of characters left and
                         # right of the first occurance of the string inside of a string
                         if objfunc == 'around':
-                            
+
                             # keyword to search for
                             keyword = self.parse(0, line, f, sp, args)[2]
-                            
+
                             # amount of characters to get to the left of the keyword
                             left = self.parse(1, line, f, sp, args)[2]
-                            
+
                             # amount of characters to get to the right of the keyword
                             right = self.parse(2, line, f, sp, args)[2]
-                            
+
                             # get the index of the keyword
                             index = object.find(keyword)
-                            
+
                             # if not found
                             if index == -1:
                                 return f"around(): Keyword '{keyword}' not found in string"
-                            
+
                             # get the string
                             return object[index-left:index+len(keyword)+right]
-                        
+
                         # startswith
                         if objfunc == 'startswith':
                             return object.startswith(self.parse(0, line, f, sp, args)[2])
-                        
+
                         # endswith
                         if objfunc == 'endswith':
                             return object.endswith(self.parse(0, line, f, sp, args)[2])
-                        
-                    # working with Excel    
+
+                    # working with Excel
                     elif isinstance(object, self.Workbook):
-                        
+
                         # active workbook
                         workbook = object.workbook
                         path = object.path
-                        
+
                         # gets or creates a sheet in the workbook
                         if objfunc == 'sheet':
-                            
+
                             # title of the new sheet
                             title = self.parse(0, line, f, sp, args)[2]
 
@@ -1672,10 +1702,10 @@ class Interpreter:
                                 for name in workbook.sheetnames:
                                     if name.lower() == title.lower():
                                         return self.Sheet(workbook[name], name, workbook, path)
-                                
+
                                 # creates the sheet
                                 sheet = workbook.create_sheet(title)
-                                
+
                                 # returns the sheet
                                 return self.Sheet(sheet, title, workbook, path)
                             # title is integer,
@@ -1685,8 +1715,7 @@ class Interpreter:
                                     if i == title:
                                         return self.Sheet(workbook[sheet], sheet, workbook, path)
                             return None
-                                
-                            
+
                         # saves the workbook
                         if objfunc == 'save':
                             workbook.save(path)
@@ -1695,13 +1724,13 @@ class Interpreter:
                         if objfunc == 'close' or objfunc == 'stop' or objfunc == 'kill':
                             workbook.close()
                             return object
-                        
+
                         # otherwise return the object
                         return object
-                        
-                            
+
                     # GENERAL METHODS
                     # gets the immediate children of the parent window
+
                     def children(parent_window):
                         return [self.AppElement(child, child.window_text()) for child in window.children()]
                     # gets a child at an index
@@ -1716,10 +1745,10 @@ class Interpreter:
                         subtext = subtext.lower()
                         return [self.AppElement(child, child.window_text()) for child in window.children()
                                 if subtext in child.window_text().lower()]
-                    
-                        
+
                     # recursively searches the child tree for a certain object type
                     # dont allow ElementAmbiguousError
+
                     def recursive_search(parent_window, type, as_type, object_string_endswith=None):
                         found = []
                         # get the children
@@ -1730,34 +1759,42 @@ class Interpreter:
                         for child in c:
                             if isinstance(child, type) or (object_string_endswith and str(child).endswith(object_string_endswith)):
                                 found += [as_type(child, child.window_text())]
-                            found += recursive_search(child, type, as_type, object_string_endswith)
+                            found += recursive_search(child, type,
+                                                      as_type, object_string_endswith)
                         return found
                     # prints all elements
+
                     def print_elements(parent_window, retrieve_elements):
                         for i, element in enumerate(retrieve_elements(parent_window)):
                             print(i, ":")
                             print(element)
                         return None
                     # finds an element containing the substring specified
+
                     def find_elements(parent_window, subtext, retrieve_elements):
                         elements = []
                         subtext = subtext.lower()
                         for element in retrieve_elements(parent_window):
                             if subtext in element.name.lower():
-                                elements.append(self.AppElement(element, element.window_text()))
+                                elements.append(self.AppElement(
+                                    element, element.window_text()))
                         return elements
                     # finds the exact elements specified
+
                     def find_elements_exact(parent_window, text, retrieve_elements):
                         elements = []
                         for element in retrieve_elements(parent_window):
                             if text == element.name:
-                                elements.append(self.AppElement(element, element.window_text()))
+                                elements.append(self.AppElement(
+                                    element, element.window_text()))
                         return elements
                     # waits for the first element to appear containing the substring specified
                     # is not case sensitive
+
                     def wait_for_element_subtext(parent_window, retrieve_elements, subtext, timeout=None):
                         subtext = subtext.lower()
                         # subfunction for locating the element
+
                         def find_element_():
                             try:
                                 for element in retrieve_elements(parent_window):
@@ -1777,6 +1814,7 @@ class Interpreter:
                                 if (_ret := find_element_()) is not None:
                                     return _ret
                     # waits for the first element to appear with the exact text specified
+
                     def wait_for_element_exact(parent_window, retrieve_elements, text, timeout=None):
                         # subfunction for locating the element
                         def find_element_():
@@ -1798,228 +1836,293 @@ class Interpreter:
                                 if (_ret := find_element_()) is not None:
                                     return _ret
                     # waits for the first element to appear in all children containing the substring specified with the type specified
+
                     def wait_for_type_subtext_all(parent_window, type, as_type, subtext, timeout=None):
                         return wait_for_element_subtext(parent_window, lambda parent_window: recursive_search(parent_window, type, as_type), subtext, timeout=timeout)
                     # wait for the first element to appear in all children with the exact text specified with the type specified
+
                     def wait_for_type_exact_all(parent_window, type, as_type, text, timeout=None):
                         return wait_for_element_exact(parent_window, lambda parent_window: recursive_search(parent_window, type, as_type), text, timeout=timeout)
-                        
-                                
+
                     # waits for a child to exist with text containing subtext
+
                     def wait_for_text(parent_window, subtext, timeout=None):
                         return wait_for_element_subtext(parent_window, children, subtext, timeout=timeout)
                     # waits for a child to exist in the entire child tree containing subtext
+
                     def wait_for_text_all(parent_window, subtext, timeout=None):
                         return wait_for_element_subtext(parent_window, all_children, subtext, timeout=timeout)
                     # waits for a child to exist with text exactly equal to text
+
                     def wait_for_text_exact(parent_window, text, timeout=None):
                         return wait_for_element_exact(parent_window, children, text, timeout=timeout)
                     # waits for a child to exist in the entire child tree with text exactly equal to text
+
                     def wait_for_text_exact_all(parent_window, text, timeout=None):
                         return wait_for_element_exact(parent_window, all_children, text, timeout=timeout)
                     # prints all children of a parent window
+
                     def print_children(parent_window):
                         return print_elements(parent_window, children)
-                                        
+
                     # gets all children in the child tree
                     def all_children(parent_window):
                         found = []
                         for child in parent_window.children():
-                            found.append(self.AppElement(child, child.window_text()))
+                            found.append(self.AppElement(
+                                child, child.window_text()))
                             found += all_children(child)
                         return found
                     # prints the child tree of a parent window
+
                     def print_all_children(parent_window):
                         return print_elements(parent_window, all_children)
                     # gets from all children at an index
+
                     def all_child(parent_window, index):
                         return all_children(parent_window)[index]
                     # finds all children with subtext in their name
+
                     def find_all_children(parent_window, subtext):
                         return find_elements(parent_window, subtext, all_children)
                     # finds all children from an exact text
+
                     def find_all_children_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, all_children)
-                    
+
                     # ---------------------------
-                    
-                          
+
                     # NARROWING GENERAL METHODS
                     # recursively gets all menus existing in the parent_window tree
                     # accumulates all instances of pywinauto.controls.uia_controls.MenuWrapper
+
                     def menus(parent_window):
                         return recursive_search(parent_window, pywinauto.controls.uia_controls.MenuWrapper, self.Menu)
                     # gets a single menu
+
                     def menu(parent_window, index):
                         return menus(parent_window)[index]
                     # prints all the menus
+
                     def print_menus(parent_window):
                         return print_elements(parent_window, menus)
                     # finds a menu with subtext in its name
+
                     def find_menus(parent_window, subtext):
                         return find_elements(parent_window, subtext, menus)
-                    
+
                     # gets all toolbars
                     def toolbars(parent_window):
                         return recursive_search(parent_window, pywinauto.controls.uia_controls.ToolbarWrapper, self.ToolBar)
+
                     def print_toolbars(parent_window):
                         return print_elements(parent_window, toolbars)
+
                     def toolbar(parent_window, index):
                         return toolbars(parent_window)[index]
+
                     def find_toolbars(parent_window, subtext):
                         return find_elements(parent_window, subtext, toolbars)
-                    
+
                     # recursively gets all instances of pywinauto.controls.uia_controls.ButtonWrapper
                     def buttons(parent_window):
                         return recursive_search(parent_window, pywinauto.controls.uia_controls.ButtonWrapper, self.Button)
+
                     def button(parent_window, index):
                         return buttons(parent_window)[index]
+
                     def print_buttons(parent_window):
                         return print_elements(parent_window, buttons)
+
                     def find_buttons(parent_window, subtext):
                         return find_elements(parent_window, subtext, buttons)
-                    
+
                     # for hyperlinks
                     def links(parent_window):
                         return recursive_search(parent_window, int, self.Link, object_string_endswith="Hyperlink")
+
                     def link(parent_window, index):
                         return links(parent_window)[index]
+
                     def print_links(parent_window):
                         return print_elements(parent_window, links)
+
                     def find_links(parent_window, subtext):
                         return find_elements(parent_window, subtext, links)
+
                     def find_links_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, links)
-                    
+
                     # for tabitems
                     def tabitems(parent_window):
                         return recursive_search(parent_window, int, self.TabItem, object_string_endswith="TabItem")
+
                     def tabitem(parent_window, index):
                         return tabitems(parent_window)[index]
+
                     def print_tabitems(parent_window):
                         return print_elements(parent_window, tabitems)
+
                     def find_tabitems(parent_window, subtext):
                         return find_elements(parent_window, subtext, tabitems)
+
                     def find_tabitems_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, tabitems)
-                    
+
                     # for tabcontrols
                     def tabcontrols(parent_window):
                         return recursive_search(parent_window, int, self.AppElement, object_string_endswith="TabControl")
+
                     def tabcontrol(parent_window, index):
                         return tabcontrols(parent_window)[index]
+
                     def print_tabcontrols(parent_window):
                         return print_elements(parent_window, tabcontrols)
+
                     def find_tabcontrols(parent_window, subtext):
                         return find_elements(parent_window, subtext, tabcontrols)
+
                     def find_tabcontrols_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, tabcontrols)
-                    
+
                     # for EditWrapper
                     def inputs(parent_window):
                         return recursive_search(parent_window, pywinauto.controls.uia_controls.EditWrapper, self.Input)
+
                     def input(parent_window, index):
                         return inputs(parent_window)[index]
+
                     def print_inputs(parent_window):
                         return print_elements(parent_window, inputs)
+
                     def find_inputs(parent_window, subtext):
                         return find_elements(parent_window, subtext, inputs)
+
                     def find_inputs_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, inputs)
-                    
+
                     # for ButtonWrapper but endswith CheckBox
                     def checkboxes(parent_window):
                         return recursive_search(parent_window, int, self.Button, object_string_endswith="CheckBox")
+
                     def checkbox(parent_window, index):
                         return checkboxes(parent_window)[index]
+
                     def print_checkboxes(parent_window):
                         return print_elements(parent_window, checkboxes)
+
                     def find_checkboxes(parent_window, subtext):
                         return find_elements(parent_window, subtext, checkboxes)
+
                     def find_checkboxes_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, checkboxes)
-                    
+
                     # for Image
                     def images(parent_window):
                         return recursive_search(parent_window, int, self.AppElement, object_string_endswith="Image")
+
                     def image(parent_window, index):
                         return images(parent_window)[index]
+
                     def print_images(parent_window):
                         return print_elements(parent_window, images)
+
                     def find_images(parent_window, subtext):
                         return find_elements(parent_window, subtext, images)
+
                     def find_images_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, images)
-                    
+
                     # for Tables
                     def tables(parent_window):
                         return recursive_search(parent_window, int, self.Table, object_string_endswith="Table")
+
                     def table(parent_window, index):
                         return tables(parent_window)[index]
+
                     def print_tables(parent_window):
                         return print_elements(parent_window, tables)
+
                     def find_tables(parent_window, subtext):
                         return find_elements(parent_window, subtext, tables)
+
                     def find_tables_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, tables)
-                    
+
                     # for GroupBoxes
                     def groupboxes(parent_window):
                         return recursive_search(parent_window, int, self.AppElement, object_string_endswith="GroupBox")
+
                     def groupbox(parent_window, index):
                         return groupboxes(parent_window)[index]
+
                     def print_groupboxes(parent_window):
                         return print_elements(parent_window, groupboxes)
+
                     def find_groupboxes(parent_window, subtext):
                         return find_elements(parent_window, subtext, groupboxes)
+
                     def find_groupboxes_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, groupboxes)
-                    
+
                     # for Panes
                     def panes(parent_window):
                         return recursive_search(parent_window, int, self.AppElement, object_string_endswith="Pane")
+
                     def pane(parent_window, index):
                         return panes(parent_window)[index]
+
                     def print_panes(parent_window):
                         return print_elements(parent_window, panes)
+
                     def find_panes(parent_window, subtext):
                         return find_elements(parent_window, subtext, panes)
+
                     def find_panes_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, panes)
-                    
+
                     # for ListItems
                     def listitems(parent_window):
                         return recursive_search(parent_window, pywinauto.controls.uia_controls.ListItemWrapper, self.AppElement, object_string_endswith="ListItem")
+
                     def listitem(parent_window, index):
                         return listitems(parent_window)[index]
+
                     def print_listitems(parent_window):
                         return print_elements(parent_window, listitems)
+
                     def find_listitems(parent_window, subtext):
                         return find_elements(parent_window, subtext, listitems)
+
                     def find_listitems_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, listitems)
-                    
+
                     # for documents
                     def documents(parent_window):
                         return recursive_search(parent_window, int, self.AppElement, object_string_endswith="Document")
+
                     def document(parent_window, index):
                         return documents(parent_window)[index]
+
                     def print_documents(parent_window):
                         return print_elements(parent_window, documents)
+
                     def find_documents(parent_window, subtext):
                         return find_elements(parent_window, subtext, documents)
+
                     def find_documents_exact(parent_window, text):
                         return find_elements_exact(parent_window, text, documents)
-                    
+
                     # for decendants
                     def descendants(parent_window):
                         return recursive_search(parent_window, int, self.AppElement)
                     # ---------------------------
                     # GENERALIZING METHOD CALLS FOR ELEMENT DISCOVERY
-                    def callables(window, 
+
+                    def callables(window,
                                   # array elements
                                   objfunc1, objfunc1_method,
-                                  # print the elements 
+                                  # print the elements
                                   objfunc2, objfunc2_method,
                                   # get a certain element
                                   objfunc3, objfunc3_method,
@@ -2028,11 +2131,11 @@ class Interpreter:
                                   # find elements with exact text in their names
                                   objfunc5=None, objfunc5_method=None,
                                   # waits for the first element of a certain type with subtext in name
-                                    objfunc6=None, objfunc6_method=None, type1=None, as_type1=None,
-                                    # waits for the first element of a certain type with exact text in name
-                                    objfunc7=None, objfunc7_method=None, type2=None, as_type2=None,
+                                  objfunc6=None, objfunc6_method=None, type1=None, as_type1=None,
+                                  # waits for the first element of a certain type with exact text in name
+                                  objfunc7=None, objfunc7_method=None, type2=None, as_type2=None,
                                   ):
-                        
+
                         # RETRIEVING CHILDREN
                         # gets the available child reference keywords
                         if objfunc == objfunc1:
@@ -2049,7 +2152,7 @@ class Interpreter:
                             return objfunc4_method(window, self.parse(0, line, f, sp, args)[2])
                         if objfunc == objfunc5:
                             return objfunc5_method(window, self.parse(0, line, f, sp, args)[2])
-                        
+
                         # waits for the first child of a certain type with exact text in its name
                         if objfunc == objfunc6:
                             # if 1 argument, there is no timeout
@@ -2064,32 +2167,30 @@ class Interpreter:
                                 return wait_for_type_subtext_all(window, type2, as_type2, self.parse(0, line, f, sp, args)[2])
                             elif len(args) == 2:
                                 return wait_for_type_subtext_all(window, type2, as_type2, self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
-                            
-                        
+
                         return '<msnint2 no callable>'
-                        
-                    
-                    
+
                     # ---------------------------
 
-                    
                     # moves the mouse to the center of an element, and clicks it
+
                     def clk(window, button='left', waittime=0):
                         # set the focus to this element
                         window.set_focus()
-                        
+
                         # wait for the element to be ready
                         time.sleep(waittime)
-                
+
                         # get the new coordinates of this element after the focus
-                        coords = window.get_properties()['rectangle'].mid_point()
-                        
+                        coords = window.get_properties()[
+                            'rectangle'].mid_point()
+
                         # click the mouse
                         mouse.click(button=button, coords=coords)
 
                         # return the object
-                        return object   
-                    
+                        return object
+
                     # determines if a point is visible within a rectangle
                     def has_point(object, x, y):
                         try:
@@ -2101,8 +2202,9 @@ class Interpreter:
                             return True
                     # recursively get the first object that has the point
                     # the first object that has the point and no children
+
                     def rec(root, x, y):
-                        
+
                         # if the root has children
                         if root.children():
                             # for each child
@@ -2115,7 +2217,7 @@ class Interpreter:
                         else:
                             # return the root
                             return self.AppElement(root, root.window_text())
-                    
+
                     # get all objects that have the point
                     def get_all(root, x, y):
                         all = []
@@ -2126,7 +2228,8 @@ class Interpreter:
                                 # if the child has the point
                                 if has_point(child, x, y):
                                     # add the child to the list
-                                    all.append(self.AppElement(child, child.window_text()))
+                                    all.append(self.AppElement(
+                                        child, child.window_text()))
                                     # get all of the child's children
                                     all += get_all(child, x, y)
                         # return the list
@@ -2142,7 +2245,7 @@ class Interpreter:
                         for key in kys:
                             sending += '{' + key + ' up}'
                         return sending
-                    
+
                     # function for converting keys requiring a shift press
                     #   example: a '3' should be converted to {VK_SHIFT down}3{VK_SHIFT up}
                     #   example: a '"' should be converted to {VK_SHIFT down}'{VK_SHIFT up}
@@ -2152,41 +2255,43 @@ class Interpreter:
                     def convert_keys(keystrokes):
                         new = ''
                         special = {
-                            '!' : '1',
-                            '@' : '2',
-                            '#' : '3',
-                            '$' : '4',
-                            '%' : '5',
-                            '^' : '6',
-                            '&' : '7',
-                            '*' : '8',
-                            '(' : '9',
-                            ')' : '0',
-                            '_' : '-',
-                            '+' : '=',
-                            '{' : '[',
-                            '}' : ']',
-                            '|' : '\\',
-                            ':' : ';',
-                            '"' : "'",
-                            '<' : ',',
-                            '>' : '.',
-                            '?' : '/',
-                            '~' : '`'
+                            '!': '1',
+                            '@': '2',
+                            '#': '3',
+                            '$': '4',
+                            '%': '5',
+                            '^': '6',
+                            '&': '7',
+                            '*': '8',
+                            '(': '9',
+                            ')': '0',
+                            '_': '-',
+                            '+': '=',
+                            '{': '[',
+                            '}': ']',
+                            '|': '\\',
+                            ':': ';',
+                            '"': "'",
+                            '<': ',',
+                            '>': '.',
+                            '?': '/',
+                            '~': '`'
                         }
                         # for each keystroke
                         for key in keystrokes:
                             if key in special:
                                 # if the key is a special character
-                                new += '{VK_SHIFT down}' + special[key] + '{VK_SHIFT up}'
+                                new += '{VK_SHIFT down}' + \
+                                    special[key] + '{VK_SHIFT up}'
                             elif key.isupper():
                                 # if the key is uppercase
-                                new += '{VK_SHIFT down}' + key.lower() + '{VK_SHIFT up}'
+                                new += '{VK_SHIFT down}' + \
+                                    key.lower() + '{VK_SHIFT up}'
                             else:
                                 # if the key is not a special character
                                 new += key
                         return new
-                    
+
                     # types keys with a delay between each key
                     def type_keys_with_delay(window, text, delay):
                         e = False
@@ -2199,246 +2304,246 @@ class Interpreter:
                                     e = True
                                 pywinauto.keyboard.send_keys(char)
                             time.sleep(delay)
-                            
+
                     # parses object functions for discovering types
                     # of elements
                     def search(window):
                         ret = '<msnint2 no callable>'
-                        
-                         # RETRIEVING CHILDREN
+
+                        # RETRIEVING CHILDREN
                         # gets the available child reference keywords
-                        if  (chldrn := callables(window,
-                                    'children', children,
-                                    'print_children', print_children,
-                                    'child', child,
-                                    'find_children', find_children)) != '<msnint2 no callable>': 
+                        if (chldrn := callables(window,
+                                                'children', children,
+                                                'print_children', print_children,
+                                                'child', child,
+                                                'find_children', find_children)) != '<msnint2 no callable>':
                             ret = chldrn
-                        
+
                         # working with the entire child tree
                         elif (all_chldrn := callables(window,
-                                    'all_children', all_children,
-                                    'print_all_children', print_all_children,
-                                    'all_child', all_child,
-                                    'find_all_children', find_all_children,
-                                    'find_all_children_exact', find_all_children_exact, 
-                                    objfunc6='wait_for_child', objfunc6_method=wait_for_type_exact_all,
-                                        type1=pywinauto.controls.uiawrapper.UIAWrapper,
-                                        as_type1=self.AppElement,
-                                    objfunc7='wait_for_child_exact', objfunc7_method=wait_for_type_subtext_all,
-                                        type2=pywinauto.controls.uiawrapper.UIAWrapper,
-                                        as_type2=self.AppElement
-                                        
-                                    )) != '<msnint2 no callable>': 
+                                                      'all_children', all_children,
+                                                      'print_all_children', print_all_children,
+                                                      'all_child', all_child,
+                                                      'find_all_children', find_all_children,
+                                                      'find_all_children_exact', find_all_children_exact,
+                                                      objfunc6='wait_for_child', objfunc6_method=wait_for_type_exact_all,
+                                                      type1=pywinauto.controls.uiawrapper.UIAWrapper,
+                                                      as_type1=self.AppElement,
+                                                      objfunc7='wait_for_child_exact', objfunc7_method=wait_for_type_subtext_all,
+                                                      type2=pywinauto.controls.uiawrapper.UIAWrapper,
+                                                      as_type2=self.AppElement
+
+                                                      )) != '<msnint2 no callable>':
                             ret = all_chldrn
 
                         # getting all menus
                         elif (mns := callables(window,
-                                    'menus', menus,
-                                    'print_menus', print_menus,
-                                    'menu', menu,
-                                    'find_menus', find_menus, 
-                                    objfunc5=None, objfunc5_method=None,
-                                    objfunc6='wait_for_menu_exact', objfunc6_method=wait_for_type_exact_all,
-                                        type1=pywinauto.controls.uia_controls.MenuWrapper,
-                                        as_type1=self.Menu,
-                                    objfunc7='wait_for_menu', objfunc7_method=wait_for_type_subtext_all,
-                                        type2=pywinauto.controls.uia_controls.MenuWrapper,
-                                        as_type2=self.Menu
-                                    )) != '<msnint2 no callable>': 
+                                               'menus', menus,
+                                               'print_menus', print_menus,
+                                               'menu', menu,
+                                               'find_menus', find_menus,
+                                               objfunc5=None, objfunc5_method=None,
+                                               objfunc6='wait_for_menu_exact', objfunc6_method=wait_for_type_exact_all,
+                                               type1=pywinauto.controls.uia_controls.MenuWrapper,
+                                               as_type1=self.Menu,
+                                               objfunc7='wait_for_menu', objfunc7_method=wait_for_type_subtext_all,
+                                               type2=pywinauto.controls.uia_controls.MenuWrapper,
+                                               as_type2=self.Menu
+                                               )) != '<msnint2 no callable>':
                             ret = mns
-                        
+
                         # gets all toolbars
                         elif (tbrs := callables(window,
-                                    'toolbars', toolbars,
-                                    'print_toolbars', print_toolbars,
-                                    'toolbar', toolbar,
-                                    'find_toolbars', find_toolbars, 
-                                    objfunc5=None, objfunc5_method=None,
-                                    objfunc6='wait_for_toolbar_exact', objfunc6_method=wait_for_type_exact_all,
-                                        type1=pywinauto.controls.uia_controls.ToolbarWrapper,
-                                        as_type1=self.ToolBar,
-                                    objfunc7='wait_for_toolbar', objfunc7_method=wait_for_type_subtext_all,
-                                        type2=pywinauto.controls.uia_controls.ToolbarWrapper,
-                                        as_type2=self.ToolBar
-                                    )) != '<msnint2 no callable>': 
+                                                'toolbars', toolbars,
+                                                'print_toolbars', print_toolbars,
+                                                'toolbar', toolbar,
+                                                'find_toolbars', find_toolbars,
+                                                objfunc5=None, objfunc5_method=None,
+                                                objfunc6='wait_for_toolbar_exact', objfunc6_method=wait_for_type_exact_all,
+                                                type1=pywinauto.controls.uia_controls.ToolbarWrapper,
+                                                as_type1=self.ToolBar,
+                                                objfunc7='wait_for_toolbar', objfunc7_method=wait_for_type_subtext_all,
+                                                type2=pywinauto.controls.uia_controls.ToolbarWrapper,
+                                                as_type2=self.ToolBar
+                                                )) != '<msnint2 no callable>':
                             ret = tbrs
-                        
+
                         # gets all buttons
                         elif (btns := callables(window,
-                                    'buttons', buttons,
-                                    'print_buttons', print_buttons,
-                                    'button', button,
-                                    'find_buttons', find_buttons,
-                                    objfunc5=None, objfunc5_method=None,
-                                    objfunc6='wait_for_button_exact', objfunc6_method=wait_for_type_exact_all, 
-                                        type1=pywinauto.controls.uia_controls.ButtonWrapper, 
-                                        as_type1=self.Button,
-                                    objfunc7='wait_for_button', objfunc7_method=wait_for_type_subtext_all, 
-                                        type2=pywinauto.controls.uia_controls.ButtonWrapper,
-                                        as_type2=self.Button
-                                    )) != '<msnint2 no callable>':  
+                                                'buttons', buttons,
+                                                'print_buttons', print_buttons,
+                                                'button', button,
+                                                'find_buttons', find_buttons,
+                                                objfunc5=None, objfunc5_method=None,
+                                                objfunc6='wait_for_button_exact', objfunc6_method=wait_for_type_exact_all,
+                                                type1=pywinauto.controls.uia_controls.ButtonWrapper,
+                                                as_type1=self.Button,
+                                                objfunc7='wait_for_button', objfunc7_method=wait_for_type_subtext_all,
+                                                type2=pywinauto.controls.uia_controls.ButtonWrapper,
+                                                as_type2=self.Button
+                                                )) != '<msnint2 no callable>':
                             ret = btns
-                        
+
                         # gets all tabitems
                         elif (tbs := callables(window,
-                                    'tabitems', tabitems,
-                                    'print_tabitems', print_tabitems,
-                                    'tabitem', tabitem,
-                                    'find_tabitems', find_tabitems, 
-                                    objfunc5=None, objfunc5_method=None,
-                                    objfunc6='wait_for_tabitem_exact', objfunc6_method=wait_for_type_exact_all,
-                                        type1=int,
-                                        as_type1=self.TabItem,
-                                    objfunc7='wait_for_tabitem', objfunc7_method=wait_for_type_subtext_all,
-                                        type2=int,
-                                        as_type2=self.TabItem  
-                                    )) != '<msnint2 no callable>':
+                                               'tabitems', tabitems,
+                                               'print_tabitems', print_tabitems,
+                                               'tabitem', tabitem,
+                                               'find_tabitems', find_tabitems,
+                                               objfunc5=None, objfunc5_method=None,
+                                               objfunc6='wait_for_tabitem_exact', objfunc6_method=wait_for_type_exact_all,
+                                               type1=int,
+                                               as_type1=self.TabItem,
+                                               objfunc7='wait_for_tabitem', objfunc7_method=wait_for_type_subtext_all,
+                                               type2=int,
+                                               as_type2=self.TabItem
+                                               )) != '<msnint2 no callable>':
                             ret = tbs
-                        
+
                         # gets all links
                         elif (lnks := callables(window,
-                                    'links', links,
-                                    'print_links', print_links,
-                                    'link', link,
-                                    'find_links', find_links,
-                                    objfunc5=None, objfunc5_method=None,
-                                    objfunc6='wait_for_link_exact', objfunc6_method=wait_for_type_exact_all,
-                                        type1=int,
-                                        as_type1=self.Hyperlink,
-                                    objfunc7='wait_for_link', objfunc7_method=wait_for_type_subtext_all,
-                                        type2=int,
-                                        as_type2=self.Hyperlink
-                                    )) != '<msnint2 no callable>': 
+                                                'links', links,
+                                                'print_links', print_links,
+                                                'link', link,
+                                                'find_links', find_links,
+                                                objfunc5=None, objfunc5_method=None,
+                                                objfunc6='wait_for_link_exact', objfunc6_method=wait_for_type_exact_all,
+                                                type1=int,
+                                                as_type1=self.Hyperlink,
+                                                objfunc7='wait_for_link', objfunc7_method=wait_for_type_subtext_all,
+                                                type2=int,
+                                                as_type2=self.Hyperlink
+                                                )) != '<msnint2 no callable>':
                             ret = lnks
-                        
+
                         # gets all Inputs
                         elif (inpts := callables(window,
-                                    'inputs', inputs,
-                                    'print_inputs', print_inputs,
-                                    'input', input,
-                                    'find_inputs', find_inputs,
-                                    objfunc6='wait_for_input_exact', objfunc6_method=wait_for_type_exact_all,
-                                        type1=pywinauto.controls.uia_controls.EditWrapper,
-                                        as_type1=self.Input,
-                                    objfunc7='wait_for_input', objfunc7_method=wait_for_type_subtext_all,
-                                        type2=pywinauto.controls.uia_controls.EditWrapper,
-                                        as_type2=self.Input
-                            )) != '<msnint2 no callable>': 
+                                                 'inputs', inputs,
+                                                 'print_inputs', print_inputs,
+                                                 'input', input,
+                                                 'find_inputs', find_inputs,
+                                                 objfunc6='wait_for_input_exact', objfunc6_method=wait_for_type_exact_all,
+                                                 type1=pywinauto.controls.uia_controls.EditWrapper,
+                                                 as_type1=self.Input,
+                                                 objfunc7='wait_for_input', objfunc7_method=wait_for_type_subtext_all,
+                                                 type2=pywinauto.controls.uia_controls.EditWrapper,
+                                                 as_type2=self.Input
+                                                 )) != '<msnint2 no callable>':
                             ret = inpts
-                        
+
                         # gets all checkboxes
                         elif (chks := callables(window,
-                                    'checkboxes', checkboxes,
-                                    'print_checkboxes', print_checkboxes,
-                                    'checkbox', checkbox,
-                                    'find_checkboxes', find_checkboxes,
-                                    objfunc6='wait_for_checkbox_exact', objfunc6_method=wait_for_type_exact_all,
-                                        type1=pywinauto.controls.uia_controls.ButtonWrapper,
-                                        as_type1=self.Button,
-                                    objfunc7='wait_for_checkbox', objfunc7_method=wait_for_type_subtext_all,
-                                        type2=pywinauto.controls.uia_controls.ButtonWrapper,
-                                        as_type2=self.Button
-                            )) != '<msnint2 no callable>': 
+                                                'checkboxes', checkboxes,
+                                                'print_checkboxes', print_checkboxes,
+                                                'checkbox', checkbox,
+                                                'find_checkboxes', find_checkboxes,
+                                                objfunc6='wait_for_checkbox_exact', objfunc6_method=wait_for_type_exact_all,
+                                                type1=pywinauto.controls.uia_controls.ButtonWrapper,
+                                                as_type1=self.Button,
+                                                objfunc7='wait_for_checkbox', objfunc7_method=wait_for_type_subtext_all,
+                                                type2=pywinauto.controls.uia_controls.ButtonWrapper,
+                                                as_type2=self.Button
+                                                )) != '<msnint2 no callable>':
                             ret = chks
-                        
+
                         # gets all images
                         elif (imgs := callables(window,
-                                    'images', images,
-                                    'print_images', print_images,
-                                    'image', image,
-                                    'find_images', find_images)) != '<msnint2 no callable>': 
+                                                'images', images,
+                                                'print_images', print_images,
+                                                'image', image,
+                                                'find_images', find_images)) != '<msnint2 no callable>':
                             ret = imgs
-                            
+
                         # gets all tables
                         elif (tbls := callables(window,
-                                    'tables', tables,
-                                    'print_tables', print_tables,
-                                    'table', table,
-                                    'find_tables', find_tables,
-                                    objfunc6='wait_for_table_exact', objfunc6_method=wait_for_type_exact_all,
-                                        type1=pywinauto.controls.uia_controls.ListViewWrapper,
-                                        as_type1=self.Table,
-                                    objfunc7='wait_for_table', objfunc7_method=wait_for_type_subtext_all,
-                                        type2=pywinauto.controls.uia_controls.ListViewWrapper,
-                                        as_type2=self.Table
-                                    )) != '<msnint2 no callable>': 
+                                                'tables', tables,
+                                                'print_tables', print_tables,
+                                                'table', table,
+                                                'find_tables', find_tables,
+                                                objfunc6='wait_for_table_exact', objfunc6_method=wait_for_type_exact_all,
+                                                type1=pywinauto.controls.uia_controls.ListViewWrapper,
+                                                as_type1=self.Table,
+                                                objfunc7='wait_for_table', objfunc7_method=wait_for_type_subtext_all,
+                                                type2=pywinauto.controls.uia_controls.ListViewWrapper,
+                                                as_type2=self.Table
+                                                )) != '<msnint2 no callable>':
                             ret = tbls
-                        
+
                         # get all GroupBoxes
                         elif (grps := callables(window,
-                                    'groupboxes', groupboxes,
-                                    'print_groupboxes', print_groupboxes,
-                                    'groupbox', groupbox,
-                                    'find_groupboxes', find_groupboxes,
-                                    objfunc6='wait_for_groupbox_exact', objfunc6_method=wait_for_type_exact_all,
-                                        type1=int,
-                                        as_type1=self.AppElement,
-                                    objfunc7='wait_for_groupbox', objfunc7_method=wait_for_type_subtext_all,
-                                        type2=int,
-                                        as_type2=self.AppElement
-                                    )) != '<msnint2 no callable>': 
+                                                'groupboxes', groupboxes,
+                                                'print_groupboxes', print_groupboxes,
+                                                'groupbox', groupbox,
+                                                'find_groupboxes', find_groupboxes,
+                                                objfunc6='wait_for_groupbox_exact', objfunc6_method=wait_for_type_exact_all,
+                                                type1=int,
+                                                as_type1=self.AppElement,
+                                                objfunc7='wait_for_groupbox', objfunc7_method=wait_for_type_subtext_all,
+                                                type2=int,
+                                                as_type2=self.AppElement
+                                                )) != '<msnint2 no callable>':
                             ret = grps
-                            
+
                         # for Panes
                         elif (pns := callables(window,
-                                    'panes', panes,
-                                    'print_panes', print_panes,
-                                    'pane', pane,
-                                    'find_panes', find_panes,
-                                    objfunc6='wait_for_pane_exact', objfunc6_method=wait_for_type_exact_all,
-                                        type1=int,
-                                        as_type1=self.AppElement,
-                                    objfunc7='wait_for_pane', objfunc7_method=wait_for_type_subtext_all,
-                                        type2=int,
-                                        as_type2=self.AppElement
-                                    )) != '<msnint2 no callable>':
+                                               'panes', panes,
+                                               'print_panes', print_panes,
+                                               'pane', pane,
+                                               'find_panes', find_panes,
+                                               objfunc6='wait_for_pane_exact', objfunc6_method=wait_for_type_exact_all,
+                                               type1=int,
+                                               as_type1=self.AppElement,
+                                               objfunc7='wait_for_pane', objfunc7_method=wait_for_type_subtext_all,
+                                               type2=int,
+                                               as_type2=self.AppElement
+                                               )) != '<msnint2 no callable>':
                             ret = pns
-                            
+
                         # for ListItems
                         elif (lsts := callables(window,
-                                    'listitems', listitems,
-                                    'print_listitems', print_listitems,
-                                    'listitem', listitem,
-                                    'find_listitems', find_listitems,
-                                    objfunc6='wait_for_listitem_exact', objfunc6_method=wait_for_type_exact_all,
-                                        type1=pywinauto.controls.uia_controls.ListItemWrapper,
-                                        as_type1=self.AppElement,
-                                    objfunc7='wait_for_listitem', objfunc7_method=wait_for_type_subtext_all,
-                                        type2=pywinauto.controls.uia_controls.ListItemWrapper,
-                                        as_type2=self.AppElement
-                                    )) != '<msnint2 no callable>':
+                                                'listitems', listitems,
+                                                'print_listitems', print_listitems,
+                                                'listitem', listitem,
+                                                'find_listitems', find_listitems,
+                                                objfunc6='wait_for_listitem_exact', objfunc6_method=wait_for_type_exact_all,
+                                                type1=pywinauto.controls.uia_controls.ListItemWrapper,
+                                                as_type1=self.AppElement,
+                                                objfunc7='wait_for_listitem', objfunc7_method=wait_for_type_subtext_all,
+                                                type2=pywinauto.controls.uia_controls.ListItemWrapper,
+                                                as_type2=self.AppElement
+                                                )) != '<msnint2 no callable>':
                             ret = lsts
-                        
+
                         # for TabControls
                         elif (tabs := callables(window,
-                                    'tabcontrols', tabcontrols,
-                                    'print_tabcontrols', print_tabcontrols,
-                                    'tabcontrol', tabcontrol,
-                                    'find_tabcontrols', find_tabcontrols,
-                                    objfunc6='wait_for_tabcontrol_exact', objfunc6_method=wait_for_type_exact_all,
-                                        type1=int,
-                                        as_type1=self.AppElement,
-                                    objfunc7='wait_for_tabcontrol', objfunc7_method=wait_for_type_subtext_all,
-                                        type2=int,
-                                        as_type2=self.AppElement
-                                    )) != '<msnint2 no callable>':
+                                                'tabcontrols', tabcontrols,
+                                                'print_tabcontrols', print_tabcontrols,
+                                                'tabcontrol', tabcontrol,
+                                                'find_tabcontrols', find_tabcontrols,
+                                                objfunc6='wait_for_tabcontrol_exact', objfunc6_method=wait_for_type_exact_all,
+                                                type1=int,
+                                                as_type1=self.AppElement,
+                                                objfunc7='wait_for_tabcontrol', objfunc7_method=wait_for_type_subtext_all,
+                                                type2=int,
+                                                as_type2=self.AppElement
+                                                )) != '<msnint2 no callable>':
                             ret = tabs
-                        
+
                         # for Documents
                         elif (docs := callables(window,
-                                    'documents', documents,
-                                    'print_documents', print_documents,
-                                    'document', document,
-                                    'find_documents', find_documents,
-                                    objfunc6='wait_for_document_exact', objfunc6_method=wait_for_type_exact_all,
-                                        type1=int,
-                                        as_type1=self.AppElement,
-                                    objfunc7='wait_for_document', objfunc7_method=wait_for_type_subtext_all,
-                                        type2=int,
-                                        as_type2=self.AppElement
-                                    )) != '<msnint2 no callable>':
+                                                'documents', documents,
+                                                'print_documents', print_documents,
+                                                'document', document,
+                                                'find_documents', find_documents,
+                                                objfunc6='wait_for_document_exact', objfunc6_method=wait_for_type_exact_all,
+                                                type1=int,
+                                                as_type1=self.AppElement,
+                                                objfunc7='wait_for_document', objfunc7_method=wait_for_type_subtext_all,
+                                                type2=int,
+                                                as_type2=self.AppElement
+                                                )) != '<msnint2 no callable>':
                             ret = docs
-                            
+
                         return ret
 
                     # if the object is a pywinauto application
@@ -2446,7 +2551,7 @@ class Interpreter:
                     #   - I've tested this on a Windows 11 laptop and it doesn't
                     #     work for some reason
                     if isinstance(object, self.App):
-                        
+
                         # return for an app
                         ret = object
 
@@ -2463,11 +2568,10 @@ class Interpreter:
                             p_thread = True
                             objfunc = objfunc[:-5]
                             auto_lock.acquire()
-                        
+
                         # element discovery with search()
                         if (srch := search(window)) != '<msnint2 no callable>':
                             ret = srch
-
 
                         # STARTING AND STOPPING APPLICATIONS
                         # creates and starts the application
@@ -2475,7 +2579,8 @@ class Interpreter:
                         if objfunc == 'start':
                             # create and start the application
                             if not object.application:
-                                object.application = Application(backend="uia").start(path)
+                                object.application = Application(
+                                    backend="uia").start(path)
 
                             # add to global apps
                             global apps
@@ -2487,17 +2592,14 @@ class Interpreter:
                             # kill the application
                             ret = app.kill()
 
-                            
-                        
-                        
                         # gets the top_window
                         elif objfunc == 'print_tree':
                             ret = app.dump_tree()
-                            
+
                         # gets a connection to this application
                         elif objfunc == 'connection':
-                            ret = self.App(object.path, Application(backend="uia").connect(process=object.application.process))
-                                                    
+                            ret = self.App(object.path, Application(
+                                backend="uia").connect(process=object.application.process))
 
                         # gets information about this application
                         # gets the text of the window
@@ -2509,15 +2611,16 @@ class Interpreter:
                         # gets the handle
                         elif objfunc == 'handle':
                             ret = window.handle
-                        
+
                         # chrome based children collection
                         def chrome_children_():
                             chrome_window = app.window(title_re='.*Chrome.')
                             chrome_handle = chrome_window.handle
                             wd = app.window(handle=chrome_handle)
-                            document = wd.child_window(found_index=0, class_name='Chrome_RenderWidgetHostHWND')
+                            document = wd.child_window(
+                                found_index=0, class_name='Chrome_RenderWidgetHostHWND')
                             return document.descendants()
-                        
+
                         # GOOGLE CHROME ONLY
                         if objfunc == 'chrome_children':
                             # if not arguments
@@ -2525,47 +2628,54 @@ class Interpreter:
                                 ret = chrome_children_()
                             # if one argument, check if the first argument is contained
                             elif len(args) == 1:
-                                subtext = self.parse(0, line, f, sp, args)[2].lower()
-                                ret = [self.AppElement(d, d.window_text()) for d in chrome_children_() if subtext in d.window_text().lower()]
+                                subtext = self.parse(0, line, f, sp, args)[
+                                    2].lower()
+                                ret = [self.AppElement(d, d.window_text()) for d in chrome_children_(
+                                ) if subtext in d.window_text().lower()]
                             # if two arguments, check if the first argument is exact
                             elif len(args) == 2:
                                 subtext = self.parse(0, line, f, sp, args)[2]
-                                ret = [self.AppElement(d, d.window_text()) for d in chrome_children_() if subtext == d.window_text()]
-                        
+                                ret = [self.AppElement(d, d.window_text()) for d in chrome_children_(
+                                ) if subtext == d.window_text()]
+
                         # waits for a child containing text
                         elif objfunc == 'wait_for_text':
                             # if no timeout provided
                             if len(args) == 1:
-                                ret = wait_for_text(window, self.parse(0, line, f, sp, args)[2])
+                                ret = wait_for_text(
+                                    window, self.parse(0, line, f, sp, args)[2])
                             # if timeout provided
                             elif len(args) == 2:
-                                ret = wait_for_text(window, self.parse(0, line, f, sp, args)[2], 
-                                                     timeout=self.parse(1, line, f, sp, args)[2])
+                                ret = wait_for_text(window, self.parse(0, line, f, sp, args)[2],
+                                                    timeout=self.parse(1, line, f, sp, args)[2])
                         # waits for a child containing text in the entire child tree
                         elif objfunc == 'wait_for_text_all':
                             # if no timeout provided
                             if len(args) == 1:
-                                ret = wait_for_text_all(window, self.parse(0, line, f, sp, args)[2])
+                                ret = wait_for_text_all(
+                                    window, self.parse(0, line, f, sp, args)[2])
                             elif len(args) == 2:
-                                ret = wait_for_text_all(window, self.parse(0, line, f, sp, args)[2], 
-                                                     timeout=self.parse(1, line, f, sp, args)[2])
-                                
+                                ret = wait_for_text_all(window, self.parse(0, line, f, sp, args)[2],
+                                                        timeout=self.parse(1, line, f, sp, args)[2])
+
                         # waits for a child containing the exact text
                         elif objfunc == 'wait_for_text_exact':
                             # if no timeout provided
                             if len(args) == 1:
-                                ret = wait_for_text_exact(window, self.parse(0, line, f, sp, args)[2])
+                                ret = wait_for_text_exact(
+                                    window, self.parse(0, line, f, sp, args)[2])
                             elif len(args) == 2:
-                                ret = wait_for_text_exact(window, self.parse(0, line, f, sp, args)[2], 
-                                                     timeout=self.parse(1, line, f, sp, args)[2])
+                                ret = wait_for_text_exact(window, self.parse(0, line, f, sp, args)[2],
+                                                          timeout=self.parse(1, line, f, sp, args)[2])
                         # waits for a child containing the exact text in the entire child tree
                         elif objfunc == 'wait_for_text_exact_all':
                             # if no timeout provided
                             if len(args) == 1:
-                                ret = wait_for_text_exact_all(window, self.parse(0, line, f, sp, args)[2])
+                                ret = wait_for_text_exact_all(
+                                    window, self.parse(0, line, f, sp, args)[2])
                             elif len(args) == 2:
-                                ret = wait_for_text_exact_all(window, self.parse(0, line, f, sp, args)[2], 
-                                                     timeout=self.parse(1, line, f, sp, args)[2])
+                                ret = wait_for_text_exact_all(window, self.parse(0, line, f, sp, args)[2],
+                                                              timeout=self.parse(1, line, f, sp, args)[2])
 
                         # APPLICATION ACTIONS
                         # sends keystrokes to the application
@@ -2574,7 +2684,8 @@ class Interpreter:
                             writing = self.parse(0, line, f, sp, args)[2]
                             try:
                                 # sends keystrokes to the application
-                                ret = window.type_keys(writing, with_spaces=True)
+                                ret = window.type_keys(
+                                    writing, with_spaces=True)
                             except:
                                 # with_spaces not allowed
                                 ret = window.type_keys(writing)
@@ -2584,8 +2695,9 @@ class Interpreter:
                             # keystrokes
                             keystrokes = self.parse(0, line, f, sp, args)[2]
                             # convert to special characters
-                            ret = window.type_keys(convert_keys(keystrokes), with_spaces=True)
-                            
+                            ret = window.type_keys(convert_keys(
+                                keystrokes), with_spaces=True)
+
                         # presses keys at the same time
                         elif objfunc == 'press':
                             kys = []
@@ -2597,40 +2709,41 @@ class Interpreter:
                         # takes one argument, being the keystrokes to send
                         elif objfunc == 'send_keys':
                             # sends keystrokes to the application
-                            ret = pywinauto.keyboard.send_keys(convert_keys(self.parse(0, line, f, sp, args)[2]), with_spaces=True)
-                        
+                            ret = pywinauto.keyboard.send_keys(convert_keys(
+                                self.parse(0, line, f, sp, args)[2]), with_spaces=True)
+
                         # gets the element that is currently hovered over
                         # recurses through all children, determining which elements have
                         # the mouses position
-                        elif objfunc == 'hovered':                            
+                        elif objfunc == 'hovered':
                             # get the root window of this application
                             root = window.top_level_parent()
-                            
+
                             # get the current mouse position
                             x, y = win32api.GetCursorPos()
-                            
+
                             # recursively find all children from the root window
                             # that have the point specified
-                            ret = get_all(root, x, y)     
-                        
+                            ret = get_all(root, x, y)
+
                         # opens the developer tools
                         elif objfunc == 'inspect':
                             # presses the shortcut keys to open the developer tools
                             ret = window.type_keys('{F12}')
-                            
+
                             # waits for the inspect window to appear
                             wait_for_text_all(window, 'Console')
-                            
+
                         # closes the developer tools
                         elif objfunc == 'close_inspect':
                             # presses the shortcut keys to close the developer tools
                             ret = window.type_keys('{F12}')
-                        
+
                         # refreshes the page
                         elif objfunc == 'refresh':
                             # presses the shortcut keys to refresh the page
                             ret = window.type_keys('{F5}')
-                        
+
                         # presses the enter key
                         elif objfunc == 'enter':
                             # presses the enter key
@@ -2647,7 +2760,7 @@ class Interpreter:
                         elif objfunc == 'page_up':
                             # presses the page up key
                             ret = window.type_keys('{PGUP}')
-                        
+
                         # # collects all children within the entire page
                         # # finds all scrollbars and scrolls throughout the entire page
                         # # in all directions, collecting all children
@@ -2657,14 +2770,14 @@ class Interpreter:
                         #     scrlbrs = window.scrollbars()
                         #     # get the height of the screen
                         #     height = window.rectangle().height
-                            
+
                         #     return scrlbrs
-                        
+
                         # # gets the vertical scrollbar
                         # if objfunc == 'vertical_scrollbar':
                         #     wd = window.child_window(control_type="Scroll")
                         #     return self.ScrollBar(wd, 'vertical')
-                                
+
                         # release auto_lock
                         if p_thread:
                             auto_lock.release()
@@ -2692,13 +2805,12 @@ class Interpreter:
                             mouse.press(coords=start)
                             end_range = 100 - speed
                             for i in range(0, end_range):
-                                mouse.move(coords=(int(start[0] + (end[0] - start[0]) / 100 * i), 
-                                                    int(start[1] + (end[1] - start[1]) / 100 * i)))
+                                mouse.move(coords=(int(start[0] + (end[0] - start[0]) / 100 * i),
+                                                   int(start[1] + (end[1] - start[1]) / 100 * i)))
                                 time.sleep(0.001)
-                                    
+
                             # releases the mouse at the end coordinates
                             mouse.release(coords=end)
-
 
                         p_thread = False
 
@@ -2713,7 +2825,7 @@ class Interpreter:
                         # get the element window
                         if objfunc == 'window':
                             ret = window
-                        
+
                         # element discovery with search()
                         if (srch := search(window)) != '<msnint2 no callable>':
                             ret = srch
@@ -2732,16 +2844,20 @@ class Interpreter:
                         elif objfunc == 'right':
                             ret = window.get_properties()['rectangle'].right
                         elif objfunc == 'center' or objfunc == 'mid_point':
-                            ret = window.get_properties()['rectangle'].mid_point()
+                            ret = window.get_properties(
+                            )['rectangle'].mid_point()
                         # getting the rectangle overall
                         elif objfunc == 'rectangle':
-                            ret = [window.get_properties()['rectangle'].top, window.get_properties()['rectangle'].bottom, window.get_properties()['rectangle'].left, window.get_properties()['rectangle'].right]
+                            ret = [window.get_properties()['rectangle'].top, window.get_properties()[
+                                'rectangle'].bottom, window.get_properties()['rectangle'].left, window.get_properties()['rectangle'].right]
 
                         # computes the diameter of the window
                         elif objfunc == 'width':
                             try:
-                                left = window.get_properties()['rectangle'].left
-                                right = window.get_properties()['rectangle'].right
+                                left = window.get_properties()[
+                                    'rectangle'].left
+                                right = window.get_properties()[
+                                    'rectangle'].right
                                 ret = right - left
                             except:
                                 ret = None
@@ -2749,11 +2865,12 @@ class Interpreter:
                         elif objfunc == 'height':
                             try:
                                 top = window.get_properties()['rectangle'].top
-                                bottom = window.get_properties()['rectangle'].bottom
+                                bottom = window.get_properties()[
+                                    'rectangle'].bottom
                                 ret = bottom - top
                             except:
-                                ret = None 
-                            
+                                ret = None
+
                         # getting adjacent elements
                         # could or could not be decendants
                         # operation is very slow, should be used mainly
@@ -2763,10 +2880,12 @@ class Interpreter:
                             pixels = self.parse(0, line, f, sp, args)[2]
                             # get the root window of this application
                             root = object.top_level_parent()
-                            
+
                             # get the top middle point of this element
-                            top = object.get_properties()['rectangle'].top - pixels
-                            mid = object.get_properties()['rectangle'].mid_point()[0]
+                            top = object.get_properties(
+                            )['rectangle'].top - pixels
+                            mid = object.get_properties(
+                            )['rectangle'].mid_point()[0]
                             # if there exist two arguments, move the mouse to that location
                             if len(args) == 2:
                                 mouse.move(coords=(mid, top))
@@ -2779,8 +2898,10 @@ class Interpreter:
                             # get the root window of this application
                             root = object.top_level_parent()
                             # get the top middle point of this element
-                            bottom = object.get_properties()['rectangle'].bottom + pixels
-                            mid = object.get_properties()['rectangle'].mid_point()[0]
+                            bottom = object.get_properties(
+                            )['rectangle'].bottom + pixels
+                            mid = object.get_properties(
+                            )['rectangle'].mid_point()[0]
                             if len(args) == 2:
                                 mouse.move(coords=(mid, bottom))
                             # recursively find all children from the root window
@@ -2791,10 +2912,12 @@ class Interpreter:
                             pixels = self.parse(0, line, f, sp, args)[2]
                             # get the root window of this application
                             root = object.top_level_parent()
-                            
+
                             # get the left middle point of this element
-                            left = object.get_properties()['rectangle'].left - pixels
-                            mid = object.get_properties()['rectangle'].mid_point()[1]
+                            left = object.get_properties(
+                            )['rectangle'].left - pixels
+                            mid = object.get_properties(
+                            )['rectangle'].mid_point()[1]
                             if len(args) == 2:
                                 mouse.move(coords=(left, mid))
                             # recursively find all children from the root window
@@ -2805,34 +2928,36 @@ class Interpreter:
                             pixels = self.parse(0, line, f, sp, args)[2]
                             # get the root window of this application
                             root = object.top_level_parent()
-                            
+
                             # get the right middle point of this element
-                            right = object.get_properties()['rectangle'].right + pixels
-                            mid = object.get_properties()['rectangle'].mid_point()[1]
+                            right = object.get_properties(
+                            )['rectangle'].right + pixels
+                            mid = object.get_properties(
+                            )['rectangle'].mid_point()[1]
                             if len(args) == 2:
                                 mouse.move(coords=(right, mid))
                             # recursively find all children from the root window
                             # that have the point specified
                             ret = rec(root, right, mid)
-                        
+
                         # focus on the window
                         elif objfunc == 'focus':
                             ret = window.set_focus()
-                        
+
                         # scrolls to the window
                         elif objfunc == 'scroll':
                             ret = mouse.scroll(coords=(window.get_properties()['rectangle'].mid_point()[0],
                                                        window.get_properties()['rectangle'].mid_point()[1]))
-                        
+
                         # drags this element to either another AppElement
-                        elif objfunc == 'drag':                            
+                        elif objfunc == 'drag':
                             # if one argument and that argument isinstance(AppElement)
                             first = self.parse(0, line, f, sp, args)[2]
                             # midpoint of the element to drag to
                             start = (window.get_properties()['rectangle'].mid_point()[0],
-                                        window.get_properties()['rectangle'].mid_point()[1])
+                                     window.get_properties()['rectangle'].mid_point()[1])
                             end = (first.get_properties()['rectangle'].mid_point()[0],
-                                        first.get_properties()['rectangle'].mid_point()[1])
+                                   first.get_properties()['rectangle'].mid_point()[1])
 
                             # slowly moves the mouse to the end coordinates
                             # this is to prevent the mouse from moving too fast
@@ -2843,17 +2968,17 @@ class Interpreter:
                             if len(args) == 2:
                                 speed = self.parse(1, line, f, sp, args)[2]
                             # drags the mouse
-                            movemouse(start, end, speed) 
+                            movemouse(start, end, speed)
                             ret = True
-                            
+
                         # drags this AppElement to coordinates
                         elif objfunc == 'drag_coords':
-                            
+
                             start = (window.get_properties()['rectangle'].mid_point()[0],
-                                      window.get_properties()['rectangle'].mid_point()[1])
-                            end = (self.parse(0, line, f, sp, args)[2], 
-                                     self.parse(1, line, f, sp, args)[2])
-                            
+                                     window.get_properties()['rectangle'].mid_point()[1])
+                            end = (self.parse(0, line, f, sp, args)[2],
+                                   self.parse(1, line, f, sp, args)[2])
+
                             # gets the speed, if specified
                             speed = 50
                             if len(args) == 3:
@@ -2861,7 +2986,7 @@ class Interpreter:
                             # drags the mouse
                             movemouse(start, end, speed)
                             ret = True
-                            
+
                         # WINDOW ACTIONS
                         # sends keystrokes to the application
                         # takes one argument, being the keystrokes to send
@@ -2871,16 +2996,18 @@ class Interpreter:
                             # if a timeout between keystrokes is offered
                             if len(args) == 2:
                                 timeout = True
-                            
+
                             if timeout:
-                                ret = type_keys_with_delay(window, writing, self.parse(1, line, f, sp, args)[2])
+                                ret = type_keys_with_delay(
+                                    window, writing, self.parse(1, line, f, sp, args)[2])
                             else:
                                 try:
-                                    ret = window.type_keys(writing, with_spaces=True)
+                                    ret = window.type_keys(
+                                        writing, with_spaces=True)
                                 except:
                                     window.set_focus()
                                     ret = window.type_keys(writing)
-                                    
+
                         # presses backspace
                         # if no arguments, presses it one time
                         # else, presses it the first argument many times
@@ -2897,16 +3024,17 @@ class Interpreter:
                         # presses the enter key
                         elif objfunc == 'enter':
                             ret = window.type_keys('{ENTER}')
-                        
+
                         # hovers over the window
                         elif objfunc == 'hover':
                             # hovers the mouse over the window, using the mid point of the element
-                            ret = mouse.move(coords=(window.get_properties()['rectangle'].mid_point()))                       
-                            
+                            ret = mouse.move(
+                                coords=(window.get_properties()['rectangle'].mid_point()))
+
                         # different types of AppElements
                         # if the appelement is a button
                         if isinstance(object, self.Button):
-                            
+
                             # clicks the button
                             if objfunc == 'click' or objfunc == 'left_click':
                                 ret = object.click()
@@ -2916,21 +3044,23 @@ class Interpreter:
                             ret = object
 
                         # working with Links
-                        elif isinstance(object, self.Link):           
-                            waittime = self.parse(0, line, f, sp, args)[2] if args[0][0] != '' else 1                 
+                        elif isinstance(object, self.Link):
+                            waittime = self.parse(0, line, f, sp, args)[
+                                2] if args[0][0] != '' else 1
                             # clicks the link
                             if objfunc == 'click' or objfunc == 'left_click':
                                 ret = clk(window, waittime=waittime)
                             # right clicks the link
                             elif objfunc == 'right_click':
-                                ret = clk(window, button='right', waittime=waittime)
+                                ret = clk(window, button='right',
+                                          waittime=waittime)
                             ret = object
-                            
+
                         # working with Tables
                         elif isinstance(object, self.Table):
                             # get table
                             table = object.window
-                            
+
                             # gets a row by index, based on the above logic
                             def row(index):
                                 row = []
@@ -2944,40 +3074,45 @@ class Interpreter:
                                 for i in range(cols):
                                     try:
                                         try:
-                                            wrapper = table.cell(row=index, column=i)
+                                            wrapper = table.cell(
+                                                row=index, column=i)
                                         except:
                                             # table.items() gets a 1D list of items,
                                             # compute the index of the item
                                             # based on 'i' and 'index'
                                             wrapper = items[i + index * cols]
-                                            
-                                        row.append(self.AppElement(wrapper, wrapper.window_text()))
+
+                                        row.append(self.AppElement(
+                                            wrapper, wrapper.window_text()))
                                     except:
                                         break
                                 return row
                             # gets a column by index
+
                             def col(index):
                                 col = []
                                 for i in range(table.column_count()):
                                     try:
-                                        wrapper = table.cell(row=i, column=index)
-                                        col.append(self.AppElement(wrapper, wrapper.window_text()))
+                                        wrapper = table.cell(
+                                            row=i, column=index)
+                                        col.append(self.AppElement(
+                                            wrapper, wrapper.window_text()))
                                     except:
                                         break
                                 return col
-                            
-                            
+
                             # gets a cell at a row and column
                             if objfunc == 'get':
-                                
+
                                 # get column
                                 col = self.parse(0, line, f, sp, args)[2]
                                 # get row
                                 row = self.parse(1, line, f, sp, args)[2]
                                 wrapper = table.cell(row=row, column=col)
                                 # gets the cell
-                                ret = self.AppElement(wrapper, wrapper.window_text())
-                                
+                                ret = self.AppElement(
+                                    wrapper, wrapper.window_text())
+
                             # try to accumulate all the rows
                             # up to sys.maxsize
                             elif objfunc == 'matrix':
@@ -2990,25 +3125,21 @@ class Interpreter:
                                             break
                                     except:
                                         break
-                                ret = matrix                                   
+                                ret = matrix
                             # gets a row
                             elif objfunc == 'row':
                                 ret = row(self.parse(0, line, f, sp, args)[2])
                             # gets a column
                             elif objfunc == 'column':
                                 ret = col(self.parse(0, line, f, sp, args)[2])
-                                
-                            
 
-                            
-
-                            
                         # working with ToolBars
                         elif isinstance(object, self.ToolBar):
                             toolbar_window = object.window
                             # gets the buttons of the toolbar
                             if objfunc == 'buttons':
-                                ret = [toolbar_window.button(i) for i in range(toolbar_window.button_count())]
+                                ret = [toolbar_window.button(i) for i in range(
+                                    toolbar_window.button_count())]
                             # prints the buttons of this toolbar
                             if objfunc == 'print_buttons':
                                 for i in range(toolbar_window.button_count()):
@@ -3016,30 +3147,34 @@ class Interpreter:
                                 ret = None
                             # gets a button at an index
                             if objfunc == 'button':
-                                ret = toolbar_window.button(self.parse(0, line, f, sp, args)[2])
+                                ret = toolbar_window.button(
+                                    self.parse(0, line, f, sp, args)[2])
                             # finds all buttons with subtext in their names
                             if objfunc == 'find_buttons':
-                                ret = find_buttons(toolbar_window, self.parse(0, line, f, sp, args)[2])
+                                ret = find_buttons(
+                                    toolbar_window, self.parse(0, line, f, sp, args)[2])
                             ret = object
-                        
+
                         # working with scrollbars
                         elif isinstance(object, self.ScrollBar):
                             scrollbar_window = object.window
-                            
+
                             if objfunc == 'scroll_down':
-                                ret = scrollbar_window.scroll_down(amount='page', count=1)
-                                       
+                                ret = scrollbar_window.scroll_down(
+                                    amount='page', count=1)
+
                         # extra methods such that this AppElement requires different logic
                         if objfunc == 'click' or objfunc == 'left_click':
-                            ret = clk(window, waittime=self.parse(0, line, f, sp, args)[2] if args[0][0] != '' else 1)              
+                            ret = clk(window, waittime=self.parse(
+                                0, line, f, sp, args)[2] if args[0][0] != '' else 1)
                         elif objfunc == 'right_click':
-                            ret = clk(window, button='right', waittime=self.parse(0, line, f, sp, args)[2] if args[0][0] != '' else 1)
-
+                            ret = clk(window, button='right', waittime=self.parse(
+                                0, line, f, sp, args)[2] if args[0][0] != '' else 1)
 
                         # if thread based, release the lock
                         if p_thread:
                             auto_lock.release()
-                        
+
                         return ret
 
                     # if the object is a dictionary
@@ -3224,7 +3359,6 @@ class Interpreter:
                     # add the body
                     new_method.add_body(block)
                     new_method.add_return(f"{fname}__return__")
-                    
 
                     # obtain the rest of the arguments as method args
                     for i in range(2, len(args)):
@@ -3284,19 +3418,19 @@ class Interpreter:
                     # add the return variable if not exists
                     if ret_name not in self.vars:
                         self.vars[ret_name] = Var(ret_name, None)
-                        
+
                     # execute method
                     method.run(func_args, self, args)
 
                     # if its a variable
                     if ret_name in self.vars:
                         return self.vars[ret_name].value
-                    
+
                     #                     # create return variable
                     # created_return_name = f"{func}__return__"
                     # if created_return_name not in self.vars:
                     #     self.vars[created_return_name].value = r
-                                        
+
                     try:
                         return eval(str(self.vars[ret_name].value), {}, {})
                     except:
@@ -3318,7 +3452,7 @@ class Interpreter:
                 # creates a dictionary from its arguments
                 # every two arguments
                 # an odd quantity of arguments is impossible
-                if func == 'dictfrom':
+                if func == 'dictfrom' or func == 'object':
                     d = {}
                     if args[0][0] == '':
                         return d
@@ -3394,13 +3528,19 @@ class Interpreter:
                 # converts the argument to a list
                 elif func == 'list':
                     return list(self.parse(0, line, f, sp, args)[2])
-                
+
                 # absolute value
                 elif func == 'abs':
                     return abs(self.parse(0, line, f, sp, args)[2])
                 # zip
                 elif func == 'zip':
                     return zip(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
+                # next
+                elif func == 'next':
+                    return next(self.parse(0, line, f, sp, args)[2])
+                # iter
+                elif func == 'iter':
+                    return iter(self.parse(0, line, f, sp, args)[2])
 
                 # determines if a variable exists or not
                 elif func == 'exists':
@@ -3557,20 +3697,20 @@ class Interpreter:
                         self.vars[element_name].value = array[i]
                         self.interpret(block_s)
                     return array
-                
+
                 # sorting an array by an attribute of each element
                 elif func == 'sortby':
-                    
+
                     # iterable to sort
                     iterable = self.parse(0, line, f, sp, args)[2]
-                    
+
                     # variable name
                     varname = self.parse(1, line, f, sp, args)[2]
-                    
+
                     # block of code to interpret, the sorting
                     # is based on the interpretation of this block
                     block = args[2][0]
-                    
+
                     # pairing elements to their interpretations
                     pairing = []
                     for i in range(len(iterable)):
@@ -3581,20 +3721,20 @@ class Interpreter:
                     # return the sorted array containing the second element
                     # of each pair
                     return [pair[1] for pair in pairing]
-                                
+
                 # performs list comprehension
                 elif func == 'comp':
                     lst = []
-                    
+
                     # array to comprehend
                     arr = self.parse(0, line, f, sp, args)[2]
-                    
+
                     # varname for the element
                     varname = self.parse(1, line, f, sp, args)[2]
-                    
+
                     # block to perform
                     block = args[2][0]
-                    
+
                     # performs the list comprehension
                     for v in arr:
                         self.vars[varname] = Var(varname, v)
@@ -3602,41 +3742,41 @@ class Interpreter:
                         if r != msn2_none:
                             lst.append(r)
                     return lst
-                
+
                 # returns the first argument, then performs the second argument as a block
                 elif func == 'do':
                     ret = self.parse(0, line, f, sp, args)[2]
                     self.interpret(args[1][0])
                     return ret
-                
+
                 # special value for msn2 to return None
                 elif func == 'None':
                     return msn2_none
-                
+
                 # filters an iterable to retain all elements that satisfy the second argument as
                 # a block
                 # the first argument is a string for a variable for each element
                 # second argument is a block to run for each element
                 elif func == 'filter':
-                    
+
                     # iterable to filter
                     iterable = self.parse(0, line, f, sp, args)[2]
-                    
+
                     # variable name
                     varname = self.parse(1, line, f, sp, args)[2]
 
                     # block to execute
                     block = args[2][0]
-                    
+
                     # new array
                     filtered = []
-                    
+
                     # iterate through each element
                     for v in iterable:
-                            
+
                         # set the variable to the element
                         self.vars[varname] = Var(varname, v)
-                        
+
                         # if the block returns true, add the element to the new array
                         if self.interpret(block):
                             filtered.append(v)
@@ -3658,7 +3798,7 @@ class Interpreter:
                         self.vars[varname] = Var(varname, iterable[i - 1])
 
                     return iterable
-                
+
                 # determines if the array has all elements specified
                 # takes any amount of arguments
                 # first argument is the iterable
@@ -3666,20 +3806,20 @@ class Interpreter:
                 elif func == 'has':
                     # iterable to check
                     iterable = self.parse(0, line, f, sp, args)[2]
-                    
+
                     # iterate through each element
                     for i in range(len(args) - 1):
                         if self.parse(i + 1, line, f, sp, args)[2] not in iterable:
                             return False
                     return True
-                
+
                 # gets the first element in the iterable
                 elif func == 'first' or func == 'head':
                     try:
                         return self.parse(0, line, f, sp, args)[2][0]
                     except:
                         return None
-                
+
                 # gets the last element in the iterable
                 elif func == 'last' or func == 'tail':
                     try:
@@ -3739,7 +3879,7 @@ class Interpreter:
                             arg2 = self.parse(i, line, f, sp, args)[2]
                             arg1 /= arg2
                         return arg1
-                    
+
                     # integer division
                     if objfunc == 'idiv' or objfunc == 'intdiv' or objfunc == 'intdivide' or objfunc == 'intover' or objfunc == '//' or objfunc == '÷÷':
                         for i in range(1, len(args)):
@@ -3758,19 +3898,20 @@ class Interpreter:
                             arg2 = self.parse(i, line, f, sp, args)[2]
                             arg1 **= arg2
                         return arg1
-                    
+
                     if objfunc == 'root' or objfunc == 'nthroot' or objfunc == 'nthrt' or objfunc == '√':
                         for i in range(1, len(args)):
                             arg2 = self.parse(i, line, f, sp, args)[2]
                             arg1 **= (1 / arg2)
                         return arg1
                     return '<msnint2 class>'
-                
+
                 # computes the maximum value from all arguments
                 # takes any amount of arguments, all being
                 # either numbers or lists
                 elif func == 'maximum':
-                    maxval = max(_f) if isinstance((_f := self.parse(0, line, f, sp, args)[2]), list) else _f
+                    maxval = max(_f) if isinstance(
+                        (_f := self.parse(0, line, f, sp, args)[2]), list) else _f
                     for i in range(1, len(args)):
                         val = self.parse(i, line, f, sp, args)[2]
                         # is a list argument
@@ -3781,7 +3922,8 @@ class Interpreter:
                             maxval = max(maxval, val)
                     return maxval
                 elif func == 'minimum':
-                    minval = min(_f) if isinstance((_f := self.parse(0, line, f, sp, args)[2]), list) else _f
+                    minval = min(_f) if isinstance(
+                        (_f := self.parse(0, line, f, sp, args)[2]), list) else _f
                     for i in range(1, len(args)):
                         val = self.parse(i, line, f, sp, args)[2]
                         # is a list argument
@@ -4322,7 +4464,7 @@ class Interpreter:
 
                 # automation operations
                 elif obj == 'auto':
-                    
+
                     # gets the largest element from a list of elements
                     if objfunc == 'largest':
                         elements = self.parse(0, line, f, sp, args)[2]
@@ -4339,7 +4481,7 @@ class Interpreter:
                                 return element
                         return largest
                     return '<msnint2 class>'
-                
+
                 # # performs math operations
                 elif obj == 'math':
                     if objfunc == 'add':
@@ -4393,25 +4535,22 @@ class Interpreter:
 
                 # inserts a value into the iterable at the specified index
                 elif func == 'map':
-                    
+
                     # iterable
                     iterable = self.parse(0, line, f, sp, args)[2]
-                    
+
                     # varname
                     varname = self.parse(1, line, f, sp, args)[2]
-                    
+
                     # function
                     function = args[2][0]
-                    
+
                     # map the function to each element in the iterable
                     for i, el in enumerate(iterable):
                         self.vars[varname] = Var(varname, el)
                         iterable[i] = self.interpret(function)
                     return iterable
-                        
-                        
-                        
-                    
+
                 # inserts a value into the iterable at the specified index
                 elif func == 'insert':
                     return self.parse(0, line, f, sp, args)[2].insert(self.parse(1, line, f, sp, args)[2], self.parse(2, line, f, sp, args)[2])
@@ -4561,7 +4700,7 @@ class Interpreter:
                         if not path.endswith('.msn2'):
                             path += '.msn2'
                         if path in self.imports:
-                            continue                        
+                            continue
                         self.imports.add(path)
                         contents = ''
                         with open(path) as f:
@@ -4572,7 +4711,7 @@ class Interpreter:
                             self.logg("importing library", str(args[0][0]))
                             self.execute(script)
                     return
-                
+
                 # imports values from an enclosing Python script
                 elif func == 'in':
                     reserved_name = '_msn2_reserved_in__'
@@ -4591,22 +4730,22 @@ class Interpreter:
                         end = self.parse(1, line, f, sp, args)[2]
                         return inval[start:end]
                     return inval
-                    
+
                 # exports values to an enclosing Python script
                 elif func == 'out':
-                        
+
                     # variables to output
                     outting = []
-                
+
                     # for each argument
                     for i in range(len(args)):
-                        outting.append(self.parse(i, line, f, sp, args)[2])        
-                        
+                        outting.append(self.parse(i, line, f, sp, args)[2])
+
                     _out = '_msn2_reserved_out__'
                     # create a variable for the enclosing Python script
                     # to access
                     self.vars[_out] = Var(_out, outting)
-                    
+
                     # return outting
                     return outting
 
@@ -4702,15 +4841,14 @@ class Interpreter:
                         print(strenv)
                     return strenv
 
-
                 # arithmetic, equivalent to the op class
 
                 # executes MSNScript2 from its string representation
-                
+
                 elif func == '-':
                     if len(args) == 1:
                         return self.interpret(self.parse(0, line, f, sp, args)[2])
-                    
+
                     # subtracts all arguments from the first argument
                     else:
                         ret = self.parse(0, line, f, sp, args)[2]
@@ -4816,6 +4954,18 @@ class Interpreter:
                 # reverses the first argument
                 elif func == 'reverse':
                     return self.parse(0, line, f, sp, args)[2][::-1]
+                
+                # performs upper()
+                elif func == 'upper':
+                    return self.parse(0, line, f, sp, args)[2].upper()
+                
+                # performs lower()
+                elif func == 'lower':
+                    return self.parse(0, line, f, sp, args)[2].lower()
+                
+                # performs title()
+                elif func == 'title':
+                    return self.parse(0, line, f, sp, args)[2].title()
 
                 # inherits methods only from the parent context
                 elif func == 'inherit:methods':
@@ -4828,7 +4978,7 @@ class Interpreter:
                     for varname in self.parent.vars:
                         self.vars[varname] = self.parent.vars[varname]
                     return True
-                
+
                 # inherits a single variable or function
                 elif func == 'inherit:single':
                     name = self.parse(0, line, f, sp, args)[2]
@@ -4871,16 +5021,16 @@ class Interpreter:
                         print('[-] posix not supported yet')
                         return None
                     return None
-                
+
                 # starts a process via MSN2 code
                 elif func == 'proc':
-                    
+
                     # name of the process
                     name = self.parse(0, line, f, sp, args)[2]
-                    
+
                     # block for the process
                     block = args[1][0]
-                                        
+
                     # import the processes library and
                     # create a new process
                     return self.interpret(f"(import('lib/processes'),fork('{name}', async({block})))")
@@ -4892,7 +5042,7 @@ class Interpreter:
                 # creates a new thread to execute the block, thread
                 # starts on the same interpreter
                 elif func == "thread":
-                    
+
                     # name not provided
                     if len(args) == 1:
                         global thread_serial
@@ -4908,7 +5058,7 @@ class Interpreter:
                     self.threads[name] = [thread, self]
                     thread.start()
                     return True
-                
+
                 # creates a thread pool to execute the block
                 elif func == "threadpool":
                     # get the amount of threads to create
@@ -4920,67 +5070,66 @@ class Interpreter:
                     # submit the block to the pool
                     pool.submit(self.interpret, block)
                     return True
-                
-                
+
                 # creates or edits thread variable
                 elif func == 'tvar':
-                    
+
                     # thread name
                     name = str(self.parse(0, line, f, sp, args)[2])
-                    
+
                     # variable name
                     varname = str(self.parse(1, line, f, sp, args)[2])
-                    
+
                     # variable value
                     val = self.parse(2, line, f, sp, args)[2]
-                    
+
                     # thread var name
                     tvarname = f"_msn2_tvar_{name}_{varname}"
-                    
+
                     # sets a thread specific variable
                     self.vars[tvarname] = Var(varname, val)
                     return val
-                    
+
                 # gets a thread variable
                 elif func == 'gettvar':
-                    
+
                     # thread name
                     name = str(self.parse(0, line, f, sp, args)[2])
-                    
+
                     # variable name
                     varname = str(self.parse(1, line, f, sp, args)[2])
-                    
+
                     # thread var name
                     tvarname = f"_msn2_tvar_{name}_{varname}"
-                    
+
                     # gets the variable
                     return self.vars[tvarname].value
-                
+
                 # creates a string variable name for functions
                 # that require a string variable name
                 elif func == 'tvarstr':
-                        
+
                     # thread name
                     name = str(self.parse(0, line, f, sp, args)[2])
-                    
+
                     # variable name
                     varname = str(self.parse(1, line, f, sp, args)[2])
-                    
+
                     # returns the string
                     return f"_msn2_tvar_{name}_{varname}"
-                
+
                 # interprets a variable by variable name
                 # a and a variable method
                 elif func == 'varmethod':
-                    
+
                     # variable name
                     varname = str(self.parse(0, line, f, sp, args)[2])
-                    
+
                     # method block
                     block = args[1][0]
-                    
+
                     return self.interpret(f"{varname}.{block}")
-                    
+
                 # acquires the global lock
                 elif func == 'acquire':
                     return auxlock.acquire()
@@ -4988,7 +5137,7 @@ class Interpreter:
                 # releases the global lock
                 elif func == 'release':
                     return auxlock.release()
-                
+
                 # acquires the pointer lock
                 elif func == 'acquire:pointer':
                     return pointer_lock.acquire()
@@ -5044,7 +5193,7 @@ class Interpreter:
                             self.interpret(args[1][0])
                             time.sleep(s)
                     return ret
-                
+
                 # performs a an action every certain amount of seconds
                 # where the amount of seconds is the first argument
                 # the block is the second argument
@@ -5052,43 +5201,41 @@ class Interpreter:
                 # the interval should last for, if not provided, the interval
                 # will last forever
                 if func == 'interval':
-                    
+
                     # amount of seconds
                     seconds = self.parse(0, line, f, sp, args)[2]
-                    
+
                     # block to execute
                     block = args[1][0]
-                    
-                    
+
                     # if the interval should last for a certain amount of seconds
                     # should account for the first argument to correctly wait
                     if len(args) == 3:
-                        
-                        extra = self.parse(2, line, f, sp, args)[2] 
-                        
+
+                        extra = self.parse(2, line, f, sp, args)[2]
+
                         # if time is negative, we set it to infinity
                         if extra == -1:
                             extra = float('inf')
-                        
+
                         end = time.time() + extra
                         while time.time() < end:
                             time.sleep(seconds)
                             self.interpret(block)
-                            
+
                     else:
                         while True:
                             time.sleep(seconds)
                             self.interpret(block)
-                    
 
                 # exports a quantity of variables or methods from the working context to the parent context,
                 # ex private context -> boot context
                 elif func == 'export':
-                    
-                    # if last argument is True, 
+
+                    # if last argument is True,
                     # we add the variables to the parent context's variable
                     last_arg = self.parse(len(args) - 1, line, f, sp, args)[2]
-                    
+
                     for i in range(len(args)):
                         varname = self.parse(i, line, f, sp, args)[2]
                         if varname in self.vars:
@@ -5099,8 +5246,9 @@ class Interpreter:
                                 # otherwise add every element to the parent context's variable
                                 elif isinstance(self.vars[varname].value, list):
                                     for element in self.vars[varname].value:
-                                        self.parent.vars[varname].value.append(element)
-                            else: 
+                                        self.parent.vars[varname].value.append(
+                                            element)
+                            else:
                                 self.parent.vars[varname] = self.vars[varname]
                         elif varname in self.methods:
                             self.parent.methods[varname] = self.methods[varname]
@@ -5145,7 +5293,8 @@ class Interpreter:
                     import subprocess
                     # returns the console output
                     # of the last argument
-                    process = subprocess.run(self.parse(0, line, f, sp, args)[2], shell=True, capture_output=True, text=True)
+                    process = subprocess.run(self.parse(0, line, f, sp, args)[
+                                             2], shell=True, capture_output=True, text=True)
                     if process.returncode == 0:
                         return process.stdout
                     else:
@@ -5225,7 +5374,7 @@ class Interpreter:
 
                         # json to initialize at the endpoint
                         init_data = self.parse(1, line, f, sp, args)[2]
-                        
+
                         last_arg = init_data
 
                     # 3 arguments, defaults to host:port/path = init_data
@@ -5242,7 +5391,7 @@ class Interpreter:
 
                         # json to initialize at the endpoint
                         init_data = self.parse(3, line, f, sp, args)[2]
-                        
+
                         last_arg = init_data
                         if len(args) == 5:
                             last_arg = self.parse(4, line, f, sp, args)[2]
@@ -5259,14 +5408,13 @@ class Interpreter:
                         cors = True
                         CORS(app)
 
-
                     # disable flask messages that aren't error-related
                     log = logging.getLogger('werkzeug')
                     log.disabled = True
                     app.logger.disabled = True
 
                     # gets Flask Api
-                    api = Api(app)     
+                    api = Api(app)
                     curr_endpoint = self.EndPoint.make_api(init_data)
 
                     # logs newly created endpoint
@@ -5416,7 +5564,8 @@ class Interpreter:
                             if var_obj[name].value.name == 'const':
                                 # run the function with the argument being
                                 # this instance
-                                var_obj[name].value.run([instance], self, actual_args=args[1:])
+                                var_obj[name].value.run(
+                                    [instance], self, actual_args=args[1:])
                             continue
 
                         # if attribute is a variable
@@ -5479,9 +5628,9 @@ class Interpreter:
                 # one argument: path to application
                 # any more arguments: the existing application doesn't close
                 elif func == 'app':
-                                        
+
                     # get the path to the application
-                    path = self.parse(0, line, f, sp, args)[2]            
+                    path = self.parse(0, line, f, sp, args)[2]
 
                     # if there is not second argument, we do not kill any
                     # existing instances of the application
@@ -5492,25 +5641,27 @@ class Interpreter:
                         _sp = path.split('\\')
                         name = _sp[-1].split('.')[0]
                         extension = _sp[-1].split('.')[1]
-                        
+
                         # use taskkill to kill the application
                         # taskkill should end the program by name, and should kill
                         # all child processes forcefully, it should also not print
-                        # anything to the console                    
-                        os.system(f'taskkill /f /im {name}.{extension} >nul 2>&1')
-                    
+                        # anything to the console
+                        os.system(
+                            f'taskkill /f /im {name}.{extension} >nul 2>&1')
+
                     # creates an App variable
                     return self.App(path=path, name=name, extension=extension)
-            
-                # connects to the first argument given that 
+
+                # connects to the first argument given that
                 # the first argument is an instance of self.App
                 elif func == 'connect':
                     # connecting to
                     appl = self.parse(0, line, f, sp, args)[2]
-                    a = Application(backend="uia").connect(process=appl.application.process)
+                    a = Application(backend="uia").connect(
+                        process=appl.application.process)
                     # connect to the application
                     return self.App(path=appl.path)
-                
+
                 # starts and retrieves an instance of an Excel workbook
                 # using the openpyxl library
                 #
@@ -5524,7 +5675,6 @@ class Interpreter:
 
                     # creates and returns a Workbook
                     return self.Workbook(openpyxl.load_workbook(path), path)
-
 
                 # quicker conditional operator as functional prefix
                 elif len(func) > 0 and func[0] == '?':
@@ -5540,21 +5690,21 @@ class Interpreter:
                         except:
                             None
                     return ret
-                
+
                 # executes C code and retrieves the environment
                 elif func == 'C':
-                    
+
                     # get the C code
                     c_code = self.msn2_replace(args[0][0])
 
                     # create a directory for the C code
                     # if it does not exist
                     exec_folder_path = '_exec'
-                    
+
                     # if the folder does not exist, create it
                     if not os.path.exists(exec_folder_path):
                         os.mkdir(exec_folder_path)
-                    
+
                     # create a file for the C code
                     # and write the C code to it
 
@@ -5565,11 +5715,11 @@ class Interpreter:
                     with open(file_name, 'w') as f:
                         f.write(c_code)
 
-                    
                     # creates a new process
                     # and executes the C code
                     # returns the environment
                     # including the out and variables
+
                     def retrieve_c_environment(c_code):
                         import subprocess
 
@@ -5580,12 +5730,12 @@ class Interpreter:
                         # and execute the C code
                         compiled_code = subprocess.run(
                             ['gcc', file_name, '-o', executable],
-                            
+
                             # capture the output
                             capture_output=True,
                             text=True
                         )
-                        
+
                         # if there's an error, print it
                         if len(compiled_code.stderr) > 0:
                             return {'out': '', 'err': compiled_code.stderr}
@@ -5601,7 +5751,7 @@ class Interpreter:
                         # get the output and error
                         out = compiled_code.stdout
                         err = compiled_code.stderr
-                        
+
                         # get the environment
                         # env = out.split('\n')[-2]
                         # env = env.replace('\'', '"')
@@ -5610,23 +5760,23 @@ class Interpreter:
 
                     # execute the C code
                     return retrieve_c_environment(c_code)
-                
+
                 # executes JavaScript code and retrieves the environment
                 # no compilation is needed, the code is executed via
                 # node __filename__.js
                 elif func == 'JS':
-                    
+
                     # get the JavaScript code
                     js_code = self.msn2_replace(args[0][0])
 
                     # create a directory for the JavaScript code
                     # if it does not exist
                     exec_folder_path = '_exec'
-                    
+
                     # if the folder does not exist, create it
                     if not os.path.exists(exec_folder_path):
                         os.mkdir(exec_folder_path)
-                    
+
                     # create a file for the JavaScript code
                     # and write the JavaScript code to it
 
@@ -5634,31 +5784,31 @@ class Interpreter:
                     # and use that as the file name
                     file_num = len(os.listdir(exec_folder_path))
                     file_name = f'{exec_folder_path}/js{file_num}.js'
-                    
+
                     # if JS() has two arguments, the second is the name of
                     # the file, excluding .js
                     if len(args) == 2:
                         file_name = f'{exec_folder_path}/{self.parse(1, line, f, sp, args)[2]}.js'
-                    
+
                     with open(file_name, 'w') as f:
                         f.write(js_code)
 
-                    
                     # creates a new process
                     # and executes the JavaScript code
                     # returns the environment
                     # including the out and variables
+
                     def retrieve_js_environment(js_code):
                         import subprocess
 
                         # executable
                         executable = file_name
-        
+
                         # create a new process
                         # and execute the JavaScript code
                         compiled_code = subprocess.run(
                             ['node', file_name],
-                            
+
                             # capture the output
                             capture_output=True,
                             text=True
@@ -5673,35 +5823,35 @@ class Interpreter:
                         # if there is an error, print it
                         if len(err) > 0:
                             print(err)
-                        
+
                         # get the environment
                         # env = out.split('\n')[-2]
                         # env = env.replace('\'', '"')
                         # env = json.loads(env)
-                        
+
                         # remove a succeeding newline
                         # if it exists
                         if len(out) > 0 and out[-1] == '\n':
                             out = out[:-1]
-                        
+
                         return {'out': out, 'err': err}
 
                     # execute the JavaScript code
                     return retrieve_js_environment(js_code)
-                
+
                 # compiles and executes Java code and retrieves the environment
                 elif func == 'JAVA':
-                    
+
                     java_code = self.msn2_replace(args[0][0])
-                    
+
                     # create a directory for the Java code
                     # if it does not exist
                     exec_folder_path = '_exec'
-                    
+
                     # if the folder does not exist, create it
                     if not os.path.exists(exec_folder_path):
                         os.mkdir(exec_folder_path)
-                        
+
                     # create a file for the Java code
                     # and write the Java code to it
 
@@ -5718,11 +5868,11 @@ class Interpreter:
                     with open(file_name, 'w') as f:
                         f.write(java_code)
 
-                        
                     # creates a new process
                     # and executes the Java code
                     # returns the environment
                     # including the out and variables
+
                     def retrieve_java_environment(java_code):
                         import subprocess
 
@@ -5730,17 +5880,17 @@ class Interpreter:
                         # and execute the Java code
                         compiled_code = subprocess.run(
                             ['javac', file_name],
-                            
+
                             # capture the output
                             capture_output=True,
                             text=True,
                             shell=True
                         )
-                        
+
                         # run the code
                         compiled_code = subprocess.run(
                             ['java', '-cp', exec_folder_path, f'{file_name}'],
-                            
+
                             # capture the output
                             capture_output=True,
                             text=True,
@@ -5756,25 +5906,22 @@ class Interpreter:
                         # if there is an error, print it
                         if len(err) > 0:
                             print(err)
-                        
+
                         # get the environment
                         # env = out.split('\n')[-2]
                         # env = env.replace('\'', '"')
                         # env = json.loads(env)
-                        
+
                         # remove a succeeding newline
                         # if it exists
                         if len(out) > 0 and out[-1] == '\n':
                             out = out[:-1]
-                        
+
                         return {'out': out, 'err': err}
-                    
+
                     # execute the Java code
                     return retrieve_java_environment(java_code)
-                    
-                    
-                    
-                
+
                 # inline function, takes any amount of instructions
                 # returns the result of the last instruction
                 elif func == "=>" or (func == '' and objfunc == ''):
@@ -5787,7 +5934,7 @@ class Interpreter:
 
                         line, ret = self.convert_arg(ins_s, line, f, sp, args)
                     return ret
-                
+
                 # if the function, when parsed, is an integer,
                 # then it is a loop that runs func times
                 elif (_i := get_int(func)) != None:
@@ -5795,7 +5942,8 @@ class Interpreter:
                     for _ in range(_i):
                         for arguments in args:
                             ins_s = arguments[0]
-                            line, ret = self.convert_arg(ins_s, line, f, sp, args)
+                            line, ret = self.convert_arg(
+                                ins_s, line, f, sp, args)
                     return ret
 
                 # # if the function is a variable name
@@ -5810,71 +5958,80 @@ class Interpreter:
                         for _ in range(val):
                             for arguments in args:
                                 ins_s = arguments[0]
-                                line, ret = self.convert_arg(ins_s, line, f, sp, args)
+                                line, ret = self.convert_arg(
+                                    ins_s, line, f, sp, args)
                         return ret
-                    
-                    
+
                     # otherwise return the value
                     return val
-                
+
                 # mouse pointer operations
                 elif obj.startswith('pointer'):
-                    
+
                     # thread based action?
                     p_thread = False
-                    
+
                     # return
                     ret = '<msnint2 class>'
-                    
+
                     # determine if thread based pointer action has been requested
                     if obj.endswith(':lock'):
                         p_thread = True
                         pointer_lock.acquire()
-                    
+
                     # gets the current position of the mouse
                     if objfunc == 'getpos' or objfunc == 'pos' or objfunc == 'position':
                         ret = win32api.GetCursorPos()
-                    
+
                     # moves the mouse to an x, y position
                     elif objfunc == 'move' or objfunc == 'hover':
-                        ret = mouse.move(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
+                        ret = mouse.move(coords=(self.parse(0, line, f, sp, args)[
+                                         2], self.parse(1, line, f, sp, args)[2]))
                     # right clicks the mouse
                     elif objfunc == 'click' or objfunc == 'left_click':
                         # if args are provided
                         if len(args) == 2:
-                            ret = mouse.click(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
+                            ret = mouse.click(coords=(self.parse(0, line, f, sp, args)[
+                                              2], self.parse(1, line, f, sp, args)[2]))
                         # if no args are provided
                         else:
                             ret = mouse.click(coords=win32api.GetCursorPos())
-                            
+
                     # right clicks the mouse
                     elif objfunc == 'right_click':
                         # if args are provided
                         if len(args) == 2:
-                            ret = mouse.right_click(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
+                            ret = mouse.right_click(coords=(self.parse(0, line, f, sp, args)[
+                                                    2], self.parse(1, line, f, sp, args)[2]))
                         # if no args are provided
                         else:
-                            ret = mouse.right_click(coords=win32api.GetCursorPos())
+                            ret = mouse.right_click(
+                                coords=win32api.GetCursorPos())
                     # double clicks the mouse
                     elif objfunc == 'double_click':
                         # if args are provided
                         if len(args) == 2:
-                            ret = mouse.double_click(coords=(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2]))
+                            ret = mouse.double_click(coords=(self.parse(0, line, f, sp, args)[
+                                                     2], self.parse(1, line, f, sp, args)[2]))
                         # if no args are provided
                         else:
-                            ret = mouse.double_click(coords=win32api.GetCursorPos())
+                            ret = mouse.double_click(
+                                coords=win32api.GetCursorPos())
                     # scrolls the mouse wheel to the bottom of the page
                     elif objfunc == 'scroll_bottom':
-                        ret = mouse.scroll(wheel_dist=9999999, coords=win32api.GetCursorPos())
+                        ret = mouse.scroll(
+                            wheel_dist=9999999, coords=win32api.GetCursorPos())
                     # scrolls the mouse wheel to the top of the page
                     elif objfunc == 'scroll_top':
-                        ret = mouse.scroll(wheel_dist=-9999999, coords=win32api.GetCursorPos())
+                        ret = mouse.scroll(
+                            wheel_dist=-9999999, coords=win32api.GetCursorPos())
                     elif objfunc == 'scroll':
-                        ret = mouse.scroll(wheel_dist=self.parse(0, line, f, sp, args)[2], coords=win32api.GetCursorPos())
-                        
+                        ret = mouse.scroll(wheel_dist=self.parse(0, line, f, sp, args)[
+                                           2], coords=win32api.GetCursorPos())
+
                     # determines if the left mouse button is down
                     elif objfunc == 'left_down':
-                        ret = win32api.GetKeyState(0x01) < 0   
+                        ret = win32api.GetKeyState(0x01) < 0
                     # determines if the right mouse button is down
                     elif objfunc == 'right_down':
                         ret = win32api.GetKeyState(0x02) < 0
@@ -5911,35 +6068,39 @@ class Interpreter:
                             if win32api.GetKeyState(0x02) >= 0:
                                 break
                         ret = True
-                        
+
                     # DIRECTIONAL MOVEMENTS
                     # moves the mouse down from its current location
                     elif objfunc == 'down':
                         curr_x, curr_y = win32api.GetCursorPos()
-                        ret = mouse.move(coords=(curr_x, curr_y + self.parse(0, line, f, sp, args)[2]))
+                        ret = mouse.move(
+                            coords=(curr_x, curr_y + self.parse(0, line, f, sp, args)[2]))
                     # moves the mouse up from its current location
                     elif objfunc == 'up':
                         curr_x, curr_y = win32api.GetCursorPos()
-                        ret = mouse.move(coords=(curr_x, curr_y - self.parse(0, line, f, sp, args)[2]))
+                        ret = mouse.move(
+                            coords=(curr_x, curr_y - self.parse(0, line, f, sp, args)[2]))
                     # moves the mouse left from its current location
                     elif objfunc == 'left':
                         curr_x, curr_y = win32api.GetCursorPos()
-                        ret = mouse.move(coords=(curr_x - self.parse(0, line, f, sp, args)[2], curr_y))
+                        ret = mouse.move(
+                            coords=(curr_x - self.parse(0, line, f, sp, args)[2], curr_y))
                     # moves the mouse right from its current location
                     elif objfunc == 'right':
                         curr_x, curr_y = win32api.GetCursorPos()
-                        ret = mouse.move(coords=(curr_x + self.parse(0, line, f, sp, args)[2], curr_y))
-                    
+                        ret = mouse.move(
+                            coords=(curr_x + self.parse(0, line, f, sp, args)[2], curr_y))
+
                     # drags the mouse
                     # takes 4 or 5 arguments
                     # the first two are the starting coordinates
                     # the second two are the ending coordinates
                     # 5th argument is speed from 0-100
                     elif objfunc == 'drag':
-                        start = (self.parse(0, line, f, sp, args)[2], 
-                                    self.parse(1, line, f, sp, args)[2])
-                        end = (self.parse(2, line, f, sp, args)[2], 
-                                     self.parse(3, line, f, sp, args)[2])
+                        start = (self.parse(0, line, f, sp, args)[2],
+                                 self.parse(1, line, f, sp, args)[2])
+                        end = (self.parse(2, line, f, sp, args)[2],
+                               self.parse(3, line, f, sp, args)[2])
                         # presses the mouse down at the coordinates
                         mouse.press(coords=start)
 
@@ -5948,37 +6109,37 @@ class Interpreter:
                         # and not dragging the object
                         # the farther the distance, the longer it takes
                         # to move the mouse
-                        
+
                         speed = 50
                         if len(args) == 5:
                             speed = self.parse(4, line, f, sp, args)[2]
-                        
+
                         # reverse the speed, so a speed of 50 gives
                         # end_range of 50, and a speed of 75 gives
                         # end_range of 25
                         end_range = 100 - speed
                         for i in range(0, end_range):
-                            mouse.move(coords=(int(start[0] + (end[0] - start[0]) / 100 * i), 
-                                                int(start[1] + (end[1] - start[1]) / 100 * i)))
+                            mouse.move(coords=(int(start[0] + (end[0] - start[0]) / 100 * i),
+                                               int(start[1] + (end[1] - start[1]) / 100 * i)))
                             time.sleep(0.001)
 
                         # releases the mouse at the end coordinates
                         mouse.release(coords=end)
                         ret = True
-                        
+
                     # release the lock
                     if p_thread:
                         pointer_lock.release()
                     return ret
-                
+
                 # clipboard operations
                 # if no arguments, the clipboard
                 # is returned
-                # 
+                #
                 # if one argument, the text is copied
                 # uses pyperclip
                 elif func == 'clipboard':
-                    
+
                     # if no arguments
                     if args[0][0] == '':
                         return pyperclip.paste()
@@ -6033,7 +6194,7 @@ class Interpreter:
                 objfunc += c
             else:
                 func += c
-                
+
         # try a variable
         if line in self.vars:
             return self.vars[line].value
@@ -6053,6 +6214,7 @@ class Interpreter:
             except:
                 return None
     # adds a new program wide syntax
+
     def add_syntax(self, token, between, function):
         syntax[token] = [between, function]
         return [token, between, function]
@@ -6061,7 +6223,7 @@ class Interpreter:
     # characters or values
     # TODO: implement linear interpretation
     def msn2_replace(self, script):
-                            
+
         # replace hashtag marker with a hashtag
         script = script.replace('<tag>', '#')
         script = script.replace('<nl>', '\n')
@@ -6069,34 +6231,32 @@ class Interpreter:
         script = script.replace('<lp>', '(')
         script = script.replace('(,)', ',')
         script = script.replace('<or>', '||')
-                    
+
         tag = '<msn2element>'
         endtag = '</msn2element>'
         # replaces whats in between the tags
         # with the interpretation of whats between the tags
         #
-        # interpretation  is with self.interpret(script) 
+        # interpretation  is with self.interpret(script)
         #
-        #script(
+        # script(
         #     <msn2element>'hello1'</msn2element>
 
-            
-
         #     <msn2element>
-        #         cat('hello', 
+        #         cat('hello',
         #             <msn2element>'hi there'</msn2element>
         #         )
         #     </msn2element>
         # )
         #
         # correct output of script() = hello1hellohi there
-        
+
         # interpret the tags similar to the way
         # parantheticals are interpreted
         # this is a recursive function
         # open paren = tag
         # close paren = endtag
-        
+
         def recurse_tags(scr, force_string=False):
             # get the first tag
             # if there is no tag, return the script
@@ -6123,24 +6283,24 @@ class Interpreter:
             inner_code = recurse_tags(inner_code)
            # scr = recurse_tags(inner_code)
             interpreted_code = self.interpret(inner_code)
-            
+
             if force_string:
                 interpreted_code = f'"{interpreted_code}"'
-            
+
             try:
                 # replace the tags with the interpreted code
                 new_scr = scr[:first] + interpreted_code + scr[i+len(endtag):]
             except:
                 # interpreted code is a string
-                new_scr = scr[:first] + str(interpreted_code) + scr[i+len(endtag):]
-            
-            
+                new_scr = scr[:first] + \
+                    str(interpreted_code) + scr[i+len(endtag):]
+
             # recursively continue replacing tags in the remaining script
             return recurse_tags(new_scr)
-        
+
         # applying <msn2element> tags
         with_msn2elements = recurse_tags(script)
-        
+
         # switch tags
         tag = '<msn2>'
         endtag = '</msn2>'
@@ -6148,14 +6308,13 @@ class Interpreter:
         # applying <msn2> tags
         # for string based needs
         with_msn2 = recurse_tags(with_msn2elements, force_string=True)
-        
+
         # applying '{=' '=}' tags
         # does the same thing as <msn2element> tags
-        
+
         tag = '{='
         endtag = '=}'
         with_msn2 = recurse_tags(with_msn2)
-
 
         return with_msn2
 
@@ -6686,17 +6845,17 @@ class Interpreter:
                 try:
                     inter.vars[func_var] = Var(func_var, func_insert)
                 except:
-                    inter.vars[func_var] = func_insert 
+                    inter.vars[func_var] = func_insert
             for i in range(len(self.args)):
                 if actual_args:
                     try:
                         if self.is_str(actual_args[i][0]):
                             try_var(self.args[i], args[i])
-                            continue 
-                        
-                    # index out of bounds     
+                            continue
+
+                    # index out of bounds
                     except IndexError:
-                        pass  
+                        pass
                 try:
                     inter.vars[self.args[i]] = inter.vars[args[i]]
                 except:
@@ -6705,7 +6864,7 @@ class Interpreter:
             for line in self.body:
                 method_ret = inter.interpret(line)
             return method_ret
-                
+
         def is_str(self, value):
             return (value[0] == '"' and value[-1] == '"') or (value[0] == "'" and value[-1] == "'")
 
@@ -6746,7 +6905,7 @@ class Interpreter:
 
             # path of application being launched
             self.path = path
-            
+
             if name:
                 self.name = name
                 self.extension = extension
@@ -6755,7 +6914,7 @@ class Interpreter:
                 # extension of the application
                 self.extension = _spl[-1]
                 self.name = _spl[0]
-            
+
             # pwinauto application object
             self.application = application
 
@@ -6771,7 +6930,7 @@ class Interpreter:
             # self.window = window
             # set the name
             self.name = name
-            
+
         # gets the text of the window
         def window_text(self):
             return self.name
@@ -6783,15 +6942,15 @@ class Interpreter:
         # sets the focus to the window
         def set_focus(self):
             self.window.set_focus()
-            
+
         # gets the properties of the window
         def get_properties(self):
             return self.window.get_properties()
-        
+
         # gets the highest level parent of this element
         def top_level_parent(self):
             return self.window.top_level_parent()
-        
+
         # computes the height of the window
         def height(self):
             try:
@@ -6799,19 +6958,21 @@ class Interpreter:
             except:
                 return
         # computes the width of the window
+
         def width(self):
             try:
                 return self.window.get_properties()['rectangle'].right - self.window.get_properties()['rectangle'].left
             except:
                 return
         # string
+
         def __str__(self):
             return Interpreter.bordered(f'Text: {self.name if self.name else "[No Text Found]"}\nSize:\
 {f"{self.width()}x{self.height()}"}\nObject:\n{self.window}')
-    
+
     # class for a button
     class Button(AppElement):
-            
+
         # constructor
         def __init__(self, window, name):
 
@@ -6821,47 +6982,47 @@ class Interpreter:
         # clicks the button
         def click(self):
             self.window.click()
-            
+
         # right clicks the button
         def right_click(self):
             self.window.click_input(button='right')
-    
+
     # class for a Link
     class Link(AppElement):
-                    
+
         # constructor
         def __init__(self, window, name):
 
             # call super constructor
             super().__init__(window, name)
-            
+
     # class for a Menu
     class Menu(AppElement):
-                
+
         # constructor
         def __init__(self, window, name):
 
             # call super constructor
             super().__init__(window, name)
-    
 
     # class for a ToolBar
+
     class ToolBar(AppElement):
-                    
+
         # constructor
         def __init__(self, window, name):
 
             # call super constructor
             super().__init__(window, name)
-            
+
     # class for a scrollbar
     class ScrollBar(AppElement):
-                        
+
         # constructor
         def __init__(self, window, name):
 
             # call super constructor
-            super().__init__(window, name)  
+            super().__init__(window, name)
 
     # class for TabItems
     class TabItem(AppElement):
@@ -6869,8 +7030,8 @@ class Interpreter:
         def __init__(self, window, name):
 
             # call super constructor
-            super().__init__(window, name)  
-            
+            super().__init__(window, name)
+
     # class for Hyperlink
     class Hyperlink(AppElement):
         # constructor
@@ -6878,40 +7039,40 @@ class Interpreter:
 
             # call super constructor
             super().__init__(window, name)
-    
+
     # class for Inputs
     class Input(AppElement):
         # constructor
         def __init__(self, window, name):
 
             # call super constructor
-            super().__init__(window, name)  
-            
+            super().__init__(window, name)
+
         # types text into the input
         def type_keys(self, text):
             self.window.type_keys(text)
-            
+
     # class for Tables
     class Table(AppElement):
         # constructor
         def __init__(self, window, name):
 
             # call super constructor
-            super().__init__(window, name)  
-            
-            
+            super().__init__(window, name)
+
     # ------------------------------------
     # working with Excel
+
     class Workbook:
-        
+
         # constructor
         def __init__(self, workbook, path) -> None:
             self.workbook = workbook
             self.path = path
-            
+
     # sheet class
     class Sheet(Workbook):
-        
+
         def __init__(self, sheet, title, workbook, path) -> None:
             super().__init__(workbook, path)
             self.sheet = sheet

@@ -17,16 +17,31 @@ for i in range(1, len(sys.argv)):
     
     # obtain the filename
     filename = sys.argv[i]
+    breaking = False
     
     # quick file access
     if filename == 'test':
         filename = 'tests/misc.msn2'
+        
+    # discovering UI elements
     elif filename == 'elements':
         filename = 'tests/practical/auto/clicked.msn2'
-        
+    
+    # mounting MSN2 packages
+    elif filename == 'package':
+        filename = 'system/package_wizard.msn2'
+        breaking = True
+    
+    # running the console tutorial
+    elif filename == 'help':
+        filename = 'TUTORIAL/driver.msn2'
+    
     # if the file does not end in .msn2, add it
     if not filename.endswith('.msn2'):
         filename += '.msn2'
     
     # run the script
-    run(filename, None)
+    run(filename, sys.argv[i:len(sys.argv)])
+    
+    if breaking:
+        break

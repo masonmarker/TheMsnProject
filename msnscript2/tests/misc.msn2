@@ -1,16 +1,4 @@
 
 
 
-
-
-
-
-
-import ('lib/files')
-
-
-@ f = msn2file('test.txt')
-
-f.write('hello world')
-
-env(1)
+print('hello')

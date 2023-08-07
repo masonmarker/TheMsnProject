@@ -1,0 +1,93 @@
+# CONSOLE TUTORIAL FOR MSN2 PROGRAMMING.
+#
+# tutorial for package version 2.0.381
+#
+# author : Mason Marker
+# date : 8/5/2023
+
+# console printing styles
+import ('lib/console')
+
+# for clearing the console
+import ('lib/os')
+
+# displays a new page with the title
+function('new_page', (os:clear(), console:print(arr(object(
+    'text', '   MSN2 HELP   ',
+    'style', 'italic',
+    'back', 'blue'
+))), print()))
+
+# list of pages to go to
+function('list_page', console:print(arr(
+    object(
+        'text', +(' ', str(list_page:number), '   '),
+        'style', 'bold',
+        'fore', 'green'
+    ),
+    object(
+        'text', +(' ', list_page:title, ' '),
+        'style', 'italic',
+        'back', 'white'
+    )
+)), 'list_page:number', 'list_page:title')
+
+# lists the navigation menu
+function('nav_menu', (
+    2(print()),
+    console:print(arr(object(
+        'text', '   Menu   ',
+        'style', 'italic',
+        'back', 'green'
+    ))),
+    print(),
+
+    # main options
+    list_page(0, 'Home'),
+    list_page(1, 'Getting Started'),
+
+    # quit option
+    list_page('q', 'Quit'),
+
+    # reset text colors
+    console:print(arr(object(
+        'text', ' ',
+        'fore', 'white'
+    ))),
+    # asks the user for a page to navigate to
+    -(pages.get(input('navigation: ')))
+))
+
+# generates a page in the console
+function('page', ret('page', script((
+    new_page(),
+    -({=page:script=}),
+    nav_menu()
+))), 'page:script')
+
+
+# tutorial pages
+@ pages = object(
+
+    # home page
+    '0', page(script(
+        console:print(
+            arr(object(
+                'text', 'MSN2 Help Home',
+                'style', 'bold'
+            ))
+        )
+    )),
+    '1', page(script(
+        console:print(
+            arr(object(
+                'text', 'Getting Started',
+                'style', 'bold'
+            ))
+        )
+    )),
+    'q', script(stop())
+)
+
+# go to the home page
+-(pages.get(next(iter(pages))))
