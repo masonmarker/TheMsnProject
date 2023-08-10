@@ -1,6 +1,6 @@
 # Interpreters MSNScript2
 #
-# Package version 2.0.381
+# Package version 2.0.382
 #
 # See documentation for more information,
 # documentation could lack functions or
@@ -259,25 +259,33 @@ class Interpreter:
 
         # whether or not to keep
         keep_space = False
+        keep_space_block = ''
         for line in filter(None, script.split("\n")):
             self.lines.append(line)
+            
+            # for running Python
             if not keep_space and line.endswith('\\\\'):
                 keep_space = True
                 line = line[:-2]
+                keep_space_block = line
             elif keep_space and line.endswith('\\\\'):
                 keep_space = False
                 line = line[:-2]
+                keep_space_block += line
+                post_script = self.interpret(f"script({keep_space_block})")
+                print (post_script)
+                exec(post_script)
             elif keep_space:
-                print('here:', line)
+                keep_space_block += line + '\n'
+                self.current_line += 1
+                continue
             else:
                 line = line.strip()
             if line.startswith("::") or line.startswith("#") or  \
                     keep_space:
                 self.current_line += 1
                 continue
-
             else:
-
                 # aggregate syntax !{} (not recommended for most cases)
                 if line.startswith('!{') and line.endswith('}'):
                     multiline = line[2:-1]
@@ -3370,6 +3378,43 @@ class Interpreter:
                         new_method.add_arg(val)
                     self.methods[fname] = new_method
                     return fname
+                
+                # simpler way to create a function
+                elif func == 'def':
+                    
+                    # get the name of the new function
+                    name = self.parse(0, line, f, sp, args)[2]
+                    
+                    # get the body of the script at the last argument
+                    body = args[-1][0]
+                    
+                    # create the new function
+                    new_func = self.Method(name, self)
+                    
+                    # get the args for this function between the name and the body
+                    # parse all args between the name and the body
+                    for i in range(1, len(args) - 1):
+                        new_func.add_arg(self.parse(i, line, f, sp, args)[2])
+                    
+                    # add the body
+                    new_func.add_body(f"ret('{name}' ,{body})")
+                    
+                    # return buffer variable name 
+                    r_name = f"{name}__return__"
+
+                    # if the return buffer doesn't exist, create it
+                    if r_name not in self.vars:
+                        # create the return variable
+                        self.vars[r_name] = Var(r_name, None)
+                    
+                    # add the return variable
+                    new_func.add_return(r_name)
+
+                    # add the function to the methods
+                    self.methods[name] = new_func                    
+                    
+                    # return the name of the function
+                    return name
 
                 # performs modular arithmetic on the two arguments given
                 elif func == 'mod':
@@ -3393,7 +3438,7 @@ class Interpreter:
                     return value
 
                 # user method execution requested
-                elif func in self.methods.keys():
+                elif func in self.methods:
                     method = self.methods[func]
 
                     # create func args

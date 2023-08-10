@@ -35,6 +35,10 @@ for i in range(1, len(sys.argv)):
     # running the console tutorial
     elif filename == 'help':
         filename = 'TUTORIAL/driver.msn2'
+        
+    # verifying msn2 integrity
+    elif filename == 'verify':
+        filename = 'tests/validator.msn2'
     
     # if the file does not end in .msn2, add it
     if not filename.endswith('.msn2'):

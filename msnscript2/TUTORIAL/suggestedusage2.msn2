@@ -59,6 +59,25 @@ assert((
     a.inc()
 ))
 
+# as of 2.0.382, there is a new, simpler way to create functions
+# with def(name, ...args, body) -> function name
+
+# due to variable intertwining, we use a ':' in
+# the variable names to indicate variable spacing
+def('add', 'add:a', 'add:b', (
+    @ add:total = 0,
+
+    # add to total based on the type
+    
+    # if list, return sum
+    @ add:total += if (islist(add:a), sum(add:a), add:a),
+    @ add:total += if (islist(add:b), sum(add:b), add:b)
+))
+
+# testing the method
+assert(equals(add(5, 6)), 11)
+assert(equals(add(5, [1, 2]), 8))
+assert(equals(add([1, 2], [3, 4]), 10))
 
 # ----------------------- CLASSES -----------------------
 class('person', (
