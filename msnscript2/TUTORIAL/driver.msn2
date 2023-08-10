@@ -11,6 +11,9 @@ import ('lib/console')
 # for clearing the console
 import ('lib/os')
 
+# error key
+@ error_key = '____error'
+
 # displays a new page with the title
 function('new_page', (os:clear(), console:print(arr(object(
     'text', '   MSN2 HELP   ',
@@ -23,14 +26,23 @@ function('list_page', console:print(arr(
     object(
         'text', +(' ', str(list_page:number), '   '),
         'style', 'bold',
-        'fore', 'green'
+        'fore', 'green',
+        'back', if(current_page.equals(list_page:number), 'blue', 'black')
     ),
     object(
-        'text', +(' ', list_page:title, ' '),
+        'text', +(' ', option(list_page:title), ' '),
         'style', 'italic',
-        'back', 'white'
+        'back', 'black'
     )
 )), 'list_page:number', 'list_page:title')
+
+# menu option text padding
+@ menu_padding = 20
+
+# gets the correct text padding for a menu option
+function('option', ret('option', (
+    +(@option:name=option:text, x(' ', -(menu_padding, len(option:name))))
+)), 'option:text')
 
 # lists the navigation menu
 function('nav_menu', (
@@ -55,7 +67,8 @@ function('nav_menu', (
         'fore', 'white'
     ))),
     # asks the user for a page to navigate to
-    -(pages.get(input('navigation: ')))
+    try(@current_page=-(pages.get(input('navigate to: '))), 
+        -(pages.get(error_key)))
 ))
 
 # generates a page in the console
@@ -65,29 +78,25 @@ function('page', ret('page', script((
     nav_menu()
 ))), 'page:script')
 
+# import tutorial pages
+import ('TUTORIAL/_pages/home')
+import ('TUTORIAL/_pages/getting_started')
 
 # tutorial pages
 @ pages = object(
 
     # home page
-    '0', page(script(
-        console:print(
-            arr(object(
-                'text', 'MSN2 Help Home',
-                'style', 'bold'
-            ))
-        )
-    )),
-    '1', page(script(
-        console:print(
-            arr(object(
-                'text', 'Getting Started',
-                'style', 'bold'
-            ))
-        )
+    '0', page(page:home),
+    '1', page(page:getting_started),
+    error_key, page(script(
+        console:print(arr(object(
+            'text', ' ***  Page not found  *** ',
+            'style', 'bold',
+            'fore', 'red'
+        )))
     )),
     'q', script(stop())
 )
 
 # go to the home page
--(pages.get(next(iter(pages))))
+-(pages.get(@current_page = next(iter(pages))))

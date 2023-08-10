@@ -1,0 +1,15 @@
+# Tutorial getting started page.
+#
+# author : Mason Marker
+# date : 8/6/2023
+# version : 2.0.382
+
+# getting started page component
+@ page:getting_started = script(
+    console:print(
+        arr(object(
+            'text', 'Getting Started',
+            'style', 'bold'
+        ))
+    )
+)
