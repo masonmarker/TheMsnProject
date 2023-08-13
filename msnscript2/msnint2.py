@@ -77,7 +77,7 @@ from pywinauto import mouse, \
 import openpyxl
 import concurrent.futures
 
-# ChatGPT API
+# ChatGPT API (just in case)
 import openai
 
 # multiprogramming
@@ -132,10 +132,9 @@ class Var:
         if isinstance(other, Var):
             return other.name == self.name
 
+
 # creates an ai model
 # creates and returns a custom ai model
-
-
 def ai_response(model, prompt, creativity):
     return openai.Completion.create(
         model=model,
@@ -244,10 +243,6 @@ class Interpreter:
         self.processes = {}
         self.breaking_return = []
 
-        # global and local scopes for internal Python environment
-        self._globals = {}
-        self._locals = {}
-
     # executes stored script
     def execute(self, script):
 
@@ -265,90 +260,29 @@ class Interpreter:
         # whether or not to keep
         keep_space = False
         keep_space_block = ''
-        skipping = False
-
-        # determines if a line is a comment or not
-        def is_comment(_line):
-            return _line.startswith('#') or _line.startswith('::')
-
         for line in filter(None, script.split("\n")):
-            
-            # add to list of lines
             self.lines.append(line)
-
-            if is_comment(line):
-                continue
-
+            
             # for running Python
             if not keep_space and line.endswith('\\\\'):
-
-                # determine if this script should run
-                # based on the expression at the beginning of the line
+                keep_space = True
                 line = line[:-2]
-                line = line.strip()
-
-                # if there is a conditional Python execution
-                if line:
-
-                    # execute the conditional line
-                    # with import capabilities
-                    result = self.interpret(line)
-                    keep_space = True
-                    # if the conditional evaluated to True
-                    if result:
-
-                        # if the conditional line is true, then execute the Python
-                        skipping = False
-                        keep_space_block = ''
-
-                    # otherwise, skip the Python
-                    else:
-                        skipping = True
-                        keep_space_block = ''
-                else:
-                    skipping = False
-                    keep_space = True
-                    keep_space_block = ''
-
-            # if the Python block has been ended
+                keep_space_block = line
             elif keep_space and line.endswith('\\\\'):
-
-                # fix line
-                line = line[:-2]
-                line = line.strip()
-                # remove the trailing newline
-                # character
-                keep_space_block = keep_space_block[:-1]
-                
-                
-                # modify conditionals
                 keep_space = False
-
-                # if setting to a variable
-                if line:
-                    # set variable to python block
-                    self.vars[line] = Var(line, keep_space_block)
-                else:
-                    # execute Python
-                    self.exec_python(keep_space_block)
-
-                # reset python block and skipping flag
-                keep_space_block = ''
-                skipping = False
-
-            # skipping this Python block
-            # due to conditional
-            elif keep_space and skipping:
-                continue
-            
-            # if in a python block
+                line = line[:-2]
+                keep_space_block += line
+                post_script = self.interpret(f"script({keep_space_block})")
+                print (post_script)
+                exec(post_script)
             elif keep_space:
                 keep_space_block += line + '\n'
                 self.current_line += 1
                 continue
             else:
                 line = line.strip()
-            if is_comment(line):
+            if line.startswith("::") or line.startswith("#") or  \
+                    keep_space:
                 self.current_line += 1
                 continue
             else:
@@ -527,6 +461,35 @@ class Interpreter:
                     return eval(line, {}, {})
                 except:
                     return line
+
+        # # offers a way to repetively call methods on a variable.
+        # # generally unsafe, yet retained for specific cases
+        # if line.startswith('()'):
+        #     line = line[2:]
+
+        #     # split line by --> macro
+        #     line = line.split('-->')
+        #     ret = None
+        #     varname = ''
+
+        #     # iterate to the first '.', this will be the literal or variable name
+        #     for i in range(len(line[0])):
+        #         if line[0][i] != ' ':
+        #             if line[0][i] == '.':
+        #                 break
+        #             varname += line[0][i]
+
+        #     if varname in self.vars:
+        #         # interpret the first instruction
+        #         ret = self.interpret(line[0])
+
+        #         # interpret the rest of the instructions prefixed with the variable name and '.'
+        #         for i in range(1, len(line)):
+        #             ret = self.interpret(f"{varname}.{line[i]}")
+        #     else:
+        #         self.vars[varname]
+
+        #     return ret
 
         # user defined syntax
         for key in syntax:
@@ -3415,41 +3378,41 @@ class Interpreter:
                         new_method.add_arg(val)
                     self.methods[fname] = new_method
                     return fname
-
+                
                 # simpler way to create a function
                 elif func == 'def':
-
+                    
                     # get the name of the new function
                     name = self.parse(0, line, f, sp, args)[2]
-
+                    
                     # get the body of the script at the last argument
                     body = args[-1][0]
-
+                    
                     # create the new function
                     new_func = self.Method(name, self)
-
+                    
                     # get the args for this function between the name and the body
                     # parse all args between the name and the body
                     for i in range(1, len(args) - 1):
                         new_func.add_arg(self.parse(i, line, f, sp, args)[2])
-
+                    
                     # add the body
                     new_func.add_body(f"ret('{name}' ,{body})")
-
-                    # return buffer variable name
+                    
+                    # return buffer variable name 
                     r_name = f"{name}__return__"
 
                     # if the return buffer doesn't exist, create it
                     if r_name not in self.vars:
                         # create the return variable
                         self.vars[r_name] = Var(r_name, None)
-
+                    
                     # add the return variable
                     new_func.add_return(r_name)
 
                     # add the function to the methods
-                    self.methods[name] = new_func
-
+                    self.methods[name] = new_func                    
+                    
                     # return the name of the function
                     return name
 
@@ -3658,39 +3621,6 @@ class Interpreter:
                     if objfunc == 'len':
                         return total_ints
                     return '<msnint2 class>'
-
-                # referencing python variables
-                elif obj == 'py':
-
-                    # getting a variable from the current python environment
-                    if objfunc == 'get':
-                        return self._locals[self.parse(0, line, f, sp, args)[2]]
-
-                    # setting a variable in the current python environment
-                    elif objfunc == 'set':
-                        varname = self.parse(0, line, f, sp, args)[2]
-                        value = self.parse(1, line, f, sp, args)[2]
-                        self._locals[varname] = value
-                        return value
-
-                    # get the locals
-                    elif objfunc == 'locals':
-                        return self._locals
-
-                    # get the globals
-                    elif objfunc == 'globals':
-                        return self._globals
-
-                    # runs a stored python script
-                    elif objfunc == 'run':
-                        self.exec_python(py_script := self.parse(
-                            0, line, f, sp, args)[2])
-                        return py_script
-
-                    # return a local variable within the python
-                    # environment
-                    else:
-                        return self._locals[objfunc]
 
                 # casting
                 elif func == 'int':
@@ -4172,12 +4102,6 @@ class Interpreter:
                         del self.methods[varname]
 
                     return True
-
-                # gets a range()
-                elif func == 'range':
-                    start = self.parse(0, line, f, sp, args)[2]
-                    end = self.parse(1, line, f, sp, args)[2]
-                    return range(start, end)
 
                 # random capabilities
                 elif func == 'random':
@@ -5075,15 +4999,15 @@ class Interpreter:
                 # reverses the first argument
                 elif func == 'reverse':
                     return self.parse(0, line, f, sp, args)[2][::-1]
-
+                
                 # performs upper()
                 elif func == 'upper':
                     return self.parse(0, line, f, sp, args)[2].upper()
-
+                
                 # performs lower()
                 elif func == 'lower':
                     return self.parse(0, line, f, sp, args)[2].lower()
-
+                
                 # performs title()
                 elif func == 'title':
                     return self.parse(0, line, f, sp, args)[2].title()
@@ -6540,12 +6464,6 @@ class Interpreter:
         inter = Interpreter()
         return inter.interpret(line)
 
-    # executing Python scripts
-    def exec_python(self, python_block):
-        
-        exec(
-            str(self.interpret(f"script({python_block})")), self._globals, self._locals)
-        
     def var_exists(self, varname):
         if varname in self.vars:
             return True
