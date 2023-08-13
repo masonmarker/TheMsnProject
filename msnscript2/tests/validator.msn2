@@ -2003,9 +2003,9 @@ function('test_redirect', =>(
 
     # entering a private context
     -- new(=>(
-        class('range', @all=list(range(0,10))),
+        class('_range', @all=list(range(0,10))),
         # assert two class insantces have the same initial attribute
-        equals(->(range(), 'all'), ->(range(), 'all'))
+        equals(->(_range(), 'all'), ->(_range(), 'all'))
     ))
 
     # private function
