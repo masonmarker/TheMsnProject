@@ -79,7 +79,253 @@ assert(equals(add(5, 6)), 11)
 assert(equals(add(5, [1, 2]), 8))
 assert(equals(add([1, 2], [3, 4]), 10))
 
+# ----------------------- RUNNING PYTHON -----------------------
+
+# Python is integrated directly into the MSN2 environment
+# through the py module and with '\\' tokens to switch
+# between environments.
+#
+# the script execute starts an internal python
+# environment with new global and local
+# variables.
+#
+# the '\\' script assignment token
+# essentially creates a string variable
+# but the string retains newlines, tabs, etc.
+#
+#
+# @version 2.0.383
+
+# python code token
+\\
+val = 0
+
+# indentation and spacing for python is maintained
+for i in range(0, 10):
+    val += i
+
+# test
+assert(val == 45)
+
+# end python code and run script
+\\
+
+# back in the msn2 environment, we
+# can reference python variables
+# as shown below
+assert(equals(py.val(), 45))
+
+# a python script can be executed conditionally
+# with the below syntax
+
+# this script will execute
+1 \\
+assert(True)
+\\
+
+# this script will not execute
+0 \\
+assert(False)
+\\
+
+# more complex example
+# this script will run
+equals("Hello", +('H', 'e', 'l', 'l', 'o')) \\
+assert(True)
+\\
+
+# this script will not run
+equals("He", +('H', 'e', 'l', 'l', 'o')) \\
+assert(False)
+\\
+
+
+
+# test that the variable does not exist
+try(py.array(), assert(True))
+
+# the script can be ran
+# with the py module
+py.run("array = [1, 2, 3]")
+
+# the variable should now exist
+assert(equals(py.array(), [1, 2, 3]))
+
+
+# scripts can be stored sas a variable
+# mapped to a string with the following syntax
+\\
+assert(True)
+py_script \\
+
+# the script can be ran at any time
+2(py.run(py_script))
+
+
+# conditional setting of a python script
+0\\
+# setting an array
+array2 = [1, 2, 3, 4, 5]
+# resetting a variable would overwrite
+# the previous script under this name
+py_script\\
+
+
+
+# this python script was not assigned
+# due to the false conditional
+assert(not(exists("py_script2")))
+
+
+# this variable will be set
+1 \\
+assert(True)
+py_script2 \\
+
+# this variable should exist
+assert(exists("py_script2"))
+
+# the \\ syntax is mainly used for executing
+# python, but can also serve as a string-with-newlines-and-tabs-etc.
+# variable assignment
+#
+# eventually, assignments will be made with some form
+# of quotes for string literals so the text colors
+# under 'coffeescript' will be more accurate,
+# this is hopefully a temporary solution
+# to interpreting strings as-is.
+#
+# unfortunately this syntax cannot be intertwined
+# with other msn2 code
+#
+# EXAMPLE:
+#
+# NOT OK
+# print(
+# \\
+#   val = 1
+# \\
+# )
+#
+# OK
+# \\
+# val = 1
+# script \\
+# print(script)
+# 
+#
+# this is as of 2.0.383
+\\
+hello
+this is a string
+ string \\
+
+# string was assigned
+assert(string.equals("hello\nthis is a string"))
+
+
+# ----- SENDING RESOURCES TO PYTHON -----
+# we can passed 'arguments' to python scripts
+# effectively having portable python scripts
+# for direct python usage and resource management.
+#
+# we can pass these arguments with '{==}' insertion,
+# this insertion is the SAME as what's offered in
+# the script() injection, so {==} isn't the only
+# way to insert resources from the msn2 environment.
+
+# defining python script
+\\
+
+# computes the sum of the list  
+def sum_list(list):
+    total = 0
+    for i in list:
+        total += i
+    return total
+
+# prints the sum of the argument
+# 'list'
+s = sum_list({=list=})
+
+script \\
+
+# set argument
+@ list = [1, 2, 3, 4, 5]
+
+# run script
+py.run(script)
+
+# obtaining a 'return' from the python script
+# local variables
+assert(equals(py.s(), 15))
+
+
+# setting repeated arguments
+
+# define python script
+\\
+
+# computes the average of the list
+def avg_list(list):
+    total = 0
+    for i in list:
+        total += i
+    return total / len(list)
+
+# prints the average of the argument
+# 'arg1'
+s = avg_list({=arg1=})
+script \\
+
+# running repeated python scripts
+# with different arguments
+for (2, 10, 'i', (
+
+    # create an argument
+    @ arg1 = comp(range(1, i), 'e', e),
+    
+    # run the script
+    py.run(script),
+
+    # assert the return is correct
+    assert(equals(py.s(), arg1.avg()))
+))
+
+# ----------- MORE COMPLEX PYTHON EXAMPLE ------------
+
+# define python script
+\\
+
+# computes the cartesian product of two lists
+def cartesian_product(list1, list2):
+    product = []
+    for i in list1:
+        for j in list2:
+            product.append([i, j])
+    return product
+
+# directly inserting arguments from msn2
+s = cartesian_product({=
+    @ list1 = [1, 2, 3]
+=}, {=
+    @ list2 = [4, 5, 6]
+=})
+
+script\\
+
+# assert the arguments were set
+assert(list1.equals([1, 2, 3]))
+assert(list2.equals([4, 5, 6]))
+
+# run the script
+py.run(script)
+
+# assert the return is correct
+assert(equals(py.s(), [[1, 4], [1, 5], [1, 6], [2, 4], [2, 5], [2, 6], [3, 4], [3, 5], [3, 6]]))
+
 # ----------------------- CLASSES -----------------------
+# this is how a class is rendered in MSN2
 class('person', (
     @ age = -1,
     @ name = 'Unknown',
@@ -234,3 +480,7 @@ thread(assert(1))
 # use the threadpool(count, block) system call to create a new  
 # threadpool
 threadpool(3, assert(1))
+
+# end
+print('[+] suggested usage finished')
+print('[*] cleaning up...')
