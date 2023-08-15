@@ -2265,7 +2265,29 @@ function('test_sets', =>(
 ))
 # -------------------------------------------
 
-# ------------------ TESTING BASE INTERPRETER SYNTAX UPDATES ------------------
+# ------------------ TESTING PYTHON SNIPPET \\ ------------------
+# declaring some python code
+\\
+
+# use python to get the current time
+import time
+
+# print the current time
+print(time.time())
+
+script \\
+
+# new function declaration mechanism
+def('test_python_snippets', (
+    print('[+] testing python snippets...', awefoikawerf),
+    
+
+    py.run(script)
+
+))
+
+
+
 
 
 # -------------------------------------------
@@ -2323,6 +2345,7 @@ macro('TEST ', '__function', =>(
     -- TEST subclasses()
     -- TEST jointmacros()
     -- TEST test_sets()
+    -- TEST test_python_snippets()
 
 
     # testing macros

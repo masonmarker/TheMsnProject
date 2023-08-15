@@ -202,7 +202,7 @@
             print(),
 
             # open the documentation in Chrome
-            try(chrome_open(page:docs:chrome_path, 'google.com'), (
+            try(chrome_open(page:docs:chrome_path, docs:website), (
                 print(),
                 # since there was an error, set the error message
                 # and go to documentation page
