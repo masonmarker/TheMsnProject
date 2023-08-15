@@ -215,6 +215,7 @@ class Interpreter:
     # initializer
     def __init__(self):
         
+        
         # check for dependencies
         # open localstorage/msn2_settings.json
         with open('msn2_settings.json') as f:
@@ -236,7 +237,6 @@ class Interpreter:
                 # if not, install pip
                 os.system(f'{python_alias} -m pip install --upgrade pip')
             
-            # installing message
             print('[MSN2] installing dependencies, this is a ONE TIME INSTALLATION')
             # install dependencies
             os.system(f"{python_alias} install_deps.py")

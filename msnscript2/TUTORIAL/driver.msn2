@@ -14,6 +14,9 @@ import ('lib/os')
 # error key
 @ error_key = '____error'
 
+# help for msn2 version
+@ version = '2.0.384'
+
 # displays a new page with the title
 function('new_page', (os:clear(), console:print(arr(object(
     'text', '   MSN2 HELP   ',
@@ -44,6 +47,9 @@ function('option', ret('option', (
     +(@option:name=option:text, x(' ', -(menu_padding, len(option:name))))
 )), 'option:text')
 
+# goes to a page
+def('goto', 'goto:page', -(pages.get(@current_page = goto:page)))
+
 # lists the navigation menu
 function('nav_menu', (
     2(print()),
@@ -55,8 +61,12 @@ function('nav_menu', (
     print(),
 
     # main options
-    list_page(0, 'Home'),
-    list_page(1, 'Getting Started'),
+    list_page('d', 'Dependencies'),
+    list_page('0', 'Home'),
+    list_page('1', 'Getting Started'),
+    list_page('2', 'Suggested Usage'),
+    list_page('3', 'Commands'),
+    list_page('4', 'Documentation'),
 
     # quit option
     list_page('q', 'Quit'),
@@ -66,9 +76,22 @@ function('nav_menu', (
         'text', ' ',
         'fore', 'white'
     ))),
+
+    # type an option message
+    console:print(arr(
+        object(
+            'text', 'Type a ',
+            'style', 'italic'
+        ),
+        object(
+            'text', 'page',
+            'style', 'italic',
+            'fore', 'green'
+        )
+    )),
+
     # asks the user for a page to navigate to
-    try(@current_page=-(pages.get(input('navigate to: '))), 
-        -(pages.get(error_key)))
+    try(goto(strip(input())), goto(error_key))
 ))
 
 # generates a page in the console
@@ -81,6 +104,10 @@ function('page', ret('page', script((
 # import tutorial pages
 import ('TUTORIAL/_pages/home')
 import ('TUTORIAL/_pages/getting_started')
+import ('TUTORIAL/_pages/suggested_usage')
+import ('TUTORIAL/_pages/dependencies')
+import ('TUTORIAL/_pages/commands')
+import ('TUTORIAL/_pages/docs')
 
 # tutorial pages
 @ pages = object(
@@ -88,6 +115,8 @@ import ('TUTORIAL/_pages/getting_started')
     # home page
     '0', page(page:home),
     '1', page(page:getting_started),
+    '2', page(page:suggested_usage),
+    '3', page(page:commands),
     error_key, page(script(
         console:print(arr(object(
             'text', ' ***  Page not found  *** ',
@@ -95,8 +124,10 @@ import ('TUTORIAL/_pages/getting_started')
             'fore', 'red'
         )))
     )),
-    'q', script(stop())
+    '4', page(page:docs),
+    'q', script(stop()),
+    'd', page(page:dependencies)
 )
 
 # go to the home page
--(pages.get(@current_page = next(iter(pages))))
+goto(next(iter(pages)))

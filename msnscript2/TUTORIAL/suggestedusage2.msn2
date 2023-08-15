@@ -484,3 +484,14 @@ threadpool(3, assert(1))
 # end
 print('[+] suggested usage finished')
 print('[*] cleaning up...')
+
+# ------- WRAP UP -------
+
+# for more syntax and semantics in msn2,
+# read through the various examples and demonstrations
+# in the folders and files under the msnscript2/
+# directory.
+
+# also see the msn2 documentation on my website:
+# masonmarker.com/#/msn2docs or launch automatically
+# in the menu option below

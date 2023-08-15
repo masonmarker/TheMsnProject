@@ -26,7 +26,7 @@
                 'text', 'These pages will guide you in understanding MSN2 '
             ),
             object(
-                'text', '^2.0.382',
+                'text', version,
                 'fore', 'green'
             )
         )

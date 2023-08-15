@@ -1,0 +1,237 @@
+# Injecting JavaScript into a webpage
+#
+# author : Mason Marker
+# date : 6/2/2023
+
+
+# Helper method for _console_open, returns the Console button
+function('_console_open_navigate', (
+    # if the console button has not been found, find it
+    wait(@ _console_button = first(_appinstance.find_tabitems('Console'))),
+
+    # enters the console tab
+    _console_button.set_focus(),
+    _console_button.click(),
+
+    # clears the console
+    _appinstance.press('VK_CONTROL', 'l'),
+
+    # returns the console button
+    _console_button
+), '_appinstance')
+
+# Helper method, opens the element inspection console,
+# opens, and navigates to it
+# 
+# _appinstance: the browser instance to open the console in
+# returns the Console button found within the inspect element panel
+function('_console_open_start', ret('_console_open_start', (
+     # presses keys at the same time to inspect element
+    # equivalent to _appinstance.press('VK_CONTROL', 'VK_SHIFT', 'i')
+    _appinstance.inspect(),
+
+    # navigates to the console
+    _console_open_navigate(_appinstance)
+)),'_appinstance')
+
+
+# Helper method, writes special characters to the console depending
+# on the argument type
+#
+# _appinstance: the browser instance to write to
+# _scripts: either an array of strings, each string being a block of JavaScript to inject,
+#           or a string of a single block of JavaScript
+# returns None
+function('_console_write_special', if (isstr(_scripts), (
+        # inject the script
+        _appinstance.write_special(_scripts),
+        _appinstance.enter()
+    ), _scripts.each('_js_block', (
+        # writes into the console a string
+        # with special characters requiring simultaneous key presses,
+        # such as '!' or ')', and even capital letters
+        _appinstance.write_special(_js_block),
+
+        # execute the script
+        _appinstance.enter()
+))), '_appinstance', '_scripts')
+
+# Helper method, does the same thing as _console_write_special,
+# but copies, then pastes the script into the console
+# _appinstance: the browser instance to write to
+# _scripts: either an array of strings, each string being a block of JavaScript to inject,
+#           or a string of a single block of JavaScript
+# returns None
+function('_console_copy_paste', if (isstr(_scripts), (
+        # inject the script
+        clipboard(_scripts),
+        _appinstance.press('VK_CONTROL', 'v'),
+        _appinstance.enter()
+    ), _scripts.each('_js_block', (
+        
+        # copies the script to the clipboard
+        clipboard(_js_block),
+        _appinstance.press('VK_CONTROL', 'v'),
+
+        # execute the script
+        _appinstance.enter()
+))), '_appinstance', '_scripts')
+
+
+# -------------------- END OF HELPER METHODS --------------------
+
+
+
+# Retrieves the output of the most recently executed script in the
+# element inspection console.
+# 
+# The script executed must print to the console for output to be retrieved.
+#
+# _appinstance: the browser instance to retrieve the console output from
+# _distance, the distance from the script's entry to its output, default is listed if
+#            argument is None
+# returns the console output
+function('retrieve_output', ret('retrieve_output', (
+
+    # gets the last child with the script
+    @ _lastchildwithscript = last(_appinstance.find_links('_app-')),
+
+    # if not distance, set to default
+    if (not(_distance), @ _distance = 30),
+
+    # gets the output
+    @ _lastchildwithscript_result = _lastchildwithscript.element_below(_distance),
+
+    # try to get the mouse in the right place
+    # depending on the calling function
+    # for detecting the _app- link
+    if(not(_lastchildwithscript_result), (
+        if (inject:console_button, (
+            inject:console_button.hover(),
+            inject:console_button.click(),
+            
+        )),
+        if (active_inject:console_button, (
+            active_inject:console_button.hover(),
+            active_inject:console_button.click(),
+        )),
+
+        # move the mouse down 50 pixels and
+        # go to the top of the console
+        pointer.down(50),
+        10(_appinstance.page_up())
+
+    )),
+
+    # try to find the result while None
+    while(not(_lastchildwithscript_result), (
+        @ _lastchildwithscript_result = _lastchildwithscript.element_below(_distance.add(10)),
+    )),
+
+    # returns the output
+    @ _lastchildwithscript_fixed = _lastchildwithscript_result.text(),
+
+    # replace the %$@ placeholder with nothing
+    _lastchildwithscript_fixed.replace("%$@" * 1000, ''),
+
+    # remove the initial ChatGPT message
+    if(_lastchildwithscript_fixed.startswith('ChatGPT'), (
+        @ _lastchildwithscript_fixed = strip(_lastchildwithscript_fixed.slice(
+            7, _lastchildwithscript_fixed.len()))
+    )),
+
+    _lastchildwithscript_fixed
+
+)), '_appinstance', '_distance')
+
+# injects JavaScript into a Chrome URL,
+# opens a new instance of Chrome without killing
+# any existing instances
+#
+# _url: the URL to navigate to
+# _scripts: either an array of strings, each string being a block of JavaScript to inject, 
+#           or a string of a single block of JavaScript
+#
+# creates a variable in the global scope called inject:console_button
+# so the button does not have to be found again
+function('inject', ret('inject', (
+
+    # declares and starts a new Chrome instance
+    @ _appinstance = app('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'),
+    _appinstance.start(),
+
+    # writes the URL to Chrome,
+    # and searches
+    _appinstance.write(_url),
+    _appinstance.enter(),
+
+    # opens the element inspection
+    @inject:console_button = _console_open_start(_appinstance),
+
+    # write the scripts to the console
+    _console_write_special(_appinstance, _scripts),
+
+    _appinstance
+
+    # _url: the URL to navigate to
+    # _script: either an array of strings, each string being a block of JavaScript to inject,
+    #          or a string of a single block of JavaScript
+)), '_url', '_scripts')
+
+# injects JavaScript into an already opened Chrome instance
+#
+# Much more versatile than inject(), provides the option 
+# to specify whether the inspect element tab is open or not,
+# this could technically be detected automatically, but possibly
+# at an unreasonable and unneccessary time cost.
+#
+# _appinstance: Browser instance to inject into
+# _scripts: either an array of strings, each string being a block of JavaScript to inject,
+#           or a string of a single block of JavaScript
+# _inspect_is_open: whether the inspect element tab is already open or not
+#
+# creates a variable called active_inject:console_button in the global scope
+# so the button does not have to be found again
+function('active_inject', (
+
+    # inspect is open, navigate, otherwise open and navigate
+    @active_inject:console_button = private(if(_inspect_is_open, 
+        _console_open_navigate(_appinstance), 
+        _console_open_start(_appinstance)
+    )),
+
+    # write the scripts to the console
+    private(_console_write_special(_appinstance, _scripts)),
+
+    # attempts to retrieve and return the console output
+    ret('active_inject', private(retrieve_output(_appinstance,)))
+), '_appinstance', '_scripts', '_inspect_is_open')
+
+# Pastes code to inject into an already opened Chrome instance
+#
+# Much more versatile than inject(), provides the option
+# to specify whether the inspect element tab is open or not,
+# this could technically be detected automatically, but possibly
+# at an unreasonable and unneccessary time cost.
+#
+# _appinstance: Browser instance to inject into
+# _scripts: either an array of strings, each string being a block of JavaScript to inject,
+#           or a string of a single block of JavaScript
+# _inspect_is_open: whether the inspect element tab is already open or not
+#
+# creates a variable called active_inject_paste:console_button in the global scope
+# so the button does not have to be found again
+function('active_inject_paste', (
+    
+        # inspect is open, navigate, otherwise open and navigate
+        @active_inject_paste:console_button = private(if(_inspect_is_open,
+            _console_open_navigate(_appinstance),
+            _console_open_start(_appinstance)
+        )),
+    
+        # write the scripts to the console
+        private(_console_copy_paste(_appinstance, _scripts)),
+    
+        # attempts to retrieve and return the console output
+        ret('active_inject_paste', private(retrieve_output(_appinstance,)))
+), '_appinstance', '_scripts', '_inspect_is_open')

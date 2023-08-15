@@ -1,0 +1,22 @@
+# Executing files with Node.js
+#
+# author : Mason Marker
+# date : 6/13/2023
+
+# import dir
+import ('lib/lang/dir')
+
+# Node class for running JS files
+class ('node', (
+    # runs node
+    function('run', (
+        # creates a file in a specialized directory
+        # to run the code
+        @ __jspath = __lang_dir_.create('_js.js', code),
+        # runs the code
+        console(cat('node ', __jspath))
+    ), 'self', 'code')
+))
+
+# exporting the node class
+@ node = node()

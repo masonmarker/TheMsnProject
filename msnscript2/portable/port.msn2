@@ -77,6 +77,14 @@ print('[*] Copying msn2python script...')
 # copy msn2python script
 file.copy('msn2python.py', package_dir.val())
 
+# copy local storage directory
+print('[*] Copying settings...')
+file.copy('msn2_settings.json', package_dir)
+
+# copy dependency installer
+print('[*] Copying dependency installer...')
+file.copy('install_deps.py', package_dir.val())
+
 print('[*] Creating README.txt...')
 
 # write README

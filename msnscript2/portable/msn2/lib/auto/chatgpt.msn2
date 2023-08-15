@@ -1,0 +1,107 @@
+# Grants capabilities for automating ChatGPT's website.
+# 
+# Why use this as opposed to OpenAI's ChatGPT API?
+# A: 
+#   1. No API key
+#   2. No charge per request
+#   3. Model settings pre-determined and refined by OpenAI's team
+#   4. ChatGPT's algorithm for retaining and interpreting the previous messages
+#      is maintained (THIS IS ABSOLUTELY HUGE AND CRUCIAL TO 
+#      UTILIZING GPT'S COMPLETE CAPABILITIES)
+#
+# author : Mason Marker
+# date : 6/2/2023
+
+
+# import automated JavaScript injection library
+import ('lib/auto/inject')
+
+# asks ChatGPT questions, retrieving its answer
+function('ask_gpt', (
+
+    # opens Google Chrome to the ChatGPT website
+    @ _chrome = app('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'),
+    _chrome.start(),
+    _chrome.write('https://chat.openai.com/'),
+    _chrome.enter(),
+
+    # waits for the message input to appear
+    @ _message_input = _chrome.wait_for_input('Send a message'),
+
+    # opens the inspect element panel
+    _chrome.inspect(),
+
+    # responses from ChatGPT
+    @ _responses = [],
+
+    # for each message
+    _messages.each('_message', (
+
+        # asks ChatGPT a question
+        _message_input.focus(),
+        _chrome.write(_message),
+        _chrome.enter(),
+
+        # wait for a response
+        _chrome.wait_for_text('Regenerate response'),
+
+        # opens and injects JavaScript into the application's element 
+        # inspection console
+        # arguments: browser, script, inspect element is open?
+        _responses.add(active_inject(_chrome, script(
+            let m = document.getElementsByClassName(
+                'flex flex-col text-sm dark:bg-gray-800'
+            )[0];
+            let lm = m.children[m.children.length-2];
+            console.log(lm.innerText+"%$@".repeat(1000));
+        ), True))
+    )),
+
+    # returns the responses and the app instance opened
+    ret('ask_gpt', arr(_chrome, _responses))
+), '_messages')
+
+# asks ChatGPT a question on an open browser
+function('active_ask_gpt', (
+
+    # types in the URL and proceeds to the website
+    if (_enterurl, (
+        _appinstance.write('https://chat.openai.com/'),
+        _appinstance.enter()
+    )),
+
+    # waits for the message input to appear
+    @ _message_input = _appinstance.wait_for_input('Send a message'),
+    # opens the inspect element panel
+    _appinstance.inspect(),
+    
+    # responses from ChatGPT
+    @ _responses = [],
+
+
+    # for each message
+    _messages.each('_message', (
+
+        # asks ChatGPT a question
+        _message_input.focus(),
+        _appinstance.write(_message),
+        _appinstance.enter(),
+
+        # wait for a response
+        _appinstance.wait_for_text('Regenerate response'),
+
+        # opens and injects JavaScript into the application's element 
+        # inspection console
+        # arguments: browser, script, inspect element is open?
+        _responses.add(active_inject(_appinstance, script(
+            let m = document.getElementsByClassName(
+                'flex flex-col text-sm dark:bg-gray-800'
+            )[0];
+            let lm = m.children[m.children.length-2];
+            console.log(lm.innerText+"%$@".repeat(1000));
+        ), True))
+    )),
+
+    # returns the responses and the app instance opened
+    ret('active_ask_gpt', _responses)
+), '_appinstance', '_messages', '_enterurl')

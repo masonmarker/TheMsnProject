@@ -1,0 +1,36 @@
+# collection of free, public API URLs for general use
+# 
+# author : Mason Marker
+# date : 11/11/2022
+
+
+# ------------------------------- STANDARD PUBLIC API LIST -------------------------------
+
+
+
+
+# ------------------------------- BOOK ARCHIVE -------------------------------
+# Book library endpoint
+var('__books_endpoint', 'http://openlibrary.org/search.json?q=')
+
+
+# gets information about a book from OpenLibrary.org
+# query should be a keyword / sentence about the book, such as title, author, etc.
+~ apis_book(query) -> result
+-- var('__apis_splitquery', split(?query?, ' '))
+-- var('__apis_end', '')
+-- for (0, len(?__apis_splitquery?), '__apis_i', =>(
+    var('__apis_curr_word', ?__apis_splitquery?[?__apis_i?]),
+    if (<< |?__apis_i?| != |len(?__apis_splitquery?)| - 1  >>,
+        add('__apis_end', ?__apis_curr_word? + '+'),
+        add('__apis_end', ?__apis_curr_word?)
+    )
+))
+-- var('result', request(?__books_endpoint? + ?__apis_end?))
+# ----------------------------------------------------------------------------
+
+
+
+
+
+

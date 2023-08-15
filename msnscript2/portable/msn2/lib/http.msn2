@@ -1,0 +1,55 @@
+# library for http server support
+# author : Mason Marker
+# date : 11/9/2022
+
+
+
+# localhost
+var('localhost', '127.0.0.1')
+
+# network
+# broadcasts on all of the executing machine's network interfaces
+var('network', '0.0.0.0')
+
+# default http post
+var('http_default_port', 8000)
+
+# default flask port
+var('http_default_flask_port', 5000) 
+
+# starts an http server on __http_address:__http_port on a new thread to permit further instructions
+~ http_start(__http_address, __http_port) ->__http_started
+
+# created console command to start server
+-- var('__http_cmd', 'python3 -m http.server ' + str(?__http_port?) + ' --bind ' + str(?__http_address?))
+
+# start console on new thread
+-- thread('http1', console(?__http_cmd?))
+-- var('__http_started', True)
+
+
+
+
+# simplifies POST system call method
+# demonstrates how the api endpoint json is manipulated using POST(url, port, path, json)
+# port defaults to the default flask port (5000)
+~ local_post(path, data) -> response
+# will post to the newly created thread's endpoint
+-- var('response', POST(?localhost?, ?http_default_flask_port?, ?path?, ?data?))
+
+# simplifies GET system call method
+~ local_get(path) -> response
+-- var('response', GET(?localhost?, ?http_default_flask_port?, ?path?))
+
+# simplifies DELETE system call method
+~ local_delete(path) -> response
+-- var('response', DELETE(?localhost?, ?http_default_flask_port?, ?path?))
+
+
+
+
+
+
+
+
+

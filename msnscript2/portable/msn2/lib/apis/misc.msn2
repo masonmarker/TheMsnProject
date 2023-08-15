@@ -1,0 +1,46 @@
+# collection of free, public API URLs for misc use
+# 
+# links obtained are NOT ALL ENDPOINTS
+# (you cannot use request() on all of these links)
+#
+# author : Mason Marker
+# date : 11/11/2022
+
+
+# ------------------------------- MISC PUBLIC API LIST -------------------------------
+
+# initialize import specific variables
+# list of all misc apis
+var('all_apis', 'https://api.publicapis.org/entries')
+
+# requests for a list of misc apis
+var('entries', << |request('https://api.publicapis.org/entries')|['entries'] >>)
+
+
+
+# filters standard api library by keyword
+# searches for a match in API, Category, and Description
+~ misc_apis_filter(keyword) -> result
+-- var('keyword', << |keyword|.lower() >>)
+# falls back to Python list comprehension for speed
+-- var(
+    'result', 
+    << [k for k in |entries| if 
+        |keyword| in k['API'].lower()
+        or |keyword| in k['Category'].lower()
+        or |keyword| in k['Description'].lower()]>>)
+
+# gets the http request URL's for a specific keyword
+~ misc_apis_urls_for(keyword) -> result
+-- var('keyword', misc_apis_filter(keyword))
+# gets all links from the filtered apis
+-- var('result', << [k['Link'] for k in |keyword|] >>)
+
+# gets the POSSIBLE endpoints from misc api list containing a keyword
+~ misc_apis_possible_endpoints(keyword) -> result
+-- var('__apis_links', misc_apis_urls_for(keyword))
+-- var(
+    'result',
+    << [k for k in |?__apis_links?| if k.endswith('api') or k.endswith('api/')  ]  >>)
+
+# ----------------------------------------------------------------------------------------
