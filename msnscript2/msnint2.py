@@ -52,6 +52,17 @@
 # (it definitely exists)
 
 
+# NOTE
+# Python runner's alias are determined by
+# python_alias, defaulting to 'python'
+#
+# console operations will not run successfully
+# if the python runner is incorrect,
+# is includes all console() calls, process splitting,
+# etc. this will likely be fixed in future versions
+# with the implementation of msn2_settings.json
+
+
 # the current logical implementation is conceptual,
 # deoptimized, and exists to prove functionality as speed can
 # be enhanced later
