@@ -160,8 +160,13 @@ def ai_response(model, prompt, creativity):
     ).choices[0].text
 
 
-# alias to run Python in the terminal
+# python alias is in the msn2 settings json
 python_alias = 'python'
+
+# obtains the python alias
+with open('msn2_settings.json') as f:
+    settings = json.load(f)
+    python_alias = settings['settings']['runner_alias']
 
 # msn2 implementation of None
 msn2_none = '___msn2_None_'
@@ -256,7 +261,7 @@ class Interpreter:
             # set has_ran in the json file to true
             settings['settings']['has_ran'] = True
             # write to the json file
-            with open('localstorage/msn2_settings.json', 'w') as f:
+            with open('msn2_settings.json', 'w') as f:
                 json.dump(settings, f)
             
         self.version = 2.0
