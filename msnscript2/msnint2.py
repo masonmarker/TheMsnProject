@@ -1,7 +1,5 @@
 # Interpreters MSNScript2
 #
-# Package version 2.0.384
-#
 # See documentation for more information,
 # documentation could lack functions or
 # capabilities in this interpreter, as
@@ -264,7 +262,11 @@ class Interpreter:
             with open('msn2_settings.json', 'w') as f:
                 json.dump(settings, f)
             
-        self.version = 2.0
+        # set the current settings
+        self.settings = settings['settings']
+        # get the version in the json file
+        self.version = settings['version']
+        
         self.lines = []
         self.out = ''
         self.log = ''
@@ -3752,6 +3754,12 @@ class Interpreter:
                     if objfunc == 'len':
                         return total_ints
                     return '<msnint2 class>'
+                
+                # gets msn2 settings information
+                elif func == 'settings':
+                    # returns the settings dict
+                    return self.settings
+                    
 
                 # referencing python variables
                 elif obj == 'py':

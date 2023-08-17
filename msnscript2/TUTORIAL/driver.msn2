@@ -15,7 +15,7 @@ import ('lib/os')
 @ error_key = '____error'
 
 # help for msn2 version
-@ version = '2.0.384'
+@ version = version()
 
 # displays a new page with the title
 function('new_page', (os:clear(), console:print(arr(object(

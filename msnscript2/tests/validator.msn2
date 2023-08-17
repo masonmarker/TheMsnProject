@@ -1449,7 +1449,7 @@ serial_open('thread')
 # destroy() system call destroys variables or user defined functions (~)
 ~ test_destroy() -> _
 
-    -- print('[+] testing destroy...')
+    -- p('[+] testing destroy...')
 
     -- @v = 1
 
@@ -1926,27 +1926,6 @@ function('test_redirect', =>(
     -- @ _ = 1
 # -------------------------------------------
 
-
-
-# ------------------ '() -->' macro ------------------
-
-# the '() -->' macro allows for a repetitive function call on a variable
-# the '() -->' macro ONLY works with DESTRUCTIVE methods,
-# as its purpose is to repetitively alter a variable
-# DEPRECATED, kinda dumb and computationally
-# expensive
-~ test_paren_macro() -> _
-
-    -- print('[+] testing () built in macro...')
-
-    -- 'DEPRECATED'
-
-    -- @ _ = 1
-
-# -------------------------------------------
-
-
-
 # ------------------ TESTING RANDOM STUFF ------------------
 
 # this is a test that implements some random things
@@ -2268,26 +2247,73 @@ function('test_sets', =>(
 # ------------------ TESTING PYTHON SNIPPET \\ ------------------
 # declaring some python code
 \\
-
-# use python to get the current time
 import time
 
-# print the current time
-print(time.time())
-
+# get the time
+t = time.time()
 script \\
 
-# new function declaration mechanism
+# defining another script
+\\
+import math
+
+    # get pi
+pi = math.pi
+
+# rename the script
+script2 \\
+
+# last script
+# create script argument
+# default value of 0
+@ script3:arg1 = 0
+\\
+v = {=script3:arg1=}
+for i in range(0, 300):
+    v += 1
+script3 \\
+
+# varying scripts
+import ('lib/python')
+
+# function
 def('test_python_snippets', (
-    print('[+] testing python snippets...', awefoikawerf),
     
+    # starting message
+    print('[+] testing python snippets...'),
 
-    py.run(script)
+    # run the script
+    py.run(script),
 
+    # assert the time was retrieved
+    isfloat(py.t()) ??,
+    
+    # assert the number is correct
+    greater(py.t(), 0) ??,
+
+    # run the script
+    py.run(script2),
+
+    # assert the value can be retrieved by msn2
+    equals(py.pi(), 3.141592653589793) ??,
+
+    # create a python:script class
+    @ script = python:script(script3, ['script3:arg1']),
+
+    # running the script with the default argument
+    script.run(arr(script3:arg1)),
+
+    # assert the value is correct
+    equals(py.v(), 300) ??,
+
+    # run the script with a specific argument
+    script.run([13]),
+
+    # assert the value is correct
+    equals(py.v(), 313) ??,
+
+    1
 ))
-
-
-
 
 
 # -------------------------------------------
@@ -2338,7 +2364,6 @@ macro('TEST ', '__function', =>(
     -- TEST test_userfunc_with_args()
     -- TEST test_op()
     -- TEST test_more_global_methods()
-    -- TEST test_paren_macro()
     -- TEST test_other_stuff()
     -- TEST test_global_methods()
     -- TEST test_int_methods()
