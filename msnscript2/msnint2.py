@@ -3793,14 +3793,13 @@ class Interpreter:
 
                     # runs a stored python script
                     elif objfunc == 'run':
-                        # try to run the script
-                        try:
-                            self.exec_python(py_script := self.parse(
-                                0, line, f, sp, args)[2])
-                        except Exception as e:
-                            self.err("python error", str(e), line)
-
-                        return py_script
+                        
+                        # get the script
+                        scr = self.parse(0, line, f, sp, args)[2]
+                        
+                        # execute the python and return
+                        # the snippet with arguments inserted
+                        return self.exec_python(scr)
 
                     # return a local variable within the python
                     # environment
@@ -6684,10 +6683,15 @@ class Interpreter:
 
     # executing Python scripts
     def exec_python(self, python_block):
-
-        exec(
-            str(self.interpret(f"script({python_block})")), self._globals, self._locals)
-
+        # get the python script with arguments inserted
+        py_script = str(self.interpret(f"script({python_block})"))
+        # try to execute the script
+        try:
+            exec(py_script, self._globals, self._locals)
+        except Exception as e:
+            # send an error
+            self.err("python error", str(e), py_script)
+        return py_script
     def var_exists(self, varname):
         if varname in self.vars:
             return True

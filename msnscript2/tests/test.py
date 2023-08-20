@@ -1,61 +1,29 @@
+import math
+def sum_list(list):    
+    sum = 0
+    for i in list:     
+        sum += i       
+    return sum
+def product_list(list):
+    product = 1        
+    for i in list:     
+        product *= i   
+    return product   
+  
+for lst in [[1, 2, 3], [4, 5, 6], [7, 8, 9]]:
 
-
-
-
-string = '))(())'
-answer = 2
-
-string2 = ')((())))'
-answer2 = 2
-
-string3 = ')((())'
-answer3 = 2
-
-string4 = '))(('
-answer4 = 4
-
-string5 = ')))((('
-answer5 = 6
-
-string6 = '(((((())'
-answer6 = 4
-
-string7 = '(()))))))'
-answer7 = 5
-
-# determines the missing amount of parentheses
-def missing_count(str):
-    
-    # initialize variables
-    left = 0
-    right = 0
-    missing = 0
-    
-    for c in str:
-        
-        if c == '(':
-            left += 1
-            
-        if c == ')':
-            right += 1
-            
-        if right > left:
-            missing += 1
-            right -= 1
-            
-    return missing + (left - right)
-
-
-
-# make assertions    
-def ass(actual, exp):
-    if actual != exp:
-        print(f"actual: {actual} != expected: {exp}")
-        
-ass(missing_count(string), answer)
-ass(missing_count(string2), answer2)
-ass(missing_count(string3), answer3)
-ass(missing_count(string4), answer4)
-ass(missing_count(string5), answer5)
-ass(missing_count(string6), answer6)
-ass(missing_count(string7), answer7)
+    # test sum_list()
+    total = sum_list(lst)
+    expected_sum = 0
+    if len(lst) > 0:
+        expected_sum = sum(lst)
+    # test product_list()
+    product = product_list(lst)
+    expected_product = 1
+    if len(lst) > 0:
+        expected_product = math.prod(lst)
+    # print the results
+    print('list: ' + str(lst))
+    print('sum: ' + str(total) + ' (expected: ' + str(expected_sum) + ')')
+    print('product: ' + str(product) + ' (expected: ' + str(expected_product) + ')')
+    print('')

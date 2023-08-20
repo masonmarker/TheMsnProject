@@ -10,10 +10,10 @@
 class ('python:script', (
 
     # variable name of the script
-    @ python:script:scriptname = None,
+    @ script = None,
     
     # list of variable names for this script
-    @ python:script:varnames = None,
+    @ varnames = None,
 
     # run this script with set variables
     #
@@ -25,7 +25,7 @@ class ('python:script', (
         @ python:script:i = 0,
 
         # set each variable name to the respective arg
-        each(self.python:script:varnames(), 'python:script:vn', (
+        each(self.varnames(), 'python:script:vn', (
             # set the varname to the corresponding arg
             var(python:script:vn, 
                 python:script:args.get(python:script:i)),
@@ -35,7 +35,7 @@ class ('python:script', (
         )),
 
         # run the script
-        py.run(self.python:script:scriptname())
+        py.run(self.script())
     ))
 
 ))
