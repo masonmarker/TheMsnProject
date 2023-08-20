@@ -3785,8 +3785,13 @@ class Interpreter:
 
                     # runs a stored python script
                     elif objfunc == 'run':
-                        self.exec_python(py_script := self.parse(
-                            0, line, f, sp, args)[2])
+                        # try to run the script
+                        try:
+                            self.exec_python(py_script := self.parse(
+                                0, line, f, sp, args)[2])
+                        except Exception as e:
+                            self.err("python error", str(e), line)
+                            
                         return py_script
 
                     # return a local variable within the python
@@ -5000,6 +5005,19 @@ class Interpreter:
                             print(ret, end=" ", flush=True)
                         else:
                             print(ret, flush=True)
+                    return ret
+                
+                # print a box with Interpreter.bordered()
+                # to get a string representation of the current argument
+                # surrounded by a box
+                elif func == 'print:box':
+                    ret = None
+                    for i in range(len(args)):
+                        ret = self.parse(i, line, f, sp, args)[2]
+                        if i != len(args) - 1:
+                            print(Interpreter.bordered(str(ret)), end=" ", flush=True)
+                        else:
+                            print(Interpreter.bordered(str(ret)), flush=True)
                     return ret
 
                 # sleeps the thread for the first argument amount of seconds

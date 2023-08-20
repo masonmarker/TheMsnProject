@@ -62,11 +62,13 @@ function('nav_menu', (
 
     # main options
     list_page('d', 'Dependencies'),
+    list_page('r', 'Run a Program'),
     list_page('0', 'Home'),
     list_page('1', 'Getting Started'),
     list_page('2', 'Suggested Usage'),
     list_page('3', 'Commands'),
     list_page('4', 'Documentation'),
+    list_page('s', 'Settings'),
 
     # quit option
     list_page('q', 'Quit'),
@@ -108,6 +110,8 @@ import ('TUTORIAL/_pages/suggested_usage')
 import ('TUTORIAL/_pages/dependencies')
 import ('TUTORIAL/_pages/commands')
 import ('TUTORIAL/_pages/docs')
+import ('TUTORIAL/_pages/run_a_program')
+import ('TUTORIAL/_pages/settings')
 
 # tutorial pages
 @ pages = object(
@@ -125,6 +129,8 @@ import ('TUTORIAL/_pages/docs')
         )))
     )),
     '4', page(page:docs),
+    's', page(page:settings),
+    'r', page(page:run_a_program),
     'q', script(stop()),
     'd', page(page:dependencies)
 )

@@ -7,7 +7,7 @@ all of them are in dependencies.txt
 these dependencies can be auto-installed via 'python install_deps.py'
 
 these dependencies can also be re-installed via the msn2 help pages if necessary
-as of 2.0.384. find these pages and much more with 'python msn2.py help'
+as of 2.0.385. find these pages and much more with 'python msn2.py help'
 
 starting a .msn2 script:
 
@@ -15,6 +15,8 @@ starting a .msn2 script:
 
        if it works you can use: $ msn2 script.msn2 script2.msn2
        else: $ python msn2.py script.msn2 script2.msn2
+
+       the in() call retrieves arguments to the command line
 
 it is suggested that when editing a .msn2 file that you switch VS Code's Language Mode to CoffeeScript!!
 to do this, under VS Code's language mode tab, configure file association of .msn2 as CoffeeScript

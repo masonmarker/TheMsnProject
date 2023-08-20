@@ -20,6 +20,19 @@
         ))
     ),
     print(),
+    console:print(arr(
+        object(
+            'text', "It's recommended to enlarge your"
+        ),
+        object(
+            'text', ' console ',
+            'fore', 'green'            
+        ),
+        object(
+            'text', 'to view these pages.',
+            'style', 'italic'
+        )
+    )),
     console:print(
         arr(
             object(
