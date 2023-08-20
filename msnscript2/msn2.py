@@ -40,6 +40,10 @@ for i in range(1, len(sys.argv)):
     elif filename == 'verify':
         filename = 'tests/validator.msn2'
         
+    # starts the msn2 interpreter
+    elif filename == 'int':
+        filename = 'system/int.msn2'
+        
     # if the file does not end in .msn2, add it
     if not filename.endswith('.msn2'):
         filename += '.msn2'

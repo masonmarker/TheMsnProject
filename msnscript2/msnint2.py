@@ -268,12 +268,27 @@ class Interpreter:
             # finished
             # set has_ran in the json file to true
             settings['settings']['has_ran'] = True
+            
+            # write to the json file
+            with open(settings_path, 'w') as f:
+                json.dump(settings, f)
+                
+        # get the latest version number from system/latest.json
+        with open('system/latest.json') as f:
+            latest_version = json.load(f)['latest']
+            
+        # if the version is not the latest
+        if settings['version'] != latest_version:
+            # update the version
+            settings['version'] = latest_version
+            
             # write to the json file
             with open(settings_path, 'w') as f:
                 json.dump(settings, f)
 
         # set the current settings
-        self.settings = settings['settings']
+        self.settings = settings['settings']        
+        
         # get the version in the json file
         self.version = settings['version']
 

@@ -73,6 +73,11 @@ print('[*] Copying list of dependencies...')
 # copy dependencies
 file.copy('dependencies.txt', package_dir.val())
 
+# copy system/ folder
+print('[*] Copying system folder...')
+file.mkdir(@port:systemdir=+(package_dir.val(), '/system'))
+private(copydir('system', port:systemdir))
+
 print('[*] Copying msn2python script...')
 # copy msn2python script
 file.copy('msn2python.py', package_dir.val())
