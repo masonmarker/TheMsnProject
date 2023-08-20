@@ -161,6 +161,19 @@ def ai_response(model, prompt, creativity):
 # python alias is in the msn2 settings json
 python_alias = 'python'
 
+# path to the common settings file
+settings_path = 'msn2_settings.json'
+
+# if settings does not exist
+if not os.path.exists(settings_path):
+    
+    # create settings
+    with open(settings_path, 'w') as f:
+
+        # dump default settings
+        json.dump({'settings': {'has_ran': False, 'runner_alias': 'python'},
+                    'version': '2.0.385'}, f)
+
 # obtains the python alias
 with open('msn2_settings.json') as f:
     settings = json.load(f)
@@ -229,19 +242,6 @@ class Interpreter:
     # initializer
     def __init__(self):
 
-        # settings path
-        settings_path = 'msn2_settings.json'
-
-        # if settings does not exist
-        if not os.path.exists(settings_path):
-
-            # create settings
-            with open(settings_path, 'w') as f:
-
-                # dump default settings
-                json.dump({'settings': {'has_ran': False, 'runner_alias': 'python'},
-                          'version': '2.0.385'}, f)
-
         # check for dependencies
         # open msn2_settings.json
         with open(settings_path) as f:
@@ -263,13 +263,9 @@ class Interpreter:
                 # if not, install pip
                 os.system(f'{python_alias} -m pip install --upgrade pip')
 
-            # installing message
-            print('[MSN2] installing dependencies, this is a ONE TIME INSTALLATION')
             # install dependencies
             os.system(f"{python_alias} install_deps.py")
             # finished
-            print(
-                '[MSN2] this was a ONE TIME INSTALLATION, you should not expect to see this message again')
             # set has_ran in the json file to true
             settings['settings']['has_ran'] = True
             # write to the json file
