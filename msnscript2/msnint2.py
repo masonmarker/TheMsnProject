@@ -228,45 +228,59 @@ class Interpreter:
 
     # initializer
     def __init__(self):
-        
+
+        # settings path
+        settings_path = 'msn2_settings.json'
+
+        # if settings does not exist
+        if not os.path.exists(settings_path):
+
+            # create settings
+            with open(settings_path, 'w') as f:
+
+                # dump default settings
+                json.dump({'settings': {'has_ran': False, 'runner_alias': 'python'},
+                          'version': '2.0.385'}, f)
+
         # check for dependencies
-        # open localstorage/msn2_settings.json
-        with open('msn2_settings.json') as f:
-            settings = json.load(f) 
-        
+        # open msn2_settings.json
+        with open(settings_path) as f:
+            settings = json.load(f)
+
         # check if this environment has executed
         # a script before
         if not settings['settings']['has_ran']:
             # if it has not ran, install
-            # dependencies, then run
-            
+            # dependencies
+
             # check if pip is installed
             try:
                 import pip
             except:
-                
+
                 # pip not found
                 print('[MSN2] pip dependency installer not found, installing pip...')
                 # if not, install pip
                 os.system(f'{python_alias} -m pip install --upgrade pip')
-            
+
             # installing message
             print('[MSN2] installing dependencies, this is a ONE TIME INSTALLATION')
             # install dependencies
             os.system(f"{python_alias} install_deps.py")
             # finished
-            print('[MSN2] this was a ONE TIME INSTALLATION, you should not expect to see this message again')
+            print(
+                '[MSN2] this was a ONE TIME INSTALLATION, you should not expect to see this message again')
             # set has_ran in the json file to true
             settings['settings']['has_ran'] = True
             # write to the json file
-            with open('msn2_settings.json', 'w') as f:
+            with open(settings_path, 'w') as f:
                 json.dump(settings, f)
-            
+
         # set the current settings
         self.settings = settings['settings']
         # get the version in the json file
         self.version = settings['version']
-        
+
         self.lines = []
         self.out = ''
         self.log = ''
@@ -1491,7 +1505,7 @@ class Interpreter:
                         # gets information from a website
                         if objfunc == 'all':
                             return object.get(self.parse(0, line, f, sp, args)[2]).html
-                        
+
                         # renders the html session
                         if objfunc == 'render':
                             return object.render(retries=3)
@@ -1501,19 +1515,18 @@ class Interpreter:
                     # working with requests_html.HTML
                     # 2.0.384
                     elif isinstance(object, HTML):
-                        
+
                         # finds elements in the HTML
                         if objfunc == 'gather':
-                            
+
                             # if one argument
                             if args[0][0] == '':
                                 return object.find()
                             else:
                                 return object.find(self.parse(0, line, f, sp, args)[2])
-                        
-                        # return the attribute offered by the object itself    
-                        return getattr(object, objfunc)
 
+                        # return the attribute offered by the object itself
+                        return getattr(object, objfunc)
 
                     # working with Excel sheets
                     elif isinstance(object, self.Sheet):
@@ -3754,12 +3767,11 @@ class Interpreter:
                     if objfunc == 'len':
                         return total_ints
                     return '<msnint2 class>'
-                
+
                 # gets msn2 settings information
                 elif func == 'settings':
                     # returns the settings dict
                     return self.settings
-                    
 
                 # referencing python variables
                 elif obj == 'py':
@@ -3791,7 +3803,7 @@ class Interpreter:
                                 0, line, f, sp, args)[2])
                         except Exception as e:
                             self.err("python error", str(e), line)
-                            
+
                         return py_script
 
                     # return a local variable within the python
@@ -5006,7 +5018,7 @@ class Interpreter:
                         else:
                             print(ret, flush=True)
                     return ret
-                
+
                 # print a box with Interpreter.bordered()
                 # to get a string representation of the current argument
                 # surrounded by a box
@@ -5015,7 +5027,8 @@ class Interpreter:
                     for i in range(len(args)):
                         ret = self.parse(i, line, f, sp, args)[2]
                         if i != len(args) - 1:
-                            print(Interpreter.bordered(str(ret)), end=" ", flush=True)
+                            print(Interpreter.bordered(
+                                str(ret)), end=" ", flush=True)
                         else:
                             print(Interpreter.bordered(str(ret)), flush=True)
                     return ret
