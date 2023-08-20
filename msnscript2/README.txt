@@ -17,6 +17,7 @@ starting a .msn2 script:
        else: $ python msn2.py script.msn2 script2.msn2
 
        the in() call retrieves arguments to the command line
+       in the msn2 environment
 
 it is suggested that when editing a .msn2 file that you switch VS Code's Language Mode to CoffeeScript!!
 to do this, under VS Code's language mode tab, configure file association of .msn2 as CoffeeScript
@@ -27,6 +28,11 @@ to do this, under VS Code's language mode tab, configure file association of .ms
     specific scenarios, and are not recommended to be used. 
 
     the suggested syntax is the most updated, and safest way to code.
+
+--- ISSUES
+if running a script doesn't work for any reason (other than a code-based error),
+try reinstalling dependencies via 'python install_deps.py'
+---
 
 see /demos for demonstrations
 see /tests for syntax specific usage (find the most recent validator in /tests)

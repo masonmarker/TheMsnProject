@@ -75,7 +75,7 @@
                 runs the file at tests/misc.msn2',
         'verify': 'Launches the validation script, testing the integrity of this msn2 version.\\n
                   this file is at tests/validator.msn2',
-        'int': 'If no command is specified, the launcher will start the msn2 interpreter in the command line.'
+        'int': 'If "int" is specified, the launcher will start the msn2 interpreter in the command line.'
         
     },
 
