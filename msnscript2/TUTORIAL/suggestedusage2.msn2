@@ -168,13 +168,13 @@ py_script \\
 array2 = [1, 2, 3, 4, 5]
 # resetting a variable would overwrite
 # the previous script under this name
-py_script\\
+py_script3 \\
 
 
 
 # this python script was not assigned
 # due to the false conditional
-assert(not(exists("py_script2")))
+assert(not(exists("py_script3")))
 
 
 # this variable will be set

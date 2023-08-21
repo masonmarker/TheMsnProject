@@ -395,6 +395,13 @@ class Interpreter:
             # if the Python block has been ended
             elif keep_space and line.endswith('\\\\'):
 
+                # if skipping
+                if skipping:
+                    skipping = False
+                    keep_space_block = ''
+                    keep_space = False
+                    continue
+
                 # fix line
                 line = line[:-2]
                 line = line.strip()
@@ -404,7 +411,7 @@ class Interpreter:
 
                 # modify conditionals
                 keep_space = False
-
+                
                 # if setting to a variable
                 if line:
                     # set variable to python block
