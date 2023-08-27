@@ -43,7 +43,7 @@ function('ask_gpt', (
         _chrome.enter(),
 
         # wait for a response
-        _chrome.wait_for_text('Regenerate response'),
+        _chrome.wait_for_text('Regenerate'),
 
         # opens and injects JavaScript into the application's element 
         # inspection console

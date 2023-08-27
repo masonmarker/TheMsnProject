@@ -166,13 +166,13 @@ settings_path = 'msn2_settings.json'
 
 # if settings does not exist
 if not os.path.exists(settings_path):
-    
+
     # create settings
     with open(settings_path, 'w') as f:
 
         # dump default settings
         json.dump({'settings': {'has_ran': False, 'runner_alias': 'python'},
-                    'version': '2.0.385'}, f)
+                   'version': '2.0.385'}, f)
 
 # obtains the python alias
 with open('msn2_settings.json') as f:
@@ -228,11 +228,16 @@ models = {
 
 
 # accounting information
+inst_tree = {}
 lines_ran = []
 total_ints = 0
 
 # automation
 apps = {}
+
+# colors for colored printing,
+# defaults to nothing until assigned
+colors = ''
 
 # interprets MSNScript2, should create a new interpreter for each execution iteration
 
@@ -268,27 +273,27 @@ class Interpreter:
             # finished
             # set has_ran in the json file to true
             settings['settings']['has_ran'] = True
-            
+
             # write to the json file
             with open(settings_path, 'w') as f:
                 json.dump(settings, f)
-                
+
         # get the latest version number from system/latest.json
         with open('system/latest.json') as f:
             latest_version = json.load(f)['latest']
-            
+
         # if the version is not the latest
         if settings['version'] != latest_version:
             # update the version
             settings['version'] = latest_version
-            
+
             # write to the json file
             with open(settings_path, 'w') as f:
                 json.dump(settings, f)
 
         # set the current settings
-        self.settings = settings['settings']        
-        
+        self.settings = settings['settings']
+
         # get the version in the json file
         self.version = settings['version']
 
@@ -329,6 +334,9 @@ class Interpreter:
         # global and local scopes for internal Python environment
         self._globals = {}
         self._locals = {}
+        
+        # in a try block
+        self.trying = False
 
     # executes stored script
     def execute(self, script):
@@ -411,7 +419,7 @@ class Interpreter:
 
                 # modify conditionals
                 keep_space = False
-                
+
                 # if setting to a variable
                 if line:
                     # set variable to python block
@@ -511,10 +519,16 @@ class Interpreter:
         global auto_lock
         global pointer_lock
         global python_alias
+        global inst_tree
 
         # accounting
         total_ints += 1
         lines_ran.append(line)
+        
+        # determine the location of this instruction
+        # in the inst_tree depending on lines_ran
+        # and the current line
+        inst_tree[total_ints] = [self.current_line, line]
 
         # interpreter is breaking
         if self.breaking:
@@ -826,7 +840,11 @@ class Interpreter:
                                 # execute method
                                 # if objfunc == 'wait_for_field':
                                 #     print(to_pass, args)
-                                method.run(to_pass, self, args)
+                                try:
+                                    method.run(to_pass, self, args)
+                                # catch IndexError
+                                except IndexError:
+                                    self.raise_incorrect_args(str(len(method.args)), str(self.arg_count(args)), line, lines_ran, method)
 
                                 try:
                                     return eval(str(self.vars[method.returns[0]].value), {}, {})
@@ -2447,11 +2465,15 @@ class Interpreter:
                             '<': ',',
                             '>': '.',
                             '?': '/',
-                            '~': '`'
+                            '~': '`',
+                            ' ': ' '
                         }
                         # for each keystroke
                         for key in keystrokes:
-                            if key in special:
+                            if key == ' ':
+                                # if the key is a space
+                                new += ' '
+                            elif key in special:
                                 # if the key is a special character
                                 new += '{VK_SHIFT down}' + \
                                     special[key] + '{VK_SHIFT up}'
@@ -2860,7 +2882,8 @@ class Interpreter:
                                     writing, with_spaces=True)
                             except:
                                 # with_spaces not allowed
-                                ret = window.type_keys(writing)
+                                ret = window.type_keys(
+                                    convert_keys(writing), with_spaces=True)
                         # writes special characters into the console
                         # takes one argument, being the special characters to write
                         elif objfunc == 'write_special':
@@ -3603,23 +3626,24 @@ class Interpreter:
 
                 # user method execution requested
                 elif func in self.methods:
+
                     method = self.methods[func]
 
                     # create func args
                     func_args = []
 
-                    try:
+                    # if arguments supplied
+                    if not args[0][0] == '':
+                        
                         for i in range(len(args)):
                             arguments = args[i]
                             line, as_s, arg = self.parse(i, line, f, sp, args)
                             func_args.append(arg)
-                            meth_argname = method.args[i]
+                            try:
+                                meth_argname = method.args[i]
+                            except:
+                                self.raise_incorrect_args(str(len(method.args)), str(self.arg_count(args)), line, lines_ran, method)
                             self.vars[meth_argname] = Var(meth_argname, arg)
-                    except:
-                        l = len(method.args)
-                        if l != 0:
-                            self.err("bad arg count",
-                                     f"correct arg count is {l}", line)
 
                     # create return variable
                     ret_name = method.returns[0]
@@ -3629,16 +3653,17 @@ class Interpreter:
                         self.vars[ret_name] = Var(ret_name, None)
 
                     # execute method
-                    method.run(func_args, self, args)
+                    try:
+                        method.run(func_args, self, args)
+                        
+                    # incorrect amount of arguments supplied
+                    except IndexError:
+                        # raise msn2 error
+                        self.raise_incorrect_args(str(len(method.args)), str(self.arg_count(args)), line, lines_ran, method)
 
                     # if its a variable
                     if ret_name in self.vars:
                         return self.vars[ret_name].value
-
-                    #                     # create return variable
-                    # created_return_name = f"{func}__return__"
-                    # if created_return_name not in self.vars:
-                    #     self.vars[created_return_name].value = r
 
                     try:
                         return eval(str(self.vars[ret_name].value), {}, {})
@@ -3770,9 +3795,7 @@ class Interpreter:
                             failed = ''
                             for arg in args:
                                 failed += str(arg[0]) + ' '
-                            err = self.err("assertion error", "", failed)
-                            self.logg(err, line)
-                            return False
+                            self.err(f"Assertion error in '{line}'", assertion, failed, lines_ran)
 
                     return True
 
@@ -3815,10 +3838,10 @@ class Interpreter:
 
                     # runs a stored python script
                     elif objfunc == 'run':
-                        
+
                         # get the script
                         scr = self.parse(0, line, f, sp, args)[2]
-                        
+
                         # execute the python and return
                         # the snippet with arguments inserted
                         return self.exec_python(scr)
@@ -4312,8 +4335,18 @@ class Interpreter:
                 # gets a range()
                 elif func == 'range':
                     start = self.parse(0, line, f, sp, args)[2]
+                    # if one argument
+                    if len(args) == 1:
+                        return range(start)
+                    # get the end of the range
                     end = self.parse(1, line, f, sp, args)[2]
-                    return range(start, end)
+                    # if two arguments
+                    if len(args) == 2:
+                        return range(start, end)
+                    if len(args) == 3:
+                        step = self.parse(2, line, f, sp, args)[2]
+                        return range(start, end, step)
+                    return range()
 
                 # random capabilities
                 elif func == 'random':
@@ -4384,6 +4417,11 @@ class Interpreter:
                         # generates an ai response with the basic model
                         return ai_response(models['basic']['model'], self.parse(0, line, f, sp, args)[2], models['basic']['creativity'])
                     return '<msnint2 class>'
+
+                # raises an msn2 exception
+                elif func == 'raise':
+                    self.err(self.parse(0, line, f, sp, args)[2], self.parse(
+                        1, line, f, sp, args)[2], self.parse(2, line, f, sp, args)[2], lines_ran)
 
                 # defines new syntax, see tests/validator.msn2 for documentation
                 elif func == 'syntax':
@@ -4516,7 +4554,8 @@ class Interpreter:
                     # reads text from a file
                     if objfunc == 'read':
                         lock.acquire()
-                        file = open(self.parse(0, line, f, sp, args)[2], "r")
+                        file = open(self.parse(0, line, f, sp, args)[
+                                    2], "r", encoding='utf-8')
                         contents = file.read()
                         file.close()
                         lock.release()
@@ -4947,7 +4986,15 @@ class Interpreter:
                 elif func == 'get':
                     iterable = self.parse(0, line, f, sp, args)[2]
                     index = self.parse(1, line, f, sp, args)[2]
-                    return iterable[index]
+                    try:
+                        return iterable[index]
+                    except IndexError:
+                        self.err(
+                            'Index Error',
+                            f'Index out of bounds: {index} (you) > {str(len(iterable))} (max)',
+                            line,
+                            lines_ran
+                        )
 
                 # get the keys of the first argument
                 elif func == 'keys':
@@ -5049,6 +5096,17 @@ class Interpreter:
                         else:
                             print(Interpreter.bordered(str(ret)), flush=True)
                     return ret
+
+                # prints with styled colors
+                # use self.styled_print() to print
+                elif func == 'print:color':
+
+                    # obtain a list of each argument
+                    print_args = [self.parse(i, line, f, sp, args)[
+                        2] for i in range(len(args))]
+                    print(print_args)
+                    # print each argument
+                    return self.styled_print(print_args)
 
                 # sleeps the thread for the first argument amount of seconds
                 elif func == "sleep":
@@ -5447,14 +5505,17 @@ class Interpreter:
                 # there is no finally implementation
                 elif func == 'try':
                     ret = None
+                    self.trying = True
                     try:
                         ret = self.interpret(args[0][0])
                     except:
+                        self.trying = False
                         try:
                             catch_block = args[1][0]
                             ret = self.interpret(catch_block)
                         except:
-                            None
+                            ...
+                    self.trying = False
                     return ret
 
                 # waits for a certain condition to be true
@@ -6602,6 +6663,14 @@ class Interpreter:
 
         return with_msn2
 
+    # determines the number of arguments based on the args array
+    def arg_count(self, args):
+        # no arguments supplied
+        if args[0][0] == '':
+            return 0
+        else:
+            return len(args)
+
     def run_syntax(self, key, line):
         # get everything between after syntax and before next index of syntax
         # or end of line
@@ -6648,6 +6717,7 @@ class Interpreter:
         return None
 
     def parse(self, arg_number, line, f, sp, args):
+        # check for IndexError
         as_s = args[arg_number][0]
         line, ret = self.convert_arg(as_s, line, f, sp, args)
         return line, as_s, ret
@@ -6665,15 +6735,173 @@ class Interpreter:
     def logg(self, msg, line):
         self.log += "[*] " + msg + " : " + line + "\n"
 
-    def err(self, err, msg, line):
-        if msg == '':
-            errmsg = "[-] " + err + " : " + line
-        else:
-            errmsg = "[-] " + err + " : " + msg + " : " + line
-        self.out += errmsg + "\n"
-        self.log += errmsg + "\n"
-        print(errmsg)
-        return errmsg
+    # prints an array with styling
+    # the only argument is an array of maps,
+    # this is an example:
+    #
+    # [{'text': 'Hello', 'style': 'bold', 'fore': 'green', 'back': 'blue'},
+    # {'text': ' there', 'style': 'italic'}]
+    # version : 2.0.386
+    def styled_print(self, array):
+        global colors
+
+        # set colors if not available for the entire
+        # environment
+        if not colors:
+
+            # set the colors / styles
+            colors = {
+                '': '',
+                'reset': '\033[0m',
+                'black': '\033[30m',
+                'red': '\033[31m',
+                'green': '\033[32m',
+                'yellow': '\033[33m',
+                'blue': '\033[34m',
+                'magenta': '\033[35m',
+                'cyan': '\033[36m',
+                'white': '\033[37m',
+                'bold': '\033[1m',
+                'italic': '\033[3m',
+                'underline': '\033[4m',
+                'blink': '\033[5m'
+            }
+
+        # for each map in the array
+        for mp in array:
+
+            # get all the parameters if they exist
+            text = mp['text'] if 'text' in mp else ''
+
+            # get the style
+            style = mp['style'] if 'style' in mp else ''
+
+            # get the foreground color
+            fore = mp['fore'] if 'fore' in mp else ''
+
+            # get the background color
+            back = mp['back'] if 'back' in mp else ''
+
+            # print the text with the style
+            print(colors[style] + colors[fore] +
+                  colors[back] + text + colors['reset'], end='')
+
+        # print a newline
+        print()
+
+    def err(self, err, msg, line, lines_ran):
+        
+        # if we're not trying something, and there's an error,
+        # print the error
+        if not self.trying:
+        
+            # the total words printed for this error
+            words_printed = ''
+            
+            # prints the error
+            def print_err(array):
+                
+                # print the error
+                self.styled_print(array)
+                
+                # add to words printed
+                nonlocal words_printed
+                words_printed += str(array)
+            
+            # printing the traceback
+            print_err([
+                {'text': 'MSN2 Traceback:\n', 'style': 'bold', 'fore': 'green'},
+                {'text': (divider := '--------------'), 'style': 'bold', 'fore': 'green'},
+            ])
+                
+            _branches = []
+            root_nums = []
+            for k, (root_num, code_line) in inst_tree.items():
+                root_nums.append(root_num)
+            root_nums = list(set(root_nums))
+            root_nums.sort()
+            for root_num in root_nums:
+                branches = []
+                for k, (root_num2, code_line2) in inst_tree.items():
+                    if root_num2 == root_num:
+                        branches.append(code_line2)
+                _branches.append(branches)
+                
+            # print the traceback
+            for i, _branch in enumerate(_branches):
+                
+                # color of the text
+                _branch_color = 'black'
+                
+                # if this is the last branch
+                if (is_caller := i == len(_branches) - 1):
+                    _branch_color = 'red'
+                else:
+                    _branch_color = 'white'
+                # print the caller
+                print_err([
+                    {'text': '>> ', 'style': 'bold', 'fore': 'black'},
+                    {'text': _branch[0].strip(), 'style': 'bold', 'fore': _branch_color},
+                    {'text': ' <<< ' if is_caller else '', 'style': 'bold', 'fore': 'yellow'},
+                    {'text': 'SOURCE' if is_caller else '', 'style': 'bold', 'fore': 'yellow'}
+                ])
+                
+                # if branches more than 3
+                if len(_branch) > 4 and not is_caller:
+                    # print the lines branching off
+                    print_err([
+                        {'text': '    at   ', 'style': 'bold', 'fore': 'black'},
+                        {'text': _branch[0].strip(), 'style': 'bold', 'fore': _branch_color}
+                    ])
+                    # print ...
+                    print_err([
+                        {'text': '    at   ', 'style': 'bold', 'fore': 'black'},
+                        {'text': f'... ({len(_branch) - 4} more)', 'style': 'bold', 'fore': 'black'}
+                    ])
+                # if branches less than 3
+                else:
+                    if len(_branch) > 7:
+                        # print the before elipses
+                        print_err([
+                            {'text': '    at   ', 'style': 'bold', 'fore': 'black'},
+                            {'text': f'... ({len(_branch) - 7} more)', 'style': 'bold', 'fore': 'black'}
+                        ])
+                        for i, _branch2 in enumerate(_branch[len(_branch) - 7:]):
+                            print_err([
+                                {'text': '    at   ', 'style': 'bold', 'fore': 'black'},
+                                {'text': _branch2.strip(), 'style': 'bold', 'fore': _branch_color}
+                            ])
+                    else:
+                        for _branch2 in _branch[1:]:
+                            
+                            print_err([
+                                {'text': '    at   ', 'style': 'bold', 'fore': 'black'},
+                                {'text': _branch2.strip(), 'style': 'bold', 'fore': _branch_color}
+                            ])
+
+
+            # print the finishing divider
+            print_err([
+                {'text': divider, 'style': 'bold', 'fore': 'green'}
+            ])
+            
+            # print this error with print_err()
+            print_err([
+                {'text': '[-] ', 'style': 'bold', 'fore': 'red'},
+                {'text': err, 'style': 'bold', 'fore': 'red'},
+                {'text': '\n'},
+                {'text': msg, 'style': 'bold', 'fore': 'red'},
+            ])
+            # add to log
+            self.log += words_printed + "\n"
+            
+            raise self.MSN2Exception('MSN2 Exception thrown, see above for details')
+            # set printing color to white
+
+    # throws msn2 error for Incorrect number of arguments
+    def raise_incorrect_args(self, expected, actual, line, lines_ran, method):
+        self.err(f'Incorrect number of function arguments for {method.name}',
+                 f'Expected {expected}, got {actual}', line, lines_ran)
 
     def __del__(self):
         None
@@ -6712,8 +6940,9 @@ class Interpreter:
             exec(py_script, self._globals, self._locals)
         except Exception as e:
             # send an error
-            self.err("python error", str(e), py_script)
+            self.err("Error running Python script", str(e), py_script, lines_ran)
         return py_script
+
     def var_exists(self, varname):
         if varname in self.vars:
             return True
@@ -7115,6 +7344,10 @@ class Interpreter:
             res.append('│' + (s + ' ' * width)[:width] + '│')
         res.append('└' + '─' * width + '┘')
         return '\n'.join(res)
+
+    # exception
+    class MSN2Exception(Exception):
+        pass
 
     class Method:
         def __init__(self, name, interpreter):

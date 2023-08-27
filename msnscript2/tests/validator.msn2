@@ -30,7 +30,6 @@ var('thread_count', 0)
 
 # prints accounting information
 ~ print_threads() -> _
-    -- print('[+] created', ?thread_count?, 'threads')
     -- print('[+] interpreted', trace.len(), 'instructions')
 
 # clear console
@@ -2275,7 +2274,6 @@ script3 \\
 
 # script should not exist
 0\\
-
 script4\\
 
 1\\
@@ -2342,7 +2340,7 @@ def('test_python_snippets', (
 # macro for running tests
 # (added 5/16/2023)
 macro('TEST ', '__function', =>(
-    thread(cat('thread', test_count.inc()), private(assert(-(__function ))))
+    private(assert(-(__function)))
 ))
 
 # runs tests in their own private environment
@@ -2389,8 +2387,7 @@ macro('TEST ', '__function', =>(
 
     # testing macros
     -- TEST => (
-        assert(test_macros()),
-        add_and_export()
+        assert(test_macros())
     )
 
     -- TEST base_syntax_updates()
@@ -2398,27 +2395,15 @@ macro('TEST ', '__function', =>(
 
     # test is not run on another thread to avoid file reading conflicts
     -- private(assert(test_user_syntax()))
-    -- private(=>(
-        
-        # runs thread based test
-        assert(test_threads()),
-
-        # counts threads created in this context
-        add_and_export()
-    ))
+    # runs thread based test
+    -- private(assert(test_threads()))
 
     # tests processes, currently only implemented for windows
-    -- if (<< |windows()| and not |?tests_ran?| >>, =>(
+    -- if (<< |windows()| and not |?tests_ran?| >>, (
 
         # processes testing
-        private(=>(
-            assert(test_processes()),
-            add_and_export()
-        ))
-    )),
-    
-    # adds threads that launch the tests
-    -- add_threads()
+        private(assert(test_processes()))
+    ))
 
     -- @ tests_ran = 1
     -- var('_', True)

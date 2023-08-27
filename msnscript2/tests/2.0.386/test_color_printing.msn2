@@ -1,0 +1,18 @@
+# Tests colored printing.
+#
+# author : Mason Marker
+# date : 8/24/2023
+
+# printing with colors
+print:color(
+    object(
+        'text', 'Hello, ',
+        'fore', 'red'
+    ),
+    object(
+        'text', 'World!',
+        'fore', 'blue',
+        'back', 'green'
+    )
+)
+
