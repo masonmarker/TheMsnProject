@@ -1910,18 +1910,6 @@ function('test_redirect', =>(
     # indexing an iterable faster
     -- @v = {'hello': {'key': {'key2': 'password'}}}
 
-    # use -> to continue indexing after '.'
-    -- equals(v.hello -> key->key2(), 'password') ??
-
-    # add an argument to invoke a setting method
-    # instead of a getting method
-    # returns what was set
-    -- equals(v.hello->key ->key2('new_password'), 'new_password') ??
-    -- equals(v. hello -> key-> key2(), 'new_password') ??
-
-    # -> should not be used with lists, use .get() instead
-
-
     -- @ _ = 1
 # -------------------------------------------
 

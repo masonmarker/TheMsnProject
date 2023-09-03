@@ -29,8 +29,8 @@ chrome.wait_for_text (
 @ salary = salary_text.around('$', 0, 7)
 
 # get an integer from the string version of the salary
-() salary.replace('$', '')-->replace(',', '')
-@ salary = salary.int()
+salary.replace('$', '')
+salary.replace(',', '')
 
 # get the new tab button for Chrome, and click it
 @ new_tab = first(chrome .find_buttons('New Tab'))

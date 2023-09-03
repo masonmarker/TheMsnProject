@@ -60,6 +60,9 @@ class('cors_api', (
     @ init_data = {},
 
     # methods
+    # starts the api
+    def('start', 'self', 
+        ENDPOINT(self.host(), self.port(), self.path(), self.init_data())),
 
     # creates the path for the api
     function('url', (

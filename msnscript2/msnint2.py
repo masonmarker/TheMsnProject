@@ -24,9 +24,6 @@
 # it was defined. ex: "hello \"world\"" -> hello "world"
 # currently, this is not possible
 #
-# TODO
-# Determine absolutely necessary dependencies
-#
 # TODO (less important)
 # split interpreter up into multiple files
 # for better readability
@@ -107,7 +104,6 @@ class Var:
         if isinstance(other, Var):
             return other.name == self.name
 
-
 # path to the common settings file
 settings_path = 'msn2_settings.json'
 
@@ -120,9 +116,11 @@ if not os.path.exists(settings_path):
         # dump default settings
         json.dump({'settings': {'has_ran': False, 'runner_alias': 'python'},
                    'version': '2.0.385'}, f)
-
+        
 # global settings
 settings = None
+# python alias is in the msn2 settings json
+python_alias = 'python'
 
 # obtains the python alias
 with open('msn2_settings.json') as f:
@@ -130,8 +128,6 @@ with open('msn2_settings.json') as f:
     settings = json.load(f)
     python_alias = settings['settings']['runner_alias']
 
-# python alias is in the msn2 settings json
-python_alias = 'python'
 # msn2 implementation of None
 msn2_none = '___msn2_None_'
 # thread serial
@@ -5331,6 +5327,7 @@ class Interpreter:
                     return inter.interpret(args[0][0])
 
                 # sets the python alias
+                # until the program stops
                 elif func == 'alias':
                     python_alias = self.parse(0, line, f, sp, args)[2]
                     return python_alias
@@ -5762,7 +5759,38 @@ class Interpreter:
 
                     # gets Flask Api
                     api = Api(app)
-                    curr_endpoint = self.EndPoint.make_api(init_data)
+                    
+                    # api endpoint class
+                    class EndPoint(Resource):
+
+                        @classmethod
+                        def make_api(cls, response):
+                            cls.response = response
+                            return cls
+
+                        # GET
+                        def get(self):
+                            return self.response
+
+                        # POST
+                        def post(self):
+                            from flask import request
+                            # obtains current endpoint data
+                            current_data = self.response
+
+                            # updates current data with data to post
+                            current_data.update(request.get_json())
+
+                            # updates next response
+                            self.make_api(current_data)
+                            return current_data
+
+                        # DELETE
+                        def delete(self):
+                            self.make_api({})
+                            return self.response
+                    
+                    curr_endpoint = EndPoint.make_api(init_data)
 
                     # logs newly created endpoint
                     self.endpoints[path] = api
@@ -7449,36 +7477,6 @@ class Interpreter:
 
         def is_str(self, value):
             return (value[0] == '"' and value[-1] == '"') or (value[0] == "'" and value[-1] == "'")
-
-    class EndPoint(Resource):
-
-        @classmethod
-        def make_api(cls, response):
-            cls.response = response
-            return cls
-
-        # GET
-        def get(self):
-            return self.response
-
-        # POST
-        def post(self):
-            from flask import request
-            # obtains current endpoint data
-            current_data = self.response
-
-            # updates current data with data to post
-            current_data.update(request.get_json())
-
-            # updates next response
-            self.make_api(current_data)
-            return current_data
-
-        # DELETE
-        def delete(self):
-            self.make_api({})
-            return self.response
-
     # class for an App
 
     class App:
