@@ -1,10 +1,10 @@
 installing dependencies:
 
-there are only a few pip installs that need to
-be installed before executing .msn2 programs, just for flask servers, APIs and such,
-all of them are in dependencies.txt
+you may need to run a few pip installs before executing .msn2 programs.
+your program may or may not use the dependencies listed
+in the dependencies.txt file.
 
-these dependencies can be auto-installed via 'python install_deps.py'
+you can install all of these dependencies at once via 'python install_deps.py'
 
 these dependencies can also be re-installed via the msn2 help pages if necessary
 as of 2.0.385. find these pages and much more with 'python msn2.py help'

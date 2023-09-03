@@ -61,81 +61,42 @@
 # with the implementation of msn2_settings.json
 
 
+# TODO
+# 2.0.387
+#
+# * DEPENDENCIES <<<<< DONE
+# - determine absolutely necessary dependencies
+#   to speed up execution of any single program
+#
+# * UI
+# - add a message that can pop up and
+#   take input
+#
+# * CHROME BROWSER
+# - finish lib/auto/chrome class extension
+#
+# * VARIABLE DOMAINS
+# - create builders for variable domains
+# - create finders for variable domains
+
 # the current logical implementation is conceptual,
 # deoptimized, and exists to prove functionality as speed can
 # be enhanced later
 
-# importing dependencies
+# importing necessary dependencies
+# for all lines of execution
 import os
-import math
-import json
-import shutil
-import psutil
-import pywinauto
-import win32api
-import warnings
-import pyperclip
-from requests_html import HTMLSession, \
-    HTML
-
-# pywinauto automation
-from pywinauto.application import Application
-from pywinauto import mouse, \
-    timings, \
-    controls, \
-    findwindows, \
-    ElementAmbiguousError, \
-    ElementNotFoundError
-
-# automating Excel
-import openpyxl
-import concurrent.futures
-
-# ChatGPT API
-import openai
-
-# multiprogramming
-import subprocess
 import threading
-
-# APIs
-import requests
-from flask import Flask, request, jsonify
-from flask_restful import Resource, Api
-from flask_cors import CORS
-
-
-# general
-import random
-import time
-import logging
-import socket
-import sys
-import re
-
-# web scraping
-from bs4 import BeautifulSoup
+from flask_restful import Resource
 
 # remove warnings for calling of integers: "10()"
+import warnings
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
-# pywinauto defaults
-timings.Timings.after_clickinput_wait = 0.001
-timings.Timings.after_setcursorpos_wait = 0.001
-timings.Timings.after_sendkeys_key_wait = 0.001
-timings.Timings.after_menu_wait = 0.001
-
-
-# error reporting
-class Err:
-    def __init__(self, errorcode):
-        self.errorcode = errorcode
-
-# variable
+# variables
 
 
 class Var:
-
     # constructs a new Var
     def __init__(self, _msn2_reserved_varname, _msn2_reserved_varvalue):
         self.name = _msn2_reserved_varname
@@ -146,27 +107,13 @@ class Var:
         if isinstance(other, Var):
             return other.name == self.name
 
-# creates an ai model
-# creates and returns a custom ai model
-
-
-def ai_response(model, prompt, creativity):
-    return openai.Completion.create(
-        model=model,
-        prompt=prompt,
-        temperature=creativity
-    ).choices[0].text
-
-
-# python alias is in the msn2 settings json
-python_alias = 'python'
 
 # path to the common settings file
 settings_path = 'msn2_settings.json'
 
 # if settings does not exist
 if not os.path.exists(settings_path):
-
+    import json
     # create settings
     with open(settings_path, 'w') as f:
 
@@ -174,67 +121,50 @@ if not os.path.exists(settings_path):
         json.dump({'settings': {'has_ran': False, 'runner_alias': 'python'},
                    'version': '2.0.385'}, f)
 
+# global settings
+settings = None
+
 # obtains the python alias
 with open('msn2_settings.json') as f:
+    import json
     settings = json.load(f)
     python_alias = settings['settings']['runner_alias']
 
+# python alias is in the msn2 settings json
+python_alias = 'python'
 # msn2 implementation of None
 msn2_none = '___msn2_None_'
-
 # thread serial
 thread_serial = 0
-
 # global vars
 lock = threading.Lock()
 auxlock = threading.Lock()
-
 # lock for pointer controls
 pointer_lock = threading.Lock()
-
 # pywinauto automation lock
 auto_lock = threading.Lock()
-
+# timings_set switch
+timings_set = False
 # user defined syntax
 syntax = {}
-
 # user defined enclosing syntax
 enclosed = {}
-
 # user defined macros
 macros = {}
-
 # user defined post macros
 # aka macros that are defined that the end of a line
 postmacros = {}
-
 # user defined inline syntax
 inlines = {}
-
 # OpenAI model presets
 # these are the latest models at the time of creation
-models = {
-
-    # standard model, answers questions will little to no creativity
-    'basic': {'model': 'text-davinci-003', 'creativity': 0},
-
-    # creative model, answers questions with creativity
-    'creative': {'model': 'text-davinci-003', 'creativity': 0.5},
-
-    # advanced model, answers questions with high creativity
-    'advanced': {'model': 'text-davinci-003', 'creativity': 1}
-
-}
-
-
+models = None
 # accounting information
 inst_tree = {}
 lines_ran = []
 total_ints = 0
-
 # automation
 apps = {}
-
 # colors for colored printing,
 # defaults to nothing until assigned
 colors = ''
@@ -246,12 +176,6 @@ class Interpreter:
 
     # initializer
     def __init__(self):
-
-        # check for dependencies
-        # open msn2_settings.json
-        with open(settings_path) as f:
-            settings = json.load(f)
-
         # check if this environment has executed
         # a script before
         if not settings['settings']['has_ran']:
@@ -276,10 +200,12 @@ class Interpreter:
 
             # write to the json file
             with open(settings_path, 'w') as f:
+                import json
                 json.dump(settings, f)
 
         # get the latest version number from system/latest.json
         with open('system/latest.json') as f:
+            import json
             latest_version = json.load(f)['latest']
 
         # if the version is not the latest
@@ -289,59 +215,66 @@ class Interpreter:
 
             # write to the json file
             with open(settings_path, 'w') as f:
+                import json
                 json.dump(settings, f)
 
         # set the current settings
         self.settings = settings['settings']
-
         # get the version in the json file
         self.version = settings['version']
 
+        # basic logging
         self.lines = []
         self.out = ''
         self.log = ''
         self.errors = []
 
+        # environment logging
         self.vars = {}
         self.methods = {}
         self.loggedmethod = []
         self.objects = {}
         self.calledmethod = None
 
+        # advanced environment logging
         self.current_line = 0
         self.breaking = False
+        self.breaking_return = []
         self.redirect = None
         self.redirecting = False
         self.redirect_inside = []
         self.imports = set()
 
+        # threading
         self.thread = None
         self.threads = {}
         self.parent = None
 
+        # ChatGPT connections
         self.openaikey = None
         self.tokens = 100
         self.browser_path = None
         self.serial_1 = 0
 
+        # hosting endpoints
         self.endpoints = {}
         self.endpoint_datas = {}
         self.endpoint_path = 'demos/practical/apidata/apitestdata.csv'
 
+        # multiprocessing
         self.processes = {}
-        self.breaking_return = []
 
         # global and local scopes for internal Python environment
         self._globals = {}
         self._locals = {}
-        
+
         # in a try block
         self.trying = False
 
     # executes stored script
     def execute(self, script):
 
-        # # convert script to lines
+        # convert script to lines
         self.lines = []
 
         # for aggregate syntax support !{}
@@ -361,11 +294,13 @@ class Interpreter:
         def is_comment(_line):
             return _line.startswith('#') or _line.startswith('::')
 
+        # for each line of code
         for line in filter(None, script.split("\n")):
 
             # add to list of lines
             self.lines.append(line)
 
+            # continue if this line is a comment
             if is_comment(line):
                 continue
 
@@ -499,9 +434,7 @@ class Interpreter:
     def replace_vars(self, line):
         boo = line
         for varname in sorted(self.vars.keys(), key=len, reverse=True):
-
             try:
-
                 boo = boo.replace(varname, str(
                     self.get_var(eval(f'"{varname}"', {}, {}))))
             except:
@@ -524,7 +457,7 @@ class Interpreter:
         # accounting
         total_ints += 1
         lines_ran.append(line)
-        
+
         # determine the location of this instruction
         # in the inst_tree depending on lines_ran
         # and the current line
@@ -844,7 +777,8 @@ class Interpreter:
                                     method.run(to_pass, self, args)
                                 # catch IndexError
                                 except IndexError:
-                                    self.raise_incorrect_args(str(len(method.args)), str(self.arg_count(args)), line, lines_ran, method)
+                                    self.raise_incorrect_args(str(len(method.args)), str(
+                                        self.arg_count(args) - 1), line, lines_ran, method)
 
                                 try:
                                     return eval(str(self.vars[method.returns[0]].value), {}, {})
@@ -1136,7 +1070,6 @@ class Interpreter:
 
                     # number specific functions
                     if isinstance(object, int) or isinstance(object, float) or isinstance(object, complex):
-
                         # increases the value of the variable by 1
                         if objfunc == '++' or objfunc == 'inc':
                             self.vars[vname].value += 1
@@ -1201,11 +1134,15 @@ class Interpreter:
                             return self.vars[vname].value
 
                         elif objfunc == 'floor':
+                            # using math
+                            import math
                             self.vars[vname].value = math.floor(
                                 self.vars[vname].value)
                             return self.vars[vname].value
 
                         elif objfunc == 'ceil':
+                            # using math
+                            import math
                             self.vars[vname].value = math.ceil(
                                 self.vars[vname].value)
                             return self.vars[vname].value
@@ -1368,6 +1305,7 @@ class Interpreter:
 
                         # shuffles a list
                         if objfunc == 'shuffle':
+                            import random
                             random.shuffle(self.vars[vname].value)
                             return self.vars[vname].value
 
@@ -1536,8 +1474,7 @@ class Interpreter:
 
                     # working with the HTML session
                     # object
-                    elif isinstance(object, HTMLSession):
-
+                    elif str(type(object)) == "<class 'requests_html.HTMLSession'>":
                         # gets information from a website
                         if objfunc == 'all':
                             return object.get(self.parse(0, line, f, sp, args)[2]).html
@@ -1550,7 +1487,7 @@ class Interpreter:
 
                     # working with requests_html.HTML
                     # 2.0.384
-                    elif isinstance(object, HTML):
+                    elif str(type(object)) == "<class 'requests_html.HTML'>":
 
                         # finds elements in the HTML
                         if objfunc == 'gather':
@@ -1997,6 +1934,7 @@ class Interpreter:
                                 if (_ret := find_element_()) is not None:
                                     return _ret
                         else:
+                            import time
                             # get the current time
                             start_time = time.time()
                             # while the time elapsed is less than the timeout
@@ -2019,6 +1957,7 @@ class Interpreter:
                                 if (_ret := find_element_()) is not None:
                                     return _ret
                         else:
+                            import time
                             # get the current time
                             start_time = time.time()
                             # while the time elapsed is less than the timeout
@@ -2365,6 +2304,8 @@ class Interpreter:
                     # moves the mouse to the center of an element, and clicks it
 
                     def clk(window, button='left', waittime=0):
+                        import time
+                        from pywinauto import mouse
                         # set the focus to this element
                         window.set_focus()
 
@@ -2489,10 +2430,12 @@ class Interpreter:
                     # types keys with a delay between each key
                     def type_keys_with_delay(window, text, delay):
                         e = False
+                        import time
                         for char in text:
                             try:
                                 window.type_keys(char, with_spaces=True)
                             except:
+
                                 if not e:
                                     window.set_focus()
                                     e = True
@@ -2745,7 +2688,6 @@ class Interpreter:
                     #   - I've tested this on a Windows 11 laptop and it doesn't
                     #     work for some reason
                     if isinstance(object, self.App):
-
                         # return for an app
                         ret = object
 
@@ -2768,9 +2710,8 @@ class Interpreter:
                             ret = srch
 
                         # STARTING AND STOPPING APPLICATIONS
-                        # creates and starts the application
-                        # TODO
                         if objfunc == 'start':
+                            from pywinauto.application import Application
                             # create and start the application
                             if not object.application:
                                 object.application = Application(
@@ -2792,6 +2733,7 @@ class Interpreter:
 
                         # gets a connection to this application
                         elif objfunc == 'connection':
+                            from pywinauto.application import Application
                             ret = self.App(object.path, Application(
                                 backend="uia").connect(process=object.application.process))
 
@@ -2903,6 +2845,10 @@ class Interpreter:
                         # sends keystrokes to the application
                         # takes one argument, being the keystrokes to send
                         elif objfunc == 'send_keys':
+
+                            # import pywinauto.keyboard
+                            import pywinauto
+
                             # sends keystrokes to the application
                             ret = pywinauto.keyboard.send_keys(convert_keys(
                                 self.parse(0, line, f, sp, args)[2]), with_spaces=True)
@@ -2911,6 +2857,10 @@ class Interpreter:
                         # recurses through all children, determining which elements have
                         # the mouses position
                         elif objfunc == 'hovered':
+
+                            # import win32api
+                            import win32api
+
                             # get the root window of this application
                             root = window.top_level_parent()
 
@@ -2992,6 +2942,8 @@ class Interpreter:
                         # function to move the mouse from start to end,
                         # with a speed of speed
                         def movemouse(start, end, speed):
+                            import time
+                            from pywinauto import mouse
                             # reverse the speed, so a speed of 50 gives
                             # end_range of 50, and a speed of 75 gives
                             # end_range of 25
@@ -3071,6 +3023,7 @@ class Interpreter:
                         # operation is very slow, should be used mainly
                         # for element discovery
                         elif objfunc == 'element_above':
+                            from pywinauto import mouse
                             # pixels above
                             pixels = self.parse(0, line, f, sp, args)[2]
                             # get the root window of this application
@@ -3088,6 +3041,7 @@ class Interpreter:
                             # that have the point specified
                             ret = rec(root, mid, top)
                         elif objfunc == 'element_below':
+                            from pywinauto import mouse
                             # pixels above
                             pixels = self.parse(0, line, f, sp, args)[2]
                             # get the root window of this application
@@ -3103,6 +3057,7 @@ class Interpreter:
                             # that have the point specified
                             ret = rec(root, mid, bottom)
                         elif objfunc == 'element_left':
+                            from pywinauto import mouse
                             # pixels to the left
                             pixels = self.parse(0, line, f, sp, args)[2]
                             # get the root window of this application
@@ -3119,6 +3074,7 @@ class Interpreter:
                             # that have the point specified
                             ret = rec(root, left, mid)
                         elif objfunc == 'element_right':
+                            from pywinauto import mouse
                             # pixels to the right
                             pixels = self.parse(0, line, f, sp, args)[2]
                             # get the root window of this application
@@ -3141,6 +3097,7 @@ class Interpreter:
 
                         # scrolls to the window
                         elif objfunc == 'scroll':
+                            from pywinauto import mouse
                             ret = mouse.scroll(coords=(window.get_properties()['rectangle'].mid_point()[0],
                                                        window.get_properties()['rectangle'].mid_point()[1]))
 
@@ -3222,6 +3179,7 @@ class Interpreter:
 
                         # hovers over the window
                         elif objfunc == 'hover':
+                            from pywinauto import mouse
                             # hovers the mouse over the window, using the mid point of the element
                             ret = mouse.move(
                                 coords=(window.get_properties()['rectangle'].mid_point()))
@@ -3311,6 +3269,7 @@ class Interpreter:
                             # try to accumulate all the rows
                             # up to sys.maxsize
                             elif objfunc == 'matrix':
+                                import sys
                                 matrix = []
                                 for i in range(sys.maxsize):
                                     try:
@@ -3634,7 +3593,7 @@ class Interpreter:
 
                     # if arguments supplied
                     if not args[0][0] == '':
-                        
+
                         for i in range(len(args)):
                             arguments = args[i]
                             line, as_s, arg = self.parse(i, line, f, sp, args)
@@ -3642,7 +3601,8 @@ class Interpreter:
                             try:
                                 meth_argname = method.args[i]
                             except:
-                                self.raise_incorrect_args(str(len(method.args)), str(self.arg_count(args)), line, lines_ran, method)
+                                self.raise_incorrect_args(str(len(method.args)), str(
+                                    self.arg_count(args)), line, lines_ran, method)
                             self.vars[meth_argname] = Var(meth_argname, arg)
 
                     # create return variable
@@ -3655,11 +3615,12 @@ class Interpreter:
                     # execute method
                     try:
                         method.run(func_args, self, args)
-                        
+
                     # incorrect amount of arguments supplied
                     except IndexError:
                         # raise msn2 error
-                        self.raise_incorrect_args(str(len(method.args)), str(self.arg_count(args)), line, lines_ran, method)
+                        self.raise_incorrect_args(str(len(method.args)), str(
+                            self.arg_count(args)), line, lines_ran, method)
 
                     # if its a variable
                     if ret_name in self.vars:
@@ -3795,7 +3756,8 @@ class Interpreter:
                             failed = ''
                             for arg in args:
                                 failed += str(arg[0]) + ' '
-                            self.err(f"Assertion error in '{line}'", assertion, failed, lines_ran)
+                            self.err(
+                                f"Assertion error in '{line}'", assertion, failed, lines_ran)
 
                     return True
 
@@ -4350,6 +4312,7 @@ class Interpreter:
 
                 # random capabilities
                 elif func == 'random':
+                    import random
                     # gets a random number between 0 and 1
                     if len(args) == 1:
 
@@ -4366,6 +4329,8 @@ class Interpreter:
 
                     # random int in range
                     elif len(args) == 3:
+                        # using math
+                        import math
                         arg = self.parse(0, line, f, sp, args)[2]
                         arg2 = self.parse(1, line, f, sp, args)[2]
 
@@ -4380,7 +4345,8 @@ class Interpreter:
 
                     # creates a BeautifulSoup object of a url
                     if objfunc == 'soup':
-
+                        from bs4 import BeautifulSoup
+                        import requests
                         response = requests.get(url)
                         return BeautifulSoup(response.content, 'html5lib')
 
@@ -4397,11 +4363,14 @@ class Interpreter:
 
                     # starts an HTMLSession
                     if objfunc == 'session':
+                        from requests_html import HTMLSession
                         return HTMLSession()
 
                 # ai specific usage
                 elif obj == 'ai':
-
+                    # ChatGPT API
+                    import openai
+                    global models
                     # verify existence of openai api key
                     if not openai.api_key:
                         try:
@@ -4409,11 +4378,29 @@ class Interpreter:
                         except:
                             raise Exception(
                                 'OpenAI API key not found. Please set your OPENAI_API_KEY environment variable to your OpenAI API key.')
-
+                    # if models not defined, define them
+                    if not models:
+                        models = {
+                            # standard model, answers questions will little to no creativity
+                            'basic': {'model': 'text-davinci-003', 'creativity': 0},
+                            # creative model, answers questions with creativity
+                            'creative': {'model': 'text-davinci-003', 'creativity': 0.5},
+                            # advanced model, answers questions with high creativity
+                            'advanced': {'model': 'text-davinci-003', 'creativity': 1}
+                        }
                     # asks openai model a question
                     # simple ai, see top of file for definition
                     if objfunc == 'basic':
-
+                        # creates an ai model
+                        # creates and returns a custom ai model
+                        def ai_response(model, prompt, creativity):
+                            # ChatGPT API
+                            import openai
+                            return openai.Completion.create(
+                                model=model,
+                                prompt=prompt,
+                                temperature=creativity
+                            ).choices[0].text
                         # generates an ai response with the basic model
                         return ai_response(models['basic']['model'], self.parse(0, line, f, sp, args)[2], models['basic']['creativity'])
                     return '<msnint2 class>'
@@ -4542,7 +4529,8 @@ class Interpreter:
 
                 # performs file-specific operations
                 elif obj == 'file':
-
+                    # import shutil
+                    import shutil
                     # creates a file
                     if objfunc == 'create':
                         lock.acquire()
@@ -4785,6 +4773,8 @@ class Interpreter:
 
                 # # performs math operations
                 elif obj == 'math':
+                    import math
+
                     if objfunc == 'add':
                         return self.parse(0, line, f, sp, args)[2] + self.parse(1, line, f, sp, args)[2]
 
@@ -5110,6 +5100,7 @@ class Interpreter:
 
                 # sleeps the thread for the first argument amount of seconds
                 elif func == "sleep":
+                    import time
                     return time.sleep(self.parse(0, line, f, sp, args)[2])
 
                 # returns this interpreter
@@ -5270,6 +5261,7 @@ class Interpreter:
 
                 # gets the current time
                 elif func == 'now':
+                    import time
                     return time.time()
 
                 # creates a private execution enviroment
@@ -5403,6 +5395,7 @@ class Interpreter:
 
                 # creates a thread pool to execute the block
                 elif func == "threadpool":
+                    import concurrent.futures
                     # get the amount of threads to create
                     thread_count = self.parse(0, line, f, sp, args)[2]
                     # get the block to execute
@@ -5533,6 +5526,7 @@ class Interpreter:
 
                     # block with tick provided
                     elif len(args) == 3:
+                        import time
                         s = self.parse(2, line, f, sp, args)[2]
                         while not (ret := self.interpret(args[0][0])):
                             self.interpret(args[1][0])
@@ -5546,6 +5540,7 @@ class Interpreter:
                 # the interval should last for, if not provided, the interval
                 # will last forever
                 if func == 'interval':
+                    import time
 
                     # amount of seconds
                     seconds = self.parse(0, line, f, sp, args)[2]
@@ -5649,7 +5644,7 @@ class Interpreter:
                 # first parameter is the URL
                 # second parameter is a map of parameters to sent as a request
                 elif func == 'request':
-
+                    import requests
                     # get URL to request from
                     url = self.parse(0, line, f, sp, args)[2]
 
@@ -5686,16 +5681,22 @@ class Interpreter:
 
                 # gets the public IP address of the machine
                 elif func == 'pubip':
-
+                    import requests
                     # asks an api server for this address
                     return requests.get('https://api.ipify.org').text
 
                 # gets the private ips of this machine
                 elif func == 'privips':
+                    import socket
                     return socket.gethostbyname_ex(socket.gethostname())[2]
 
                 # starts an api endpoint
                 elif func == 'ENDPOINT':
+
+                    # imports
+                    from flask import Flask
+                    from flask_restful import Api
+                    import logging
 
                     # initial API endpoint data
                     path = None
@@ -5748,6 +5749,7 @@ class Interpreter:
                     # if the last argument is a string with 'CORS' in it
                     # then enable CORS
                     if isinstance(last_arg, str) and 'CORS' in last_arg:
+                        from flask_cors import CORS
                         # enable CORS
                         print('starting with cors')
                         cors = True
@@ -5788,6 +5790,7 @@ class Interpreter:
 
                 # posts to an api endpoint
                 elif func == 'POST':
+                    import requests
 
                     # url to post to, defaults to localhost
                     host = self.parse(0, line, f, sp, args)[2]
@@ -5817,7 +5820,7 @@ class Interpreter:
 
                 # gets from an api endpoint
                 elif func == 'GET':
-
+                    import requests
                     # url to get from, defaults to localhost
                     host = self.parse(0, line, f, sp, args)[2]
 
@@ -5837,7 +5840,7 @@ class Interpreter:
 
                 # deletes from an api endpoint
                 elif func == 'DELETE':
-
+                    import requests
                     # url to delete from, defaults to localhost
                     host = self.parse(0, line, f, sp, args)[2]
 
@@ -5867,6 +5870,7 @@ class Interpreter:
 
                 # determines if system is mac
                 elif func == 'mac':
+                    import sys
                     return sys.platform == 'darwin'
 
                 # simulates function closure
@@ -5973,6 +5977,15 @@ class Interpreter:
                 # one argument: path to application
                 # any more arguments: the existing application doesn't close
                 elif func == 'app':
+                    global timings_set
+                    # set timings if not already set
+                    if not timings_set:
+                        from pywinauto import timings
+                        # pywinauto defaults
+                        timings.Timings.after_clickinput_wait = 0.001
+                        timings.Timings.after_setcursorpos_wait = 0.001
+                        timings.Timings.after_sendkeys_key_wait = 0.001
+                        timings.Timings.after_menu_wait = 0.001
 
                     # get the path to the application
                     path = self.parse(0, line, f, sp, args)[2]
@@ -6000,6 +6013,7 @@ class Interpreter:
                 # connects to the first argument given that
                 # the first argument is an instance of self.App
                 elif func == 'connect':
+                    from pywinauto.application import Application
                     # connecting to
                     appl = self.parse(0, line, f, sp, args)[2]
                     a = Application(backend="uia").connect(
@@ -6016,6 +6030,8 @@ class Interpreter:
                 #
                 # creation of a workbook can be done with the 'file' msn2 class
                 elif func == 'excel':
+                    # automating Excel
+                    import openpyxl
                     path = self.parse(0, line, f, sp, args)[2]
 
                     # creates and returns a Workbook
@@ -6312,7 +6328,7 @@ class Interpreter:
 
                 # mouse pointer operations
                 elif obj.startswith('pointer'):
-
+                    from pywinauto import mouse
                     # thread based action?
                     p_thread = False
 
@@ -6326,6 +6342,8 @@ class Interpreter:
 
                     # gets the current position of the mouse
                     if objfunc == 'getpos' or objfunc == 'pos' or objfunc == 'position':
+                        # import win32api
+                        import win32api
                         ret = win32api.GetCursorPos()
 
                     # moves the mouse to an x, y position
@@ -6340,6 +6358,8 @@ class Interpreter:
                                               2], self.parse(1, line, f, sp, args)[2]))
                         # if no args are provided
                         else:
+                            # import win32api
+                            import win32api
                             ret = mouse.click(coords=win32api.GetCursorPos())
 
                     # right clicks the mouse
@@ -6350,6 +6370,8 @@ class Interpreter:
                                                     2], self.parse(1, line, f, sp, args)[2]))
                         # if no args are provided
                         else:
+                            # import win32api
+                            import win32api
                             ret = mouse.right_click(
                                 coords=win32api.GetCursorPos())
                     # double clicks the mouse
@@ -6360,34 +6382,42 @@ class Interpreter:
                                                      2], self.parse(1, line, f, sp, args)[2]))
                         # if no args are provided
                         else:
+                            import win32api
                             ret = mouse.double_click(
                                 coords=win32api.GetCursorPos())
                     # scrolls the mouse wheel to the bottom of the page
                     elif objfunc == 'scroll_bottom':
+                        import win32api
                         ret = mouse.scroll(
                             wheel_dist=9999999, coords=win32api.GetCursorPos())
                     # scrolls the mouse wheel to the top of the page
                     elif objfunc == 'scroll_top':
+                        import win32api
                         ret = mouse.scroll(
                             wheel_dist=-9999999, coords=win32api.GetCursorPos())
                     elif objfunc == 'scroll':
+                        import win32api
                         ret = mouse.scroll(wheel_dist=self.parse(0, line, f, sp, args)[
                                            2], coords=win32api.GetCursorPos())
 
                     # determines if the left mouse button is down
                     elif objfunc == 'left_down':
+                        import win32api
                         ret = win32api.GetKeyState(0x01) < 0
                     # determines if the right mouse button is down
                     elif objfunc == 'right_down':
+                        import win32api
                         ret = win32api.GetKeyState(0x02) < 0
                     # waits for the left button to be pressed
                     elif objfunc == 'wait_left':
+                        import win32api
                         while True:
                             if win32api.GetKeyState(0x01) < 0:
                                 break
                         ret = True
                     # waits for the right button to be pressed
                     elif objfunc == 'wait_right':
+                        import win32api
                         while True:
                             if win32api.GetKeyState(0x02) < 0:
                                 break
@@ -6396,6 +6426,7 @@ class Interpreter:
                     # waits for the left button to be pressed down
                     # then waits for it to be released
                     elif objfunc == 'wait_left_click':
+                        import win32api
                         while True:
                             if win32api.GetKeyState(0x01) < 0:
                                 break
@@ -6406,6 +6437,7 @@ class Interpreter:
                     # waits for the right button to be pressed down
                     # then waits for it to be released
                     elif objfunc == 'wait_right_click':
+                        import win32api
                         while True:
                             if win32api.GetKeyState(0x02) < 0:
                                 break
@@ -6417,21 +6449,25 @@ class Interpreter:
                     # DIRECTIONAL MOVEMENTS
                     # moves the mouse down from its current location
                     elif objfunc == 'down':
+                        import win32api
                         curr_x, curr_y = win32api.GetCursorPos()
                         ret = mouse.move(
                             coords=(curr_x, curr_y + self.parse(0, line, f, sp, args)[2]))
                     # moves the mouse up from its current location
                     elif objfunc == 'up':
+                        import win32api
                         curr_x, curr_y = win32api.GetCursorPos()
                         ret = mouse.move(
                             coords=(curr_x, curr_y - self.parse(0, line, f, sp, args)[2]))
                     # moves the mouse left from its current location
                     elif objfunc == 'left':
+                        import win32api
                         curr_x, curr_y = win32api.GetCursorPos()
                         ret = mouse.move(
                             coords=(curr_x - self.parse(0, line, f, sp, args)[2], curr_y))
                     # moves the mouse right from its current location
                     elif objfunc == 'right':
+                        import win32api
                         curr_x, curr_y = win32api.GetCursorPos()
                         ret = mouse.move(
                             coords=(curr_x + self.parse(0, line, f, sp, args)[2], curr_y))
@@ -6442,6 +6478,7 @@ class Interpreter:
                     # the second two are the ending coordinates
                     # 5th argument is speed from 0-100
                     elif objfunc == 'drag':
+                        import time
                         start = (self.parse(0, line, f, sp, args)[2],
                                  self.parse(1, line, f, sp, args)[2])
                         end = (self.parse(2, line, f, sp, args)[2],
@@ -6484,6 +6521,9 @@ class Interpreter:
                 # if one argument, the text is copied
                 # uses pyperclip
                 elif func == 'clipboard':
+
+                    # import pyperclip
+                    import pyperclip
 
                     # if no arguments
                     if args[0][0] == '':
@@ -6790,30 +6830,31 @@ class Interpreter:
         print()
 
     def err(self, err, msg, line, lines_ran):
-        
+
         # if we're not trying something, and there's an error,
         # print the error
         if not self.trying:
-        
+
             # the total words printed for this error
             words_printed = ''
-            
+
             # prints the error
             def print_err(array):
-                
+
                 # print the error
                 self.styled_print(array)
-                
+
                 # add to words printed
                 nonlocal words_printed
                 words_printed += str(array)
-            
+
             # printing the traceback
             print_err([
                 {'text': 'MSN2 Traceback:\n', 'style': 'bold', 'fore': 'green'},
-                {'text': (divider := '--------------'), 'style': 'bold', 'fore': 'green'},
+                {'text': (divider := '--------------'),
+                 'style': 'bold', 'fore': 'green'},
             ])
-                
+
             _branches = []
             root_nums = []
             for k, (root_num, code_line) in inst_tree.items():
@@ -6826,13 +6867,13 @@ class Interpreter:
                     if root_num2 == root_num:
                         branches.append(code_line2)
                 _branches.append(branches)
-                
+
             # print the traceback
             for i, _branch in enumerate(_branches):
-                
+
                 # color of the text
                 _branch_color = 'black'
-                
+
                 # if this is the last branch
                 if (is_caller := i == len(_branches) - 1):
                     _branch_color = 'red'
@@ -6841,22 +6882,27 @@ class Interpreter:
                 # print the caller
                 print_err([
                     {'text': '>> ', 'style': 'bold', 'fore': 'black'},
-                    {'text': _branch[0].strip(), 'style': 'bold', 'fore': _branch_color},
-                    {'text': ' <<< ' if is_caller else '', 'style': 'bold', 'fore': 'yellow'},
-                    {'text': 'SOURCE' if is_caller else '', 'style': 'bold', 'fore': 'yellow'}
+                    {'text': _branch[0].strip(), 'style': 'bold',
+                     'fore': _branch_color},
+                    {'text': ' <<< ' if is_caller else '',
+                        'style': 'bold', 'fore': 'yellow'},
+                    {'text': 'SOURCE' if is_caller else '',
+                        'style': 'bold', 'fore': 'yellow'}
                 ])
-                
+
                 # if branches more than 3
                 if len(_branch) > 4 and not is_caller:
                     # print the lines branching off
                     print_err([
                         {'text': '    at   ', 'style': 'bold', 'fore': 'black'},
-                        {'text': _branch[0].strip(), 'style': 'bold', 'fore': _branch_color}
+                        {'text': _branch[0].strip(), 'style': 'bold',
+                         'fore': _branch_color}
                     ])
                     # print ...
                     print_err([
                         {'text': '    at   ', 'style': 'bold', 'fore': 'black'},
-                        {'text': f'... ({len(_branch) - 4} more)', 'style': 'bold', 'fore': 'black'}
+                        {'text': f'... ({len(_branch) - 4} more)',
+                         'style': 'bold', 'fore': 'black'}
                     ])
                 # if branches less than 3
                 else:
@@ -6864,27 +6910,31 @@ class Interpreter:
                         # print the before elipses
                         print_err([
                             {'text': '    at   ', 'style': 'bold', 'fore': 'black'},
-                            {'text': f'... ({len(_branch) - 7} more)', 'style': 'bold', 'fore': 'black'}
+                            {'text': f'... ({len(_branch) - 7} more)',
+                             'style': 'bold', 'fore': 'black'}
                         ])
                         for i, _branch2 in enumerate(_branch[len(_branch) - 7:]):
                             print_err([
-                                {'text': '    at   ', 'style': 'bold', 'fore': 'black'},
-                                {'text': _branch2.strip(), 'style': 'bold', 'fore': _branch_color}
+                                {'text': '    at   ',
+                                    'style': 'bold', 'fore': 'black'},
+                                {'text': _branch2.strip(), 'style': 'bold',
+                                 'fore': _branch_color}
                             ])
                     else:
                         for _branch2 in _branch[1:]:
-                            
-                            print_err([
-                                {'text': '    at   ', 'style': 'bold', 'fore': 'black'},
-                                {'text': _branch2.strip(), 'style': 'bold', 'fore': _branch_color}
-                            ])
 
+                            print_err([
+                                {'text': '    at   ',
+                                    'style': 'bold', 'fore': 'black'},
+                                {'text': _branch2.strip(), 'style': 'bold',
+                                 'fore': _branch_color}
+                            ])
 
             # print the finishing divider
             print_err([
                 {'text': divider, 'style': 'bold', 'fore': 'green'}
             ])
-            
+
             # print this error with print_err()
             print_err([
                 {'text': '[-] ', 'style': 'bold', 'fore': 'red'},
@@ -6894,8 +6944,9 @@ class Interpreter:
             ])
             # add to log
             self.log += words_printed + "\n"
-            
-            raise self.MSN2Exception('MSN2 Exception thrown, see above for details')
+
+            raise self.MSN2Exception(
+                'MSN2 Exception thrown, see above for details')
             # set printing color to white
 
     # throws msn2 error for Incorrect number of arguments
@@ -6940,7 +6991,8 @@ class Interpreter:
             exec(py_script, self._globals, self._locals)
         except Exception as e:
             # send an error
-            self.err("Error running Python script", str(e), py_script, lines_ran)
+            self.err("Error running Python script",
+                     str(e), py_script, lines_ran)
         return py_script
 
     def var_exists(self, varname):
@@ -7229,7 +7281,9 @@ class Interpreter:
 
     # scrapes all html elements from a URL
     def html_all_elements(self, url):
-
+        import requests
+        # web scraping
+        from bs4 import BeautifulSoup
         # obtains a response from the URL
         response = requests.get(url)
 
@@ -7409,7 +7463,7 @@ class Interpreter:
 
         # POST
         def post(self):
-
+            from flask import request
             # obtains current endpoint data
             current_data = self.response
 

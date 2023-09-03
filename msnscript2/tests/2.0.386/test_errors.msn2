@@ -26,3 +26,19 @@ try((
     test_func(11)
 ))
 
+# python error
+\\
+import math
+# using the math module incorrectly
+print(math.sqrt('hello'))
+py_script \\
+
+# must be real number, not str
+try(py.run(py_script))
+
+
+
+
+
+
+

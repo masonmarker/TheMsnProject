@@ -1,5 +1,4 @@
-# Installs all necessary dependencies for launching msn2
-# programs.
+# Installs all dependencies used in msn2 programs.
 #
 # author : Mason Marker
 # date : 8/15/2023

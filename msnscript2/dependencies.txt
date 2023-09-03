@@ -1,5 +1,12 @@
 
+
 --- GENERAL DEPENDENCIES
+--- these are all the dependencies used
+    by the msn2 interpreter, though not all programs
+    may use all of these dependencies, as they are
+    imported when an msn2 program requires it.
+    this is as of 2.0.387
+
 pip install bs4
 pip install html5lib
 pip install openai
@@ -9,7 +16,6 @@ pip install flask_restful
 pip install flask_cors
 pip install -U pywinauto
 pip install openpyxl
-pip install psutil
 pip install pyperclip
 pip install requests-html
 

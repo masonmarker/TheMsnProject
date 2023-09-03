@@ -6,5 +6,11 @@
 # importing the module
 import ('lib/extend/array')
 
-# array:at
-assert(equals(array:at([1, 2, 3, 4, 5], 2), 3))
+# import testing functions
+import ('lib/tests')
+
+# common array to test with
+
+
+# test the module
+tests:run(0, array:at([1, 2, 3, 4, 5], 0))
