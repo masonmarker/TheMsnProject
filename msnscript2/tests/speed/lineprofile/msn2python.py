@@ -26,7 +26,7 @@ import sys
 def run(filename, inputs):
 
     # opens the file for reading
-    f = open(filename, "r", encoding="utf-8")
+    f = open(filename, "r")
     script = f.read()
     
     # create an Interpreter to run the script

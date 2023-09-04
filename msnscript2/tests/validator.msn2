@@ -1322,7 +1322,7 @@ serial_open('thread')
     # any line of code preceeded with a ':' will 
     # be executed on a new thread
     -- macro(':', 'line', =>(
-        @ name = |serial_next('thread')|,
+        @ name = serial_next('thread'),
         thread(?name?, -(?line?)),
         ?name?
     ))

@@ -27,7 +27,7 @@ clear()
         times.push(?rt?)   
     ))
 
-    -- @timer_off = |times.avg()|
+    -- @timer_off = times.avg()
     -- print_result('timer setup (factored into below runtimes)', times.avg())
 
 # runs a timer given an async block of code

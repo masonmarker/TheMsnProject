@@ -85,6 +85,7 @@
 import os
 import threading
 from flask_restful import Resource
+from line_profiler import profile
 
 # remove warnings for calling of integers: "10()"
 import warnings
@@ -268,6 +269,7 @@ class Interpreter:
         self.trying = False
 
     # executes stored script
+    @profile
     def execute(self, script):
 
         # convert script to lines
@@ -438,6 +440,7 @@ class Interpreter:
                 None
         return boo
 
+    @profile
     def interpret(self, line, block={}, keep_space=False):
 
         # acquiring globals
@@ -2852,7 +2855,6 @@ class Interpreter:
                         # recurses through all children, determining which elements have
                         # the mouses position
                         elif objfunc == 'hovered':
-
                             # import win32api
                             import win32api
 
@@ -4129,7 +4131,6 @@ class Interpreter:
                             arg2 = self.parse(i, line, f, sp, args)[2]
                             arg1 **= arg2
                         return arg1
-
                     if objfunc == 'root' or objfunc == 'nthroot' or objfunc == 'nthrt':
                         for i in range(1, len(args)):
                             arg2 = self.parse(i, line, f, sp, args)[2]
@@ -4526,19 +4527,22 @@ class Interpreter:
                 elif obj == 'file':
                     # import shutil
                     import shutil
+                    # opens a file with utf-8 encoding
+                    def open_utf(filename, mode):
+                        return open(filename, mode, encoding='utf-8')
+                        
                     # creates a file
                     if objfunc == 'create':
                         lock.acquire()
                         line, as_s, filename = self.parse(0, line, f, sp, args)
-                        open(filename, 'w').close()
+                        open_utf(filename, 'w')
                         lock.release()
                         return True
 
                     # reads text from a file
                     if objfunc == 'read':
                         lock.acquire()
-                        file = open(self.parse(0, line, f, sp, args)[
-                                    2], "r", encoding='utf-8')
+                        file = open_utf(self.parse(0, line, f, sp, args)[2], 'r')
                         contents = file.read()
                         file.close()
                         lock.release()
@@ -4547,7 +4551,7 @@ class Interpreter:
                     # writes to a file
                     if objfunc == 'write':
                         lock.acquire()
-                        file = open(self.parse(0, line, f, sp, args)[2], "w")
+                        file = open_utf(self.parse(0, line, f, sp, args)[2], 'w')
                         towrite = self.parse(1, line, f, sp, args)[2]
                         file.write(towrite)
                         file.close()
@@ -4557,7 +4561,7 @@ class Interpreter:
                     # writes the argument as code
                     if objfunc == 'writemsn':
                         lock.acquire()
-                        file = open(self.parse(0, line, f, sp, args)[2], "w")
+                        file = open_utf(self.parse(0, line, f, sp, args)[2], 'w')
                         towrite = args[1][0]
                         file.write(towrite)
                         lock.release()
@@ -4566,7 +4570,7 @@ class Interpreter:
                     # clears a file of all text
                     if objfunc == 'clear':
                         lock.acquire()
-                        file = open(self.parse(0, line, f, sp, args)[2], "w")
+                        file = open_utf(self.parse(0, line, f, sp, args)[2], 'w')
                         file.write("")
                         file.close()
                         lock.release()
@@ -4575,7 +4579,7 @@ class Interpreter:
                     # appends to a file
                     if objfunc == 'append':
                         lock.acquire()
-                        file = open(self.parse(0, line, f, sp, args)[2], "a")
+                        file = open_utf(self.parse(0, line, f, sp, args)[2], 'a')
                         towrite = self.parse(1, line, f, sp, args)[2]
                         file.write(towrite)
                         file.close()
@@ -4997,7 +5001,7 @@ class Interpreter:
                             continue
                         self.imports.add(path)
                         contents = ''
-                        with open(path) as f:
+                        with open(path, encoding='utf-8') as f:
                             contents = f.readlines()
                             script = ''
                             for line in contents:
@@ -5629,7 +5633,7 @@ class Interpreter:
                     # returns the console output
                     # of the last argument
                     process = subprocess.run(self.parse(0, line, f, sp, args)[
-                                             2], shell=True, capture_output=True, text=True)
+                                             2], shell=True, capture_output=True, text=True, encoding='utf-8')
                     if process.returncode == 0:
                         return process.stdout
                     else:
@@ -7121,9 +7125,12 @@ class Interpreter:
     def in_string(self, s, s2):
         return s > 0 or s2 > 0
 
+    @profile
     def interpret_msnscript_1(self, line):
+
         element = ''
         variable = ''
+
         for i in range(0, len(line)):
             c = line[i]
             if c != ' ':
