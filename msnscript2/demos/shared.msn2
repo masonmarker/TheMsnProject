@@ -3,11 +3,11 @@
 #
 # author : Mason Marker
 # date : 5/30/2023
+# updated in 2.0.387
 
 # clearing the console
-console('cls')
-
-
+import ('lib/os')
+os:clear()
 
 # shared resource
 @ message = '1'
@@ -16,10 +16,10 @@ console('cls')
 @ iterations = 10
 
 # starting thread 1
-thread('t1', => (
+thread('t1', (
     
     # perform the operation a certain amount of times
-    for(0, iterations, '_', =>(
+    iterations((
         
         # wait for the second thread to release the resource
         wait(message.endswith('2')),
@@ -31,10 +31,10 @@ thread('t1', => (
 
 
 # starting thread 2
-thread('t2', =>(
+thread('t2', (
 
     # perform the operation a certain amount of times
-    for(0, iterations, '_', =>(
+    iterations((
 
         # wait for the first thread to release the resource
         wait(message.endswith('1')),

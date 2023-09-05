@@ -853,7 +853,7 @@ import ('lib/processes.msn2')
     # creates a new process
     # second argument to fork() must be async() to save
     # the block of code for use by the newly created process
-    -- fork('process1', async(=>(
+    -- processes:fork('process1', async(=>(
 
         # process performs work
         var('forkvar', 0),
@@ -876,7 +876,7 @@ import ('lib/processes.msn2')
 
     # starts two processes that perform work
     -- for(0, 2, 'i', =>(
-        fork(?i?, async(=>(
+        processes:fork(?i?, async(=>(
 
             # process specific variables
             var('a', 0),
@@ -936,7 +936,7 @@ var('terminate', False)
     -- print ('[+] testing endpoints')
 
     # endpoints should reside in a new process
-    -- fork('ep1', async(=>(
+    -- processes:fork('ep1', async(=>(
         
         # starts a new endpoint on localhost:5000 on a new thread
         thread('t', ENDPOINT('127.0.0.1', 5000, '/', {})),
@@ -978,7 +978,7 @@ var('terminate', False)
     -- import('lib/processes.msn2')
 
     # cleans processes
-    -- clean_processes()
+    -- processes:clean_processes()
 
     -- add_threads()
 
@@ -2336,7 +2336,7 @@ macro('TEST ', '__function', =>(
 ~ run_tests() -> _
 
     # cleans processes for next iteration
-    -- clean_processes()
+    -- processes:clean_processes()
 
     # runs basic tests
     # runs each test on a new thread    

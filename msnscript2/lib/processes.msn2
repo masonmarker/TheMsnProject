@@ -1,81 +1,81 @@
-# library for process management
+# Library for process management.
 #
 # author : Mason Marker
 # date : 11/18/2022
+# updated in 2.0.387
 
 # all running processes in MSNScript2 reside here
-var('msnint2_processes_location', 'msnint2-processes/')
-var('__me', me())
-var('self_child_processes', cat(msnint2_processes_location, __me))
+var('processes:msnint2_processes_location', 'msnint2-processes/')
+var('processes:self_child_processes', cat(processes:msnint2_processes_location, me()))
 
 # cleans the process file tree created for the booting interpreter
 # doesn't terminate any threads, rather, all threads / processes should
 # have terminated by the time clean_processes() is called
-~ clean_processes() -> _
-    -- file.emptydir(msnint2_processes_location)
-    -- file.rmdir(msnint2_processes_location)
+def('processes:clean_processes', (
+    file.emptydir(processes:msnint2_processes_location),
+    file.rmdir(processes:msnint2_processes_location)
+))
 
-clean_processes()
+# clean processes and prepare for new processes
+processes:clean_processes()
 
 # starts a process from the code in the file at the path passed
-~ start_process(path, serial) -> name
-    -- var('name', cat('process', str(serial)))
-
+def('processes:start_process', 'start_process:path', 'start_process:serial', (
     # process() takes a path to a .msn2 file to execute
-    -- thread(name, =>(
-        private(process(path))
-    ))
-
+    thread(@ start_process:name = cat('process', start_process:serial),
+        private(process(start_process:path))
+    ),
+    start_process:name
+))
 
 # start the code passed a process
-~ as_process(code) -> name
-
+def('processes:as_process', 'as_process:code', (
     # acquire the global auxiliary lock spanning across all threads, regardless of
     # context
-    -- acquire()
-
+    acquire(),
     # creates program's directory for its child processes
-    -- file.mkdir(msnint2_processes_location)
-
+    file.mkdir(processes:msnint2_processes_location),
     # creates program's directory for this child process
-    -- file.mkdir(self_child_processes)
-
+    file.mkdir(processes:self_child_processes),
     # determines the name of the new process file
-    -- var('new_file_num', len(file.listdir(self_child_processes)))
-    -- var('__process_path', << |self_child_processes| + '/process' + str(|new_file_num|) + '.msn2'>>)
-
+    var('as_process:new_file_num', len(file.listdir(processes:self_child_processes))),
+    var('processes:__process_path', 
+        cat(processes:self_child_processes, '/process', 
+        as_process:new_file_num, '.msn2')),
     # creates the process file
-    -- file.create(__process_path)
-
+    file.create(processes:__process_path),
     # writes the code to run to the process file
-    -- file.write(__process_path, code)
-
+    file.write(processes:__process_path, as_process:code),
     # releases the auxiliary lock
-    -- release()
-
+    release(),
     # starts the process
-    -- var('name', start_process(__process_path, new_file_num))
-
+    var('as_process:name', processes:start_process(processes:__process_path, as_process:new_file_num)),
     # joins with this process
-    -- join(name)
-
+    join(as_process:name),
     # deletes this process file after execution is complete
-    -- file.delete(__process_path)
+    file.delete(processes:__process_path),
+    # return name
+    as_process:name
+))
 
 # takes the names of the unfinished processes
 # in an array for joining, cleans after joining
-~ process_cleanup(names) -> _
+def('processes:process_cleanup', 'process_cleanup:names', (
+    each(process_cleanup:names, 'processes:__p_name', join(processes:__p_name)),
+    processes:clean_processes()
+))
 
-    # joins the unfinished processes
-    -- each(names, '__p_name', join(__p_name))
-    -- clean_processes()
 
 
 # forks the path of execution of the first asynchronous block passed
-~ fork(name, code) -> _
+# ~ fork(name, code) -> _
 
+#     # starts the code block on a new thread,
+#     # inheriting synchronizational capabilities
+#     -- thread(name, private(processes:as_process(code)))
+def('processes:fork', 'fork:name', 'fork:code', (
     # starts the code block on a new thread,
     # inheriting synchronizational capabilities
-    -- thread(name, private(as_process(code)))
-
+    thread(fork:name, private(processes:as_process(fork:code)))
+))
 

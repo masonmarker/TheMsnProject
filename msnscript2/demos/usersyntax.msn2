@@ -3,6 +3,7 @@
 #
 # author : Mason Marker
 # date : 12/8/2022
+# updated in 2.0.387
 
 # imports clear()
 import ('lib/os.msn2')
@@ -10,12 +11,12 @@ import ('lib/os.msn2')
 # serialization
 import ('lib/serial.msn2')
 
-# clears the console
-clear()
+# fresh console
+os:clear()
 
 # creates a new system wide syntax, see tests/validator.msn2 for documentation
 # prints a line in the form of a message
-syntax('!', 'bt', =>(
+syntax('!', 'bt', (
     print('[+]', bt)
 ))
 
@@ -23,7 +24,7 @@ syntax('!', 'bt', =>(
 serial_open('thread')
 
 # starts the line on a new thread
-syntax('/t', 'line', =>(
+syntax('/t', 'line', (
 
     # name the thread
     var('__name', serial_next('thread')),
@@ -39,7 +40,7 @@ syntax('/t', 'line', =>(
 
 
 # executes the code surrounded by the t tags as a thread
-/t  =>(assert(1, True, not(False)))  /t
+/t  (assert(1, True, not(False)))  /t
 
 # /t can play the role of a static method with single tags
 # though practically unneccessary in this situation
@@ -52,8 +53,8 @@ syntax('/t', 'line', =>(
 
 # using user syntax across multiple lines with aggregate syntax
 !{/t 
-    =>(
-        assert(1, 1, True, =>(
+    (
+        assert(1, 1, True, (
             assert(assert(True))
         ))
     )
@@ -70,18 +71,18 @@ syntax('/t', 'line', =>(
 
 
 
-class('s_list', =>(
+class('s_list', (
     
     var('l', []),
     var('varname', '__unused'),
 
     # creates an adding syntax specifically for this list implementation
-    syntax('__', 'line', =>(
-        lst.l(<< |lst.l()| + [|-(?line?)|]  >>)
+    syntax('__', 'line', (
+        lst.l(<< |lst.l()| + [|-(line)|]  >>)
     )),
 
     # clears this global list
-    syntax('00', 'line',. =>(
+    syntax('00', 'line',. (
         lst.l([])
     ))
 ))
@@ -108,10 +109,10 @@ assert(equals(lst.l(), []))
 
 # creates a macro, see tests/validator.msn2 for documentation
 # this macro in particular sorts an array
-macro('SORT', 'line', =>(
+macro('SORT', 'line', (
 
     # sorts the array
-    << sorted(|-(?line?)|) >>
+    << sorted(|-(line)|) >>
 ))
 
 # execute the manner in an assertive context

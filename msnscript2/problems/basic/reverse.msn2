@@ -8,7 +8,7 @@ import ('lib/timer.msn2')
 
 # global string to test
 @ string = 'hello world'
-@ expected = =>(@__=string.val(),__.reverse())
+@ expected = (@__=string,__.reverse())
 
 
 # test index
@@ -16,16 +16,16 @@ import ('lib/timer.msn2')
 
 # macro for timing and verifying a string
 # has been correctly reversed
-macro('TEST', '__line', =>(
+macro('TEST', '__line', (
     
     # start timer
     timer_start(),
 
     # assert the test is correct
-    assert(equals(-(__line.val()), expected.val())),
+    assert(equals(-(__line), expected)),
 
     # print the time
-    print('test', test_ind.val(), ':', timer_runtime(), 's'),
+    print('test', test_ind , ':', timer_runtime(), 's'),
 
     # increment test index
     test_ind.++()
@@ -35,17 +35,17 @@ macro('TEST', '__line', =>(
 TEST 'dlrow olleh'
 
 # in place reversal
-TEST =>(
-    @ _ = string.val(),
+TEST (
+    @ _ = string,
     _.reverse()
 )
 
 # python fallback
-TEST <<|string.val()|[::-1]>>
+TEST <<|string|[::-1]>>
 
 # actual algorithm #1
-TEST =>(
+TEST (
     @ _ = '',
-    for (string.len(), 0, 'i', _.add(string.get(i.val()))),
-    _.val()
+    for (string.len(), 0, 'i', _.add(string.get(i))),
+    _ 
 )

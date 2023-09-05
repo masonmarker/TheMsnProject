@@ -5,7 +5,7 @@
 
 import ('lib/syntax/macrocreation.msn2')
 import ('lib/os.msn2')
-clear()
+os:clear()
 
 # creates a postmacro that separates and executes the arguments specified with macro_args()
 postmacro(';', '__line', macro_args(':::', __line))

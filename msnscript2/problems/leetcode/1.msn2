@@ -7,7 +7,7 @@
 @ string = 'my name is mason'
 
 # creating a private context for breaking
-private(for (0, string.len(), 'i', =>(
+private(for (0, string.len(), 'i', (
         if (equals(string.get(i), substring.get(0)), =>(
             for (0, substring.len(), 'j', =>(
                 if (equals(string.get(i.+(j)), substring.get(j)), =>(

@@ -56,7 +56,7 @@ macro ('TEST', '__line', =>(
 
 # macro to run a private test, then print a divider
 macro('SPEED ', '__line', =>(
-    private(-(__line.val())),
+    private(-(__line)),
     DIVIDER
 ))
 

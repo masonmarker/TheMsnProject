@@ -2,9 +2,10 @@
 # 
 # author : Mason Marker
 # date : 11/29/2022
+# updated in 2.0.387
 
 
-if (linux(), =>(
+if (linux(), (
 
     # in Linux, can proceed
     print('[+] using Linux, proceeding...'),
@@ -12,12 +13,10 @@ if (linux(), =>(
     import ('lib/processes.msn2'),
 
     # clean processes from previous run
-    clean_processes(),
+    processes:clean_processes(),
 
     # forks another process
-    fork('p1', async(=>(
-        print('hello from another process!')
-    ))),
+    proc('p1', print('hello from another process!'))
 
     # join with the new process
     join('p1'),
@@ -25,6 +24,12 @@ if (linux(), =>(
     # end program
     stop()
 
-), =>(
-    print('[-] you are not running Linux')
+), (
+    print:color(
+        object(
+            'text', '[-] you are not running Linux',
+            'style', 'bold',
+            'fore', 'red'
+        )
+    )
 ))

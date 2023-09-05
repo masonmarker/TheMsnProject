@@ -8,10 +8,10 @@ import ('lib/os.msn2')
 clear()
 
 @url='http://www.values.com/inspirational-quotes'
-print('[+] scraping from', ?url?)
+print('[+] scraping from', url)
 
 # creates an html object
-var('elements', html.from(?url?))
+var('elements', html.from(url))
 
 # WIPWIPWIPWIPWIP
 

@@ -5,6 +5,7 @@
 #
 # author : Mason Marker
 # date : 11/11/2022
+# updated in 2.0.387
 
 
 # ------------------------------- MISC PUBLIC API LIST -------------------------------
@@ -14,7 +15,7 @@
 var('all_apis', 'https://api.publicapis.org/entries')
 
 # requests for a list of misc apis
-var('entries', << |request('https://api.publicapis.org/entries')|['entries'] >>)
+var('entries', get(request('https://api.publicapis.org/entries'), 'entries'))
 
 
 
@@ -41,6 +42,6 @@ var('entries', << |request('https://api.publicapis.org/entries')|['entries'] >>)
 -- var('__apis_links', misc_apis_urls_for(keyword))
 -- var(
     'result',
-    << [k for k in |?__apis_links?| if k.endswith('api') or k.endswith('api/')  ]  >>)
+    << [k for k in |__apis_links| if k.endswith('api') or k.endswith('api/')  ]  >>)
 
 # ----------------------------------------------------------------------------------------

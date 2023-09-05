@@ -24,7 +24,7 @@ assert(equals(IM HUNGRY FOR PI, 3.14))
 # triple nested for loop
 @i=0
 0|2|_ (0|2|_ (0|2|_ (i.++())))
-equals(^i^, 8) ??
+equals(i, 8) ??
 
 
 

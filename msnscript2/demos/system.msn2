@@ -6,25 +6,19 @@
 # date : 11/7/2022
 
 # fresh console
-if (windows(), console('cls'), console('clear'))
-
-
-
+import ('lib/os')
+os:clear()
 
 
 # thread completion
 var('main_finished', False)
-
 var('worker_start', False)
 var('worker_finished', False)
-
 var('loading_start', False)
 var('loading_finished', False)
 
 # work completed
 var('work', 0)
-
-
 
 # system booting message
 print('boot: system booting...')
@@ -34,7 +28,7 @@ print('boot: system booting...')
 
 # loading display thread
 # private environment allows for unique variables and methods
-private(=>(thread('loading', =>(
+private((thread('loading', (
 
         # waits to be started by main thread
         wait(loading_start),
@@ -48,7 +42,7 @@ private(=>(thread('loading', =>(
         # waits on the worker to finish
         # prints a loading 'animation' as it waits
         var('inc', 1),
-        while (not(worker_finished), =>(
+        while (not(worker_finished), (
             if(inc.equals(1), print('\t\t\tloading: .')),
             if(inc.equals(2), print('\t\t\tloading: ..')),
             if(inc.equals(3), =>(
@@ -63,7 +57,7 @@ private(=>(thread('loading', =>(
     )),
 
     # worker thread
-    thread('worker',=>(
+    thread('worker', (
 
         # waits for the signal to start working
         wait(worker_start),
@@ -72,7 +66,7 @@ private(=>(thread('loading', =>(
         print('worker: starting'),
 
         # performs work
-        for (0, 20, 'i', =>(
+        20 ((
             work.inc(),
             print('worker: did 1 work')
         )),
@@ -86,7 +80,7 @@ private(=>(thread('loading', =>(
 
 
     # 'main' thread
-    thread('main', =>(    
+    thread('main', (    
 
         # starting message
         print('main: program starting'),

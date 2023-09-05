@@ -1,5 +1,5 @@
-# driver for a small multiprocessing program
-# demonstrates how to multiprocess with MSNScript2
+# Driver for a small multiprocessing program
+# demonstrates how to multiprocess with MSNScript2.
 #
 # author : Mason Marker
 # date : 11/18/2022
@@ -16,50 +16,73 @@ import ('lib/apis/api.msn2')
 
 
 # starts the first endpoint
-private(start_process('demos/multiproc/endpoint1.msn2', '1'))
+private(processes:start_process('demos/multiproc/endpoint1.msn2', '1'))
 
 # location of the first endpoint
-var('ep1', api_network.copy())
+var('ep1', api:api_network.copy())
 
 
 
 # starts the second endpoint
-private(start_process('demos/multiproc/endpoint2.msn2', '2'))
+private(processes:start_process('demos/multiproc/endpoint2.msn2', '2'))
 
 # give time for processes to start before prompting command injection
 sleep(1)
 
 # location of the second endpoint
-var('ep2', api_network.copy())
+var('ep2', api:api_network.copy())
 ep2.port(5001)
 
-
-
-
-
+# set serials
 var('serial', 0)
 var('serial2', 0)
 
 # methods for overseer
-~ post5000() -> response
--- var('response', api_post(?ep1?, {?serial?: ?serial?}))
--- add('serial', 1)
+# ~ post5000() -> response
+# -- var('response', api_post(?ep1?, {?serial?: ?serial?}))
+# -- add('serial', 1)
+# updated in 2.0.387
+def('post5000', (
+    serial.add(1),
+    api_post(ep1, object(serial, serial))
+))
 
-~ post5001() -> response
--- var('response', api_post(?ep2?, {?serial2?: ?serial2?}))
--- add('serial2', 1)
+# ~ post5001() -> response
+# -- var('response', api_post(?ep2?, {?serial2?: ?serial2?}))
+# -- add('serial2', 1)
+# updated in 2.0.387
+def('post5001', (
+    serial2.add(1),
+    api_post(ep2, object(serial2, serial2))
+))
 
-~ get5000() -> response
--- var('response', api_get(?ep1?))
+# ~ get5000() -> response
+# -- var('response', api_get(?ep1?))
+# updated in 2.0.387
+def('get5000', (
+    api_get(ep1)
+))
 
-~ get5001() -> response
--- var('response', api_get(?ep2?))
+# ~ get5001() -> response
+# -- var('response', api_get(?ep2?))
+# updated in 2.0.387
+def('get5001', (
+    api_get(ep2)
+))
 
-~ delete5000() -> response
--- var('response', api_delete(?ep1?))
+# ~ delete5000() -> response
+# -- var('response', api_delete(?ep1?))
+# updated in 2.0.387
+def('delete5000', (
+    api_delete(ep1)
+))
 
-~ delete5001() -> response
--- var('response', api_delete(?ep2?))
+# ~ delete5001() -> response
+# -- var('response', api_delete(?ep2?))
+# updated in 2.0.387
+def('delete5001', (
+    api_delete(ep2)
+))
 
 
 # access to a shell to interact with the endpoints

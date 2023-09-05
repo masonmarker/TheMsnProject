@@ -5,31 +5,31 @@
 # helper for copydir()
 function('_dirrecurse', =>(
         # if file is directory, create directory in new location
-    if (file.isdir(old.val()), =>(
+    if (file.isdir(old), =>(
 
         # make new directory
-        file.mkdir(newpath.val()),
+        file.mkdir(newpath),
 
         # copy files from old directory to new directory
-        @ thisdir_files = file.listdir(old.val()),
+        @ thisdir_files = file.listdir(old),
 
         # create old path
         thisdir_files.each('fl2', =>(
 
             # obtain working file path
-            @ old2 = cat(old.val(), '/', fl2.val()),
-            @ newpath2 = cat(newpath.val(), '/', fl2.val()),
+            @ old2 = cat(old, '/', fl2),
+            @ newpath2 = cat(newpath, '/', fl2),
 
             # if file is directory, recurse, otherwise copy .msn2 library file
-            if (file.isdir(old2.val()), 
-                private(_dirrecurse(old2.val(), newpath2.val())), 
+            if (file.isdir(old2), 
+                private(_dirrecurse(old2, newpath2)), 
 
                 # else
-                file.copy(old2.val(), newpath2.val()))
+                file.copy(old2, newpath2))
         ))       
 
     # otherwise, copy file to new location  
-    ), file.copy(old.val(), newpath.val()))
+    ), file.copy(old, newpath))
 
 ), 'old', 'newpath')
 
@@ -42,26 +42,26 @@ function('_dirrecurse', =>(
 # files.each('fl', =>(
 
 #     # obtain working file path
-#     @ old = cat('lib/', fl.val()),
-#     @ newpath = cat('portable/msn2/', fl.val()),
+#     @ old = cat('lib/', fl),
+#     @ newpath = cat('portable/msn2/', fl),
 
 #     # adds adds all files from the lib folder
-#     private(recurse(old.val(), newpath.val())),
+#     private(recurse(old, newpath)),
 # ))
 
 # copies a directory tree to a new location
 function('copydir', =>(
 
-    @ files = file.listdir(src.val()),
+    @ files = file.listdir(src),
 
     files.each('fl', =>(
 
         # obtain working file path
-        @ old = cat(src.val(), '/', fl.val()),
-        @ newpath = cat(dest.val(), '/', fl.val()),
+        @ old = cat(src, '/', fl),
+        @ newpath = cat(dest, '/', fl),
 
             # adds adds all files from the lib folder
-        private(_dirrecurse(old.val(), newpath.val()))
+        private(_dirrecurse(old, newpath))
     ))
 
 ), 'src', 'dest')

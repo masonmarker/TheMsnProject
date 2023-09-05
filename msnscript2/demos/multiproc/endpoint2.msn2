@@ -11,10 +11,10 @@ import('lib/apis/api.msn2')
 import('lib/http.msn2')
 
 # obtain a copy of the local api data structure
-var('ep2', api_local.copy())
+var('ep2', api:api_local.copy())
 
 # host on port 5001, while endpoint 2 hosts on 5000
 ep2.port(5001)
 
 # start endpoint 2
-private(api_start(?ep2?))
+private(api:api_start(ep2))

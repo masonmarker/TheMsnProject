@@ -61,7 +61,7 @@ pointer.down(20)
 pointer.double_click()
 
 # type the salary into the input box
-chrome.write(cat("{BACK}", salary.val()))
+chrome.write(cat("{BACK}", salary))
 
 # get the title for the pay frequency menu
 @ pay_freq_title = first(
@@ -80,24 +80,24 @@ pointer.click()
 # key phrase to wait for and used to locate the computed salary
 @ key_phrase = 'Your estimated annual take home pay:'
 # wait for the page to finish computing
-chrome.wait_for_text(key_phrase.val())
+chrome.wait_for_text(key_phrase)
 
 # get the computed annual take home pay
 @ take_home_pay = first(
-    chrome.find_children (key_phrase.val())
+    chrome.find_children (key_phrase)
 )
 
 # extract the computed salary from the paragraph
 @ text = take_home_pay.text()
-@ take_home_pay = text.around(key_phrase.val(), 0, 10)
-take_home_pay.replace(key_phrase.val(), '')
+@ take_home_pay = text.around(key_phrase, 0, 10)
+take_home_pay.replace(key_phrase, '')
 take_home_pay.replace('$', '')
 take_home_pay.replace(',', '')
 @ take_home_pay = take_home_pay.int()
 
 # prints a number as money
-function('as_money', ret('as_money', << f"${|value.val()|:,.2f}" >>), 'value')
+function('as_money', ret('as_money', << f"${|value|:,.2f}" >>), 'value')
 # print statistics from the salary
-print('Salary:', as_money(salary.val()))
-print('Take home pay:', as_money(take_home_pay.val()))
-print('Taxes paid:', as_money(salary.sub(take_home_pay.val())))
+print('Salary:', as_money(salary))
+print('Take home pay:', as_money(take_home_pay))
+print('Taxes paid:', as_money(salary.sub(take_home_pay)))

@@ -1454,7 +1454,10 @@ class Interpreter:
 
                             # if not found
                             if index == -1:
-                                return f"around(): Keyword '{keyword}' not found in string"
+                                # f"around(): Keyword '{keyword}' not found in string"
+                                # raise an msn2 error
+                                self.err(
+                                    f"around(): Keyword '{keyword}' not found in string", line, lines_ran, f)
 
                             # get the string
                             return object[index-left:index+len(keyword)+right]
@@ -4371,8 +4374,12 @@ class Interpreter:
                         try:
                             openai.api_key = os.environ['OPENAI_API_KEY']
                         except:
-                            raise Exception(
-                                'OpenAI API key not found. Please set your OPENAI_API_KEY environment variable to your OpenAI API key.')
+                            # raise Exception(
+                            #     'OpenAI API key not found. Please set your OPENAI_API_KEY environment variable to your OpenAI API key.')
+                            # msn2 error
+                            self.err(
+                                f"OpenAI API key not found. Please set your OPENAI_API_KEY environment variable to your OpenAI API key.", True, '', lines_ran)
+                            
                     # if models not defined, define them
                     if not models:
                         models = {
@@ -4764,6 +4771,17 @@ class Interpreter:
                                 # element does not have width and height
                                 return element
                         return largest
+                    
+                    # picks a file from the file chooser
+                    # returns the path of the file chosen
+                    if objfunc == 'file':
+                        # imports
+                        from tkinter import Tk
+                        from tkinter.filedialog import askopenfilename
+                        Tk().withdraw()
+                        # you can only run .msn2 scripts
+                        return askopenfilename(initialdir=os.getcwd(), filetypes=[("MSN2 Script", "*.msn2")])
+                    
                     return '<msnint2 class>'
 
                 # # performs math operations
@@ -5347,7 +5365,12 @@ class Interpreter:
 
                     # if linux
                     elif os.name == 'posix':
-                        print('[-] posix not supported yet')
+                        self.err(
+                            'POSIX not yet implemented',
+                            '',
+                            line,
+                            lines_ran
+                        )
                         return None
                     return None
 
@@ -5362,7 +5385,7 @@ class Interpreter:
 
                     # import the processes library and
                     # create a new process
-                    return self.interpret(f"(import('lib/processes'),fork('{name}', async({block})))")
+                    return self.interpret(f"(import('lib/processes'),private(processes:fork('{name}', async(private({block})))))")
 
                 # gets the pid of the working process
                 elif func == 'pid':
@@ -6850,7 +6873,7 @@ class Interpreter:
 
             # print the text with the style
             print(colors[style] + colors[fore] +
-                  colors[back] + text + colors['reset'], end='')
+                  colors[back] + str(text) + colors['reset'], end='')
 
         # print a newline
         print()

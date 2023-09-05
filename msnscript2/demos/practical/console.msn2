@@ -4,32 +4,58 @@
 
 # simulates a Makefile for the user program in the current directory
 
-
-
 # make clean
-~ make_clean() -> __
-    -- console('rm -f main')
+# ~ make_clean() -> __
+#     -- console('rm -f main')
+# updated in 2.0.387
+
+# must be using Linux
+if (not(linux()), (
+    # must be using Linux
+    print:color(
+        object(
+            'text', '[-] you are not running Linux',
+            'style', 'bold',
+            'fore', 'red'
+        )
+    ),
+    # stop program
+    stop()
+))
+
+
+def('make_clean', console('rm -f main'))
 
 # clears the console
-~ clear() -> __
-    -- console('clear')
+# ~ clear() -> __
+#     -- console('clear')   
+# updated in 2.0.387
+def('clear', console('cls'))
 
 # compiles the user program in the directory specified
-~ main() ->__
-    -- console('gcc demos/practical/cfiles/main.c -o main')
+# ~ main() ->__
+#     -- console('gcc demos/practical/cfiles/main.c -o main')
+# updated in 2.0.387
+def('main', console('gcc demos/practical/cfiles/main.c -o main'))
 
 # executes the binary file
-~ run() -> __
-    -- console('./main')
+# ~ run() -> __
+#     -- console('./main')
+# updated in 2.0.387
+def('run', console('./main'))
 
 # simulates a run of 'make all'
-~ all()->__
--- main()
+# ~ all()->__
+# -- main()
+# updated in 2.0.387
+def('all', main())
+
 
 # simulates a run of 'make'
-~ make()->__
--- all()
-
+# ~ make()->__
+# -- all()
+# updated in 2.0.387
+def('make', all())
 
 
 clear()

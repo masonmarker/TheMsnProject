@@ -37,7 +37,7 @@ chrome.stop()
 # writes the current AAPL stock price to notepad
 @ notepad = app('notepad.exe')
 notepad.start()
-notepad.write(cat('Current Apple stock price: ', price.val()))
+notepad.write(cat('Current Apple stock price: ', price))
 
 # sleep for 5 seconds, then close the notepad 
 sleep(5)

@@ -477,7 +477,7 @@ work.equals(10) ??
 import('lib/apis/api.msn2')
 
 # obtaining local ip
-var('ip', api_local.host())
+var('ip', api:api_local.host())
 
 # use '||' to insert a line of msn2 code into a line of Python code, then returning the
 # evaluated Python code
@@ -550,13 +550,13 @@ import('lib/processes.msn2')
 import ('lib/timer.msn2')
 
 # clean processes from previous runs (optional but recommended)
-clean_processes()
+processes:clean_processes()
 
 # launch a process with imported fork()
 # second argument as code for process to run
 # second argument must be async()
 timer_start()
-fork('p1', async(=>(
+processes:fork('p1', async(=>(
 
     # user created macros aren't available in the new process
 

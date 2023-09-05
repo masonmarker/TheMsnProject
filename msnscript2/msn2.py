@@ -22,27 +22,25 @@ for i in range(1, len(sys.argv)):
     # quick file access
     if filename == 'test':
         filename = 'tests/misc.msn2'
-        
     # discovering UI elements
     elif filename == 'elements':
         filename = 'tests/practical/auto/clicked.msn2'
-    
     # mounting MSN2 packages
     elif filename == 'package':
         filename = 'system/package_wizard.msn2'
         breaking = True
-    
     # running the console tutorial
     elif filename == 'help':
         filename = 'TUTORIAL/driver.msn2'
-        
     # verifying msn2 integrity
     elif filename == 'verify':
-        filename = 'tests/validator.msn2'
-        
+        filename = 'tests/validator.msn2'  
     # starts the msn2 interpreter
     elif filename == 'int':
         filename = 'system/int.msn2'
+    # launches a file browser for running an msn2 script
+    elif filename == 'file':
+        filename = 'system/file.msn2'
         
     # if the file does not end in .msn2, add it
     if not filename.endswith('.msn2'):

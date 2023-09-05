@@ -58,12 +58,12 @@ function('add_to_screen', =>(
 
 
 # add elements to screen
-add_to_screen(root.val())
+add_to_screen(root)
 
 # rendering the console art
 screen.each('column', =>(
     column.each('pixel', =>(
-        <<print(|pixel.val()|, end="")>>
+        <<print(|pixel|, end="")>>
     )),
     print()
 ))

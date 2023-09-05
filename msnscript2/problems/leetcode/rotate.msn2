@@ -11,7 +11,6 @@ function(@_r='rotate_array', ret(_r, (
     part2.+(part1)
 )),'array','k')
 
-
 assert(equals(private(rotate_array([1, 2, 3, 4, 5, 6], 3)), [4, 5, 6, 1, 2, 3]))
 assert(equals(private(rotate_array([1, 2, 3, 4, 5, 6], 2)), [5, 6, 1, 2, 3, 4]))
 assert(equals(private(rotate_array([1, 2, 3, 4, 5, 6], 1)), [6, 1, 2, 3, 4, 5]))

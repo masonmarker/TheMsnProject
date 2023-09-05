@@ -2,14 +2,15 @@
 #
 # author : Mason Marker
 # date : 5/13/2023
+# updated in 2.0.387
 
 # import timer
 import ('lib/timer.msn2')
 
 # resets test array
-function('reset', =>(@array = list(range(0,100)), timer_start()))
+function('reset', (@array = list(range(0,100)), timer_start()))
 # verifies the number 75 was removed
-function('verify', =>(assert(not(array.has(75))), print(timer_runtime(), 's')))
+function('verify', (assert(not(array.has(75))), print(timer_runtime(), 's')))
 
 
 # fastest way
@@ -39,22 +40,22 @@ verify()
 reset()
 # -----------
 @ _n = []
-array.each('_e', =>(
-    if(not(_e.equals(75)), _n.append(_e.val()))
+array.each('_e', (
+    if(not(_e.equals(75)), _n.append(_e))
 ))
-array.=(_n.val())
+@ array = _n
 # -----------
 verify()
 
 
 reset()
-# -----------
+# # -----------
 @ found = 0
-for(0, array.len(), '_i', =>(
-    if (equals(array.get(_i.val()), 75), found.=(1)),
-    try(if(found.val(), array.set(_i.val(), array.get(op.add(_i.val(), 1)))))
+array.each('el', (
+    if (equals(el, 75), @ found = 1),
+    try(if(found, array.removen(1, el)))
 ))
-# -----------
+# # -----------
 verify()
 
 

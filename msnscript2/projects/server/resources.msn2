@@ -14,14 +14,14 @@ import ('lib/processes.msn2')
 
 # creates the process key for a port
 ~ process_key_for(port) -> key
-    -- var('key', cat('p', str(?port?)))
+    -- var('key', cat('p', port))
 
 # prints a process specific message to the console
 ~ msg(port, message) -> _
-    -- print(cat('|', ?port?, '| ', ?message?))
+    -- print(cat('|', port, '| ', message))
 
 ~ req(process_key, message) -> response
-    -- var('response', api_post(?key?, {?process_key?: ?message?}))
+    -- var('response', api_post(key, object(process_key, message)))
 
 
 

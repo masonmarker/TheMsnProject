@@ -1,6 +1,11 @@
+# Tests variable syntax and macro creation techniques
+#
+# author : Mason Marker
+# date : early 2023
+
 import('lib/os.msn2')
 import('lib/syntax/macrocreation.msn2')
-clear()
+os:clear()
 
 
 # macro definitions

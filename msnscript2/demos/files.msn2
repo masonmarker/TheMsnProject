@@ -10,7 +10,6 @@
 
 var('path', './hello/world.txt')
 
-
 # creates a directory
 file.mkdir("./hello")
 
@@ -18,7 +17,7 @@ file.mkdir("./hello")
 file.create(path)
 
 # appends to file twice
-for (0, 2, '_', file.append(path, "hello world\n"))
+2(file.append(path, "hello world\n"))
 
 # asserts text was written
 assert(equals(file.read(path), "hello world\nhello world\n"))

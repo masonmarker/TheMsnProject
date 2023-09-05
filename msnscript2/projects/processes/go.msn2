@@ -16,37 +16,33 @@ console('cls')
 
 # write an initial message to signal one
 # of the processes to start first
-file.write(path, '1')
+file.write(path, '2')
 
 # creates a new process
-fork('p1', async(=>(
-
-    # location of communication file pipeline
+proc('p1', (
     @ path = 'projects/processes/local.txt',
-
-    # write to the file a certain amount of times
-    for (0, 5, 'i', =>(
+    for (0, 5, 'i', private((
+        # check if needs to exit
         wait(as('_t', file.read(path), _t.endswith('2'))),
         file.append(path, '1')
+    ))),
+    print('p1 done')
+))
 
-    ))
-)))
-
-# # creates another process
-fork('p2', async(=>(
-
-    # location of communication file pipeline
+# creates another process
+proc('p2', (
     @ path = 'projects/processes/local.txt',
-
-    # write to the file a certain amount of times
-    for (0, 5, 'i', =>(
+    for (0, 5, 'i', private((
+        # check if needs to exit
         wait(as('_t', file.read(path), _t.endswith('1'))),
         file.append(path, '2')
-    ))
-)))
+    ))),
+    print('p2 done')
+))
 
 # main thread waits for processes to finish
 wait(equals(len(file.read(path)), 11))
 
 # print the contents of the file
 print(file.read(path))
+

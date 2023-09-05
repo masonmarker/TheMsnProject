@@ -29,7 +29,7 @@ import('tests/speed/resources.msn2')
     -- TEST 'large math expression' ::: 45727356345634653947852/4358237456234562345920843509/549837245.529345234584752*4329780866246534659234209 - 23957983475298347592.543258729348753
     
     -- TEST 'var name: getting val of var' ::: val('common')
-    -- TEST 'default: getting val of var' ::: common.val()
+    -- TEST 'default: getting val of var' ::: common
 
 
 

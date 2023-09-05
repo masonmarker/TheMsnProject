@@ -4,7 +4,8 @@
 # date : 11/18/2022
 
 # fresh console
-if (windows(), console('cls'), console('clear'))
+import ('lib/os')
+os:clear()
 
 # starts an endpoint on a new thread
 thread('t', ENDPOINT('/', {}))

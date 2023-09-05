@@ -39,14 +39,14 @@ print('[*] Creating portable MSN2 package...')
 
 # new directories
 @ package_dir = 'portable/msn2'
-@ package_lib = op.+(package_dir.val(), '/lib')
-@ readme = op.+(package_dir.val(), '/README.txt')
+@ package_lib = op.+(package_dir , '/lib')
+@ readme = op.+(package_dir , '/README.txt')
 
 # remove the previous directory for replacement
-file.rmdir(package_dir.val())
+file.rmdir(package_dir )
 
 # create a new directory named "msn2" in the portable directory
-file.mkdir(package_dir.val())
+file.mkdir(package_dir )
 
 
 # copying
@@ -55,32 +55,32 @@ print('[*] Copying library...')
 
 # copy the lib directory tree to the package location
 import('lib/files.msn2')
-file.mkdir(package_lib.val())
-private(copydir('lib', package_lib.val()))
+file.mkdir(package_lib )
+private(copydir('lib', package_lib ))
 
 print('[*] Copying MSN2 Interpreter...')
 
 # copying latest Interpreter
-file.copy('msnint2.py', package_dir.val())
+file.copy('msnint2.py', package_dir )
 
 print('[*] Copying MSN2 driver...')
 
 # copying MSN2 driver
-file.copy('msn2.py', package_dir.val())
+file.copy('msn2.py', package_dir )
 
 print('[*] Copying list of dependencies...')
 
 # copy dependencies
-file.copy('dependencies.txt', package_dir.val())
+file.copy('dependencies.txt', package_dir )
 
 # copy system/ folder
 print('[*] Copying system folder...')
-file.mkdir(@port:systemdir=+(package_dir.val(), '/system'))
+file.mkdir(@port:systemdir=+(package_dir , '/system'))
 private(copydir('system', port:systemdir))
 
 print('[*] Copying msn2python script...')
 # copy msn2python script
-file.copy('msn2python.py', package_dir.val())
+file.copy('msn2python.py', package_dir )
 
 # copy local storage directory
 print('[*] Copying settings...')
@@ -88,13 +88,13 @@ file.copy('msn2_settings.json', package_dir)
 
 # copy dependency installer
 print('[*] Copying dependency installer...')
-file.copy('install_deps.py', package_dir.val())
+file.copy('install_deps.py', package_dir )
 
 print('[*] Creating README.txt...')
 
 # write README
-file.write(readme.val(), =>(
-    <<'This directory (|package_dir.val()|) can now be copied into\n
+file.write(readme , =>(
+    <<'This directory (|package_dir |) can now be copied into\n
     your project folders / directories.\n\n
 
     The destination folder environment of this package\n
@@ -103,7 +103,7 @@ file.write(readme.val(), =>(
     - installed the few dependencies in dependencies.txt\n\n
 
     You should create your .msn2 program files within the same directory\n
-    as this README.txt (|package_dir.val()|).\n\n
+    as this README.txt (|package_dir |).\n\n
 
     This package has access to an MSN2 library,\n
     therefore, your created .msn2 program files can import files\n
@@ -118,4 +118,4 @@ file.write(readme.val(), =>(
 ))
 
 print('\n[+] Created MSN2 package!')
-print(<<'\tsee |readme.val()| for help with the portable MSN2 package.'>>)
+print(<<'\tsee |readme| for help with the portable MSN2 package.'>>)

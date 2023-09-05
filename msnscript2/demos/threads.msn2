@@ -13,7 +13,7 @@
 @ threads = 4
 
 # starts a certain amount of threads
-for(0, threads, 'i', thread(cat('thread', i), while (
+threads(thread(while(
     work.less(work_needed), work.inc())
 ))
 

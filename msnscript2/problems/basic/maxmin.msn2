@@ -1,8 +1,12 @@
-# finds the maximum or minimum in an array
+# Finds the maximum or minimum in an array.
+#
+# author : Mason Marker
+# date : 9/4/2023
 
 # timer
-import ('lib/timer.msn2')
+import ('lib/timer')
 
+# start the timer
 timer_start()
 
 
@@ -13,18 +17,15 @@ timer_start()
 @ min = @ max = array.get(0)
 
 
-
 # loop through elements
-for (0, array.len(), 'i', =>(
-    @ e = array.get(i.val()),
-    @ min = if (e.l(min.val()), e.val(), min.val()),
-    @ max = if (e.g(max.val()), e.val(), max.val())
+array.each('el', (
+    @ min = if (el.l(min), el, min),
+    @ max = if (el.g(max), el, max)
 ))
-
 
 # print min and max
 min.print('min: ')
 max.print('max: ')
 
 # print runtime
-print('found both in', op.mul(timer_runtime(), 100), 'ms')
+print('found both in', x(timer_runtime(), 100), 'ms')
