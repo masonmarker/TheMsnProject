@@ -46,18 +46,6 @@
 # ensure no code repetition
 # (it definitely exists)
 
-
-# NOTE
-# Python runner's alias are determined by
-# python_alias, defaulting to 'python'
-#
-# console operations will not run successfully
-# if the python runner is incorrect,
-# is includes all console() calls, process splitting,
-# etc. this will likely be fixed in future versions
-# with the implementation of msn2_settings.json
-
-
 # TODO
 # 2.0.387
 #
@@ -80,11 +68,19 @@
 # deoptimized, and exists to prove functionality as speed can
 # be enhanced later
 
+# NOTE
+# Python runner's alias are determined by
+# global python_alias (defined below), defaulting to 'python'
+#
+# console operations will not run successfully
+# if the python runner is incorrect,
+# is includes all console() calls, process splitting,
+# etc.
+
 # importing necessary dependencies
 # for all lines of execution
 import os
 import threading
-from flask_restful import Resource
 
 # remove warnings for calling of integers: "10()"
 import warnings
@@ -104,6 +100,7 @@ class Var:
         if isinstance(other, Var):
             return other.name == self.name
 
+
 # path to the common settings file
 settings_path = 'msn2_settings.json'
 
@@ -116,7 +113,7 @@ if not os.path.exists(settings_path):
         # dump default settings
         json.dump({'settings': {'has_ran': False, 'runner_alias': 'python'},
                    'version': '2.0.385'}, f)
-        
+
 # global settings
 settings = None
 # python alias is in the msn2 settings json
@@ -4379,7 +4376,7 @@ class Interpreter:
                             # msn2 error
                             self.err(
                                 f"OpenAI API key not found. Please set your OPENAI_API_KEY environment variable to your OpenAI API key.", True, '', lines_ran)
-                            
+
                     # if models not defined, define them
                     if not models:
                         models = {
@@ -4771,7 +4768,7 @@ class Interpreter:
                                 # element does not have width and height
                                 return element
                         return largest
-                    
+
                     # picks a file from the file chooser
                     # returns the path of the file chosen
                     if objfunc == 'file':
@@ -4781,7 +4778,7 @@ class Interpreter:
                         Tk().withdraw()
                         # you can only run .msn2 scripts
                         return askopenfilename(initialdir=os.getcwd(), filetypes=[("MSN2 Script", "*.msn2")])
-                    
+
                     return '<msnint2 class>'
 
                 # # performs math operations
@@ -5385,7 +5382,8 @@ class Interpreter:
 
                     # import the processes library and
                     # create a new process
-                    return self.interpret(f"(import('lib/processes'),private(processes:fork('{name}', async(private({block})))))")
+                    return self.interpret(
+                        f"(import('lib/processes'),private(processes:fork('{name}', async(private({block})))))")
 
                 # gets the pid of the working process
                 elif func == 'pid':
@@ -5713,7 +5711,7 @@ class Interpreter:
 
                     # imports
                     from flask import Flask
-                    from flask_restful import Api
+                    from flask_restful import Api, Resource
                     import logging
 
                     # initial API endpoint data
@@ -5780,7 +5778,7 @@ class Interpreter:
 
                     # gets Flask Api
                     api = Api(app)
-                    
+
                     # api endpoint class
                     class EndPoint(Resource):
 
@@ -5810,7 +5808,7 @@ class Interpreter:
                         def delete(self):
                             self.make_api({})
                             return self.response
-                    
+
                     curr_endpoint = EndPoint.make_api(init_data)
 
                     # logs newly created endpoint

@@ -1,19 +1,4 @@
 
-
-
-
-# start a new api
-proc('new', (
-    import ('lib/apis/api'),
-    @ local = cors_api(),
-    local.start()
-))
-
-
-
-
-import ('lib/user')
-import ('lib/apis/api')
-@ local = cors_api()
-
-shell('user')
+# retrieving information
+print:color(
+    {'text': 'Retrieving all apis...', 'style': 'bold', 'fore': 'green'})
