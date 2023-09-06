@@ -22,7 +22,7 @@ chrome.start()
 @ moves = split(
     as('response', 
         get(
-            active_ask_gpt(
+            chatgpt:active_ask_gpt(
                 chrome, 
                 [
 'give strictly an EXACT answer to this question with no other words,

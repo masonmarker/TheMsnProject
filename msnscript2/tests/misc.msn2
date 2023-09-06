@@ -1,4 +1,8 @@
 
-# retrieving information
-print:color(
-    {'text': 'Retrieving all apis...', 'style': 'bold', 'fore': 'green'})
+# import chatgpt
+import ('lib/auto/chatgpt')
+
+env(1)
+
+
+chatgpt:ask_gpt(['hello!', 'how are you'])

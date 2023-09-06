@@ -22,7 +22,7 @@ import ('lib/auto/chatgpt')
 # Unpack the GPT response request
 # to the Google Chrome instance
 # and the array of responses
-unpack(ask_gpt(
+unpack(chatgpt:ask_gpt(
     map(sheet.column(0), 'q', cat('Answer in 5 words or less:', q))),
     'chrome', 'answers')
 

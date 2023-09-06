@@ -47,4 +47,8 @@ run 'python msn2.py verify' to run the validator for msn2 integrity.
 file-based code depends on the user's current directory after executing a .msn2 program (ex imports),
 verify that file paths in written code are compatible with the directory at which the program is launched
 
+be wary of function name changes in the msn2 library, the libraries and interpreter are subject to change,
+this is to make the library safer and/or faster. be sure to read commits of TheMsnProject
+to understand the status and naming conventions of the latest versions of the package.
+
 again, run 'python msn2.py help' for more information on the msn2 interpreter and its usage.

@@ -16,6 +16,8 @@
 # speed up function interpretation
 # by determining obj and func by argument count first
 # as opposed to iterating through all functions.
+# do this and/or determine closest function after each character
+# consumption.
 # this also entails testing and reordering function priority to
 # maximize speed.
 #
@@ -63,6 +65,11 @@
 # * VARIABLE DOMAINS
 # - create builders for variable domains
 # - create finders for variable domains
+#
+# * PRIVATE FUNCTIONS
+# - complete all of their work similarly to a function in any other language,
+#   where the function can access external variables, and variables local
+#   to the function will never be accessable to any external context unless specified.
 
 # the current logical implementation is conceptual,
 # deoptimized, and exists to prove functionality as speed can
@@ -228,6 +235,7 @@ class Interpreter:
         self.loggedmethod = []
         self.objects = {}
         self.calledmethod = None
+        self.env_max_chars = 200
 
         # advanced environment logging
         self.current_line = 0
@@ -2440,6 +2448,8 @@ class Interpreter:
                     # parses object functions for discovering types
                     # of elements
                     def search(window):
+                        import pywinauto
+                        
                         ret = '<msnint2 no callable>'
 
                         # RETRIEVING CHILDREN
@@ -5118,6 +5128,15 @@ class Interpreter:
 
                 # provides a representation of the current environment
                 elif func == 'env':
+                    
+                    # gets the shortened version of a variable's value
+                    def shortened(needs_short):
+                        # if the string is greater than 200 chars
+                        if len(str(needs_short)) > self.env_max_chars:
+                            return str(needs_short)[:self.env_max_chars] + '...'
+                        # otherwise, return the string
+                        return str(needs_short)
+                    
                     should_print_s = args[0][0]
                     line, should_print = self.convert_arg(
                         should_print_s, line, f, sp, args)
@@ -5128,7 +5147,7 @@ class Interpreter:
                     for varname, v in self.vars.items():
                         try:
                             strenv += "\t" + varname + \
-                                " = " + str(v.value) + '\n'
+                                " = " + shortened(v.value) + '\n'
                         except:
                             None
 
@@ -5175,8 +5194,21 @@ class Interpreter:
                         print(strenv)
                     return strenv
 
-                # arithmetic, equivalent to the op class
+                # changes the max chars printed with the env() call
+                elif func == 'env:maxchars':
+                    # if no arguments, return the current maxchars
+                    if args[0][0] == '':
+                        return self.env_max_chars
+                    # otherwise, a single variable was provided
+                    # this will change the max chars
+                    new_maxchars = self.parse(0, line, f, sp, args)[2]
+                    # check for type errors
+                    self.type_err([(new_maxchars, (int,))], line, lines_ran)
+                    # alter the max chars
+                    self.env_max_chars = new_maxchars
+                    return new_maxchars
 
+                # arithmetic, equivalent to the op class
                 # executes MSNScript2 from its string representation
 
                 elif func == '-':
@@ -6876,6 +6908,30 @@ class Interpreter:
         # print a newline
         print()
 
+    # checks for and throws a type error
+    def type_err(self, values: list[(any, tuple)], line, lines_ran):
+        # for each entry in values
+        for value, permitted_types in values:
+            # if the value is not in the permitted types
+            if (current_type := type(value)) not in permitted_types:
+                # create string for error
+                error_s = ''
+                # for each permitted type
+                for i, permitted_type in enumerate(permitted_types):
+                    # add the type to the error string
+                    error_s += str(permitted_type)
+                    # if this is not the last type
+                    if i != len(permitted_types) - 1:
+                        # add a comma
+                        error_s += ' or '
+                # throw error
+                self.err(
+                    'Incorrect type specified',
+                    f"In value: {value}, expected {error_s} got {current_type}",
+                    line, lines_ran
+                )
+
+    # general error printing
     def err(self, err, msg, line, lines_ran):
 
         # if we're not trying something, and there's an error,

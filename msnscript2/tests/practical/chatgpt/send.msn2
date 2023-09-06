@@ -23,9 +23,9 @@ import ('lib/auto/chatgpt')
     'Did he believe in aliens?'])
 
 # get ChatGPT responses for some questions
-# ask_gpt[0] = opened Google Chrome instance
-# ask_gpt[1] = array of responses
-@responses = get(ask_gpt(questions), 1)
+# chatgpt:ask_gpt[0] = opened Google Chrome instance
+# chatgpt:ask_gpt[1] = array of responses
+@responses = get(chatgpt:ask_gpt(questions), 1)
 
 # print responses
 responses.each('response', print('RESPONSE: ', response))

@@ -69,7 +69,7 @@ thread(interval(0.08, (
             ask_gpt_button.click(),
             # reopen inspect element
             chrome.write('{F12}'),
-            # active_ask_gpt() does not need to retype the URL
+            # chatgpt:active_ask_gpt() does not need to retype the URL
             @ needs_url = False
         ),
 
@@ -79,13 +79,13 @@ thread(interval(0.08, (
             @ new_tab = first(chrome.find_buttons('New Tab')),
             new_tab.click(),
 
-            # active_ask_gpt() does need to retype the URL
+            # chatgpt:active_ask_gpt() does need to retype the URL
             @ needs_url = True
         )
     ),
 
     # ask v d the question
-    @ response = first(private(active_ask_gpt(chrome, question, needs_url))),
+    @ response = first(private(chatgpt:active_ask_gpt(chrome, question, needs_url))),
     
     # empty the question array
     local.POSTENTRY('ask_gpt_questions', []),

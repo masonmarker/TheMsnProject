@@ -76,7 +76,7 @@ ask(
 # same automation can be performed with
 # the chatgpt automation library
 # import ('lib/auto/chatgpt')
-# print(get(ask_gpt(
+# print(get(chatgpt:ask_gpt(
 #     ['Who is Obama?', 
 #     'How old is he?', 
 #     'Did he believe in aliens?']

@@ -2,31 +2,27 @@
 # 
 # author : Mason Marker
 # date : 11/11/2022
-
-
-# ------------------------------- STANDARD PUBLIC API LIST -------------------------------
-
-
-
+# updated in 2.0.387
 
 # ------------------------------- BOOK ARCHIVE -------------------------------
 # Book library endpoint
-var('__books_endpoint', 'http://openlibrary.org/search.json?q=')
+var('stdapis:__books_endpoint', 'http://openlibrary.org/search.json?q=')
 
 
 # gets information about a book from OpenLibrary.org
 # query should be a keyword / sentence about the book, such as title, author, etc.
-~ apis_book(query) -> result
--- var('__apis_splitquery', split(?query?, ' '))
--- var('__apis_end', '')
--- for (0, len(?__apis_splitquery?), '__apis_i', =>(
-    var('__apis_curr_word', ?__apis_splitquery?[?__apis_i?]),
-    if (<< |?__apis_i?| != |len(?__apis_splitquery?)| - 1  >>,
-        add('__apis_end', ?__apis_curr_word? + '+'),
-        add('__apis_end', ?__apis_curr_word?)
-    )
+def('stdapis:apis_book', 'stdapis:query', (
+    var('stdapis:__apis_splitquery', split(stdapis:query, ' ')),
+    var('stdapis:__apis_end', ''),
+    for (0, len(stdapis:__apis_splitquery), 'stdapis:__apis_i', =>(
+        var('stdapis:__apis_curr_word', stdapis:__apis_splitquery.get(stdapis:__apis_i)),
+        if (not(equals(stdapis:__apis_i, -(len(stdapis:__apis_splitquery), 1))), 
+            stdapis:__apis_end.add(+(stdapis:__apis_curr_word, '+', stdapis:__apis_curr_word))
+        )
+    )),
+    # return the request
+    request(+(stdapis:__books_endpoint, stdapis:__apis_end))
 ))
--- var('result', request(?__books_endpoint? + ?__apis_end?))
 # ----------------------------------------------------------------------------
 
 

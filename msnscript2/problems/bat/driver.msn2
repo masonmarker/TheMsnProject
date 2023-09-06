@@ -26,7 +26,7 @@ import ('lib/auto/chatgpt')
 new_tab.click()
 
 # ask ChatGPT for the answer to the problem
-@ response = get(active_ask_gpt(
+@ response = get(chatgpt:active_ask_gpt(
     chrome,
     arr(
         +('I want just the Java solution for the CodingBat problem: ', 
