@@ -4,15 +4,18 @@
 #
 # author : Mason Marker
 # date : 11/27/2022
+# updated in 2.0.387
 
 # time at which the timer had been started
-var('__timer_start', -1)
+var('timer:__timer_start', -1)
 
 # starts the timer
-~ timer_start() -> start_time
-    -- var('__timer_start', now())
-    -- var('start_time', ?__timer_start?)
+def('timer:start', (
+    var('timer:__timer_start', now()),
+    timer:__timer_start
+))
 
 # computes the runtime of the current timer
-~ timer_runtime() -> runtime
-    -- var('runtime', << |now()| - |?__timer_start?| >>)
+def('timer:runtime', -(
+    now(), timer:__timer_start
+))

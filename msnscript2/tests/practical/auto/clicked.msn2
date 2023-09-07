@@ -14,7 +14,7 @@ chrome.write(input('type a website: '))
 chrome.enter()
 
 
-discover_click(chrome, 45, script(True))
+discover:click(chrome, 45, script(True))
 
 
 

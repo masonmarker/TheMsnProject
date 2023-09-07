@@ -65,17 +65,9 @@ def('processes:process_cleanup', 'process_cleanup:names', (
     processes:clean_processes()
 ))
 
-
-
 # forks the path of execution of the first asynchronous block passed
-# ~ fork(name, code) -> _
-
-#     # starts the code block on a new thread,
-#     # inheriting synchronizational capabilities
-#     -- thread(name, private(processes:as_process(code)))
 def('processes:fork', 'fork:name', 'fork:code', (
     # starts the code block on a new thread,
     # inheriting synchronizational capabilities
     thread(fork:name, private(processes:as_process(fork:code)))
 ))
-

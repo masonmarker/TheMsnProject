@@ -11,10 +11,10 @@
 # ------------------ SETUP ------------------
 
 # imports operating system specific 'clear' console command
-import ('lib/os.msn2')
+import ('lib/os')
 
 # imports timing capabilities
-import ('lib/timer.msn2')
+import ('lib/timer')
 
 # test specific accounting
 var('thread_count', 0)
@@ -33,7 +33,7 @@ var('thread_count', 0)
     -- print('[+] interpreted', trace.len(), 'instructions')
 
 # clear console
-clear()
+os:clear()
 
 # -------------------------------------------
 
@@ -972,7 +972,7 @@ var('terminate', False)
     -- print('[+] shutting down validator and endpoint...')
 
     # ends the timer and prints finishing boot environment
-    -- print('[+] fin in', cat(timer_runtime(), 's'))
+    -- print('[+] fin in', cat(timer:runtime(), 's'))
 
     # imports clean_processes()
     -- import('lib/processes.msn2')
@@ -1305,7 +1305,7 @@ var('terminate', False)
 import('lib/serial.msn2')
 
 # opens a new serialization variable
-serial_open('thread')
+serial:open('thread')
 
 # MSNScript2 has both the ability to create new syntax as well as new macros
 #
@@ -1322,7 +1322,7 @@ serial_open('thread')
     # any line of code preceeded with a ':' will 
     # be executed on a new thread
     -- macro(':', 'line', =>(
-        @ name = serial_next('thread'),
+        @ name = serial:next('thread'),
         thread(?name?, -(?line?)),
         ?name?
     ))
@@ -1491,7 +1491,7 @@ serial_open('thread')
     
     # this creates a user function called array_sum() that takes an array,
     # which is used in the function's context to compute its sum
-    -- function('array_sum', ret('array_sum', sum(^__array^)), '__array')
+    -- function('array_sum', ret('array_sum', sum(__array)), '__array')
     
     # invoking the function is the same
     -- equals(private(array_sum([1, 2, 3, 4, 5])), 15) ??
@@ -1552,8 +1552,8 @@ function('test_redirect', =>(
 
     # launches the code inside the redirect
     startredirect(),
-    equals(^v^, 2) ??,
-    equals(^v2^, 4) ??,
+    equals(v, 2) ??,
+    equals(v2, 4) ??,
 
 
     # creates another redirect that simply evaluates each instruction in between
@@ -1975,12 +1975,12 @@ function('test_redirect', =>(
     ))
 
     # private function
-    -- function('priv', =>(
+    -- function('priv', (
         # import english alphabet
-        import('lib/eng.msn2'),
+        import('lib/eng'),
         @ _i = 0,
         # create a variable for each letter of the alphabet
-        english_alphabet.each('letter', =>(
+        eng:alphabet.each('letter', (
             var(letter.val(), _i.inc())
         )),
         ret('priv', z)
@@ -1990,13 +1990,13 @@ function('test_redirect', =>(
     # classes working together
     -- new(=>(
         # making a class of tests
-        class('random_tests', =>(
+        class('random_tests', (
             # test 1
-            function('test1', =>(
+            function('test1', (
                 assert(equals(op.add(value, 3), 13))
             ), 'self', 'value')
         )),
-        =>(@_r=random_tests(),_r.test1(10))
+        (@_r=random_tests(),_r.test1(10))
     ))
 
     # testing the 'in' operator
@@ -2093,7 +2093,7 @@ function('subclasses', =>(
 # ------------------ TESTING JOINT MACROS ------------------
 # tests defined macros being used together
 # import msn2plus
-import('lib/syntax/msn2plus.msn2')
+import('lib/syntax/msn2plus')
 
 
 # new, safer function declaration mechanism
@@ -2399,7 +2399,7 @@ macro('TEST ', '__function', =>(
 
 
 # start the timer
-timer_start()
+timer:start()
 
 # iteration count
 var('iterations', 7)
@@ -2417,7 +2417,7 @@ print_threads()
 
 
 # completes the validator
-print('[+] fin in', cat(timer_runtime(), 's'))
+print('[+] fin in', cat(timer:runtime(), 's'))
 
 # stops the validator
 stop()

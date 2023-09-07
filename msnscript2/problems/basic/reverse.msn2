@@ -19,13 +19,13 @@ import ('lib/timer.msn2')
 macro('TEST', '__line', (
     
     # start timer
-    timer_start(),
+    timer:start(),
 
     # assert the test is correct
     assert(equals(-(__line), expected)),
 
     # print the time
-    print('test', test_ind , ':', timer_runtime(), 's'),
+    print('test', test_ind , ':', timer:runtime(), 's'),
 
     # increment test index
     test_ind.++()

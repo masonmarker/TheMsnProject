@@ -12,7 +12,7 @@ import ('lib/lang/dir')
 import ('lib/timer')
 
 # function for printing the runtime
-function('rt', print('timer runtime:', timer_runtime()))
+function('rt', print('timer runtime:', timer:runtime()))
 
 
 # shared variable
@@ -22,7 +22,7 @@ function('rt', print('timer runtime:', timer_runtime()))
 
 # -------------------- JavaScript --------------------
 # start the timer
-timer_start()
+timer:start()
 
 
 
@@ -60,7 +60,7 @@ print('JavaScript:', env.out())
 
 # -------------------- C --------------------
 # start timer again
-timer_start()
+timer:start()
 
 # compiling and running a C program
 # <tag> is replaced with a hashtag,

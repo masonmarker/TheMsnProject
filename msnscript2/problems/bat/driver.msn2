@@ -16,7 +16,7 @@ import ('lib/auto/chatgpt')
 @ name = 'mixStart'
 
 # navigate to the problem
-@ chrome = chrome_open(
+@ chrome = chrome:open(
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     'https://codingbat.com/prob/p151713'
 )

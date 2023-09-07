@@ -19,15 +19,15 @@
 # import() can be placed anywhere, as it is treated as a system call
 # importing a file simply executes the msn2 code within the file specified
 # in this context
-import ('lib/os.msn2')
+import ('lib/os')
 
 # importing syntax additions
 # and thread ease of use with '/t'
-import ('lib/syntax/msn2plus.msn2')
+import ('lib/syntax/msn2plus')
 
 
 # using an imported method from actual path '../os.msn2' to clear the console
-clear()
+os:clear()
 
 
 
@@ -555,7 +555,7 @@ processes:clean_processes()
 # launch a process with imported fork()
 # second argument as code for process to run
 # second argument must be async()
-timer_start()
+timer:start()
 processes:fork('p1', async(=>(
 
     # user created macros aren't available in the new process
@@ -571,7 +571,7 @@ processes:fork('p1', async(=>(
 # joins with the process
 join('p1')
 
-print('[*] 1 process fin in', cat(timer_runtime(), 's'))
+print('[*] 1 process fin in', cat(timer:runtime(), 's'))
 
 # asserts code was ran in another process
 not(exists('processvar')) ??
@@ -579,11 +579,11 @@ not(exists('processvar')) ??
 # putting a thread to sleep
 
 
-timer_start()
+timer:start()
 sleep(0.5)
 
 # reverting to classic assert
-assert(<< |timer_runtime()| >= 0.5 >>)
+assert(<< |timer:runtime()| >= 0.5 >>)
 
 # -------------------- MSN2 INSERTION --------------------
 
@@ -592,7 +592,7 @@ assert(<< |timer_runtime()| >= 0.5 >>)
 
 # uses classic assertion to maintain interpretation authority over <2> tags
 # postmacro '??' would not function correctly in this scenario
-assert(<2> %timer_runtime()% >= 0.5 <2>)
+assert(<2> %timer:runtime()% >= 0.5 <2>)
 
 
 # -------------------- MSN2 ADVANTAGES --------------------

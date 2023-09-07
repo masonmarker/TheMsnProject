@@ -7,8 +7,8 @@
 # date : 5/30/2023
 
 # fresh console
-import ('lib/os.msn2')
-clear()
+import ('lib/os')
+os:clear()
 
 # ----------------------- VARIABLES -----------------------
 @ a = 1

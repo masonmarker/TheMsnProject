@@ -2,26 +2,24 @@
 #
 # author : Mason Marker
 # date : 7/2/2023
+# updated in 2.0.387
 
 # default Chrome path
 @ chrome:default_path = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
 
 # launches Chrome and navigates to the given url
-function(@__c_o='chrome_open', ret(__c_o, (
+def('chrome:open', 'chrome:open:path', 'chrome:open:url', (
     # define the application
-    @ chrome_open:chrome = app(chrome_open:path),
-    
+    @ chrome:open:chrome = app(chrome:open:path),
     # start the application
-    chrome_open:chrome.start(),
-
+    chrome:open:chrome.start(),
     # write the URL and press enter to
     # navigate to that URL
-    chrome_open:chrome.write(chrome_open:url),
-    chrome_open:chrome.enter(),
-
+    chrome:open:chrome.write(chrome:open:url),
+    chrome:open:chrome.enter(),
     # return the instance
-    chrome_open:chrome
-)), 'chrome_open:path', 'chrome_open:url')
+    chrome:open:chrome
+))
 
 # launches chrome under the default path
 #
@@ -29,7 +27,7 @@ function(@__c_o='chrome_open', ret(__c_o, (
 # returns : the chrome instance
 # version : 2.0.384
 def('chrome:default_open', 'chrome:default_open:url', (
-    chrome_open(chrome:default_path, chrome:default_open:url)
+    chrome:open(chrome:default_path, chrome:default_open:url)
 ))
 
 # Chrome class, used for extensive browser functionality

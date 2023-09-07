@@ -18,7 +18,7 @@ import ('problems/leetcode/hard/js')
 
 # launches the Leetcode problem
 # defines an application
-@ chrome = chrome_open(
+@ chrome = chrome:open(
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     'https://leetcode.com/problems/find-minimum-in-rotated-sorted-array-ii/'
 )
@@ -30,7 +30,7 @@ drop.click()
 
 # injects the imported JavaScript into an active 
 # Chrome instance
-active_inject(chrome, js, False)
+inject:active_inject(chrome, js, False)
 
 # start the backend server for executing
 # msn2 alongside a thread for waiting

@@ -1,46 +1,78 @@
-import ('lib/timer.msn2')
-import ('lib/os.msn2')
-import ('lib/syntax/msn2plus.msn2')
-clear()
+# Resources for speed.
+#
+# author : Mason Marker
+# date : 9/6/2023
+# updated in 2.0.387
+
+import ('lib/timer')
+import ('lib/os')
+import ('lib/syntax/msn2plus')
+os:clear()
 
 # average timer runtime, subtracted from speed computations after they're made
 @ timer_off = None
-@ iterations = 100
+@ iterations = 50
 
 # factors in timer offset to the runtime being analyzed
-~ normalize(__number)->__normalized
+def('normalize', '__number', (
+    var('__number', __number.-(timer_off)),
+    if (__number.less(0), var('__normalized', 0), var('__normalized', __number))
+))
 
-    # subtracts timer offset and time to execute macro
-    -- var('__number', ?__number? - ?timer_off?)
-    -- if (?__number? < 0, var('__normalized', 0), var('__normalized', ?__number?))
 
 # prints a test result
-~ print_result(__msg, __rt)->_
-    -- print('[*]', ?__msg?, ':', cat(?__rt?, 's'))
+def('print_result', '__msg', '__rt', (
+    print:color(
+        object(
+            'text', '[*] ',
+            'style', 'bold',
+            'fore', 'black'
+        ),
+        object(
+            'text', __msg,
+            'style', 'bold',
+            'fore', 'magenta'
+        ),
+        object(
+            'text', ': ',
+            'style', 'bold',
+            'fore', 'white'
+        ),
+        object(
+            'text', cat(__rt, 's'),
+            'style', 'bold',
+            'back', 'green'
+        )
+    )
+))
 
 # tests the speed of the timer itself
-~ set_off()->_
-    -- @ times=[]
-    -- for(0, ?iterations?, 'i', =>(
-        timer_start(),
-        var('rt', timer_runtime()),
-        times.push(?rt?)   
-    ))
+def('set_off', (
+    var('times', []),
+    for(0, iterations, 'i', =>(
+        timer:start(),
+        var('rt', timer:runtime()),
+        times.push(rt)   
+    )),
 
-    -- @timer_off = times.avg()
-    -- print_result('timer setup (factored into below runtimes)', times.avg())
+    var('timer_off', times.avg()),
+    print_result('timer setup (factored into below runtimes)', times.avg())
+))
+
 
 # runs a timer given an async block of code
-~ run_timer(__msg, __code) -> __rt
-    -- @ times = []
-    -- for (0, ?iterations?, 'i', =>(
-        timer_start(),
-        -(?__code?),
-        var('end', normalize(timer_runtime())),
-        times.push(?end?)
-    ))
+def('run_timer', '__msg', '__code', (
+    var('times', []),
+    for(0, iterations, 'i', =>(
+        timer:start(),
+        -(__code),
+        var('end', normalize(timer:runtime())),
+        times.push(end)
+    )),
 
-    -- private(print_result(?__msg?, times.avg()))
+    private(print_result(__msg, times.avg()))
+))
+
 
 # test macros for ease of testing
 macro ('RESET', '__unused', @test_sort_arr=[10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
@@ -48,10 +80,10 @@ macro ('RESET', '__unused', @test_sort_arr=[10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
 # test macro, runs the line of code 100 times and obtains the average runtime
 # then prints formatted result of the test
 macro ('TEST', '__line', =>(
-    var('__split', split(?__line?, ':::')),
-    var('message', ?__split?[0]),
+    var('__split', split(__line, ':::')),
+    var('message', __split.get(0)),
     message.strip(),
-    run_timer(-(?message?), ?__split?[1])
+    run_timer(-(message), __split.get(1))
 ))
 
 # macro to run a private test, then print a divider

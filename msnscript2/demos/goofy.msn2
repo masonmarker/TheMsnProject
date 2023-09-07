@@ -4,9 +4,9 @@
 # date : 12/01/2022
 
 # os specific console usage
-import ('lib/os.msn2')
-import ('lib/syntax/msn2plus.msn2')
-clear()
+import ('lib/os')
+import ('lib/syntax/msn2plus')
+os:clear()
 
 
 

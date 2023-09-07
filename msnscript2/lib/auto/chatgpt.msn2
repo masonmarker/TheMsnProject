@@ -16,12 +16,15 @@
 # import automated JavaScript injection library
 import ('lib/auto/inject')
 
+# import the Chrome library for the default Chrome path
+import ('lib/auto/chrome')
+
 # asks ChatGPT questions, retrieving its answer
 # only works for dark mode as of 2.0.387
 function('chatgpt:ask_gpt', (
 
     # opens Google Chrome to the ChatGPT website
-    @ ask_gpt:_chrome = app('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'),
+    @ ask_gpt:_chrome = app(chrome:default_path),
     ask_gpt:_chrome.start(),
     ask_gpt:_chrome.write('https://chat.openai.com/'),
     ask_gpt:_chrome.enter(),
@@ -49,7 +52,7 @@ function('chatgpt:ask_gpt', (
         # opens and injects JavaScript into the application's element 
         # inspection console
         # arguments: browser, script, inspect element is open?
-        ask_gpt:_responses.add(active_inject(ask_gpt:_chrome, script(
+        ask_gpt:_responses.add(inject:active_inject(ask_gpt:_chrome, script(
             let m = document.getElementsByClassName(
                 'flex flex-col text-sm dark:bg-gray-800'
             )[0];
@@ -92,7 +95,7 @@ function('chatgpt:active_ask_gpt', (
         # opens and injects JavaScript into the application's element 
         # inspection console
         # arguments: browser, script, inspect element is open?
-        active_ask_gpt:_responses.add(active_inject(active_ask_gpt:_appinstance, script(
+        active_ask_gpt:_responses.add(inject:active_inject(active_ask_gpt:_appinstance, script(
             let m = document.getElementsByClassName(
                 'flex flex-col text-sm dark:bg-gray-800'
             )[0];

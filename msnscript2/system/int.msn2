@@ -80,5 +80,5 @@ console:print(arr(
     )
 ))
 
-private(shell(''))
+private(user:shell(''))
 

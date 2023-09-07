@@ -6,25 +6,19 @@
 # date : 11/20/2022
 
 # api specific resources
-import ('lib/apis/api.msn2')
+import ('lib/apis/api')
 
 # processing resources
-import ('lib/processes.msn2')
-
+import ('lib/processes')
 
 # creates the process key for a port
-~ process_key_for(port) -> key
-    -- var('key', cat('p', port))
+def('process_key_for', 'process_key_for:port', cat(
+    'p',process_key_for:port))
 
 # prints a process specific message to the console
-~ msg(port, message) -> _
-    -- print(cat('|', port, '| ', message))
+def('msg', 'msg:port', 'msg:message', print(cat(
+    '|', msg:port, '| ', msg:message)))
 
-~ req(process_key, message) -> response
-    -- var('response', api_post(key, object(process_key, message)))
-
-
-
-
-
-
+def('req', 'req:process_key', 'req:message', api:post(
+    req:process_key, object(req:process_key, req:message)
+))

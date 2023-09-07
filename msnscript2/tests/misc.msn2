@@ -1,8 +1,7 @@
 
-# import chatgpt
-import ('lib/auto/chatgpt')
-
-env(1)
 
 
-chatgpt:ask_gpt(['hello!', 'how are you'])
+
+import ('lib/user')
+
+user:shell('testing')

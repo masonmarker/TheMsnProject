@@ -10,15 +10,15 @@
 # date : 12/20/2022
 
 # clear console
-import ('lib/os.msn2')
+import ('lib/os')
 
-# variable value extraction with '^^'
-import ('lib/syntax/msn2plus.msn2')
+# syntax additions
+import ('lib/syntax/msn2plus')
 
-clear()
+os:clear()
 
 # placeholder to look like SQL, simply interprets the preceeding line
-postmacro(';', '__line', -(^__line^))
+postmacro(';', '__line', -(__line))
 
 # creates a variable setting standard
 macro('SET ', '__line', =>(
@@ -28,11 +28,11 @@ macro('SET ', '__line', =>(
 ))
 
 # macro for printing
-macro('PRINT ', '__line', print(-(^__line^)))
+macro('PRINT ', '__line', print(-(__line)))
 
 
 # for selecting certain items from an array
-macro('SELECT ', '__line', =>(
+macro('SELECT ', '__line', (
     
     @ __selected = [],
 
@@ -46,18 +46,20 @@ macro('SELECT ', '__line', =>(
     @__condition = __sp2.get(1),
 
     # user is selecting from everything in the iterable
-    if (equals(^__selecting^, '*'), each(^__iterable^, 'el', if (-(^__condition^), __selected.add(^el^)))),
+    if (equals(__selecting, '*'), each(__iterable, 'el', if (-(__condition), __selected.add(el)))),
     
     
-    DO ^__selected^ THEN destroy('__')
+    __selected
 ))
 
 # compares two values
-macro('COMPARE ', '__line', =>(
+macro('COMPARE ', '__line', (
     @__sp=__line.split(' AND '),
 
     # compares arguments in separate environments
-    DO if(not(equals(private(-(__sp.get(0))), private(-(__sp.get(1))))), print('[-] assertion error :', __sp.get(0), '==', __sp.get(1))) THEN destroy('__')
+    if(not(equals(private(-(__sp.get(0))), 
+        private(-(__sp.get(1))))), 
+        print('[-] assertion error :', __sp.get(0), '==', __sp.get(1)))
 ))
 
 
@@ -70,11 +72,12 @@ PRINT '[*] starting program';
 SET v TO [1, 2, 3, 4, 5, 6, 7, 8];
 
 # testing COMPARE macro
+# change these values to see a difference in the program's output
 COMPARE 0 AND 0;
 COMPARE [1, 2, 3, 4] AND [1,2,3,4];
 
 # compares a selection of even elements
-COMPARE SELECT * FROM ^v^ WHERE equals(mod(^el^, 2), 0) AND [2, 4, 6, 8];
+COMPARE SELECT * FROM v WHERE equals(mod(el, 2), 0) AND [2, 4, 6, 8];
 
 PRINT '[*] ending program';
 

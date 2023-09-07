@@ -21,13 +21,13 @@ syntax('!', 'bt', (
 ))
 
 # opens a new serialized variable for thread naming
-serial_open('thread')
+serial:open('thread')
 
 # starts the line on a new thread
 syntax('/t', 'line', (
 
     # name the thread
-    var('__name', serial_next('thread')),
+    var('__name', serial:next('thread')),
 
     # start the thread
     thread(__name, -(line)),

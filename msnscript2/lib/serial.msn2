@@ -4,15 +4,24 @@
 # date : 11/28/2022
 
 # serial specific resources
-var('__serials', {})
+var('serial:serials', {})
 
 
 # opens a serialization slot
-~ serial_open(name) -> __serial_return
-    -- __serials.set(?name?, 0)
-    -- var('__serial_return', ?name?)
+# ~ serial_open(name) -> __serial_return
+#     -- serial:serials.set(name, 0)
+#     -- var('__serial_return', name)
+def('serial:open', 'serial:open:name', (
+    serial:serials.set(serial:open:name, 0),
+    serial:open:name
+))
+
 
 # gets the next serialized value
 ~ serial_next(name) -> __serial_return
-    -- __serials.set(?name?, ?__serials?[?name?] + 1)
-    -- var('__serial_return', ?__serials?[?name?])
+    -- serial:serials.set(name, ?serial:serials?[?name?] + 1)
+    -- var('__serial_return', ?serial:serials?[?name?])
+def('serial:next', 'serial:next:name', (
+    serial:serials.set(serial:next:name, +(serial:serials.get(serial:next:name), 1)),
+    serial:serials.get(serial:next:name)
+))

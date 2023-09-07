@@ -116,29 +116,27 @@ def('fizzbuzz6', 1|max|i (
 
 import ('lib/timer.msn2')
 
-timer_start()
+timer:start()
 fizzbuzz1()
-print('algo 1:', timer_runtime(), 'sec.')
+print('algo 1:', timer:runtime(), 'sec.')
 
-
-
-timer_start()
+timer:start()
 fizzbuzz2()
-print('algo 2:', timer_runtime(), 'sec.')
+print('algo 2:', timer:runtime(), 'sec.')
 
-timer_start()
+timer:start()
 fizzbuzz3()
-print('algo 3:', timer_runtime(), 'sec.')
+print('algo 3:', timer:runtime(), 'sec.')
 
-timer_start()
+timer:start()
 fizzbuzz4()
-print('algo 4:', timer_runtime(), 'sec.')
+print('algo 4:', timer:runtime(), 'sec.')
 
 
-timer_start()
+timer:start()
 fizzbuzz5()
-print('algo 5:', timer_runtime(), 'sec.')
+print('algo 5:', timer:runtime(), 'sec.')
 
-timer_start()
+timer:start()
 fizzbuzz6()
-print('algo 6:', timer_runtime(), 'sec.')
+print('algo 6:', timer:runtime(), 'sec.')

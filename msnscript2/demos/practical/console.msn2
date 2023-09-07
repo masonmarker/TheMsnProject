@@ -1,13 +1,10 @@
-# demonstrates simple usage of the console() implementation
+# Demonstrates simple usage of the console() implementation.
+#
 # author : Mason Marker
 # date : 11/8/2022
+# updated in 2.0.387
 
 # simulates a Makefile for the user program in the current directory
-
-# make clean
-# ~ make_clean() -> __
-#     -- console('rm -f main')
-# updated in 2.0.387
 
 # must be using Linux
 if (not(linux()), (
@@ -23,41 +20,25 @@ if (not(linux()), (
     stop()
 ))
 
-
+# cleans the main binary file
 def('make_clean', console('rm -f main'))
 
 # clears the console
-# ~ clear() -> __
-#     -- console('clear')   
-# updated in 2.0.387
 def('clear', console('cls'))
 
 # compiles the user program in the directory specified
-# ~ main() ->__
-#     -- console('gcc demos/practical/cfiles/main.c -o main')
-# updated in 2.0.387
 def('main', console('gcc demos/practical/cfiles/main.c -o main'))
 
 # executes the binary file
-# ~ run() -> __
-#     -- console('./main')
-# updated in 2.0.387
 def('run', console('./main'))
 
 # simulates a run of 'make all'
-# ~ all()->__
-# -- main()
-# updated in 2.0.387
 def('all', main())
 
-
 # simulates a run of 'make'
-# ~ make()->__
-# -- all()
-# updated in 2.0.387
 def('make', all())
 
-
+# run commands
 clear()
 make_clean()
 make()

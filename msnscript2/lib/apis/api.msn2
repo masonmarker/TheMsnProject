@@ -16,45 +16,43 @@ class('api', (
 ))
 
 # network api
-var('api:api_network', api(network, 5000, '/', {}))
+var('api:api_network', api(http:network, 5000, '/', {}))
 
 # local api
-var('api:api_local', api(localhost, 5000, '/', {}))
+var('api:api_local', api(http:localhost, 5000, '/', {}))
 
 # gets from an api endpoint
-def('api_get', 'api_get:__api__', (
-    GET(api_get:__api__.host(), api_get:__api__.port(), api_get:__api__.path())
+def('api:get', 'api:get:__api__', (
+    GET(api:get:__api__.host(), api:get:__api__.port(), api:get:__api__.path())
 ))
 
 # posts data to an api endpoint
 # essentially calls update() on the current json with the new data being sent
-def('api_post', 'api_post:__api__', 'data', (
-    POST(api_post:__api__.host(), api_post:__api__.port(), api_post:__api__.path(), data)
+def('api:post', 'api:post:__api__', 'data', (
+    POST(api:post:__api__.host(), api:post:__api__.port(), api:post:__api__.path(), data)
 ))
 
 # deletes from an api endpoint
-# ~ api_delete(__api__) -> response
-def('api_delete', 'api_delete:__api__', (
-    DELETE(api_delete:__api__.host(), api_delete:__api__.port(), api_delete:__api__.path())
+def('api:delete', 'api:delete:__api__', (
+    DELETE(api:delete:__api__.host(), api:delete:__api__.port(), api:delete:__api__.path())
 ))
 
 # constructs the url that the api endpoint passed resides
-# ~ api_url(__api__) -> path
-def('api_url', 'api_url:__api__', (
-    cat('http://', api_url:__api__.host(), ':', api_url:__api__.port(), api_url:__api__.path())
+def('api:url', 'api:url:__api__', (
+    cat('http://', api:url:__api__.host(), ':', api:url:__api__.port(), api:url:__api__.path())
 ))
 
 # gets the name of the thread hosting the api endpoint passed
-def('api_thread_name', 'api_thread_name:__api__', api_url(api_thread_name:__api__))
+def('api:thread_name', 'api:thread_name:__api__', api:url(api:thread_name:__api__))
 
 # starts an api endpoint on a new thread
 # DEPRECATED
-def('api_start', 'api_start:__api__', (
-    thread(api_url(api_start:__api__), (
-        ENDPOINT(api_start:__api__.host(), 
-                api_start:__api__.port(), 
-                api_start:__api__.path(), 
-                api_start:__api__.init_data())
+def('api:start', 'api:start:__api__', (
+    thread(api:url(api:start:__api__), (
+        ENDPOINT(api:start:__api__.host(), 
+                api:start:__api__.port(), 
+                api:start:__api__.path(), 
+                api:start:__api__.init_data())
     )),
     True
 ))

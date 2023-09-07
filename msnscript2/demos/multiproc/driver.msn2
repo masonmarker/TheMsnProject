@@ -39,49 +39,49 @@ var('serial2', 0)
 
 # methods for overseer
 # ~ post5000() -> response
-# -- var('response', api_post(?ep1?, {?serial?: ?serial?}))
+# -- var('response', api:post(?ep1?, {?serial?: ?serial?}))
 # -- add('serial', 1)
 # updated in 2.0.387
 def('post5000', (
     serial.add(1),
-    api_post(ep1, object(serial, serial))
+    api:post(ep1, object(serial, serial))
 ))
 
 # ~ post5001() -> response
-# -- var('response', api_post(?ep2?, {?serial2?: ?serial2?}))
+# -- var('response', api:post(?ep2?, {?serial2?: ?serial2?}))
 # -- add('serial2', 1)
 # updated in 2.0.387
 def('post5001', (
     serial2.add(1),
-    api_post(ep2, object(serial2, serial2))
+    api:post(ep2, object(serial2, serial2))
 ))
 
 # ~ get5000() -> response
-# -- var('response', api_get(?ep1?))
+# -- var('response', api:get(?ep1?))
 # updated in 2.0.387
 def('get5000', (
-    api_get(ep1)
+    api:get(ep1)
 ))
 
 # ~ get5001() -> response
-# -- var('response', api_get(?ep2?))
+# -- var('response', api:get(?ep2?))
 # updated in 2.0.387
 def('get5001', (
-    api_get(ep2)
+    api:get(ep2)
 ))
 
 # ~ delete5000() -> response
-# -- var('response', api_delete(?ep1?))
+# -- var('response', api:delete(?ep1?))
 # updated in 2.0.387
 def('delete5000', (
-    api_delete(ep1)
+    api:delete(ep1)
 ))
 
 # ~ delete5001() -> response
-# -- var('response', api_delete(?ep2?))
+# -- var('response', api:delete(?ep2?))
 # updated in 2.0.387
 def('delete5001', (
-    api_delete(ep2)
+    api:delete(ep2)
 ))
 
 
@@ -100,4 +100,4 @@ print('delete5000()')
 print('delete5001()\n')
 
 
-shell('overseer')
+user:shell('overseer')

@@ -8,9 +8,9 @@
 import ('lib/timer.msn2')
 
 # resets test array
-function('reset', (@array = list(range(0,100)), timer_start()))
+function('reset', (@array = list(range(0,100)), timer:start()))
 # verifies the number 75 was removed
-function('verify', (assert(not(array.has(75))), print(timer_runtime(), 's')))
+function('verify', (assert(not(array.has(75))), print(timer:runtime(), 's')))
 
 
 # fastest way

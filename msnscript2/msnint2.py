@@ -2434,6 +2434,7 @@ class Interpreter:
                     def type_keys_with_delay(window, text, delay):
                         e = False
                         import time
+                        import pywinauto
                         for char in text:
                             try:
                                 window.type_keys(char, with_spaces=True)

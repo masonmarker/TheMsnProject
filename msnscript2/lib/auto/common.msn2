@@ -3,12 +3,15 @@
 # author : Mason Marker
 # date : 5/26/2023
 
+# import chrome library
+import('lib/auto/chrome')
+
 # class for applications
-class('common', =>(
+class('common', (
     # gets a notepad instance
-    function('notepad', ret('notepad', app('notepad.exe')), 'self'),
+    def('notepad', 'self', app('notepad.exe')),
     # gets a chrome instance
-    function('chrome', ret('chrome', app('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')), 'self'),
+    def('chrome', 'self', app(chrome:default_path)),
 ))
 
 # instance of common to export to the main environment

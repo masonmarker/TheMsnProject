@@ -17,4 +17,4 @@ var('ep2', api:api_local.copy())
 ep2.port(5001)
 
 # start endpoint 2
-private(api:api_start(ep2))
+private(api:start(ep2))

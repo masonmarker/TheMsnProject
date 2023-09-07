@@ -5,12 +5,10 @@
 #
 # author : Mason Marker
 # date : 5/13/2023
+# updated in 2.0.387
 
 # os module
-import ('lib/os.msn2')
+import ('lib/os')
 
 # msn2plus syntax
-import ('lib/syntax/msn2plus.msn2')
-
-# random module
-import ('lib/rand.msn2')
+import ('lib/syntax/msn2plus')

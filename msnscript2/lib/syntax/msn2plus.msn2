@@ -5,54 +5,25 @@
 # updated in 2.0.387
 
 # imports
-import('lib/serial.msn2')
-import('lib/processes.msn2')
+import('lib/serial')
+import('lib/processes')
 
 # setup
-serial_open('msn2plus_thread')
-
-# utilizing variables
-enclosedsyntax('^', '^', '__MSN2varname', val(strip(val('__MSN2varname'))))
-
-# completes a task, then another task, returning the first task's return value
-# syntax : DO task1() THEN task2() -> task1.return
-macro('DO ', '__DOline', private((
-    @ DO_split = __DOline.split(' THEN '),
-    @ DO_ret = -(DO_split.get(0)),
-    -(DO_split.get(1)),
-    destroy('DO_split'),
-    ^DO_ret^    
-)))
+serial:open('msn2plus_thread')
 
 # threads
 # starts a thread with an ardered name 't0, t1..'
-macro('/t', '__threadline', (
-    var('__name', cat('t', serial_next('msn2plus_thread'))),
-    thread(^__name^, -(val('__threadline'))),
-    DO ^__name^ THEN destroy('__name')
+macro('/t', 'slashT::line', (
+    var('slashT::name', cat('t', serial:next('msn2plus_thread'))),
+    thread(slashT::name, -(val('slashT::line'))),
+    slashT::name
 ))
-
 
 # faster assertions
-postmacro('??', '__assertline', (
-    @__block = ^__assertline^,
-    @__ev = -(^__block^),
-    if(not(^__ev^), print('[-] assertion error :', ^__block^)),
-    DO ^__ev^ THEN destroy('__ev', '__block')
-))
-
-# basic list comprehension
-# rewrite the above macro, but each variable should start with 'macro_in:'
-macro('in ', 'macro_in:inline', private(
-    @ macro_in:incompret = [],
-    @ macro_in:sp1 = macro_in:inline.split('<<<'),
-    @ macro_in:sp2 = split(macro_in:sp1.get(1), '>>>'),
-    @ macro_in:iterable = -macro_in:sp1.get(0),
-    @ macro_in:varname = strip(macro_in:sp2.get(0)),
-    @ macro_in:expr = macro_in:sp2.get(1),
-    macro_in:iterable.each('macro_in:inel', (
-        var(cat('macro_in:', macro_in:varname), macro_in:inel),
-        macro_in:incompret.append(-(macro_in:expr))
-    )),
-    macro_in:incompret
+postmacro('??', 'doubleQuestion::line', (
+    @doubleQuestion::block = doubleQuestion::line,
+    @doubleQuestion::ev = -(doubleQuestion::block),
+    if(not(doubleQuestion::ev), 
+        print('[-] assertion error :', doubleQuestion::block)),
+    doubleQuestion::ev
 ))

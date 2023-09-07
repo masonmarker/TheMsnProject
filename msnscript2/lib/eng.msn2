@@ -4,4 +4,4 @@
 # date : 5/12/2023
 
 # english alphabet
-@ english_alphabet = 'abcdefghijklmnopqrstuvwxyz'
+@ eng:alphabet = 'abcdefghijklmnopqrstuvwxyz'

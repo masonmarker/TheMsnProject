@@ -39,5 +39,5 @@ macro('set ', '__array', =>(
 
 
 # clears the screen and prepares for new language execution
-import('lib/os.msn2')
-clear()
+import('lib/os')
+os:clear()

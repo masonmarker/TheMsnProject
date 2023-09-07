@@ -13,5 +13,5 @@ import('lib/http.msn2')
 
 
 # starts endpoint 1 on localhost:5000
-private(api:api_start(api:api_local))
+private(api:start(api:api_local))
 

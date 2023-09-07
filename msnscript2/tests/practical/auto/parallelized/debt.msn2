@@ -53,7 +53,7 @@ thread('notepad', (
     notepad.start(),
 
     # starts the timer
-    timer_start(),
+    timer:start(),
 
     # constantly write the U.S. national debt
     # for 15 seconds
@@ -67,7 +67,7 @@ thread('notepad', (
 
         # write the debt to the notepad
         # alongside the current program runtime
-        notepad.write(cat(debt, ' at ', timer_runtime(), 's')),
+        notepad.write(cat(debt, ' at ', timer:runtime(), 's')),
         # go to the next line of the notepad,
         # and reset the debt
         notepad.enter(), @ debt = None

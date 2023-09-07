@@ -43,7 +43,7 @@ function('ask', (
         # opens and injects JavaScript into the application's element 
         # inspection console
         # arguments: browser, script, inspect element is open?
-        print('GPT SAYS: ', active_inject(chrome, script(
+        print('GPT SAYS: ', inject:active_inject(chrome, script(
             let m = document.getElementsByClassName(
                 'flex flex-col text-sm dark:bg-gray-800'
             )[0];

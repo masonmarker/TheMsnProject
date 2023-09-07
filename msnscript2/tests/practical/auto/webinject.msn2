@@ -8,7 +8,7 @@ import ('lib/auto/inject')
 
 # inject JavaScript into 'www.calculator.com'
 # returns the instance of Chrome opened
-inject('www.calculator.com', script(
+inject:inject('www.calculator.com', script(
     const elements = document.getElementsByClassName('button blue btnsml caps');
     const operatorButton = Array.from(
         document.getElementsByClassName('button orange btnsml caps'))

@@ -12,14 +12,14 @@ import ('lib/auto/chrome')
 import ('lib/auto/inject')
 
 # open Chrome and navigate to the problem
-@ chrome = chrome_open(
+@ chrome = chrome:open(
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     'https://codingbat.com/prob/p162058'
 )
 
 # inject imported JavaScript
 # into active Chrome instance
-active_inject_paste(chrome, js, False)
+inject:active_inject_paste(chrome, js, False)
 
 # close inspection
 chrome.close_inspect()

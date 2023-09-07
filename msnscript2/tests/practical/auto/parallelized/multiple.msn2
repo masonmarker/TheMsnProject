@@ -25,7 +25,7 @@ wait(@ five_button = first(chrome.find_all_children_exact('5')))
 # ------------------- PAGE LOADED -------------------
 
 # start timer
-timer_start()
+timer:start()
 
 # gets the operator buttons
 thread('+', (
@@ -64,7 +64,7 @@ join('0', '1', '2')
 # sorts the numbers by a child's text
 @ numbers = reverse(sortby(numbers, 'child', child.text()))
 
-print('numbers ready in ', timer_runtime(), 'seconds')
+print('numbers ready in ', timer:runtime(), 'seconds')
 
 
 # type in the equation
@@ -80,7 +80,7 @@ equals_button.click()
 print('Calculator says', int(result_text_box.text()))
 
 # print runtime
-print('multiple threads took', timer_runtime(), 'seconds')
+print('multiple threads took', timer:runtime(), 'seconds')
 
 # stops chrome
 chrome.stop()

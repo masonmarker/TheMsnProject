@@ -7,7 +7,7 @@
 import ('lib/timer')
 
 # start the timer
-timer_start()
+timer:start()
 
 
 # create array
@@ -28,4 +28,4 @@ min.print('min: ')
 max.print('max: ')
 
 # print runtime
-print('found both in', x(timer_runtime(), 100), 'ms')
+print('found both in', x(timer:runtime(), 100), 'ms')

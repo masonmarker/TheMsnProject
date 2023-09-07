@@ -1,70 +1,54 @@
-# offers more file operations
-
-
+# Offers more file operations.
+#
+# author : Mason Marker
+# date : 9/6/2023
+# updated in 2.0.387
 
 # helper for copydir()
-function('_dirrecurse', =>(
+function('files:recurse', (
         # if file is directory, create directory in new location
-    if (file.isdir(old), =>(
+    if (file.isdir(recurse:old), (
 
         # make new directory
-        file.mkdir(newpath),
+        file.mkdir(recurse:newpath),
 
         # copy files from old directory to new directory
-        @ thisdir_files = file.listdir(old),
+        @ recurse:thisdir_files = file.listdir(recurse:old),
 
         # create old path
-        thisdir_files.each('fl2', =>(
+        recurse:thisdir_files.each('fl2', =>(
 
             # obtain working file path
-            @ old2 = cat(old, '/', fl2),
-            @ newpath2 = cat(newpath, '/', fl2),
+            @ recurse:old2 = cat(recurse:old, '/', fl2),
+            @ recurse:newpath2 = cat(recurse:newpath, '/', fl2),
 
             # if file is directory, recurse, otherwise copy .msn2 library file
-            if (file.isdir(old2), 
-                private(_dirrecurse(old2, newpath2)), 
-
+            if (file.isdir(recurse:old2), 
+                private(files:recurse(recurse:old2, recurse:newpath2)), 
                 # else
-                file.copy(old2, newpath2))
+                file.copy(recurse:old2, recurse:newpath2))
         ))       
 
     # otherwise, copy file to new location  
-    ), file.copy(old, newpath))
-
-), 'old', 'newpath')
-
-
-
-# # copy the msn2 library to the new directory
-# @ files = file.listdir('lib')
-
-# # copy each file from every 
-# files.each('fl', =>(
-
-#     # obtain working file path
-#     @ old = cat('lib/', fl),
-#     @ newpath = cat('portable/msn2/', fl),
-
-#     # adds adds all files from the lib folder
-#     private(recurse(old, newpath)),
-# ))
+    ), file.copy(recurse:old, recurse:newpath))
+), 'recurse:old', 'recurse:newpath')
 
 # copies a directory tree to a new location
-function('copydir', =>(
+function('files:copydir', (
 
-    @ files = file.listdir(src),
+    @ copydir:files = file.listdir(copydir:src),
 
-    files.each('fl', =>(
+    copydir:files.each('fl', (
 
         # obtain working file path
-        @ old = cat(src, '/', fl),
-        @ newpath = cat(dest, '/', fl),
+        @ copydir:old = cat(copydir:src, '/', fl),
+        @ copydir:newpath = cat(copydir:dest, '/', fl),
 
             # adds adds all files from the lib folder
-        private(_dirrecurse(old, newpath))
+        private(files:recurse(copydir:old, copydir:newpath))
     ))
 
-), 'src', 'dest')
+), 'copydir:src', 'copydir:dest')
 
 
 # file class, for simplified file operations.

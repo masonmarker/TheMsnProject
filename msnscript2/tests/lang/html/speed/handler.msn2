@@ -11,7 +11,7 @@ import ('lib/apis/api')
 import ('lib/timer')
 
 # function for making seconds string
-function(@_sec='seconds', ret(_sec, cat(timer_runtime(), 's')))
+function(@_sec='seconds', ret(_sec, cat(timer:runtime(), 's')))
 
 # new thread to wait for an expression
 function('handler:start', (
