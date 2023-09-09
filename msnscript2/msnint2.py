@@ -95,7 +95,6 @@ warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 # variables
 
-
 class Var:
     # constructs a new Var
     def __init__(self, _msn2_reserved_varname, _msn2_reserved_varvalue):
@@ -106,6 +105,10 @@ class Var:
     def __eq__(self, other):
         if isinstance(other, Var):
             return other.name == self.name
+        
+    # string representation of Var
+    def __str__(self):
+        return f"(Var {self.name}={self.value})"
 
 
 # path to the common settings file
@@ -245,6 +248,7 @@ class Interpreter:
         self.redirecting = False
         self.redirect_inside = []
         self.imports = set()
+        self.domains = set()
 
         # threading
         self.thread = None
@@ -759,7 +763,8 @@ class Interpreter:
                                             to_pass.append(self.parse(
                                                 k, line, f, sp, args)[2])
                                         except:
-                                            None
+                                            ...
+                                            
                                 # create return variable
                                 ret_name = method.returns[0]
 
@@ -775,7 +780,7 @@ class Interpreter:
                                 #     print(to_pass, args)
                                 try:
                                     method.run(to_pass, self, args)
-                                # catch IndexError
+                                # Index out of bounds error
                                 except IndexError:
                                     self.raise_incorrect_args(str(len(method.args)), str(
                                         self.arg_count(args) - 1), line, lines_ran, method)
@@ -3586,6 +3591,9 @@ class Interpreter:
                     value = self.parse(1, line, f, sp, args)[2]
 
                     vname = f"{fname}__return__"
+                    # if the variable does not exist, we should create it
+                    if vname not in self.vars:
+                        self.vars[vname] = Var(vname, None)
                     self.vars[vname].value = value
                     return value
 
@@ -3606,7 +3614,9 @@ class Interpreter:
                             func_args.append(arg)
                             try:
                                 meth_argname = method.args[i]
-                            except:
+                                
+                            # incorrect amount of function arguments supplied
+                            except IndexError:
                                 self.raise_incorrect_args(str(len(method.args)), str(
                                     self.arg_count(args)), line, lines_ran, method)
                             self.vars[meth_argname] = Var(meth_argname, arg)
@@ -3622,11 +3632,11 @@ class Interpreter:
                     try:
                         method.run(func_args, self, args)
 
-                    # incorrect amount of arguments supplied
-                    except IndexError:
+                    # index out of bounds error in method run
+                    except IndexError as e:
                         # raise msn2 error
-                        self.raise_incorrect_args(str(len(method.args)), str(
-                            self.arg_count(args)), line, lines_ran, method)
+                        self.raise_index_out_of_bounds(line, lines_ran, method)
+                            
 
                     # if its a variable
                     if ret_name in self.vars:
@@ -3746,6 +3756,9 @@ class Interpreter:
                 # determines if a variable exists or not
                 elif func == 'exists':
                     return self.parse(0, line, f, sp, args)[2] in self.vars
+                # determine if a function exists or not
+                elif func == 'exists:function':
+                    return self.parse(0, line, f, sp, args)[2] in self.methods
 
                 # gets the length of the first argument
                 elif func == 'len':
@@ -4537,6 +4550,10 @@ class Interpreter:
                 elif func == 'sorted':
                     return sorted(self.parse(0, line, f, sp, args)[2])
 
+                # gets a copy of the object
+                elif func == 'copy':
+                    return self.parse(0, line, f, sp, args)[2].copy()
+
                 # performs file-specific operations
                 elif obj == 'file':
                     # import shutil
@@ -5013,24 +5030,80 @@ class Interpreter:
 
                 # imports resources from another location
                 elif func == 'import' or func == 'launch' or func == 'include' or func == 'using':
-
                     # for each import
                     for i in range(len(args)):
-                        line, as_s, path = self.parse(i, line, f, sp, args)
-                        if not path.endswith('.msn2'):
-                            path += '.msn2'
-                        if path in self.imports:
-                            continue
-                        self.imports.add(path)
-                        contents = ''
-                        with open(path) as f:
-                            contents = f.readlines()
-                            script = ''
-                            for line in contents:
-                                script += line
-                            self.logg("importing library", str(args[0][0]))
+                        if script := self.imp(i, line, f, sp, args, self.imports):
                             self.execute(script)
                     return
+                
+                # creating variable domains
+                elif func == 'domain':
+                    # get the name of the domain to create
+                    domain_name = self.parse(0, line, f, sp, args)[2]
+                    # domains cannot coexist
+                    if domain_name in self.domains:
+                        self.err(
+                            'Domain Error',
+                            f'Domain "{domain_name}" already exists',
+                            line,
+                            lines_ran
+                        )
+                    # add the domain_name to the set
+                    self.domains.add(domain_name)
+                    # get the block for the domain
+                    block = args[1][0]
+                    # interpret the block in a new interpreter
+                    # with the domain_name as the parent
+                    inter = Interpreter()
+                    inter.parent = self
+                    inter.interpret(block)
+                                        
+                    # throws a domain error
+                    def domain_err(name, object):
+                        self.err(
+                            'Domain Error',
+                            f'Domain object name already claimed: "{name}", consider renaming the object',
+                            line,
+                            lines_ran
+                        )
+                    # for each variable in the interpreter
+                    for varname in inter.vars:
+                        name = f"{domain_name}:{varname}"
+                        # name cannot already exist
+                        if name in self.vars:
+                            domain_err(name, self.vars)
+                        self.vars[name] = inter.vars[varname]
+                    # do the same for methods
+                    for methodname in inter.methods:
+                        name = f"{domain_name}:{methodname}"
+                        if name in self.methods:
+                            domain_err(name, self.methods)
+                        self.methods[name] = inter.methods[methodname]
+                    return domain_name
+                                       
+                
+                # utilizing variable domains
+                # 2.0.387
+                elif func == 'domain:find':
+                    # get the domain directory
+                    # this directory is foramatted such that
+                    # directory:directory:directory
+                    domain_dir = self.parse(0, line, f, sp, args)[2]
+                    
+                    # get all variables in the domain
+                    # with the domain_dir chopped off
+                    domain_vars = {}
+                    
+                    # for each variable in the domain
+                    for varname in self.vars:
+                        # if the variable is in the domain
+                        if varname.startswith(domain_dir):
+                            # get the variable name without the domain
+                            varname = varname[len(domain_dir):]
+                            # add the variable to the domain_vars
+                            domain_vars[varname] = self.vars[varname]
+                    # return the domain_vars
+                    return domain_vars
 
                 # imports values from an enclosing Python script
                 elif func == 'in':
@@ -5215,40 +5288,67 @@ class Interpreter:
                 elif func == '-':
                     if len(args) == 1:
                         return self.interpret(self.parse(0, line, f, sp, args)[2])
-
                     # subtracts all arguments from the first argument
                     else:
                         ret = self.parse(0, line, f, sp, args)[2]
+                        try:
+                            ret = ret.copy()
+                        except AttributeError:
+                            None
                         for i in range(1, len(args)):
                             ret -= self.parse(i, line, f, sp, args)[2]
                         return ret
                 elif func == '+':
                     ret = self.parse(0, line, f, sp, args)[2]
+                    try:
+                        ret = ret.copy()
+                    except AttributeError:
+                        None      
                     for i in range(1, len(args)):
                         ret += self.parse(i, line, f, sp, args)[2]
                     return ret
                 elif func == 'x':
                     ret = self.parse(0, line, f, sp, args)[2]
+                    try:
+                        ret = ret.copy()
+                    except AttributeError:
+                        None
                     for i in range(1, len(args)):
                         ret *= self.parse(i, line, f, sp, args)[2]
                     return ret
                 elif func == '/':
                     ret = self.parse(0, line, f, sp, args)[2]
+                    try:
+                        ret = ret.copy()
+                    except AttributeError:
+                        None                 
                     for i in range(1, len(args)):
                         ret /= self.parse(i, line, f, sp, args)[2]
                     return ret
                 elif func == '//':
                     ret = self.parse(0, line, f, sp, args)[2]
+                    try:
+                        ret = ret.copy()
+                    except AttributeError:
+                        None
                     for i in range(1, len(args)):
                         ret //= self.parse(i, line, f, sp, args)[2]
                     return ret
                 elif func == '%':
                     ret = self.parse(0, line, f, sp, args)[2]
+                    try:
+                        ret = ret.copy()
+                    except AttributeError:
+                        None
                     for i in range(1, len(args)):
                         ret %= self.parse(i, line, f, sp, args)[2]
                     return ret
                 elif func == '^':
                     ret = self.parse(0, line, f, sp, args)[2]
+                    try:
+                        ret = ret.copy()
+                    except AttributeError:
+                        None
                     for i in range(1, len(args)):
                         ret **= self.parse(i, line, f, sp, args)[2]
                     return ret
@@ -5413,10 +5513,14 @@ class Interpreter:
                     # block for the process
                     block = args[1][0]
 
+                    # import lib processes module if not imported
+                    if 'lib/processes.msn2' not in self.imports:
+                        self.interpret('import("lib/processes")')
+
                     # import the processes library and
                     # create a new process
                     return self.interpret(
-                        f"(import('lib/processes'),private(processes:fork('{name}', async(private({block})))))")
+                        f"(import('lib/processes'),processes:fork('{name}',private(async({block}))))")
 
                 # gets the pid of the working process
                 elif func == 'pid':
@@ -5552,11 +5656,9 @@ class Interpreter:
                         ret = self.interpret(args[0][0])
                     except:
                         self.trying = False
-                        try:
-                            catch_block = args[1][0]
-                            ret = self.interpret(catch_block)
-                        except:
-                            ...
+                        # if there is another argument
+                        if len(args) == 2:
+                            ret = self.interpret(args[1][0])
                     self.trying = False
                     return ret
 
@@ -6791,20 +6893,33 @@ class Interpreter:
         else:
             return len(args)
 
+    # returns True if should go to the next file to import
+    def imp(self, i, line, f, sp, args, can_exit):
+        path = self.parse(i, line, f, sp, args)[2]
+        if not path.endswith('.msn2'):
+            path += '.msn2'
+        if path in can_exit:
+            return False
+        can_exit.add(path)
+        contents = ''
+        with open(path) as f:
+            contents = f.readlines()
+            script = ''
+            for line in contents:
+                script += line
+        self.logg("importing library", path)
+        return script
+
     def run_syntax(self, key, line):
         # get everything between after syntax and before next index of syntax
         # or end of line
         inside = line[len(key):line.rindex(key)]
-
         # variable name
         invarname = syntax[key][0]
-
         # function to be run
         function = syntax[key][1]
-
         # store the in between for the user function
         self.vars[invarname] = Var(invarname, inside)
-
         return self.interpret(function)
 
     def replace_vars2(self, line):
@@ -6973,13 +7088,14 @@ class Interpreter:
                 _branches.append(branches)
 
             # print the traceback
-            for i, _branch in enumerate(_branches):
+            # only the last 7 branches
+            for i, _branch in enumerate((new_branches := _branches[-7:])):
 
                 # color of the text
                 _branch_color = 'black'
 
                 # if this is the last branch
-                if (is_caller := i == len(_branches) - 1):
+                if (is_caller := i == len(new_branches) - 1):
                     _branch_color = 'red'
                 else:
                     _branch_color = 'white'
@@ -7049,15 +7165,18 @@ class Interpreter:
             # add to log
             self.log += words_printed + "\n"
 
-            raise self.MSN2Exception(
-                'MSN2 Exception thrown, see above for details')
+        raise self.MSN2Exception(
+            'MSN2 Exception thrown, see above for details')
             # set printing color to white
 
     # throws msn2 error for Incorrect number of arguments
     def raise_incorrect_args(self, expected, actual, line, lines_ran, method):
         self.err(f'Incorrect number of function arguments for {method.name}',
                  f'Expected {expected}, got {actual}', line, lines_ran)
-
+    # throws msn2 error for Index out of bounds
+    def raise_index_out_of_bounds(self, line, lines_ran, method):
+        self.err(f'Index out of bounds in body of {method.name}',
+                    f'Index out of bounds', line, lines_ran)
     def __del__(self):
         None
 
