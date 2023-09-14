@@ -1,5 +1,6 @@
 {
     "2.0.387": {
-        "1": "Determined necessary dependencies, greatly speeding up execution of any single program"
+        "1": "Determined necessary dependencies, greatly speeding up execution of any single program",
+        "2": "Rewrote msn2 library to incorporate new, safer syntax, this includes many tests"
     }
 }

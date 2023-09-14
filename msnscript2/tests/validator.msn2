@@ -1006,8 +1006,24 @@ def('test_destroy', (
     print_test('destroy'),
     @v = 1,
     assert(exists('v')),
+    # destroying a variable
     destroy('v'),
+    # destroying multiple variables
+    @v = @v2 = @v3 = 1,
+    assert(exists('v'), exists('v2'), exists('v3')),
+    destroy('v', 'v2', 'v3'),
+    assert(not(exists('v')), not(exists('v2')), not(exists('v3'))),
     assert(not(exists('v'))),
+    # destroying a function
+    def('func', None),
+    assert(exists:function('func')),
+    destroy:function('func'),
+    assert(not(exists:function('func'))),
+    # destroying multiple functions
+    def('func', None), def('func2', None), def('func3', None),
+    assert(exists:function('func'), exists:function('func2'), exists:function('func3')),
+    destroy:function('func', 'func2', 'func3'),
+    assert(not(exists:function('func')), not(exists:function('func2')), not(exists:function('func3'))),
     True
 ))
 # -------------------------------------------
@@ -1327,6 +1343,13 @@ def('test_more_global_methods', (
     string.reverse(),
     assert(string.equals('dlrow olleH')),
     assert(not(string.equals('Hello world'))),
+    # testing shove(inserting, index)
+    string.shove('!', 5),
+    assert(string.equals('dlrow! olleH')),
+    # testing around()
+    assert(equals(string.around('!', 5, 5), 'dlrow! olle')),
+    # testing has()
+    assert(has(string, '!', 'w', 'e', 'll')),
     # reversing an array
     @ v = [1, 2, 3, 4, 5],
     v.reverse(),
@@ -1753,6 +1776,9 @@ for (0, @iterations = 7, 'i', (
 # prints accounting information
 print_threads()
 # completes the validator
-print('[+] fin in', cat(timer:runtime(), 's'))
+print('[+] fin in', cat(@ validator:runtime = timer:runtime(), 's'))
+# write to stats
+import ('tests/stats/stats')
+private(stats:write(validator:runtime))
 # stops the validator
 stop()

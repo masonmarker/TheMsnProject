@@ -9,7 +9,7 @@
 # version : 2.0.385
 class ('python:script', (
 
-    # variable name of the script
+    # actual Python script as a string
     @ script = None,
     
     # list of variable names for this script

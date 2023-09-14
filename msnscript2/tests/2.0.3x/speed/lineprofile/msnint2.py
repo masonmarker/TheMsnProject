@@ -4268,7 +4268,7 @@ class Interpreter:
                 elif func == 'version':
                     return self.version
 
-                # destroys a function or variable
+                # destroys a variable
                 elif func == 'destroy':
                     varname = self.parse(0, line, f, sp, args)[2]
 

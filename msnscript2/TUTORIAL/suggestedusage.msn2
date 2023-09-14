@@ -638,13 +638,13 @@ not(exists('v'))??
 
 
 
-# destroying '__' will destroy all variables and user defined methods that 
-# start with '__'
+# destroying '__' will destroy all functions OR variables
+# starting with '__'
 
 ~ __ () -> _
 @__v = 4
 exists('__v')??
-destroy('__')
+destroy:function('__')
 not(exists('__v'))??
 
 
