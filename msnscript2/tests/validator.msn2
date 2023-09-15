@@ -583,6 +583,14 @@ def('test_threads', (
     # joins threads to avoid thread counting errors
     join('t1'),
     join('t2'),
+    # testing threadpool(thread_count, job)
+    threadpool(2, (
+        var('a', 0),
+        for(0, 10, 'i', (
+            a.add(1)
+        )),
+        assert(a.equals(10))
+    )),
     True
 ))
 # -------------------------------------------

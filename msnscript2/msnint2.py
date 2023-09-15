@@ -49,22 +49,10 @@
 # (it definitely exists)
 
 # TODO
-# 2.0.387
-#
-# * DEPENDENCIES <<<<< DONE
-# - determine absolutely necessary dependencies
-#   to speed up execution of any single program
-#
-# * UI
-# - add a message that can pop up and
-#   take input
+# 2.0.388
 #
 # * CHROME BROWSER
 # - finish lib/auto/chrome class extension
-#
-# * VARIABLE DOMAINS
-# - create builders for variable domains
-# - create finders for variable domains
 #
 # * PRIVATE FUNCTIONS
 # - complete all of their work similarly to a function in any other language,
@@ -1281,7 +1269,8 @@ class Interpreter:
                             # otherwise, get column by title
                             elif isinstance(col, str):
                                 # for each column
-                                column_values = [row.value for row in sheet.iter_cols() if row[0].value == col for row in cell if row.value != None]
+                                column_values = [row.value for row in sheet.iter_cols(
+                                ) if row[0].value == col for row in cell if row.value != None]
                             return column_values
                         # gets the populated cell values of a row
                         # if the argument is a number, it gets the value of that column
@@ -1293,11 +1282,13 @@ class Interpreter:
                             # if number
                             if isinstance(r, int):
                                 r += 1
-                                row_values = [row.value for row in sheet.iter_rows(min_row=r, max_row=r) for row in cell if row.value != None]
+                                row_values = [row.value for row in sheet.iter_rows(
+                                    min_row=r, max_row=r) for row in cell if row.value != None]
                             # otherwise, get row by title
                             elif isinstance(r, str):
                                 # for each row
-                                row_values = [row.value for row in sheet.iter_rows() if row[0].value == r for row in cell if row.value != None]
+                                row_values = [row.value for row in sheet.iter_rows(
+                                ) if row[0].value == r for row in cell if row.value != None]
                             return row_values
 
                         # gets the index of a column with a given title
@@ -1306,6 +1297,7 @@ class Interpreter:
                                 if cell[0].value == title:
                                     return cell[0].column
                             return None
+
                         def get_row_index(title):
                             for cell in sheet.iter_rows():
                                 if cell[0].value == title:
@@ -1495,6 +1487,7 @@ class Interpreter:
                         return object
                     # GENERAL METHODS
                     # gets the immediate children of the parent window
+
                     def children(parent_window):
                         return [self.AppElement(child, child.window_text()) for child in window.children()]
                     # gets a child at an index
@@ -3100,6 +3093,63 @@ class Interpreter:
 
                             return self.vars[vname].value
 
+                # user method execution requested
+                if func in self.methods:
+                    method = self.methods[func]
+                    # create func args
+                    func_args = []
+                    # if arguments supplied
+                    if not args[0][0] == '':
+                        for i in range(len(args)):
+                            # check if we're setting a certain argument
+                            as_s = args[i][0].strip()
+                            meth_argname = None
+                            if as_s[0] == '&':
+                                func_args, meth_argname, arg, _ = self.split_named_arg(
+                                    as_s, method, func_args)
+                            # else, just append the argument
+                            else:
+                                arg = self.parse(i, line, f, sp, args)[2]
+                                func_args.append(self.parse(
+                                    i, line, f, sp, args)[2])
+                            try:
+                                meth_argname = method.args[i]
+                            # incorrect amount of function arguments supplied
+                            except IndexError:
+                                self.raise_incorrect_args(str(len(method.args)), str(
+                                    self.arg_count(args)), line, lines_ran, method)
+                            try:
+                                self.vars[meth_argname] = Var(
+                                    meth_argname, arg)
+                            # unhashable type:list, this means a named argument
+                            # is being requested to be set
+                            except TypeError:
+                                self.vars[meth_argname[0]] = Var(
+                                    meth_argname[0], arg)
+                    # create return variable
+                    ret_name = method.returns[0]
+                    # add the return variable if not exists
+                    if ret_name not in self.vars:
+                        self.vars[ret_name] = Var(ret_name, None)
+                    # execute method
+                    try:
+                        method.run(func_args, self, args)
+                    # index out of bounds error in method run
+                    except IndexError:
+                        # raise msn2 error
+                        self.raise_index_out_of_bounds(line, lines_ran, method)
+                    # if its a variable
+                    if ret_name in self.vars:
+                        return self.vars[ret_name].value
+                    try:
+                        return eval(str(self.vars[ret_name].value), {}, {})
+                    except:
+                        pass
+                    try:
+                        return str(self.vars[ret_name].value)
+                    except:
+                        return str(self.vars[ret_name])
+
                 # the below conditions interpret a line based on initial appearances
                 # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
                 # request for Interpreter redirect to a block of code
@@ -3107,7 +3157,8 @@ class Interpreter:
                 if func == 'redirect':
                     self.redirect_inside = []
                     # creates redirect for this interpreter
-                    self.redirect = [self.parse(0, line, f, sp, args)[2], args[1][0]]
+                    self.redirect = [self.parse(0, line, f, sp, args)[
+                        2], args[1][0]]
                     self.redirecting = True
                     return self.redirect
                 # request for Interpreter redirect cancellation
@@ -3198,67 +3249,10 @@ class Interpreter:
                         self.vars[vname] = Var(vname, None)
                     self.vars[vname].value = value
                     return value
-                # user method execution requested
-                elif func in self.methods:
-                    method = self.methods[func]
-                    # create func args
-                    func_args = []
-                    # if arguments supplied
-                    if not args[0][0] == '':
-                        for i in range(len(args)):
-                            # check if we're setting a certain argument
-                            as_s = args[i][0].strip()
-                            meth_argname = None
-                            if as_s[0] == '&':
-                                func_args, meth_argname, arg, _ = self.split_named_arg(
-                                    as_s, method, func_args)
-                            # else, just append the argument
-                            else:
-                                arg = self.parse(i, line, f, sp, args)[2]
-                                func_args.append(self.parse(
-                                    i, line, f, sp, args)[2])
-                            try:
-                                meth_argname = method.args[i]
-                            # incorrect amount of function arguments supplied
-                            except IndexError:
-                                self.raise_incorrect_args(str(len(method.args)), str(
-                                    self.arg_count(args)), line, lines_ran, method)
-                            try:
-                                self.vars[meth_argname] = Var(
-                                    meth_argname, arg)
-                            # unhashable type:list, this means a named argument
-                            # is being requested to be set
-                            except TypeError:
-                                self.vars[meth_argname[0]] = Var(
-                                    meth_argname[0], arg)
-                    # create return variable
-                    ret_name = method.returns[0]
-                    # add the return variable if not exists
-                    if ret_name not in self.vars:
-                        self.vars[ret_name] = Var(ret_name, None)
-                    # execute method
-                    try:
-                        method.run(func_args, self, args)
-                    # index out of bounds error in method run
-                    except IndexError as e:
-                        # raise msn2 error
-                        self.raise_index_out_of_bounds(line, lines_ran, method)
-                    # if its a variable
-                    if ret_name in self.vars:
-                        return self.vars[ret_name].value
-                    try:
-                        return eval(str(self.vars[ret_name].value), {}, {})
-                    except:
-                        pass
-                    try:
-                        return str(self.vars[ret_name].value)
-                    except:
-                        return str(self.vars[ret_name])
                 # creating a list
                 if func == 'arr' or func == 'from':
-                    arr = []
                     if args[0][0] == '':
-                        return arr
+                        return []
                     # return list comprehension
                     return [self.parse(i, line, f, sp, args)[2] for i in range(len(args))]
                 # creates a dictionary from its arguments
@@ -3270,9 +3264,8 @@ class Interpreter:
                         return d
                     # step over arguments in steps of 2
                     for i in range(0, len(args), 2):
-                        cur = self.parse(i, line, f, sp, args)[2]
-                        nxt = self.parse(i + 1, line, f, sp, args)[2]
-                        d[cur] = nxt
+                        d[self.parse(i, line, f, sp, args)[2]] = self.parse(
+                            i + 1, line, f, sp, args)[2]
                     return d
                 # splits the first argument by the second argument
                 if func == 'split':
@@ -3357,6 +3350,19 @@ class Interpreter:
                             self.err(
                                 f"Assertion error in '{line}'", assertion, failed, lines_ran)
                     return True
+                # asserts each argument throws an error
+                elif func == 'assert:err':
+                    for i in range(len(args)):
+                        try:
+                            self.trying = True                        
+                            self.parse(i, line, f, sp, args)[2]
+                            self.trying = False
+                            self.err(
+                                f"Assertion error, expected error", 'No error thrown where one was expected', line, lines_ran)
+                        except:
+                            pass
+                    self.trying = False
+                    return True
                 # trace capabilities
                 elif obj == 'trace':
                     if objfunc == 'before':
@@ -3372,24 +3378,19 @@ class Interpreter:
                     return self.settings
                 # referencing python variables
                 elif obj == 'py':
-                    # class specific error messages
-                    def no_var_err(_vn, _type, _and, _locals):
-                        return self.err(
-                            f'No {_type} variable "{_vn}" found in Python environment',
-                            f'Current {_and} environment locals:\n{self._locals}\nsize: {len(self._locals)}\nsee globals with "py.globals()"',
-                            line, lines_ran
-                        )
                     # getting a variable from the current python environment
                     if objfunc == 'get':
                         vn = ''
                         try:
                             return self._locals[self.parse(0, line, f, sp, args)[2]]
                         except KeyError:
-                            no_var_err(vn, 'local', 'local', self._locals)
+                            self.no_var_err(
+                                vn, 'local', 'local', self._locals, line)
                     # setting a variable in the current python environment
                     elif objfunc == 'set':
                         value = self.parse(1, line, f, sp, args)[2]
-                        self._locals[self.parse(0, line, f, sp, args)[2]] = value
+                        self._locals[self.parse(0, line, f, sp, args)[
+                            2]] = value
                         return value
                     # get the locals
                     elif objfunc == 'locals':
@@ -3399,7 +3400,8 @@ class Interpreter:
                         try:
                             return self._locals[(vn := self.parse(0, line, f, sp, args)[2])]
                         except KeyError:
-                            no_var_err(vn, 'local', 'local', self._locals)
+                            self.no_var_err(
+                                vn, 'local', 'local', self._locals, line)
                     # get the globals
                     elif objfunc == 'globals':
                         return self._globals
@@ -3408,7 +3410,8 @@ class Interpreter:
                         try:
                             return self._globals[(vn := self.parse(0, line, f, sp, args)[2])]
                         except:
-                            no_var_err(vn, 'global', 'global', self._globals)
+                            self.no_var_err(
+                                vn, 'global', 'global', self._globals, line)
                     # runs a stored python script
                     elif objfunc == 'run':
                         # execute the python and return
@@ -3426,8 +3429,8 @@ class Interpreter:
                                 return self._globals[objfunc]
                             except:
                                 # raise error
-                                no_var_err(objfunc, 'local or global',
-                                           'local and global', self._globals)
+                                self.no_var_err(objfunc, 'local or global',
+                                                'local and global', self._globals, line)
 
                 # casting
                 elif func == 'int':
@@ -3526,7 +3529,8 @@ class Interpreter:
                     pairing = []
                     for i in range(len(iterable)):
                         self.vars[varname] = Var(varname, iterable[i])
-                        pairing.append((self.interpret(args[2][0]), iterable[i]))
+                        pairing.append(
+                            (self.interpret(args[2][0]), iterable[i]))
                     # sort the pairing based on the first element of each pair
                     pairing.sort(key=lambda x: x[0])
                     # return the sorted array containing the second element
@@ -3625,7 +3629,8 @@ class Interpreter:
                     if objfunc == 'append' or objfunc == 'push' or objfunc == 'add' or objfunc == 'plus' or objfunc == '+' or objfunc == 'concat' or objfunc == 'concatenate' or objfunc == 'join' or objfunc == 'merge' or objfunc == 'sum':
                         if isinstance(arg1, list):
                             for i in range(1, len(args)):
-                                arg1.append(self.parse(i, line, f, sp, args)[2])
+                                arg1.append(self.parse(
+                                    i, line, f, sp, args)[2])
                             return arg1
                         else:
                             for i in range(1, len(args)):
@@ -3651,8 +3656,7 @@ class Interpreter:
                         return arg1
                     if objfunc == 'mod' or objfunc == 'modulo' or objfunc == 'modulus' or objfunc == '%' or objfunc == 'remainder':
                         for i in range(1, len(args)):
-                            arg2 = self.parse(i, line, f, sp, args)[2]
-                            arg1 %= arg2
+                            arg1 %= self.parse(i, line, f, sp, args)[2]
                         return arg1
                     if objfunc == 'pow' or objfunc == 'power' or objfunc == 'exponent' or objfunc == '**':
                         for i in range(1, len(args)):
@@ -3697,15 +3701,18 @@ class Interpreter:
                     fname = self.parse(0, line, f, sp, args)[2]
                     # adds a line of code to a function / method's body
                     if objfunc == 'addbody':
-                        self.methods[fname].add_body(self.parse(1, line, f, sp, args)[2])
+                        self.methods[fname].add_body(
+                            self.parse(1, line, f, sp, args)[2])
                         return fname
                     # adds an argument to a function
                     if objfunc == 'addarg':
-                        self.methods[fname].add_arg(self.parse(1, line, f, sp, args)[2])
+                        self.methods[fname].add_arg(
+                            self.parse(1, line, f, sp, args)[2])
                         return fname
                     # adds a return variable to this function
                     if objfunc == 'addreturn':
-                        self.methods[fname].add_return(self.parse(1, line, f, sp, args)[2])
+                        self.methods[fname].add_return(
+                            self.parse(1, line, f, sp, args)[2])
                         return fname
                     if objfunc == 'getbody':
                         return self.methods[fname].body
@@ -3731,19 +3738,23 @@ class Interpreter:
                         return self.interpret(inst)
                     return '<msnint2 class>'
                 elif func == 'sub':
-                    self.vars[self.parse(0, line, f, sp, args)[2]].value -= self.parse(1, line, f, sp, args)[2]
+                    self.vars[self.parse(0, line, f, sp, args)[
+                        2]].value -= self.parse(1, line, f, sp, args)[2]
                     return self.vars[first].value
                 elif func == 'mul':
-                    self.vars[self.parse(0, line, f, sp, args)[2]].value *= self.parse(1, line, f, sp, args)[2]
+                    self.vars[self.parse(0, line, f, sp, args)[
+                        2]].value *= self.parse(1, line, f, sp, args)[2]
                     return self.vars[first].value
                 elif func == 'div':
-                    self.vars[self.parse(0, line, f, sp, args)[2]].value /= self.parse(1, line, f, sp, args)[2]
+                    self.vars[self.parse(0, line, f, sp, args)[
+                        2]].value /= self.parse(1, line, f, sp, args)[2]
                     return self.vars[first].value
                 # appends to an array variable
                 elif func == 'append':
                     # value to append
                     value = self.parse(1, line, f, sp, args)[2]
-                    self.vars[self.parse(0, line, f, sp, args)[2]].value.append(value)
+                    self.vars[self.parse(0, line, f, sp, args)[
+                        2]].value.append(value)
                     return value
                 # gets at the index specified
                 elif func == '->':
@@ -3846,7 +3857,6 @@ class Interpreter:
                             # msn2 error, no OPENAI env var
                             self.err(
                                 f"OpenAI API key not found. Please set your OPENAI_API_KEY environment variable to your OpenAI API key.", True, '', lines_ran)
-
                     # if models not defined, define them
                     if not models:
                         models = {
@@ -3895,7 +3905,8 @@ class Interpreter:
                 # defines a new macro
                 elif func == 'macro':
                     token = self.parse(0, line, f, sp, args)[2]
-                    macros[token] = [token, self.parse(1, line, f, sp, args)[2], args[2][0]]
+                    macros[token] = [token, self.parse(
+                        1, line, f, sp, args)[2], args[2][0]]
                     # 4th argument offered as a return value from that macro
                     # as opposed to a block of code
                     if len(args) == 4:
@@ -3905,7 +3916,8 @@ class Interpreter:
                 # creates a macro that should be declared at the end of a line
                 elif func == 'postmacro':
                     token = self.parse(0, line, f, sp, args)[2]
-                    postmacros[token] = [token, self.parse(1, line, f, sp, args)[2], args[2][0]]
+                    postmacros[token] = [token, self.parse(
+                        1, line, f, sp, args)[2], args[2][0]]
                     # same as macro
                     if len(args) == 4:
                         postmacros[token].append(
@@ -3923,7 +3935,8 @@ class Interpreter:
                     start = self.parse(0, line, f, sp, args)[2]
                     end = self.parse(1, line, f, sp, args)[2]
                     index = f"{start}msnint2_reserved{end}"
-                    inlines[index] = [start, end, self.parse(2, line, f, sp, args)[2], args[3][0]]
+                    inlines[index] = [start, end, self.parse(
+                        2, line, f, sp, args)[2], args[3][0]]
                     if len(args) == 5:
                         inlines[index].append(
                             self.parse(4, line, f, sp, args)[2])
@@ -4341,6 +4354,7 @@ class Interpreter:
                     inter.parent = self
                     inter.interpret(args[1][0])
                     # throws a domain error
+
                     def domain_err(name, object):
                         self.err(
                             'Domain Error',
@@ -4402,7 +4416,8 @@ class Interpreter:
                     return inval
                 # exports values to an enclosing Python script
                 elif func == 'out':
-                    outting = [self.parse(i, line, f, sp, args)[2] for i in range(len(args))]
+                    outting = [self.parse(i, line, f, sp, args)[2]
+                               for i in range(len(args))]
                     _out = '_msn2_reserved_out__'
                     # create a variable for the enclosing Python script
                     # to access
@@ -4503,7 +4518,11 @@ class Interpreter:
                             strenv += f"{macro}\n\t\t"
                     strenv += f"\nlog:\n{self.log}\n-------------------------------"
                     if should_print:
-                        print(strenv)
+                        self.styled_print([{
+                            'text': strenv,
+                            'style': 'bold',
+                            'fore': 'blue'
+                        }])
                     return strenv
 
                 # changes the max chars printed with the env() call
@@ -4597,58 +4616,42 @@ class Interpreter:
                 # determines if a string is alpha
                 elif func == 'isalpha':
                     return self.parse(0, line, f, sp, args)[2].isalpha()
-
                 # does something with a value as a temporary
                 # variable
                 elif func == 'as':
-
                     # temporary variable name
                     varname = self.parse(0, line, f, sp, args)[2]
-
-                    # value to set
-                    val = self.parse(1, line, f, sp, args)[2]
-
                     # block to execute
                     block = args[2][0]
-
                     # set the variable
-                    self.vars[varname] = Var(varname, val)
-
+                    self.vars[varname] = Var(
+                        varname, self.parse(1, line, f, sp, args)[2])
                     # execute the block
                     ret = self.interpret(block)
-
                     # delete the variable
                     del self.vars[varname]
-
                     return ret
-
                 # strips a str
                 elif func == 'strip':
                     return self.parse(0, line, f, sp, args)[2].strip()
-
                 # gets a slice
                 elif func == 'slice':
                     return self.parse(0, line, f, sp, args)[2][self.parse(1, line, f, sp, args)[2]:self.parse(2, line, f, sp, args)[2]]
-
                 # joins a str
                 elif func == 'array:join':
                     return self.parse(1, line, f, sp, args)[2].join(self.parse(0, line, f, sp, args)[2])
-
                 # returns the MSNScript2 passed as a string
                 elif func == 'async' or func == 'script' or func == 'HTML':
                     # inserts key tokens
                     return self.msn2_replace(args[0][0])
-
                 # gets the current time
                 elif func == 'now':
                     import time
                     return time.time()
-
                 # creates a private execution enviroment
                 # private block will have read access to the enclosing Interpreter's
                 # variables and methods
                 elif func == 'private' or func == 'inherit:all':
-                    block_s = args[0][0]
                     inter = Interpreter()
                     inter.parent = self
                     for vname, entry in self.vars.items():
@@ -4658,41 +4661,33 @@ class Interpreter:
                             inter.vars[vname] = Var(vname, entry)
                     for mname, entry in self.methods.items():
                         inter.methods[mname] = entry
-                    return inter.interpret(block_s)
-
+                    return inter.interpret(args[0][0])
                 # breaks out of the working context
                 elif func == 'break':
                     self.breaking = True
                     return
-
                 # reverses the first argument
                 elif func == 'reverse':
                     return self.parse(0, line, f, sp, args)[2][::-1]
-
                 # performs upper()
                 elif func == 'upper':
                     return self.parse(0, line, f, sp, args)[2].upper()
-
                 # performs lower()
                 elif func == 'lower':
                     return self.parse(0, line, f, sp, args)[2].lower()
-
                 # performs title()
                 elif func == 'title':
                     return self.parse(0, line, f, sp, args)[2].title()
-
                 # inherits methods only from the parent context
                 elif func == 'inherit:methods':
                     for methodname in self.parent.methods:
                         self.methods[methodname] = self.parent.methods[methodname]
                     return True
-
                 # inherits variables from parent context
                 elif func == 'inherit:vars':
                     for varname in self.parent.vars:
                         self.vars[varname] = self.parent.vars[varname]
                     return True
-
                 # inherits a single variable or function
                 elif func == 'inherit:single':
                     name = self.parse(0, line, f, sp, args)[2]
@@ -4701,7 +4696,6 @@ class Interpreter:
                     elif name in self.parent.methods:
                         self.methods[name] = self.parent.methods[name]
                     return True
-
                 # creates a new execution environment
                 # new env is executed by a fresh interpreter
                 # nothing is inherited from parent context
@@ -4709,19 +4703,14 @@ class Interpreter:
                     inter = Interpreter()
                     inter.parent = self
                     return inter.interpret(args[0][0])
-
                 # sets the python alias
                 # until the program stops
                 elif func == 'alias':
-                    python_alias = self.parse(0, line, f, sp, args)[2]
-                    return python_alias
-
+                    return (python_alias := self.parse(0, line, f, sp, args)[2])
                 # starts a new process with the first argument as the target
                 elif func == 'process':
-
                     # path to the process to run
                     path = self.parse(0, line, f, sp, args)[2]
-
                     # if windows:
                     if os.name == 'nt':
                         import subprocess
@@ -4730,7 +4719,6 @@ class Interpreter:
                             args=[python_alias, 'msn2.py', path], shell=True)
                         self.processes[path] = sub
                         return sub
-
                     # if linux
                     elif os.name == 'posix':
                         self.err(
@@ -4741,33 +4729,21 @@ class Interpreter:
                         )
                         return None
                     return None
-
                 # starts a process via MSN2 code
                 elif func == 'proc':
-
-                    # name of the process
-                    name = self.parse(0, line, f, sp, args)[2]
-
-                    # block for the process
-                    block = args[1][0]
-
                     # import lib processes module if not imported
                     if 'lib/processes.msn2' not in self.imports:
                         self.interpret('import("lib/processes")')
-
                     # import the processes library and
                     # create a new process
                     return self.interpret(
-                        f"(import('lib/processes'),processes:fork('{name}',private(async({block}))))")
-
+                        f"(import('lib/processes'),processes:fork('{self.parse(0, line, f, sp, args)[2]}',private(async({args[1][0]}))))")
                 # gets the pid of the working process
                 elif func == 'pid':
                     return os.getpid()
-
                 # creates a new thread to execute the block, thread
                 # starts on the same interpreter
                 elif func == "thread":
-
                     # name not provided
                     if len(args) == 1:
                         global thread_serial
@@ -4783,108 +4759,64 @@ class Interpreter:
                     self.threads[name] = [thread, self]
                     thread.start()
                     return True
-
                 # creates a thread pool to execute the block
                 elif func == "threadpool":
                     import concurrent.futures
                     # get the amount of threads to create
-                    thread_count = self.parse(0, line, f, sp, args)[2]
-                    # get the block to execute
-                    block = args[1][0]
                     # create the thread pool
-                    pool = concurrent.futures.ThreadPoolExecutor(thread_count)
                     # submit the block to the pool
-                    pool.submit(self.interpret, block)
+                    concurrent.futures.ThreadPoolExecutor(self.parse(0, line, f, sp, args)[2]).submit(self.interpret, args[1][0])
                     return True
 
                 # creates or edits thread variable
                 elif func == 'tvar':
-
                     # thread name
                     name = str(self.parse(0, line, f, sp, args)[2])
-
                     # variable name
                     varname = str(self.parse(1, line, f, sp, args)[2])
-
                     # variable value
                     val = self.parse(2, line, f, sp, args)[2]
-
                     # thread var name
                     tvarname = f"_msn2_tvar_{name}_{varname}"
-
                     # sets a thread specific variable
                     self.vars[tvarname] = Var(varname, val)
                     return val
-
                 # gets a thread variable
                 elif func == 'gettvar':
-
-                    # thread name
-                    name = str(self.parse(0, line, f, sp, args)[2])
-
-                    # variable name
-                    varname = str(self.parse(1, line, f, sp, args)[2])
-
-                    # thread var name
-                    tvarname = f"_msn2_tvar_{name}_{varname}"
-
                     # gets the variable
-                    return self.vars[tvarname].value
-
+                    return self.vars[f"_msn2_tvar_{self.parse(0, line, f, sp, args)[2]}_{self.parse(1, line, f, sp, args)[2]}"].value
                 # creates a string variable name for functions
                 # that require a string variable name
                 elif func == 'tvarstr':
-
-                    # thread name
-                    name = str(self.parse(0, line, f, sp, args)[2])
-
-                    # variable name
-                    varname = str(self.parse(1, line, f, sp, args)[2])
-
                     # returns the string
-                    return f"_msn2_tvar_{name}_{varname}"
-
+                    return f"_msn2_tvar_{self.parse(0, line, f, sp, args)[2]}_{self.parse(1, line, f, sp, args)[2]}"
                 # interprets a variable by variable name
                 # a and a variable method
                 elif func == 'varmethod':
-
                     # variable name
-                    varname = str(self.parse(0, line, f, sp, args)[2])
-
-                    # method block
-                    block = args[1][0]
-
-                    return self.interpret(f"{varname}.{block}")
-
+                    return self.interpret(f"{self.parse(0, line, f, sp, args)[2]}.{args[1][0]}")
                 # acquires the global lock
                 elif func == 'acquire':
                     return auxlock.acquire()
-
                 # releases the global lock
                 elif func == 'release':
                     return auxlock.release()
-
                 # acquires the pointer lock
                 elif func == 'acquire:pointer':
                     return pointer_lock.acquire()
                 elif func == 'release:pointer':
                     return pointer_lock.release()
-
                 # joins the current working thread with the thread name specified
                 elif func == 'join':
-
                     for i in range(len(args)):
-                        name = self.parse(i, line, f, sp, args)[2]
-                        thread = self.thread_by_name(name)
+                        thread = self.thread_by_name(self.parse(i, line, f, sp, args)[2])
                         while thread == None:
                             None
                         thread.join()
                     return True
-
                 # exits the working thread
                 elif func == 'stop':
                     return os._exit(0)
-
                 # tries the first argument, if it fails, code falls to the catch/except block
                 # there is no finally implementation
                 elif func == 'try':
@@ -4899,7 +4831,6 @@ class Interpreter:
                             ret = self.interpret(args[1][0])
                     self.trying = False
                     return ret
-
                 # waits for a certain condition to be true
                 elif func == 'wait':
                     ret = None
@@ -4907,12 +4838,10 @@ class Interpreter:
                     if len(args) == 1:
                         while not (ret := self.interpret(args[0][0])):
                             None
-
                     # block provided
                     elif len(args) == 2:
                         while not (ret := self.interpret(args[0][0])):
                             self.interpret(args[1][0])
-
                     # block with tick provided
                     elif len(args) == 3:
                         import time
@@ -4930,41 +4859,29 @@ class Interpreter:
                 # will last forever
                 if func == 'interval':
                     import time
-
                     # amount of seconds
                     seconds = self.parse(0, line, f, sp, args)[2]
-
-                    # block to execute
-                    block = args[1][0]
-
                     # if the interval should last for a certain amount of seconds
                     # should account for the first argument to correctly wait
                     if len(args) == 3:
-
                         extra = self.parse(2, line, f, sp, args)[2]
-
                         # if time is negative, we set it to infinity
                         if extra == -1:
                             extra = float('inf')
-
                         end = time.time() + extra
                         while time.time() < end:
                             time.sleep(seconds)
-                            self.interpret(block)
-
+                            self.interpret(args[1][0])
                     else:
                         while True:
                             time.sleep(seconds)
-                            self.interpret(block)
-
+                            self.interpret(args[1][0])
                 # exports a quantity of variables or methods from the working context to the parent context,
                 # ex private context -> boot context
                 elif func == 'export':
-
                     # if last argument is True,
                     # we add the variables to the parent context's variable
                     last_arg = self.parse(len(args) - 1, line, f, sp, args)[2]
-
                     for i in range(len(args)):
                         varname = self.parse(i, line, f, sp, args)[2]
                         if varname in self.vars:
@@ -4982,22 +4899,17 @@ class Interpreter:
                         elif varname in self.methods:
                             self.parent.methods[varname] = self.methods[varname]
                     return True
-
                 # exports a single value as the variable name
                 # first argument is the new variable name
                 # second is the value to export
                 elif func == 'exportas':
-
                     # variable name
                     varname = self.parse(0, line, f, sp, args)[2]
-
                     # value
                     val = self.parse(1, line, f, sp, args)[2]
-
                     # export to parent context
                     self.parent.vars[varname] = Var(varname, val)
                     return val
-
                 # exports all variables and methods to the parent context
                 elif func == 'exportall':
                     for varname in self.vars:
@@ -5005,7 +4917,6 @@ class Interpreter:
                     for methodname in self.methods:
                         self.parent.methods[methodname] = self.methods[methodname]
                     return True
-
                 # sends a command to the console, console type depends on
                 # executors software of course
                 elif func == 'console':
@@ -5036,17 +4947,13 @@ class Interpreter:
                     import requests
                     # get URL to request from
                     url = self.parse(0, line, f, sp, args)[2]
-
                     try:
                         # get parameters
                         params = self.parse(1, line, f, sp, args)[2]
                     except:
                         params = None
-
-                    response = requests.get(url=url, params=params)
-
                     # return response
-                    return response.json()
+                    return requests.get(url=url, params=params).json()
 
                 # requires thread-safe context, see /demos/protected.msn2
                 # simulates returning of the function currently running
@@ -5054,83 +4961,61 @@ class Interpreter:
                 # to return a value, use var()
                 elif func == 'return':
                     method = self.methods[self.loggedmethod[-1]]
-
                     # evaluate returning literal
-                    line, as_s, ret = self.parse(0, line, f, sp, args)
-
+                    ret = self.parse(0, line, f, sp, args)[2]
                     # set return variable
                     ret_name = method.returns[0]
-
                     # if not a variable
                     if ret_name not in self.vars:
                         self.vars[ret_name] = Var(ret_name, None)
-
                     self.vars[ret_name].value = ret
                     return ret
-
                 # gets the public IP address of the machine
                 elif func == 'pubip':
                     import requests
                     # asks an api server for this address
                     return requests.get('https://api.ipify.org').text
-
                 # gets the private ips of this machine
                 elif func == 'privips':
                     import socket
                     return socket.gethostbyname_ex(socket.gethostname())[2]
-
                 # starts an api endpoint
                 elif func == 'ENDPOINT':
-
                     # imports
                     from flask import Flask
                     from flask_restful import Api, Resource
                     import logging
-
                     # initial API endpoint data
                     path = None
                     init_data = {}
                     port = 5000
                     host = '127.0.0.1'
                     last_arg = None
-
                     # 1 argument, defaults to 127.0.0.1:5000/path = {}
                     if len(args) == 1:
-
                         # path to endpoint
                         path = self.parse(0, line, f, sp, args)[2]
                         last_arg = path
-
                     # 2 arguments, defaults to 127.0.0.1:5000/path = init_data
                     elif len(args) == 2:
-
                         # path to endpoint
                         path = self.parse(0, line, f, sp, args)[2]
-
                         # json to initialize at the endpoint
                         init_data = self.parse(1, line, f, sp, args)[2]
-
                         last_arg = init_data
-
                     # 3 arguments, defaults to host:port/path = init_data
                     else:
-
                         # host to endpoint as first argument
                         host = self.parse(0, line, f, sp, args)[2]
-
                         # port to endpoint as second argument
                         port = self.parse(1, line, f, sp, args)[2]
-
                         # path to endpoint
                         path = self.parse(2, line, f, sp, args)[2]
-
                         # json to initialize at the endpoint
                         init_data = self.parse(3, line, f, sp, args)[2]
-
                         last_arg = init_data
                         if len(args) == 5:
                             last_arg = self.parse(4, line, f, sp, args)[2]
-
                     # prepare endpoint
                     print('serving on http://' + host + ':' + str(port) + path)
                     app = Flask(__name__)
@@ -5143,61 +5028,46 @@ class Interpreter:
                         print('starting with cors')
                         cors = True
                         CORS(app)
-
                     # disable flask messages that aren't error-related
                     log = logging.getLogger('werkzeug')
                     log.disabled = True
                     app.logger.disabled = True
-
                     # gets Flask Api
                     api = Api(app)
-
                     # api endpoint class
                     class EndPoint(Resource):
-
                         @classmethod
                         def make_api(cls, response):
                             cls.response = response
                             return cls
-
                         # GET
                         def get(self):
                             return self.response
-
                         # POST
                         def post(self):
                             from flask import request
                             # obtains current endpoint data
                             current_data = self.response
-
                             # updates current data with data to post
                             current_data.update(request.get_json())
-
                             # updates next response
                             self.make_api(current_data)
                             return current_data
-
                         # DELETE
                         def delete(self):
                             self.make_api({})
                             return self.response
-
                     curr_endpoint = EndPoint.make_api(init_data)
-
                     # logs newly created endpoint
                     self.endpoints[path] = api
-
                     # adds class EndPoint as a Resource to the Api with the specific path
                     # passes arg2 alongside
                     api.add_resource(curr_endpoint, path)
-
                     # starting flask server
                     try:
-
                         # if internal
                         app.run(host=host, port=port,
                                 debug=False, use_reloader=False)
-
                     except:
                         # if external
                         try:
@@ -5207,69 +5077,52 @@ class Interpreter:
                         except:
                             None
                     return api
-
                 # posts to an api endpoint
                 elif func == 'POST':
                     import requests
-
                     # url to post to, defaults to localhost
                     host = self.parse(0, line, f, sp, args)[2]
-
                     # port to post to
                     port = self.parse(1, line, f, sp, args)[2]
-
                     # path after url
                     path = self.parse(2, line, f, sp, args)[2]
-
                     # data to post
                     data = self.parse(3, line, f, sp, args)[2]
-
                     # if local network
                     if host == '0.0.0.0':
                         response = requests.post(
                             url=('http://127.0.0.1:' + str(port) + path), json=data)
-
                     # if localhost
                     else:
                         # post to endpoint
                         response = requests.post(
                             url=('http://' + host + ':' + str(port) + path), json=data)
-
                     # get response
                     return response.json()
-
                 # gets from an api endpoint
                 elif func == 'GET':
                     import requests
                     # url to get from, defaults to localhost
                     host = self.parse(0, line, f, sp, args)[2]
-
                     # port to get from
                     port = self.parse(1, line, f, sp, args)[2]
-
                     # path after url
                     path = self.parse(2, line, f, sp, args)[2]
-
                     # if local network
                     if host == '0.0.0.0':
                         return requests.get(url=('http://127.0.0.1:' + str(port) + path)).json()
-
                     # if localhost
                     else:
                         return requests.get(url=('http://' + host + ':' + str(port) + path)).json()
-
                 # deletes from an api endpoint
                 elif func == 'DELETE':
                     import requests
                     # url to delete from, defaults to localhost
                     host = self.parse(0, line, f, sp, args)[2]
-
                     # port to delete from
                     port = self.parse(1, line, f, sp, args)[2]
-
                     # path after url
                     path = self.parse(2, line, f, sp, args)[2]
-
                     if host == '0.0.0.0':
                         response = requests.delete(
                             url=('http://127.0.0.1:' + str(port) + path))
@@ -5277,58 +5130,43 @@ class Interpreter:
                         # delete from endpoint
                         response = requests.delete(
                             url=('http://' + host + ':' + str(port) + path))
-
                     return response.json()
-
                 # determines if the system is windows or not
                 elif func == 'windows':
                     return os.name == 'nt'
-
                 # determines if system is linux
                 elif func == 'linux':
                     return os.name == 'posix'
-
                 # determines if system is mac
                 elif func == 'mac':
                     import sys
                     return sys.platform == 'darwin'
-
                 # simulates function closure
                 elif func == 'end':
                     method = self.methods[self.loggedmethod[-1]]
                     self.loggedmethod.pop()
                     method.ended = True
                     return True
-
                 # gets the value from a Var object
                 elif func == 'static':
                     return self.parse(0, line, f, sp, args)[2].value
-
                 # object instance requested
                 # if the function is in the variables
                 # and the variable is a class
                 elif func in self.vars and isinstance(self.vars[func].value, dict):
-
                     # get classname to create
                     classname = func
-
                     # template Var obj to create from
                     var_obj = self.vars[classname].value
-
                     # new class instance
                     instance = {}
-
                     curr_arg_num = 0
-
                     # attributes to apply
                     for name in var_obj:
-
                         # if attribute is a method
                         if isinstance(var_obj[name].value, self.Method):
-
                             # add the method to the instance
                             instance[name] = var_obj[name].value
-
                             # if the method's name is 'const'
                             if var_obj[name].value.name == 'const':
                                 # run the function with the argument being
@@ -5336,7 +5174,6 @@ class Interpreter:
                                 var_obj[name].value.run(
                                     [instance], self, actual_args=args[1:])
                             continue
-
                         # if attribute is a variable
                         # value can be None
                         try:
@@ -5349,40 +5186,20 @@ class Interpreter:
                             try:
                                 instance[name] = var_obj.value[name].copy()
                             except:
-                                var = var_obj[name]
-                                instance[name] = var.value
+                                instance[name] = var_obj[name].value
                         curr_arg_num += 1
-
                     return instance
-
                 # gets an attribute of an instance of a class
                 elif func == 'getattr':
-
-                    # name of the object to pull from
-                    name = self.parse(0, line, f, sp, args)[2]
-
-                    # current working object
-                    o = self.vars[name].value
-
-                    # get attribute to pull
-                    attr = self.parse(1, line, f, sp, args)[2]
-                    return o[attr]
-
+                    return self.vars[self.parse(0, line, f, sp, args)[2]].value[self.parse(1, line, f, sp, args)[2]]
                 # sets an attribute of an instance of a class
                 elif func == 'setattr':
-
-                    # name of the object to set at
-                    name = self.parse(0, line, f, sp, args)[2]
-
                     # current working object
-                    o = self.vars[name].value
-
+                    o = self.vars[self.parse(0, line, f, sp, args)[2]].value
                     # name of attribute to set
                     attr = self.parse(1, line, f, sp, args)[2]
-
                     # value to set
                     val = self.parse(2, line, f, sp, args)[2]
-
                     # set the value
                     o[attr] = val
                     return val
@@ -5406,10 +5223,8 @@ class Interpreter:
                         timings.Timings.after_setcursorpos_wait = 0.001
                         timings.Timings.after_sendkeys_key_wait = 0.001
                         timings.Timings.after_menu_wait = 0.001
-
                     # get the path to the application
                     path = self.parse(0, line, f, sp, args)[2]
-
                     # if there is not second argument, we do not kill any
                     # existing instances of the application
                     name = None
@@ -5419,17 +5234,14 @@ class Interpreter:
                         _sp = path.split('\\')
                         name = _sp[-1].split('.')[0]
                         extension = _sp[-1].split('.')[1]
-
                         # use taskkill to kill the application
                         # taskkill should end the program by name, and should kill
                         # all child processes forcefully, it should also not print
                         # anything to the console
                         os.system(
                             f'taskkill /f /im {name}.{extension} >nul 2>&1')
-
                     # creates an App variable
                     return self.App(path=path, name=name, extension=extension)
-
                 # connects to the first argument given that
                 # the first argument is an instance of self.App
                 elif func == 'connect':
@@ -5440,7 +5252,6 @@ class Interpreter:
                         process=appl.application.process)
                     # connect to the application
                     return self.App(path=appl.path)
-
                 # starts and retrieves an instance of an Excel workbook
                 # using the openpyxl library
                 #
@@ -5453,10 +5264,8 @@ class Interpreter:
                     # automating Excel
                     import openpyxl
                     path = self.parse(0, line, f, sp, args)[2]
-
                     # creates and returns a Workbook
                     return self.Workbook(openpyxl.load_workbook(path), path)
-
                 # quicker conditional operator as functional prefix
                 elif len(func) > 0 and func[0] == '?':
                     func = func[1:]
@@ -5464,63 +5273,49 @@ class Interpreter:
                     if self.interpret(func):
                         ret = self.interpret(args[0][0])
                     else:
-
                         # else block is optional
                         try:
                             ret = self.interpret(args[1][0])
                         except:
                             None
                     return ret
-
                 # executes C code and retrieves the environment
                 elif func == 'C':
-
                     # get the C code
                     c_code = self.msn2_replace(args[0][0])
-
                     # create a directory for the C code
                     # if it does not exist
                     exec_folder_path = '_exec'
-
                     # if the folder does not exist, create it
                     if not os.path.exists(exec_folder_path):
                         os.mkdir(exec_folder_path)
-
                     # create a file for the C code
                     # and write the C code to it
-
                     # get the amount of files in the directory
                     # and use that as the file name
                     file_num = len(os.listdir(exec_folder_path))
                     file_name = f'{exec_folder_path}/c{file_num}.c'
                     with open(file_name, 'w') as f:
                         f.write(c_code)
-
                     # creates a new process
                     # and executes the C code
                     # returns the environment
                     # including the out and variables
-
                     def retrieve_c_environment(c_code):
                         import subprocess
-
                         # executable
                         executable = f'{exec_folder_path}/c{file_num}.exe'
-
                         # create a new process
                         # and execute the C code
                         compiled_code = subprocess.run(
                             ['gcc', file_name, '-o', executable],
-
                             # capture the output
                             capture_output=True,
                             text=True
                         )
-
                         # if there's an error, print it
                         if len(compiled_code.stderr) > 0:
                             return {'out': '', 'err': compiled_code.stderr}
-
                         # run the executable
                         compiled_code = subprocess.run(
                             [executable],
@@ -5528,194 +5323,133 @@ class Interpreter:
                             capture_output=True,
                             text=True
                         )
-
                         # get the output and error
                         out = compiled_code.stdout
                         err = compiled_code.stderr
-
                         # get the environment
                         # env = out.split('\n')[-2]
                         # env = env.replace('\'', '"')
                         # env = json.loads(env)
                         return {'out': out, 'err': err}
-
                     # execute the C code
                     return retrieve_c_environment(c_code)
-
                 # executes JavaScript code and retrieves the environment
                 # no compilation is needed, the code is executed via
                 # node __filename__.js
                 elif func == 'JS':
-
                     # get the JavaScript code
                     js_code = self.msn2_replace(args[0][0])
-
                     # create a directory for the JavaScript code
                     # if it does not exist
                     exec_folder_path = '_exec'
-
                     # if the folder does not exist, create it
                     if not os.path.exists(exec_folder_path):
                         os.mkdir(exec_folder_path)
-
                     # create a file for the JavaScript code
                     # and write the JavaScript code to it
-
                     # get the amount of files in the directory
                     # and use that as the file name
                     file_num = len(os.listdir(exec_folder_path))
                     file_name = f'{exec_folder_path}/js{file_num}.js'
-
                     # if JS() has two arguments, the second is the name of
                     # the file, excluding .js
                     if len(args) == 2:
                         file_name = f'{exec_folder_path}/{self.parse(1, line, f, sp, args)[2]}.js'
-
                     with open(file_name, 'w') as f:
                         f.write(js_code)
-
                     # creates a new process
                     # and executes the JavaScript code
                     # returns the environment
                     # including the out and variables
-
                     def retrieve_js_environment(js_code):
                         import subprocess
-
                         # executable
                         executable = file_name
-
                         # create a new process
                         # and execute the JavaScript code
                         compiled_code = subprocess.run(
                             ['node', file_name],
-
                             # capture the output
                             capture_output=True,
                             text=True
                         )
-
                         # get the output and error
                         out = compiled_code.stdout
                         err = compiled_code.stderr
-
-                        # # remove '/temp.exe'
-                        # os.remove('temp.exe')
                         # if there is an error, print it
                         if len(err) > 0:
                             print(err)
-
-                        # get the environment
-                        # env = out.split('\n')[-2]
-                        # env = env.replace('\'', '"')
-                        # env = json.loads(env)
-
                         # remove a succeeding newline
                         # if it exists
                         if len(out) > 0 and out[-1] == '\n':
                             out = out[:-1]
-
                         return {'out': out, 'err': err}
-
                     # execute the JavaScript code
                     return retrieve_js_environment(js_code)
-
                 # compiles and executes Java code and retrieves the environment
                 elif func == 'JAVA':
-
                     java_code = self.msn2_replace(args[0][0])
-
                     # create a directory for the Java code
                     # if it does not exist
                     exec_folder_path = '_exec'
-
                     # if the folder does not exist, create it
                     if not os.path.exists(exec_folder_path):
                         os.mkdir(exec_folder_path)
-
                     # create a file for the Java code
                     # and write the Java code to it
-
                     # get the amount of files in the directory
                     # and use that as the file name
                     file_num = len(os.listdir(exec_folder_path))
                     file_name = f'{exec_folder_path}/java{file_num}.java'
-
                     # if JAVA() has two arguments, the second is the name of
                     # the file, excluding .java
                     if len(args) == 2:
                         file_name = f'{exec_folder_path}/{self.parse(1, line, f, sp, args)[2]}.java'
-
                     with open(file_name, 'w') as f:
                         f.write(java_code)
-
                     # creates a new process
                     # and executes the Java code
                     # returns the environment
                     # including the out and variables
-
                     def retrieve_java_environment(java_code):
                         import subprocess
-
                         # create a new process
                         # and execute the Java code
                         compiled_code = subprocess.run(
                             ['javac', file_name],
-
                             # capture the output
                             capture_output=True,
                             text=True,
                             shell=True
                         )
-
                         # run the code
                         compiled_code = subprocess.run(
                             ['java', '-cp', exec_folder_path, f'{file_name}'],
-
                             # capture the output
                             capture_output=True,
                             text=True,
                             shell=True
                         )
-
                         # get the output and error
                         out = compiled_code.stdout
                         err = compiled_code.stderr
-
-                        # # remove '/temp.exe'
-                        # os.remove('temp.exe')
                         # if there is an error, print it
                         if len(err) > 0:
                             print(err)
-
-                        # get the environment
-                        # env = out.split('\n')[-2]
-                        # env = env.replace('\'', '"')
-                        # env = json.loads(env)
-
                         # remove a succeeding newline
                         # if it exists
                         if len(out) > 0 and out[-1] == '\n':
                             out = out[:-1]
-
                         return {'out': out, 'err': err}
-
                     # execute the Java code
                     return retrieve_java_environment(java_code)
-
                 # inline function, takes any amount of instructions
                 # returns the result of the last instruction
                 elif func == "=>" or (func == '' and objfunc == ''):
                     ret = None
                     for i in range(len(args)):
-                        arguments = args[i]
-
-                        # current instruction
-                        ins_s = arguments[0]
-
-                        line, ret = self.convert_arg(ins_s, line, f, sp, args)
+                        ret = self.parse(i, line, f, sp, args)[2]
                     return ret
-
                 # if the function, when parsed, is an integer,
                 # then it is a loop that runs func times
                 elif (_i := self.get_int(func)) != None:
@@ -5726,7 +5460,6 @@ class Interpreter:
                             line, ret = self.convert_arg(
                                 ins_s, line, f, sp, args)
                     return ret
-
                 # # if the function is a variable name
                 elif func in self.vars:
                     # value
@@ -5742,30 +5475,24 @@ class Interpreter:
                                 line, ret = self.convert_arg(
                                     ins_s, line, f, sp, args)
                         return ret
-
                     # otherwise return the value
                     return val
-
                 # mouse pointer operations
                 elif obj.startswith('pointer'):
                     from pywinauto import mouse
                     # thread based action?
                     p_thread = False
-
                     # return
                     ret = '<msnint2 class>'
-
                     # determine if thread based pointer action has been requested
                     if obj.endswith(':lock'):
                         p_thread = True
                         pointer_lock.acquire()
-
                     # gets the current position of the mouse
                     if objfunc == 'getpos' or objfunc == 'pos' or objfunc == 'position':
                         # import win32api
                         import win32api
                         ret = win32api.GetCursorPos()
-
                     # moves the mouse to an x, y position
                     elif objfunc == 'move' or objfunc == 'hover':
                         ret = mouse.move(coords=(self.parse(0, line, f, sp, args)[
@@ -5781,7 +5508,6 @@ class Interpreter:
                             # import win32api
                             import win32api
                             ret = mouse.click(coords=win32api.GetCursorPos())
-
                     # right clicks the mouse
                     elif objfunc == 'right_click':
                         # if args are provided
@@ -5865,7 +5591,6 @@ class Interpreter:
                             if win32api.GetKeyState(0x02) >= 0:
                                 break
                         ret = True
-
                     # DIRECTIONAL MOVEMENTS
                     # moves the mouse down from its current location
                     elif objfunc == 'down':
@@ -5891,7 +5616,6 @@ class Interpreter:
                         curr_x, curr_y = win32api.GetCursorPos()
                         ret = mouse.move(
                             coords=(curr_x + self.parse(0, line, f, sp, args)[2], curr_y))
-
                     # drags the mouse
                     # takes 4 or 5 arguments
                     # the first two are the starting coordinates
@@ -5905,17 +5629,14 @@ class Interpreter:
                                self.parse(3, line, f, sp, args)[2])
                         # presses the mouse down at the coordinates
                         mouse.press(coords=start)
-
                         # slowly moves the mouse to the end coordinates
                         # this is to prevent the mouse from moving too fast
                         # and not dragging the object
                         # the farther the distance, the longer it takes
                         # to move the mouse
-
                         speed = 50
                         if len(args) == 5:
                             speed = self.parse(4, line, f, sp, args)[2]
-
                         # reverse the speed, so a speed of 50 gives
                         # end_range of 50, and a speed of 75 gives
                         # end_range of 25
@@ -5924,16 +5645,13 @@ class Interpreter:
                             mouse.move(coords=(int(start[0] + (end[0] - start[0]) / 100 * i),
                                                int(start[1] + (end[1] - start[1]) / 100 * i)))
                             time.sleep(0.001)
-
                         # releases the mouse at the end coordinates
                         mouse.release(coords=end)
                         ret = True
-
                     # release the lock
                     if p_thread:
                         pointer_lock.release()
                     return ret
-
                 # clipboard operations
                 # if no arguments, the clipboard
                 # is returned
@@ -5941,10 +5659,8 @@ class Interpreter:
                 # if one argument, the text is copied
                 # uses pyperclip
                 elif func == 'clipboard':
-
                     # import pyperclip
                     import pyperclip
-
                     # if no arguments
                     if args[0][0] == '':
                         return pyperclip.paste()
@@ -5953,7 +5669,6 @@ class Interpreter:
                         copying = self.parse(0, line, f, sp, args)[2]
                         pyperclip.copy(copying)
                         return copying
-
                 # functional syntax I decided to add to make loops a tiny bit faster,
                 # cannot receive non literal arguments
                 # syntax:     3|5|i (prnt(i))
@@ -5963,25 +5678,19 @@ class Interpreter:
                     start = self.interpret(loop_args[0])
                     end = self.interpret(loop_args[1])
                     loopvar = loop_args[2]
-
                     # prepare loop variable
                     self.vars[loopvar] = Var(loopvar, start)
-
-                    # obtain loop block
-                    block_s = args[0][0]
-
                     if start < end:
                         for i in range(start, end):
                             self.vars[loopvar].value = i
-                            self.interpret(block_s)
+                            self.interpret(args[0][0])
 
                     # reversed iteration
                     else:
                         for i in reversed(range(end, start)):
                             self.vars[loopvar].value = i
-                            self.interpret(block_s)
+                            self.interpret(args[0][0])
                     return
-
                 # fallback
                 else:
                     try:
@@ -5994,16 +5703,13 @@ class Interpreter:
                         except:
                             # ok hopefully its a string lol
                             return line
-
             if obj != '':
                 objfunc += c
             else:
                 func += c
-
         # try a variable
         if line in self.vars:
             return self.vars[line].value
-
         # otherwise nothing
         # try replacing variables 2
         try:
@@ -6023,6 +5729,14 @@ class Interpreter:
     def add_syntax(self, token, between, function):
         syntax[token] = [between, function]
         return [token, between, function]
+
+    # class specific error messages
+    def no_var_err(self, _vn, _type, _and, _locals, line):
+        return self.err(
+            f'No {_type} variable "{_vn}" found in Python environment',
+            f'Current {_and} environment locals:\n{self._locals}\nsize: {len(self._locals)}\nsee globals with "py.globals()"',
+            line, lines_ran
+        )
 
     # replaces tokens in the string with certain
     # characters or values
@@ -6067,7 +5781,6 @@ class Interpreter:
             # if there is no tag, return the script
             if (first := scr.find(tag)) == -1:
                 return scr
-
             # find the matching end tag
             stack = []
             i = first + len(tag)
@@ -6082,45 +5795,26 @@ class Interpreter:
                     i += len(tag)
                 else:
                     i += 1
-
             # recursively interpret the code between the tags
-            inner_code = scr[first+len(tag):i]
-            inner_code = recurse_tags(inner_code)
-           # scr = recurse_tags(inner_code)
-            interpreted_code = self.interpret(inner_code)
-
+            interpreted_code = self.interpret(recurse_tags(scr[first+len(tag):i]))
             if force_string:
                 interpreted_code = f'"{interpreted_code}"'
-
-            try:
-                # replace the tags with the interpreted code
-                new_scr = scr[:first] + interpreted_code + scr[i+len(endtag):]
-            except:
-                # interpreted code is a string
-                new_scr = scr[:first] + \
-                    str(interpreted_code) + scr[i+len(endtag):]
-
+            new_scr = f'{scr[:first]}{interpreted_code}{scr[i+len(endtag):]}'
             # recursively continue replacing tags in the remaining script
             return recurse_tags(new_scr)
-
         # applying <msn2element> tags
         with_msn2elements = recurse_tags(script)
-
         # switch tags
         tag = '<msn2>'
         endtag = '</msn2>'
-
         # applying <msn2> tags
         # for string based needs
         with_msn2 = recurse_tags(with_msn2elements, force_string=True)
-
         # applying '{=' '=}' tags
         # does the same thing as <msn2element> tags
-
         tag = '{='
         endtag = '=}'
         with_msn2 = recurse_tags(with_msn2)
-
         return with_msn2
 
     # determines the number of arguments based on the args array
@@ -6521,13 +6215,10 @@ class Interpreter:
         start = 0
         p = 0
         a = 0
-
         s = 0
         indouble = False
-
         s2 = 0
         insingle = False
-
         b = 0
         for i in range(l + 1):
             c = ''
@@ -6535,37 +6226,31 @@ class Interpreter:
                 c = line[i]
             except:
                 None
-
             if c == '[' and not s2 > 0 and not s > 0:
                 a += 1
             if c == ']' and not s2 > 0 and not s > 0:
                 a -= 1
-
             if c == '(' and not s2 > 0 and not s > 0:
                 p += 1
             if c == ')' and not s2 > 0 and not s > 0:
                 p -= 1
-
             if not self.in_string(s, s2):
                 if c == '{':
                     b += 1
                 if c == '}':
                     b -= 1
-
             if not indouble and not s2 > 0 and c == '"':
                 s += 1
                 indouble = True
             elif indouble and c == '"':
                 s -= 1
                 indouble = False
-
             if not insingle and not s > 0 and c == "'":
                 s2 += 1
                 insingle = True
             elif insingle and c == "'":
                 s2 -= 1
                 insingle = False
-
             # print(line)
             # print (f"""
             # c: {c}
@@ -6575,7 +6260,6 @@ class Interpreter:
             # s2: {s2}
 
             # """)
-
             if c == ',' and s == 0 and s2 == 0 and p == 0 and a == 0 and b == 0:
                 args.append([arg, start, start + len(arg)])
                 start = i + 1
@@ -6648,111 +6332,9 @@ class Interpreter:
                     self.vars[variable] = Var(
                         variable, self.interpret(element))
                     return self.vars[variable].value
-
-                elif "{" in element and "}" in element:
-                    if ":" not in element:
-                        expression = element.replace("{", '').replace("}", '')
-                        willrun = self.boolean(expression)
-
-                        if willrun:
-                            line = line[line.index("}") + 1:]
-                            self.interpret(line)
-                    else:
-                        times = self.loop(element)
-                        first = times[0]
-                        last = times[1]
-                        optvar = times[2]
-                        try:
-                            first = self.vars[first].value
-                        except:
-                            None
-                        try:
-                            last = self.vars[last].value
-                        except:
-                            None
-                        first = int(first)
-                        last = int(last)
-                        self.vars[optvar] = Var(optvar, first)
-                        if first <= last:
-                            for i in range(first, last):
-                                if optvar in self.vars:
-                                    self.vars[optvar].value = i
-                                self.interpret_msnscript_1(
-                                    line.replace(' ', '').replace(element, ''))
-                        else:
-                            for i in range(last, first):
-                                if optvar != '':
-                                    self.vars[optvar].value = i
-                                self.interpret_msnscript_1(
-                                    line.replace(' ', '').replace(element, ''))
-                    break
-                elif c == "&":
-                    None
-
                 else:
                     element += c
 
-    def boolean(self, expression):
-        first = ''
-        last = ''
-        op = ''
-        for i in range(0, len(expression)):
-            if expression[i] == '&' and expression[i + 1] == '&' and expression[i + 2] != '-' and expression[i + 2] != '+':
-                for j in range(i + 2, len(expression)):
-                    last += expression[j]
-                op = '=='
-                break
-            elif expression[i] == '!' and expression[i + 1] == '&' and expression[i + 2] == '&' and expression[i + 3] != '-' and expression[i + 3] != '+':
-                for j in range(i + 3, len(expression)):
-                    last += expression[j]
-                op = '!='
-                break
-            elif expression[i] == '&' and expression[i + 1] == '&' and expression[i + 2] == '-' and expression[i + 3] != 'e':
-                for j in range(i + 3, len(expression)):
-                    last += expression[j]
-                op = '<'
-                break
-            elif expression[i] == '&' and expression[i + 1] == '&' and expression[i + 2] == '+' and expression[i + 3] != 'e':
-                for j in range(i + 3, len(expression)):
-                    last += expression[j]
-                op = '>'
-                break
-            elif expression[i] == '&' and expression[i + 1] == '&' and expression[i + 2] == '-' and expression[i + 3] == 'e':
-                for j in range(i + 4, len(expression)):
-                    last += expression[j]
-                op = '<='
-                break
-            elif expression[i] == '&' and expression[i + 1] == '&' and expression[i + 2] == '+' and expression[i + 3] == 'e':
-                for j in range(i + 4, len(expression)):
-                    last += expression[j]
-                op = '>='
-                break
-            else:
-                first += expression[i]
-
-        try:
-            firsteval = self.vars[first].value
-        except KeyError:
-            firsteval = self.evaluate(first, 'string')
-
-        try:
-            lasteval = self.vars[last].value
-        except KeyError:
-            lasteval = self.evaluate(last, 'string')
-
-        if op == '==':
-            return firsteval == lasteval
-        if op == '!=':
-            return firsteval != lasteval
-        if op == '<':
-            return firsteval < lasteval
-        if op == '>':
-            return firsteval > lasteval
-        if op == '<=':
-            return firsteval <= lasteval
-        if op == '>=':
-            return firsteval >= lasteval
-        return False
 
     # scrapes all html elements from a URL
     def html_all_elements(self, url):
@@ -6761,108 +6343,12 @@ class Interpreter:
         from bs4 import BeautifulSoup
         # obtains a response from the URL
         response = requests.get(url)
-
         soup = BeautifulSoup(response.content, 'html5lib')
-
         # obtains all html elements
         return soup.find_all()
 
-    def loop(self, section):
-        first = ''
-        last = ''
-        optvar = ''
-        optvarfound = False
-        for i in range(1, len(section)):
-            if section[i] == ':':
-                for j in range(i + 1, len(section)):
-                    if section[j] == ':':
-                        for k in range(j + 1, len(section)):
-                            if section[k] == '}':
-                                optvarfound = True
-                                break
-                            optvar += section[k]
-                    if section[j] == '}':
-                        break
-                    if optvarfound:
-                        break
-                    last += section[j]
-                break
-            first += section[i]
-        return first, last, optvar
-
-    def evaluate(self, postop, type):
-        new = postop
-        try:
-            return eval(new, {}, {})
-        except:
-            None
-        if type == 'number':
-            new = self.replace_vars(new)
-            try:
-                return eval(new, {}, {})
-            except:
-                return eval(str(new), {}, {})
-        elif type == 'string':
-            return self.string(postop)
-        elif type == 'array':
-            return self.array(postop)
-        elif type == 'unknown':
-            new = self.replace_vars(new)
-            try:
-                evaluation = eval(str(self.string(new)), {}, {})
-            except:
-                try:
-                    evaluation = self.array(self.vars[new])
-                except:
-                    try:
-                        evaluation = self.vars[self.string(eval(new, {}, {}))]
-                    except:
-                        try:
-                            evaluation = eval(new, {}, {})
-                        except:
-                            evaluation = new
-
-            return evaluation
-
     def me(self):
         return str(self).replace(' ', '').replace('<', '').replace('>', '').replace('Interpreter', '')
-
-    def string(self, string):
-
-        strn = ''
-        isv = False
-        try:
-            string = self.vars[string]
-            isv = True
-        except KeyError:
-            None
-
-        # if isv and '"' not in string:
-        #     string = '"' + string + '"'
-        try:
-            strn = eval(string, {}, {})
-        except:
-            None
-        try:
-            for var in self.vars:
-                strn = strn.replace("{" + var + "}", str(self.vars[var].value))
-            for method in self.methods.keys():
-                toprint = ''
-                body = self.methods[method].body
-                for line in body:
-                    toprint += line + '\\n'
-                strn = strn.replace("{" + method + "}", toprint)
-        except:
-            None
-        return strn
-
-    def array(self, postop):
-        array = []
-        try:
-            array = eval(postop, {}, {})
-        except:
-            None
-        return array
 
     # prints text with a box around it
     def bordered(text):
@@ -6886,23 +6372,16 @@ class Interpreter:
             self.returns = []
             self.ended = False
             self.interpreter = interpreter
-
         def add_arg(self, arg):
             self.args.append(arg)
-
         def add_body(self, body):
             self.body.append(body)
-
         def add_return(self, ret):
             self.returns.append(ret)
-
+        def default(self, func_insert, index):
+            return not func_insert and isinstance(self.args[index], list)
         def run(self, args, inter, actual_args=None):
-
-            # determines if this is a default argument
-            def default(func_insert, index):
-                return not func_insert and isinstance(self.args[index], list)
-            # finds a default argument in the list of args
-
+            # finds an argument in the list of arguments
             def find_arg(func_var):
                 ind = -1
                 # for each arg in self.args
@@ -6924,18 +6403,18 @@ class Interpreter:
             def try_var(func_var, func_insert):
                 try:
                     # if self.args[i] is a list
-                    if default(func_insert, i):
+                    if self.default(func_insert, i):
                         raise Exception()
                     # find the index of self.args
                     ind = find_arg(func_var)
-                    if default(func_insert, ind):
+                    if self.default(func_insert, ind):
                         inter.vars[func_var] = Var(
                             self.args[ind][0], self.args[ind][1])
                     else:
                         inter.vars[func_var] = Var(func_var, func_insert)
                 except:
                     try:
-                        if default(func_insert, i):
+                        if self.default(func_insert, i):
                             raise TypeError()
                         inter.vars[func_var] = func_insert
                     except TypeError:
@@ -6983,15 +6462,13 @@ class Interpreter:
                 if arg == '':
                     actual_arg_num -= 1
             named_args_num = len(with_list)
-            # check for error
+            # check for error with named arguments
             if actual_arg_num + named_args_num < required_arg_num:
                 inter.raise_incorrect_args(
                     required_arg_num, actual_arg_num + named_args_num, self.body[0], lines_ran, self)
-
             for line in self.body:
                 method_ret = inter.interpret(line)
             return method_ret
-
         def is_str(self, value):
             return (value[0] == '"' and value[-1] == '"') or (value[0] == "'" and value[-1] == "'")
     # class for an App
@@ -6999,10 +6476,8 @@ class Interpreter:
     class App:
         # constructor
         def __init__(self, path, application=None, name=None, extension=None):
-
             # path of application being launched
             self.path = path
-
             if name:
                 self.name = name
                 self.extension = extension
@@ -7011,13 +6486,11 @@ class Interpreter:
                 # extension of the application
                 self.extension = _spl[-1]
                 self.name = _spl[0]
-
             # pwinauto application object
             self.application = application
 
     # element for an application
     class AppElement:
-
         # constructor
         def __init__(self, window, name):
 
@@ -7069,99 +6542,72 @@ class Interpreter:
 
     # class for a button
     class Button(AppElement):
-
         # constructor
         def __init__(self, window, name):
-
             # call super constructor
             super().__init__(window, name)
-
         # clicks the button
         def click(self):
             self.window.click()
-
         # right clicks the button
         def right_click(self):
             self.window.click_input(button='right')
-
     # class for a Link
     class Link(AppElement):
-
         # constructor
         def __init__(self, window, name):
-
             # call super constructor
             super().__init__(window, name)
-
     # class for a Menu
     class Menu(AppElement):
-
         # constructor
         def __init__(self, window, name):
-
             # call super constructor
             super().__init__(window, name)
-
     # class for a ToolBar
-
     class ToolBar(AppElement):
-
         # constructor
         def __init__(self, window, name):
-
             # call super constructor
             super().__init__(window, name)
-
     # class for a scrollbar
     class ScrollBar(AppElement):
-
         # constructor
         def __init__(self, window, name):
-
             # call super constructor
             super().__init__(window, name)
-
     # class for TabItems
     class TabItem(AppElement):
         # constructor
         def __init__(self, window, name):
-
             # call super constructor
             super().__init__(window, name)
-
     # class for Hyperlink
     class Hyperlink(AppElement):
         # constructor
         def __init__(self, window, name):
-
             # call super constructor
             super().__init__(window, name)
-
     # class for Inputs
     class Input(AppElement):
         # constructor
         def __init__(self, window, name):
-
             # call super constructor
             super().__init__(window, name)
 
         # types text into the input
         def type_keys(self, text):
             self.window.type_keys(text)
-
     # class for Tables
     class Table(AppElement):
         # constructor
         def __init__(self, window, name):
-
             # call super constructor
             super().__init__(window, name)
-
     # ------------------------------------
     # working with Excel
 
     class Workbook:
-
         # constructor
         def __init__(self, workbook, path) -> None:
             self.workbook = workbook
@@ -7169,7 +6615,6 @@ class Interpreter:
 
     # sheet class
     class Sheet(Workbook):
-
         def __init__(self, sheet, title, workbook, path) -> None:
             super().__init__(workbook, path)
             self.sheet = sheet

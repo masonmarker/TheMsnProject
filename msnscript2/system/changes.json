@@ -1,6 +1,9 @@
 {
     "2.0.387": {
         "1": "Determined necessary dependencies, greatly speeding up execution of any single program",
-        "2": "Rewrote msn2 library to incorporate new, safer syntax, this includes many tests"
+        "2": "Rewrote msn2 library to incorporate new, safer syntax, this includes many tests",
+        "3": "Implemented 'argument picker' for def() defined functions, allowing for more flexible argument passing"
+    },
+    "2.0.888": {
     }
 }
