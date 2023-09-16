@@ -1783,6 +1783,41 @@ for (0, @iterations = 7, 'i', (
 ))
 # prints accounting information
 print_threads()
+
+
+
+
+# run tests/version in /test directory
+@ version_folders = comp(
+    file.listdir('tests'), 'el', 
+        if (and(not(el.endswith('x')), el.startswith('2')), el, None()))
+
+# run tests in each version folder
+version_folders.each('folder', (
+    each(file.listdir(+('tests/', folder)), 'f', (
+        if(@_b=not(file.isdir(@_p=cat('tests/', folder, '/', f))), (-(
+            script(new(import(cat('tests/', "{=folder=}", '/', "{=f=}"))))
+        ),
+        print:color(
+            object(
+                'text', 'Finished tests: ',
+                'style', 'bold',
+                'fore', 'green'
+            ),
+            object(
+                'text', if(_b, _p),
+                'style', 'bold',
+                'fore', 'yellow'
+            )
+        )
+        
+        ))
+    ))
+))
+
+
+
+
 # completes the validator
 print('[+] fin in', cat(@ validator:runtime = timer:runtime(), 's'))
 # write to stats

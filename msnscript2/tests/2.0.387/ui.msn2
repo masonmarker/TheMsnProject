@@ -3,15 +3,18 @@
 # author : Mason Marker
 # date : 9/9/2023
 
+# starting tests
+import ('tests/resources/start')
+
 # import starting module
 import('lib/ui/ui')
 
 
 # get input from the UI
-print(ui:create(
-    # setting named argument values
-    &ui:label='Enter your name:',
-    &ui:height=100,
-    &ui:width=300,
-    &ui:button='OK'
-))
+# print(ui:create(
+#     # setting named argument values
+#     &ui:label='Enter your name:',
+#     &ui:height=100,
+#     &ui:width=300,
+#     &ui:button='OK'
+# ))

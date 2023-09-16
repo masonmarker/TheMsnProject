@@ -1,0 +1,13 @@
+# Asserts that the block sent raises an error.
+#
+# Tests assert:err()
+#
+# author : Mason Marker
+# date : 9/15/2023
+
+# import starting tests
+import ('tests/resources/start')
+
+# assert raise
+# control
+assert:err(raise('', '', ''))

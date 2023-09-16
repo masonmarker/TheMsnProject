@@ -4,15 +4,16 @@
 # date : 8/24/2023
 
 # printing with colors
-print:color(
-    object(
-        'text', 'Hello, ',
-        'fore', 'red'
-    ),
-    object(
-        'text', 'World!',
-        'fore', 'blue',
-        'back', 'green'
-    )
-)
+# print:color(
+#     object(
+#         'text', 'Hello, ',
+#         'fore', 'red'
+#     ),
+#     object(
+#         'text', 'World!',
+#         'fore', 'blue',
+#         'back', 'green'
+#     )
+# )
 
+# uncomment and rerun to see the styled printing in the console

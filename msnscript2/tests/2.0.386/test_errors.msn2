@@ -3,9 +3,7 @@
 # author : Mason Marker
 # date : 8/25/2023
 
-# clear the screen
-import ('lib/os')
-os:clear()
+import ('tests/resources/start')
 
 # defining a function with 0 arguments
 def('thing', print('thing ran'))
