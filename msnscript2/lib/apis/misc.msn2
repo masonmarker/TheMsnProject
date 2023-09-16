@@ -39,12 +39,6 @@ def('apis:misc:urls_for', 'apis:misc:keyword', (
 ))
 
 # gets the POSSIBLE endpoints from misc api list containing a keyword
-# ~ misc_apis_possible_endpoints(keyword) -> result
-# -- var('__apis_links', apis:misc:urls_for(keyword))
-# -- var(
-#     'result',
-#     << [k for k in |__apis_links| if k.endswith('api') or k.endswith('api/')  ]  >>)
-
 def('apis:misc:possible_endpoints', 'apis:misc:keyword', (
     var('apis:misc:links', apis:misc:urls_for(apis:misc:keyword)),
     var('result', 

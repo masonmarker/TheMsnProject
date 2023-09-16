@@ -19,21 +19,6 @@ assert(True,
 # assert the assignment was made
 assert(array.equals([1,2,3,4,5]))
 
-# a more complex example
-@ d = {'hello': 45,
-    'sup': 23,
-    'world': 12,
-}
-
-# assert the assignment was made
-assert(
-    d.equals({
-        'hello': 45,
-        'sup': 23,
-        'world': 12,
-    })
-)
-
 # more complex example
 assert(equals(+(84572394875293487529348572390487523904875, 
     1), 84572394875293487529348572390487523904876))
@@ -53,28 +38,13 @@ def('func',
 assert(equals(func('Hello', 'World', 'Sup', 'Dude'), 'HelloWorldSupDude'))
 # ------------------------------------
 
-# dictionary multi-line interpretation
-@ b = {
-    'hello': 45,
-    'sup': 23,
-    'world': 12,
-}
+# line ending in '='
+@ c = 
+    1
 # assert the assignment was made
-assert(
-    b.equals({
-        'hello': 45,
-        'sup': 23,
-        'world': 12,
-    })
-)
+assert(c.equals(1))
 
-# array multi-line interpretation
-@ a = [
-    1,
-    2,
-    3,
-    4,
-    5,
-]
+@ c =
+    [1,2,3,4,5]
 # assert the assignment was made
-assert(a.equals([1,2,3,4,5]))
+assert(c.equals([1,2,3,4,5]))

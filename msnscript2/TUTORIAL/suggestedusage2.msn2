@@ -5,36 +5,11 @@
 #
 # author : Mason Marker
 # date : 5/30/2023
+# updated in 2.0.388
 
 # fresh console
 import ('lib/os')
 os:clear()
-
-# ----------------------- VARIABLES -----------------------
-@ a = 1
-
-# repeated access syntax method 1
-a.(add(1, 2, 3),add(4, 5))
-assert(a.equals(16))
-
-# repeated access syntax method 2
-a.(sub(1, 2, 3), sub(4, 5))
-assert(a.equals(1))
-
-
-# arrays
-@ array = [1, 2, 3, 4, 5]
-
-array.(add(6),remove(3),filter('el', el.greater(2)))
-assert(array.equals([4, 5, 6]))
-
-# strings
-@ string = 'hello this is a string'
-@ char = string.(reverse(),upper(),get(0))
-assert(string.equals('GNIRTS A SI SIHT OLLEH'))
-assert(char.equals('G'))
-
-
 
 # ---------------- MULTI LINED ARGUMENT ----------------
 
@@ -59,6 +34,25 @@ assert((
     a.inc()
 ))
 
+# TUPLES
+# tuples are allowed in msn2... for now,
+# this may change if they're too unsafe or something
+
+# ending in '('
+@ b = (
+    'hello',
+    'sup',
+    'world'
+)
+# assert the assignment was made
+assert(
+    b.equals((
+        'hello',
+        'sup',
+        'world'
+    ))
+)
+
 # as of 2.0.382, there is a new, simpler way to create functions
 # with def(name, ...args, body) -> function name
 
@@ -78,6 +72,37 @@ def('add', 'add:a', 'add:b', (
 assert(equals(add(5, 6)), 11)
 assert(equals(add(5, [1, 2]), 8))
 assert(equals(add([1, 2], [3, 4]), 10))
+
+# as of 2.0.388, functions now have an argument specification
+# syntax, which allows for default arguments, and named arguments
+# to be passed in any order
+# examples:
+
+# ----------------------- VARIABLES -----------------------
+@ a = 1
+
+# repeated access syntax method 1
+# kinda silly, will hopefully be updated
+a.(add(1, 2, 3),add(4, 5))
+assert(a.equals(16))
+
+# repeated access syntax method 2
+a.(sub(1, 2, 3), sub(4, 5))
+assert(a.equals(1))
+
+
+# arrays
+@ array = [1, 2, 3, 4, 5]
+
+array.(add(6),remove(3),filter('el', el.greater(2)))
+assert(array.equals([4, 5, 6]))
+
+# strings
+@ string = 'hello this is a string'
+@ char = string.(reverse(),upper(),get(0))
+assert(string.equals('GNIRTS A SI SIHT OLLEH'))
+assert(char.equals('G'))
+
 
 # ----------------------- RUNNING PYTHON -----------------------
 
