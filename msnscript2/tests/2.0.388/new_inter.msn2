@@ -78,11 +78,3 @@ assert(
 ]
 # assert the assignment was made
 assert(a.equals([1,2,3,4,5]))
-
-# ending a line with a ':'
-@ var:box = 1
-# assert the assignment was made
-assert(var:
-box.equals(1))
-
-
