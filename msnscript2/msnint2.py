@@ -357,7 +357,8 @@ class Interpreter:
                 elif inmultiline:
                     multiline += line
                 # block syntax (recommended for most cases)
-                elif not inblock and line.endswith('('):
+                elif not inblock and line.endswith('(') or line.endswith(',') \
+                    or line.endswith('{') or line.endswith('[') or line.endswith(':'):
                     for c in line:
                         if c == '(':
                             p += 1

@@ -1,4 +1,5 @@
 # Asserts that the block sent raises an error.
+# Also tests type errors
 #
 # Tests assert:err()
 #
@@ -8,6 +9,14 @@
 # import starting tests
 import ('tests/resources/start')
 
-# assert raise
-# control
-assert:err(raise('', '', ''))
+# make assertions
+assert:err(
+    # common raise
+    raise('', '', ''), 
+
+    # indexing error
+    private((
+        @ array = [1, 2, 3, 4, 5],
+        array.get(32)
+    ))
+)

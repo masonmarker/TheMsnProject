@@ -1,0 +1,88 @@
+# Tests the new line accumulator for the
+# msn2 interpreter.
+#
+# author : Mason Marker
+# date : 9/15/2023
+
+# import resources
+import ('tests/resources/start')
+
+# running a line ending with a ','
+# ------------------------------------
+assert(True,
+
+1)
+
+# creating a variable
+@ array = [1,2,3,
+4,5]
+# assert the assignment was made
+assert(array.equals([1,2,3,4,5]))
+
+# a more complex example
+@ d = {'hello': 45,
+    'sup': 23,
+    'world': 12,
+}
+
+# assert the assignment was made
+assert(
+    d.equals({
+        'hello': 45,
+        'sup': 23,
+        'world': 12,
+    })
+)
+
+# more complex example
+assert(equals(+(84572394875293487529348572390487523904875, 
+    1), 84572394875293487529348572390487523904876))
+
+# defining a complex function
+def('func',
+
+    # defining arguments
+    &arg1='Default',
+    &arg2='Default',
+    &arg3='Default',
+    &arg4='Default', 
+    # function body
+    cat(arg1, arg2, arg3, arg4)
+)
+# invocation
+assert(equals(func('Hello', 'World', 'Sup', 'Dude'), 'HelloWorldSupDude'))
+# ------------------------------------
+
+# dictionary multi-line interpretation
+@ b = {
+    'hello': 45,
+    'sup': 23,
+    'world': 12,
+}
+# assert the assignment was made
+assert(
+    b.equals({
+        'hello': 45,
+        'sup': 23,
+        'world': 12,
+    })
+)
+
+# array multi-line interpretation
+@ a = [
+    1,
+    2,
+    3,
+    4,
+    5,
+]
+# assert the assignment was made
+assert(a.equals([1,2,3,4,5]))
+
+# ending a line with a ':'
+@ var:box = 1
+# assert the assignment was made
+assert(var:
+box.equals(1))
+
+
