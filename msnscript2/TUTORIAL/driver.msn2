@@ -11,6 +11,16 @@ import ('lib/console')
 # for clearing the console
 import ('lib/os')
 
+# import tutorial pages
+import ('TUTORIAL/_pages/home')
+import ('TUTORIAL/_pages/getting_started')
+import ('TUTORIAL/_pages/suggested_usage')
+import ('TUTORIAL/_pages/dependencies')
+import ('TUTORIAL/_pages/commands')
+import ('TUTORIAL/_pages/docs')
+import ('TUTORIAL/_pages/run_a_program')
+import ('TUTORIAL/_pages/settings')
+
 # error key
 @ error_key = '____error'
 
@@ -18,7 +28,7 @@ import ('lib/os')
 @ version = version()
 
 # displays a new page with the title
-function('new_page', (os:clear(), console:print(arr(object(
+def('new_page', (os:clear(), console:print(arr(object(
     'text', '   MSN2 HELP   ',
     'style', 'italic',
     'back', 'blue'
@@ -51,7 +61,7 @@ function('option', ret('option', (
 def('goto', 'goto:page', -(pages.get(@current_page = goto:page)))
 
 # lists the navigation menu
-function('nav_menu', (
+def('nav_menu', (
     2(print()),
     console:print(arr(object(
         'text', '   Menu   ',
@@ -102,16 +112,6 @@ function('page', ret('page', script((
     -({=page:script=}),
     nav_menu()
 ))), 'page:script')
-
-# import tutorial pages
-import ('TUTORIAL/_pages/home')
-import ('TUTORIAL/_pages/getting_started')
-import ('TUTORIAL/_pages/suggested_usage')
-import ('TUTORIAL/_pages/dependencies')
-import ('TUTORIAL/_pages/commands')
-import ('TUTORIAL/_pages/docs')
-import ('TUTORIAL/_pages/run_a_program')
-import ('TUTORIAL/_pages/settings')
 
 # tutorial pages
 @ pages = object(

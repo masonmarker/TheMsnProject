@@ -259,14 +259,14 @@ class Interpreter:
         # convert script to lines
         self.lines = []
         # for aggregate syntax support !{}
-        inmultiline = False
-        multiline = ''
+        inml = False
+        ml = ''
         # for block syntax
         inblock = False
         p = 0
         # whether or not to keep
         keep_space = False
-        keep_space_block = ''
+        keep_block = ''
         skipping = False
         # for each line of code
         for line in script.split("\n"):
@@ -291,21 +291,21 @@ class Interpreter:
                     if result:
                         # if the conditional line is true, then execute the Python
                         skipping = False
-                        keep_space_block = ''
+                        keep_block = ''
                     # otherwise, skip the Python
                     else:
                         skipping = True
-                        keep_space_block = ''
+                        keep_block = ''
                 else:
                     skipping = False
                     keep_space = True
-                    keep_space_block = ''
+                    keep_block = ''
             # if the Python block has been ended
             elif keep_space and line.endswith('\\\\'):
                 # if skipping
                 if skipping:
                     skipping = False
-                    keep_space_block = ''
+                    keep_block = ''
                     keep_space = False
                     continue
                 # fix line
@@ -313,18 +313,18 @@ class Interpreter:
                 line = line.strip()
                 # remove the trailing newline
                 # character
-                keep_space_block = keep_space_block[:-1]
+                keep_block = keep_block[:-1]
                 # modify conditionals
                 keep_space = False
                 # if setting to a variable
                 if line:
                     # set variable to python block
-                    self.vars[line] = Var(line, keep_space_block)
+                    self.vars[line] = Var(line, keep_block)
                 else:
                     # execute Python
-                    self.exec_python(keep_space_block)
+                    self.exec_python(keep_block)
                 # reset python block and skipping flag
-                keep_space_block = ''
+                keep_block = ''
                 skipping = False
             # skipping this Python block
             # due to conditional
@@ -332,7 +332,7 @@ class Interpreter:
                 continue
             # if in a python block
             elif keep_space:
-                keep_space_block += f"{line}\n"
+                keep_block += f"{line}\n"
                 self.current_line += 1
                 continue
             else:
@@ -343,19 +343,19 @@ class Interpreter:
             else:
                 # aggregate syntax !{} (not recommended for most cases)
                 if line.startswith('!{') and line.endswith('}'):
-                    multiline = line[2:-1]
-                    self.interpret(multiline)
-                    multiline = ''
-                elif not inmultiline and line.startswith("!{"):
-                    inmultiline = True
-                    multiline += line[2:]
-                elif inmultiline and line.endswith("}"):
-                    inmultiline = False
-                    multiline += line[0:len(line) - 1]
-                    self.interpret(multiline)
-                    multiline = ''
-                elif inmultiline:
-                    multiline += line
+                    ml = line[2:-1]
+                    self.interpret(ml)
+                    ml = ''
+                elif not inml and line.startswith("!{"):
+                    inml = True
+                    ml += line[2:]
+                elif inml and line.endswith("}"):
+                    inml = False
+                    ml += line[0:len(line) - 1]
+                    self.interpret(ml)
+                    ml = ''
+                elif inml:
+                    ml += line
                 # block syntax (recommended for most cases)
                 elif not inblock and line.endswith('(') or line.endswith(',') \
                     or line.endswith('{') or line.endswith('[') or line.endswith('=') \
@@ -365,7 +365,7 @@ class Interpreter:
                             p += 1
                         if c == ')':
                             p -= 1
-                        multiline += c
+                        ml += c
                     inblock = True
                 elif inblock:
                     for i in range(len(line)):
@@ -376,13 +376,13 @@ class Interpreter:
                             p -= 1
                         # end of syntax met
                         if p == 0:
-                            multiline += line[i:]
-                            inter = multiline
-                            multiline = ''
+                            ml += line[i:]
+                            inter = ml
+                            ml = ''
                             inblock = False
                             self.interpret(inter, keep_space=keep_space)
                             break
-                        multiline += c
+                        ml += c
                 else:
                     self.interpret(line, keep_space=keep_space)
             self.current_line += 1
@@ -710,9 +710,29 @@ class Interpreter:
                             return param
                     except:
                         None
+
+                    # # as of 2.0.388,
+                    # # if the objfunc ends with '!',
+                    # # it becomes destructive
+                    # # and returns the object
+                    if objfunc.endswith('!'):
+                        # recreate the line to interpret without the '!'
+                        self.vars[vname].value = self.interpret(
+                            f"{vname}.{objfunc[:-1]}({mergedargs})"
+                        )
+                        return self.vars[vname].value
+
                     # methods available to all types
                     if objfunc == 'copy':
-                        return object.copy()
+                        try:
+                            return object.copy()
+                        except:
+                            # no attribute copy
+                            self.err(
+                                'Error copying object.',
+                                f'Object "{obj}" does not have attribute "copy".',
+                                line, lines_ran
+                            )
 
                     if objfunc == 'print':
                         # if no arguments
@@ -738,24 +758,64 @@ class Interpreter:
                         return object
                     if objfunc == 'val':
                         return object
-                    # general information
-                    if objfunc == 'type':
-                        return type(object)
-                    if objfunc == 'len':
-                        return len(object)
-                    # casting
-                    if objfunc == 'str':
-                        return str(object)
-                    if objfunc == 'int':
-                        return int(object)
-                    if objfunc == 'float':
-                        return float(object)
-                    if objfunc == 'complex':
-                        return complex(object)
-                    if objfunc == 'bool':
-                        return bool(object)
-                    if objfunc == 'dict':
-                        return dict(object)
+
+                    try:
+                        # general information
+                        if objfunc == 'type':
+                            return type(object)
+                        if objfunc == 'len':
+                            return len(object)
+                        # casting
+                        if objfunc == 'str':
+                            return str(object)
+                        if objfunc == 'int':
+                            return int(object)
+                        if objfunc == 'float':
+                            return float(object)
+                        if objfunc == 'complex':
+                            return complex(object)
+                        if objfunc == 'bool':
+                            return bool(object)
+                        if objfunc == 'dict':
+                            return dict(object)
+                    except:
+                        # casting error
+                        self.err(
+                            'Casting error',
+                            f'Could not cast object of type {type(object)} to the type specified.',
+                            line, lines_ran
+                        )
+
+                    # switches the values of the two variables
+                    if objfunc == 'switch':
+                        # other variable name
+                        other_varname = self.parse(0, line, f, sp, args)[2]
+                        # check variable name
+                        self.check_varname(other_varname, line)
+                        # other_varname must exist in self.vars
+                        if other_varname not in self.vars:
+                            self.err(
+                                'Error switching variables.',
+                                f'Variable name "{other_varname}" does not exist in this context.',
+                                line, lines_ran
+                            )
+                        # switch the variables
+                        self.vars[vname].value, self.vars[other_varname].value = self.vars[other_varname].value, self.vars[vname].value
+                        # return the variable
+                        return self.vars[vname].value
+
+                    # renames a variable
+                    if objfunc == 'rename':
+                        # get the variable name
+                        varname = self.parse(0, line, f, sp, args)[2]
+                        # variable name must be a string
+                        self.check_varname(varname, line)
+                        # rename the variable
+                        self.vars[varname] = Var(varname, object)
+                        # delete the old entry
+                        del self.vars[vname]
+                        # return the variable
+                        return self.vars[varname]
 
                     # gets values from the object if the statement is true for each object
                     # runs the function on each element / kv pair
@@ -764,6 +824,8 @@ class Interpreter:
                     if objfunc == 'if':
                         # variable name
                         varname = self.parse(0, line, f, sp, args)[2]
+                        # check varname
+                        self.check_varname(varname, line)
                         new_list = []
                         # perform logic
                         for el in self.vars[vname].value:
@@ -782,9 +844,15 @@ class Interpreter:
                         return True
                     # obtains a slice of the iterable
                     if objfunc == 'slice':
-                        return self.vars[vname].value[self.parse(0, line, f, sp, args)[2]:self.parse(1, line, f, sp, args)[2]]
+                        first = self.parse(0, line, f, sp, args)[2]
+                        second = self.parse(1, line, f, sp, args)[2]
+                        # ensure both arguments are integers or None
+                        self.type_err(
+                            [(first, (int, type(None))), (second, (int, type(None)))], line, lines_ran)
+                        return self.vars[vname].value[first:second]
                     # gets the index of the object
                     if objfunc == 'index':
+                        # argument must be of type string
                         return self.vars[vname].value.index(self.parse(0, line, f, sp, args)[2])
                     # exports a variable to the parent context
                     if objfunc == 'export':
@@ -792,6 +860,8 @@ class Interpreter:
                         # export as name
                         if args[0][0] != '':
                             vname = self.parse(0, line, f, sp, args)[2]
+                            # check vname
+                            self.check_varname(vname, line)
                         self.parent.vars[vname] = Var(vname, object)
                         return object
                     # if no objfunc, there has been a request
@@ -810,6 +880,8 @@ class Interpreter:
                     if objfunc == 'each':
                         # get the variable name
                         varname = self.parse(0, line, f, sp, args)[2]
+                        # check varname
+                        self.check_varname(varname, line)
                         # try an indexable
                         try:
                             for i in range(len(object)):
@@ -835,6 +907,8 @@ class Interpreter:
                     if objfunc == 'filter':
                         # get the variable name
                         varname = self.parse(0, line, f, sp, args)[2]
+                        # check variable name
+                        self.check_varname(varname, line)
                         # filtered
                         filtered = []
                         # filter the iterable
@@ -849,41 +923,44 @@ class Interpreter:
 
                     # basic arithmetic, non-destructive
                     # takes any amount of arguments
-                    if objfunc == '+':
-                        ret = object
-                        for i in range(len(args)):
-                            ret += self.parse(i, line, f, sp, args)[2]
-                        return ret
-                    if objfunc == '-':
-                        ret = object
-                        for i in range(len(args)):
-                            ret -= self.parse(i, line, f, sp, args)[2]
-                        return ret
-                    if objfunc == '*' or objfunc == 'x':
-                        ret = object
-                        for i in range(len(args)):
-                            ret *= self.parse(i, line, f, sp, args)[2]
-                        return ret
-                    if objfunc == '/':
-                        ret = object
-                        for i in range(len(args)):
-                            ret /= self.parse(i, line, f, sp, args)[2]
-                        return ret
-                    if objfunc == '%':
-                        ret = object
-                        for i in range(len(args)):
-                            ret %= self.parse(i, line, f, sp, args)[2]
-                        return ret
-                    if objfunc == '**':
-                        ret = object
-                        for i in range(len(args)):
-                            ret **= self.parse(i, line, f, sp, args)[2]
-                        return ret
-                    if objfunc == '//':
-                        ret = object
-                        for i in range(len(args)):
-                            ret //= self.parse(i, line, f, sp, args)[2]
-                        return ret
+                    try:
+                        if objfunc == '+':
+                            ret = object
+                            for i in range(len(args)):
+                                ret += self.parse(i, line, f, sp, args)[2]
+                            return ret
+                        if objfunc == '-':
+                            ret = object
+                            for i in range(len(args)):
+                                ret -= self.parse(i, line, f, sp, args)[2]
+                            return ret
+                        if objfunc == '*' or objfunc == 'x':
+                            ret = object
+                            for i in range(len(args)):
+                                ret *= self.parse(i, line, f, sp, args)[2]
+                            return ret
+                        if objfunc == '/':
+                            ret = object
+                            for i in range(len(args)):
+                                ret /= self.parse(i, line, f, sp, args)[2]
+                            return ret
+                        if objfunc == '%':
+                            ret = object
+                            for i in range(len(args)):
+                                ret %= self.parse(i, line, f, sp, args)[2]
+                            return ret
+                        if objfunc == '**':
+                            ret = object
+                            for i in range(len(args)):
+                                ret **= self.parse(i, line, f, sp, args)[2]
+                            return ret
+                        if objfunc == '//':
+                            ret = object
+                            for i in range(len(args)):
+                                ret //= self.parse(i, line, f, sp, args)[2]
+                            return ret
+                    except:
+                        self.raise_operation_err(vname, objfunc, line)
                     # applies methods to to the object, considering
                     # the method takes one argument
                     if objfunc == 'func':
@@ -894,11 +971,30 @@ class Interpreter:
                         return ret
                     # reverses the iterable
                     if objfunc == 'reverse':
+                        # only types that can be reversed:
+                        # list, tuple, string
+                        # check types
+                        self.type_err(
+                            [(object, (list, tuple, str))], line, lines_ran)
                         self.vars[vname].value = self.vars[vname].value[::-1]
                         return self.vars[vname].value
                     # determines if this object is in the object passed
                     if objfunc == 'in':
-                        return self.vars[vname].value in self.parse(0, line, f, sp, args)[2]
+                        in_var = self.parse(0, line, f, sp, args)[2]
+                        # in_var must be of type iterable
+                        self.check_iterable(in_var, line)
+                        # if object is of type string
+                        if isinstance(object, str):
+                            # in_var must be a string also
+                            self.type_err([(in_var, (str,))], line, lines_ran)
+                            return object in in_var
+                        else:
+                            # otherwise, in_var cannot be a string
+                            if isinstance(in_var, str):
+                                self.err(
+                                    'Type error', f'Cannot search for type {type(object)} in type {type(in_var)}\nConsider casting variable "{vname}" to {str}, \nor change in() argument to a different iterable', line, lines_ran)
+                        return object in in_var
+
                     # variable type specific methods
                     # the isinstance branches below indicate mostly  DESCTRUCTIVE methods!
                     # so be sure to read the code
@@ -918,28 +1014,34 @@ class Interpreter:
                             return self.vars[vname].value % 2 != 0
                         # all of the below methods take any amount of arguments
                         # and perform the operation on the variable
-                        elif objfunc == 'add':
-                            for i in range(len(args)):
-                                self.vars[vname].value += self.parse(
-                                    i, line, f, sp, args)[2]
-                            return self.vars[vname].value
-                        elif objfunc == 'sub':
-                            for i in range(len(args)):
-                                self.vars[vname].value -= self.parse(
-                                    i, line, f, sp, args)[2]
-                            return self.vars[vname].value
-                        elif objfunc == 'mul':
-                            for i in range(len(args)):
-                                self.vars[vname].value *= self.parse(
-                                    i, line, f, sp, args)[2]
-                            return self.vars[vname].value
-                        elif objfunc == 'div':
-                            for i in range(len(args)):
-                                self.vars[vname].value /= self.parse(
-                                    i, line, f, sp, args)[2]
-                            return self.vars[vname].value
+
+                        try:
+                            if objfunc == 'add':
+                                for i in range(len(args)):
+                                    self.vars[vname].value += self.parse(
+                                        i, line, f, sp, args)[2]
+                                return self.vars[vname].value
+                            elif objfunc == 'sub':
+                                for i in range(len(args)):
+                                    self.vars[vname].value -= self.parse(
+                                        i, line, f, sp, args)[2]
+                                return self.vars[vname].value
+                            elif objfunc == 'mul':
+                                for i in range(len(args)):
+                                    self.vars[vname].value *= self.parse(
+                                        i, line, f, sp, args)[2]
+                                return self.vars[vname].value
+                            elif objfunc == 'div':
+                                for i in range(len(args)):
+                                    self.vars[vname].value /= self.parse(
+                                        i, line, f, sp, args)[2]
+                                return self.vars[vname].value
+                        except:
+                            return self.raise_operation_err(vname, objfunc, line)
+
                         # computes the absolute value of the number
-                        elif objfunc == 'abs':
+                        if objfunc == 'abs':
+                            # can only be performed on numbers
                             self.vars[vname].value = abs(
                                 self.vars[vname].value)
                             return self.vars[vname].value
@@ -947,8 +1049,13 @@ class Interpreter:
                         elif objfunc == 'round':
                             # round to the nearest decimal place
                             if args[0][0] != '':
+                                # decimal place to round to
+                                place = self.parse(0, line, f, sp, args)[2]
+                                # place type must be int
+                                self.type_err([(place, (int,))],
+                                              line, lines_ran)
                                 self.vars[vname].value = round(
-                                    self.vars[vname].value, self.parse(0, line, f, sp, args)[2])
+                                    self.vars[vname].value, place)
                             else:
                                 self.vars[vname].value = round(
                                     self.vars[vname].value)
@@ -971,14 +1078,17 @@ class Interpreter:
                             return self.vars[vname].value
                         # all of the below methods should take any amount of arguments
                         # test if the variable is greater than all arguments
-                        elif objfunc == 'greater' or objfunc == 'greaterthan' or objfunc == 'g':
-                            return all(self.vars[vname].value > self.parse(i, line, f, sp, args)[2] for i in range(len(args)))
-                        elif objfunc == 'less' or objfunc == 'lessthan' or objfunc == 'l':
-                            return all(self.vars[vname].value < self.parse(i, line, f, sp, args)[2] for i in range(len(args)))
-                        elif objfunc == 'greaterequal' or objfunc == 'ge':
-                            return all(self.vars[vname].value >= self.parse(i, line, f, sp, args)[2] for i in range(len(args)))
-                        elif objfunc == 'lessequal' or objfunc == 'le':
-                            return all(self.vars[vname].value <= self.parse(i, line, f, sp, args)[2] for i in range(len(args)))
+                        try:
+                            if objfunc == 'greater' or objfunc == 'greaterthan' or objfunc == 'g':
+                                return all(self.vars[vname].value > self.parse(i, line, f, sp, args)[2] for i in range(len(args)))
+                            elif objfunc == 'less' or objfunc == 'lessthan' or objfunc == 'l':
+                                return all(self.vars[vname].value < self.parse(i, line, f, sp, args)[2] for i in range(len(args)))
+                            elif objfunc == 'greaterequal' or objfunc == 'ge':
+                                return all(self.vars[vname].value >= self.parse(i, line, f, sp, args)[2] for i in range(len(args)))
+                            elif objfunc == 'lessequal' or objfunc == 'le':
+                                return all(self.vars[vname].value <= self.parse(i, line, f, sp, args)[2] for i in range(len(args)))
+                        except:
+                            self.raise_comp(objfunc, vname, line)
                         # more basic functions
                         return self.vars[vname].value
 
@@ -1006,6 +1116,8 @@ class Interpreter:
                         if objfunc == 'get':
                             # index to get at
                             ind = self.parse(0, line, f, sp, args)[2]
+                            # index must be an int
+                            self.type_err([(ind, (int,))], line, lines_ran)
                             # get the index
                             for i in object:
                                 if ind == 0:
@@ -1025,37 +1137,64 @@ class Interpreter:
                             return self.vars[vname].value.pop()
                         # getting at an index
                         elif objfunc == 'get':
-                            return self.vars[vname].value[self.parse(0, line, f, sp, args)[2]]
+                            ind = self.parse(0, line, f, sp, args)[2]
+                            # type of ind must be int
+                            self.type_err([(ind, (int,))], line, lines_ran)
+                            return self.vars[vname].value[ind]
                         # sets at an index
                         elif objfunc == 'set':
-                            self.vars[vname].value[self.parse(0, line, f, sp, args)[
-                                2]] = self.parse(1, line, f, sp, args)[2]
+                            ind = self.parse(0, line, f, sp, args)[2]
+                            # type of ind must be int
+                            self.type_err([(ind, (int,))], line, lines_ran)
+                            self.vars[vname].value[ind] = self.parse(
+                                1, line, f, sp, args)[2]
                             return self.vars[vname].value
                         # gets the average of this array
                         elif objfunc == 'avg' or objfunc == 'average':
-                            return sum(self.vars[vname].value) / len(self.vars[vname].value)
+                            # try to compute the average
+                            try:
+                                return sum(self.vars[vname].value) / len(self.vars[vname].value)
+                            except:
+                                if not self.vars[vname].value:
+                                    return self.raise_empty_array(line)
+                                else:
+                                    return self.raise_avg(line)
+                                return raise_empty_array(self.vars[vname].value, line)
+                                # if there's an error,
                         # inserts all values at an index
                         if objfunc == 'insert':
                             # inserts the rest of the arguments, one at a time
                             for i in range(len(args)):
-                                self.vars[vname].value.insert(
-                                    self.parse(0, line, f, sp, args)[2], self.parse(i, line, f, sp, args)[2])
+                                ind = self.parse(i, line, f, sp, args)[2]
+                                # index must be an int
+                                self.type_err([(ind, (int,))], line, lines_ran)
+                                val = self.parse(i, line, f, sp, args)[2]
+                                self.vars[vname].value.insert(ind, val)
                             return self.vars[vname].value
                         # removes a certain amount of all arguments supplied
                         if objfunc == 'removen':
                             # removes count amount of the rest of the arguments from the object
+                            count = self.parse(0, line, f, sp, args)[2]
+                            # count must be an int
+                            self.type_err([(count, (int,))], line, lines_ran)
                             for i in range(1, len(args)):
-                                for j in range(self.parse(0, line, f, sp, args)[2]):
-                                    del var[var.index(self.parse(
-                                        i, line, f, sp, args)[2])]
+                                for j in range(count):
+                                    val = self.parse(i, line, f, sp, args)[2]
+                                    try:
+                                        del var[var.index(val)]
+                                    except ValueError:
+                                        self.raise_value(val, line)
                             return object
 
                         # removes all occurances of each argument from the list
                         if objfunc == 'remove':
                             for i in range(len(args)):
                                 while self.parse(i, line, f, sp, args)[2] in var:
-                                    del var[var.index(self.parse(
-                                        i, line, f, sp, args)[2])]
+                                    try:
+                                        del var[(_v := var.index(self.parse(
+                                            i, line, f, sp, args)[2]))]
+                                    except ValueError:
+                                        self.raise_value(_v, line)
                             return object
                         # gets a sorted copy of this array
                         if objfunc == 'sorted':
@@ -1088,6 +1227,8 @@ class Interpreter:
                         if objfunc == 'map':
                             # get the variable name
                             varname = self.parse(0, line, f, sp, args)[2]
+                            # check varname
+                            self.check_varname(varname, line)
                             for i in range(len(object)):
                                 self.vars[varname] = Var(varname, object[i])
                                 object[i] = self.interpret(args[1][0])
@@ -1095,8 +1236,12 @@ class Interpreter:
                             return object
                         # joins the array by the first argument
                         if objfunc == 'join' or objfunc == 'delimit':
+                            delimiter = self.parse(0, line, f, sp, args)[2]
+                            # delimiter must be a string
+                            self.type_err([(delimiter, (str,))],
+                                          line, lines_ran)
                             # join the array
-                            return str(self.parse(0, line, f, sp, args)[2]).join(map(str, self.vars[vname].value))
+                            return delimiter.join(map(str, self.vars[vname].value))
                         # converts this list to a set
                         if objfunc == 'toset':
                             return set(self.vars[vname].value)
@@ -1104,11 +1249,18 @@ class Interpreter:
                     elif isinstance(object, str):
                         if objfunc == 'add':
                             for i in range(len(args)):
-                                self.vars[vname].value += self.parse(
-                                    i, line, f, sp, args)[2]
+                                adding = self.parse(i, line, f, sp, args)[2]
+                                # adding must be a string
+                                self.type_err(
+                                    [(adding, (str,))], line, lines_ran)
+                                self.vars[vname].value += adding
                             return self.vars[vname].value
                         if objfunc == 'split':
-                            return self.vars[vname].value.split(self.parse(0, line, f, sp, args)[2])
+                            splitting_by = self.parse(0, line, f, sp, args)[2]
+                            # splitting_by must be a string
+                            self.type_err(
+                                [(splitting_by, (str,))], line, lines_ran)
+                            return self.vars[vname].value.split(splitting_by)
                         # gets the lines of this string
                         if objfunc == 'lines':
                             return self.vars[vname].value.split('\n')
@@ -1122,15 +1274,22 @@ class Interpreter:
                         if objfunc == 'replace':
                             # what to replace
                             replacing = self.parse(0, line, f, sp, args)[2]
-                            # replacing with
                             wth = self.parse(1, line, f, sp, args)[2]
+                            # both must be strings
+                            self.type_err(
+                                [(replacing, (str,)), (wth, (str,))], line, lines_ran)
+                            # replacing with
                             if len(args) == 2:
                                 # replaces all instances of replacing with wth
                                 self.vars[vname].value = self.vars[vname].value.replace(
                                     replacing, wth)
                             elif len(args) == 3:
+                                third = self.parse(2, line, f, sp, args)[2]
+                                # third must be a string
+                                self.type_err([(third, (str,))],
+                                              line, lines_ran)
                                 self.vars[vname].value = self.vars[vname].value.replace(
-                                    replacing, wth, self.parse(2, line, f, sp, args)[2])
+                                    replacing, wth, third)
                             # returns the new string
                             return self.vars[vname].value
                         # strips the value at the variable name
@@ -1150,6 +1309,8 @@ class Interpreter:
                         if objfunc == 'set':
                             # index to set
                             index = self.parse(0, line, f, sp, args)[2]
+                            # index must be an int
+                            self.type_err([(index, (int,))], line, lines_ran)
                             # create a new string with the new character
                             self.vars[
                                 vname].value = f"{self.vars[vname].value[:index]}{self.parse(1, line, f, sp, args)[2]}{self.vars[vname].value[index + 1:]}"
@@ -1157,7 +1318,10 @@ class Interpreter:
                             return self.vars[vname].value
                         # gets a character in this string
                         if objfunc == 'get':
-                            return self.vars[vname].value[self.parse(0, line, f, sp, args)[2]]
+                            ind = self.parse(0, line, f, sp, args)[2]
+                            # ind must be an int
+                            self.type_err([(ind, (int,))], line, lines_ran)
+                            return self.vars[vname].value[ind]
                         # uppercases the string
                         if objfunc == 'upper':
                             self.vars[vname].value = self.vars[vname].value.upper()
@@ -1167,13 +1331,19 @@ class Interpreter:
                             self.vars[vname].value = self.vars[vname].value.lower()
                         # cuts a string to the two indices passed
                         if objfunc == 'cut':
-                            self.vars[vname].value = self.vars[vname].value[self.parse(
-                                0, line, f, sp, args)[2]:self.parse(1, line, f, sp, args)[2]]
+                            start = self.parse(0, line, f, sp, args)[2]
+                            end = self.parse(1, line, f, sp, args)[2]
+                            # both start and end must be ints
+                            self.type_err(
+                                [(start, (int,)), (end, (int,))], line, lines_ran)
+                            self.vars[vname].value = self.vars[vname].value[start:end]
                             return self.vars[vname].value
                         # inserts a string into a position
                         if objfunc == 'shove':
                             inserting = self.parse(0, line, f, sp, args)[2]
                             index = self.parse(1, line, f, sp, args)[2]
+                            # index must be an int
+                            self.type_err([(index, (int,))], line, lines_ran)
                             # do the above concatination but with f strings
                             self.vars[
                                 vname].value = f"{self.vars[vname].value[:index]}{inserting}{self.vars[vname].value[index:]}"
@@ -1183,6 +1353,8 @@ class Interpreter:
                         if objfunc == 'around':
                             # keyword to search for
                             keyword = self.parse(0, line, f, sp, args)[2]
+                            # keyword must be a string
+                            self.type_err([(keyword, (str,))], line, lines_ran)
                             # get the index of the keyword
                             index = object.find(keyword)
                             # if not found
@@ -1195,10 +1367,16 @@ class Interpreter:
                             return object[index-self.parse(1, line, f, sp, args)[2]:index+len(keyword)+self.parse(2, line, f, sp, args)[2]]
                         # startswith
                         if objfunc == 'startswith':
-                            return object.startswith(self.parse(0, line, f, sp, args)[2])
+                            st = self.parse(0, line, f, sp, args)[2]
+                            # st must be a string
+                            self.type_err([(st, (str,))], line, lines_ran)
+                            return object.startswith(st)
                         # endswith
                         if objfunc == 'endswith':
-                            return object.endswith(self.parse(0, line, f, sp, args)[2])
+                            st = self.parse(0, line, f, sp, args)[2]
+                            # st must be a string
+                            self.type_err([(st, (str,))], line, lines_ran)
+                            return object.endswith(st)
                     # working with the HTML session
                     # object, checks string type to avoid importing before needed
                     elif str(type(object)) == "<class 'requests_html.HTMLSession'>":
@@ -1242,6 +1420,9 @@ class Interpreter:
                             column = self.parse(0, line, f, sp, args)[2]
                             # row of the cell
                             row = self.parse(1, line, f, sp, args)[2]
+                            # row and column must be int
+                            self.type_err(
+                                [(column, (int,)), (row, (int,))], line, lines_ran)
                             # value to set the cell to
                             value = self.parse(2, line, f, sp, args)[2]
                             # sets the value of the cell
@@ -1262,6 +1443,8 @@ class Interpreter:
                         if objfunc == 'column':
                             # column, either an integer or string
                             col = self.parse(0, line, f, sp, args)[2]
+                            # col must be int or str
+                            self.type_err([(col, (int, str))], line, lines_ran)
                             column_values = []
                             # if number
                             if isinstance(col, int):
@@ -1280,6 +1463,8 @@ class Interpreter:
                         if objfunc == 'row':
                             # row, either an integer or string
                             r = self.parse(0, line, f, sp, args)[2]
+                            # r must be int or str
+                            self.type_err([(r, (int, str))], line, lines_ran)
                             row_values = []
                             # if number
                             if isinstance(r, int):
@@ -1311,8 +1496,12 @@ class Interpreter:
                         if objfunc == 'set_column':
                             # column, either an integer or string
                             col = self.parse(0, line, f, sp, args)[2]
-                            # array of values
+                            # col must be int or str
+                            self.type_err([(col, (int, str))], line, lines_ran)
+                            # iterable of values
                             values = self.parse(1, line, f, sp, args)[2]
+                            # check that values is an iterable
+                            self.check_iterable(values, line)
                             # if number
                             if isinstance(col, int):
                                 col += 1
@@ -1335,8 +1524,12 @@ class Interpreter:
                         elif objfunc == 'set_row':
                             # row, either an integer or string
                             r = self.parse(0, line, f, sp, args)[2]
+                            # must be int or str
+                            self.type_err([(r, (int, str))], line, lines_ran)
                             # array of values
                             values = self.parse(1, line, f, sp, args)[2]
+                            # check that values is an iterable
+                            self.check_iterable(values, line)
                             # if number
                             if isinstance(r, int):
                                 r += 1
@@ -1359,6 +1552,9 @@ class Interpreter:
                         elif objfunc == 'add_to_column':
                             # column
                             column = self.parse(0, line, f, sp, args)[2]
+                            # column should be an int or str
+                            self.type_err(
+                                [(column, (int, str))], line, lines_ran)
                             # value to add
                             value = self.parse(1, line, f, sp, args)[2]
                             # if number
@@ -1370,7 +1566,6 @@ class Interpreter:
                                         sheet.cell(i + 1, column, value)
                                         return value
                                 return value
-
                             # otherwise, get column by title
                             elif isinstance(column, str):
                                 column_index = get_column_index(column)
@@ -1386,6 +1581,8 @@ class Interpreter:
                         elif objfunc == 'add_to_row':
                             # row
                             row = self.parse(0, line, f, sp, args)[2]
+                            # row should be an int or str
+                            self.type_err([(row, (int, str))], line, lines_ran)
                             # value to add
                             value = self.parse(1, line, f, sp, args)[2]
                             # if number
@@ -1412,6 +1609,8 @@ class Interpreter:
                         elif objfunc == 'each_row':
                             # variable
                             row_var = self.parse(0, line, f, sp, args)[2]
+                            # check varname
+                            self.check_varname(row_var, line)
                             ret = None
                             # for each cell
                             for cell in sheet.iter_rows():
@@ -1428,6 +1627,8 @@ class Interpreter:
                         elif objfunc == 'import_matrix':
                             # get the 2D list
                             matrix = self.parse(0, line, f, sp, args)[2]
+                            # matrix must be a list
+                            self.type_err([(matrix, (list,))], line, lines_ran)
                             # default offset
                             offsetx = 0
                             offsety = 0
@@ -1459,6 +1660,9 @@ class Interpreter:
                         if objfunc == 'sheet':
                             # title of the new sheet
                             title = self.parse(0, line, f, sp, args)[2]
+                            # title should be a string or int
+                            self.type_err([(title, (str, int))],
+                                          line, lines_ran)
                             # if title is a string
                             if isinstance(title, str):
                                 # if the sheet has already been created,
@@ -1940,21 +2144,17 @@ class Interpreter:
                         from pywinauto import mouse
                         # set the focus to this element
                         window.set_focus()
-
                         # wait for the element to be ready
                         time.sleep(waittime)
-
                         # get the new coordinates of this element after the focus
                         coords = window.get_properties()[
                             'rectangle'].mid_point()
-
                         # click the mouse
                         mouse.click(button=button, coords=coords)
-
                         # return the object
                         return object
-
                     # determines if a point is visible within a rectangle
+
                     def has_point(object, x, y):
                         try:
                             rect = object.get_properties()['rectangle']
@@ -1967,7 +2167,6 @@ class Interpreter:
                     # the first object that has the point and no children
 
                     def rec(root, x, y):
-
                         # if the root has children
                         if root.children():
                             # for each child
@@ -2058,8 +2257,8 @@ class Interpreter:
                                 # if the key is not a special character
                                 new += key
                         return new
-
                     # types keys with a delay between each key
+
                     def type_keys_with_delay(window, text, delay):
                         e = False
                         import time
@@ -2068,20 +2267,17 @@ class Interpreter:
                             try:
                                 window.type_keys(char, with_spaces=True)
                             except:
-
                                 if not e:
                                     window.set_focus()
                                     e = True
                                 pywinauto.keyboard.send_keys(char)
                             time.sleep(delay)
-
                     # parses object functions for discovering types
                     # of elements
+
                     def search(window):
                         import pywinauto
-
                         ret = '<msnint2 no callable>'
-
                         # RETRIEVING CHILDREN
                         # gets the available child reference keywords
                         if (chldrn := callables(window,
@@ -2090,7 +2286,6 @@ class Interpreter:
                                                 'child', child,
                                                 'find_children', find_children)) != '<msnint2 no callable>':
                             ret = chldrn
-
                         # working with the entire child tree
                         elif (all_chldrn := callables(window,
                                                       'all_children', all_children,
@@ -2107,7 +2302,6 @@ class Interpreter:
 
                                                       )) != '<msnint2 no callable>':
                             ret = all_chldrn
-
                         # getting all menus
                         elif (mns := callables(window,
                                                'menus', menus,
@@ -2123,7 +2317,6 @@ class Interpreter:
                                                as_type2=self.Menu
                                                )) != '<msnint2 no callable>':
                             ret = mns
-
                         # gets all toolbars
                         elif (tbrs := callables(window,
                                                 'toolbars', toolbars,
@@ -2139,7 +2332,6 @@ class Interpreter:
                                                 as_type2=self.ToolBar
                                                 )) != '<msnint2 no callable>':
                             ret = tbrs
-
                         # gets all buttons
                         elif (btns := callables(window,
                                                 'buttons', buttons,
@@ -2155,7 +2347,6 @@ class Interpreter:
                                                 as_type2=self.Button
                                                 )) != '<msnint2 no callable>':
                             ret = btns
-
                         # gets all tabitems
                         elif (tbs := callables(window,
                                                'tabitems', tabitems,
@@ -2171,7 +2362,6 @@ class Interpreter:
                                                as_type2=self.TabItem
                                                )) != '<msnint2 no callable>':
                             ret = tbs
-
                         # gets all links
                         elif (lnks := callables(window,
                                                 'links', links,
@@ -2187,7 +2377,6 @@ class Interpreter:
                                                 as_type2=self.Hyperlink
                                                 )) != '<msnint2 no callable>':
                             ret = lnks
-
                         # gets all Inputs
                         elif (inpts := callables(window,
                                                  'inputs', inputs,
@@ -2202,7 +2391,6 @@ class Interpreter:
                                                  as_type2=self.Input
                                                  )) != '<msnint2 no callable>':
                             ret = inpts
-
                         # gets all checkboxes
                         elif (chks := callables(window,
                                                 'checkboxes', checkboxes,
@@ -2217,7 +2405,6 @@ class Interpreter:
                                                 as_type2=self.Button
                                                 )) != '<msnint2 no callable>':
                             ret = chks
-
                         # gets all images
                         elif (imgs := callables(window,
                                                 'images', images,
@@ -2225,7 +2412,6 @@ class Interpreter:
                                                 'image', image,
                                                 'find_images', find_images)) != '<msnint2 no callable>':
                             ret = imgs
-
                         # gets all tables
                         elif (tbls := callables(window,
                                                 'tables', tables,
@@ -2240,7 +2426,6 @@ class Interpreter:
                                                 as_type2=self.Table
                                                 )) != '<msnint2 no callable>':
                             ret = tbls
-
                         # get all GroupBoxes
                         elif (grps := callables(window,
                                                 'groupboxes', groupboxes,
@@ -2255,7 +2440,6 @@ class Interpreter:
                                                 as_type2=self.AppElement
                                                 )) != '<msnint2 no callable>':
                             ret = grps
-
                         # for Panes
                         elif (pns := callables(window,
                                                'panes', panes,
@@ -2270,7 +2454,6 @@ class Interpreter:
                                                as_type2=self.AppElement
                                                )) != '<msnint2 no callable>':
                             ret = pns
-
                         # for ListItems
                         elif (lsts := callables(window,
                                                 'listitems', listitems,
@@ -2285,7 +2468,6 @@ class Interpreter:
                                                 as_type2=self.AppElement
                                                 )) != '<msnint2 no callable>':
                             ret = lsts
-
                         # for TabControls
                         elif (tabs := callables(window,
                                                 'tabcontrols', tabcontrols,
@@ -2300,7 +2482,6 @@ class Interpreter:
                                                 as_type2=self.AppElement
                                                 )) != '<msnint2 no callable>':
                             ret = tabs
-
                         # for Documents
                         elif (docs := callables(window,
                                                 'documents', documents,
@@ -2315,7 +2496,6 @@ class Interpreter:
                                                 as_type2=self.AppElement
                                                 )) != '<msnint2 no callable>':
                             ret = docs
-
                         return ret
 
                     # if the object is a pywinauto application
@@ -2325,25 +2505,21 @@ class Interpreter:
                     if isinstance(object, self.App):
                         # return for an app
                         ret = object
-
                         # path to the application to work with
                         path = object.path
                         # actual pwinauto application object
                         app = object.application
                         # window
                         window = app.window() if app else None
-
                         # thread based operation
                         p_thread = False
                         if objfunc.endswith(':lock'):
                             p_thread = True
                             objfunc = objfunc[:-5]
                             auto_lock.acquire()
-
                         # element discovery with search()
                         if (srch := search(window)) != '<msnint2 no callable>':
                             ret = srch
-
                         # STARTING AND STOPPING APPLICATIONS
                         if objfunc == 'start':
                             from pywinauto.application import Application
@@ -2351,27 +2527,22 @@ class Interpreter:
                             if not object.application:
                                 object.application = Application(
                                     backend="uia").start(path)
-
                             # add to global apps
                             global apps
                             apps[len(apps) + 1] = object
-
                             ret = object.application
                         # kills the application
                         elif objfunc == 'stop' or objfunc == 'kill' or objfunc == 'close':
                             # kill the application
                             ret = app.kill()
-
                         # gets the top_window
                         elif objfunc == 'print_tree':
                             ret = app.dump_tree()
-
                         # gets a connection to this application
                         elif objfunc == 'connection':
                             from pywinauto.application import Application
                             ret = self.App(object.path, Application(
                                 backend="uia").connect(process=object.application.process))
-
                         # gets information about this application
                         # gets the text of the window
                         elif objfunc == 'text':
@@ -2382,8 +2553,8 @@ class Interpreter:
                         # gets the handle
                         elif objfunc == 'handle':
                             ret = window.handle
-
                         # chrome based children collection
+
                         def chrome_children_():
                             chrome_window = app.window(title_re='.*Chrome.')
                             chrome_handle = chrome_window.handle
@@ -2391,7 +2562,6 @@ class Interpreter:
                             document = wd.child_window(
                                 found_index=0, class_name='Chrome_RenderWidgetHostHWND')
                             return document.descendants()
-
                         # GOOGLE CHROME ONLY
                         if objfunc == 'chrome_children':
                             # if not arguments
@@ -2401,11 +2571,17 @@ class Interpreter:
                             elif len(args) == 1:
                                 subtext = self.parse(0, line, f, sp, args)[
                                     2].lower()
+                                # subtext must be str
+                                self.type_err(
+                                    [(subtext, (str,))], line, lines_ran)
                                 ret = [self.AppElement(d, d.window_text()) for d in chrome_children_(
                                 ) if subtext in d.window_text().lower()]
                             # if two arguments, check if the first argument is exact
                             elif len(args) == 2:
                                 subtext = self.parse(0, line, f, sp, args)[2]
+                                # subtext must be str
+                                self.type_err(
+                                    [(subtext, (str,))], line, lines_ran)
                                 ret = [self.AppElement(d, d.window_text()) for d in chrome_children_(
                                 ) if subtext == d.window_text()]
 
@@ -2413,46 +2589,80 @@ class Interpreter:
                         elif objfunc == 'wait_for_text':
                             # if no timeout provided
                             if len(args) == 1:
+                                txt = self.parse(0, line, f, sp, args)[2]
+                                # text should be str
+                                self.type_err([(txt, (str,))], line, lines_ran)
                                 ret = wait_for_text(
-                                    window, self.parse(0, line, f, sp, args)[2])
+                                    window, txt)
                             # if timeout provided
                             elif len(args) == 2:
-                                ret = wait_for_text(window, self.parse(0, line, f, sp, args)[2],
-                                                    timeout=self.parse(1, line, f, sp, args)[2])
+                                txt = self.parse(0, line, f, sp, args)[2]
+                                timeout = self.parse(1, line, f, sp, args)[2]
+                                # text should be str and timeout should be float or int or complex
+                                self.type_err(
+                                    [(txt, (str,)), (timeout, (float, int, complex))], line, lines_ran)
+                                ret = wait_for_text(window, txt,
+                                                    timeout=timeout)
                         # waits for a child containing text in the entire child tree
                         elif objfunc == 'wait_for_text_all':
                             # if no timeout provided
                             if len(args) == 1:
+                                txt = self.parse(0, line, f, sp, args)[2]
+                                # text should be str
+                                self.type_err([(txt, (str,))], line, lines_ran)
                                 ret = wait_for_text_all(
-                                    window, self.parse(0, line, f, sp, args)[2])
+                                    window, txt)
                             elif len(args) == 2:
-                                ret = wait_for_text_all(window, self.parse(0, line, f, sp, args)[2],
-                                                        timeout=self.parse(1, line, f, sp, args)[2])
+                                txt = self.parse(0, line, f, sp, args)[2]
+                                timeout = self.parse(1, line, f, sp, args)[2]
+                                # text should be str and timeout should be float or int or complex
+                                self.type_err(
+                                    [(txt, (str,)), (timeout, (float, int, complex))], line, lines_ran)
+                                ret = wait_for_text_all(window, txt,
+                                                        timeout=timeout)
 
                         # waits for a child containing the exact text
                         elif objfunc == 'wait_for_text_exact':
                             # if no timeout provided
                             if len(args) == 1:
+                                txt = self.parse(0, line, f, sp, args)[2]
+                                # text should be str
+                                self.type_err([(txt, (str,))], line, lines_ran)
                                 ret = wait_for_text_exact(
-                                    window, self.parse(0, line, f, sp, args)[2])
+                                    window, txt)
                             elif len(args) == 2:
-                                ret = wait_for_text_exact(window, self.parse(0, line, f, sp, args)[2],
-                                                          timeout=self.parse(1, line, f, sp, args)[2])
+                                txt = self.parse(0, line, f, sp, args)[2]
+                                timeout = self.parse(1, line, f, sp, args)[2]
+                                # text should be str and timeout should be float or int or complex
+                                self.type_err(
+                                    [(txt, (str,)), (timeout, (float, int, complex))], line, lines_ran)
+                                ret = wait_for_text_exact(window, txt,
+                                                          timeout=timeout)
                         # waits for a child containing the exact text in the entire child tree
                         elif objfunc == 'wait_for_text_exact_all':
                             # if no timeout provided
                             if len(args) == 1:
+                                txt = self.parse(0, line, f, sp, args)[2]
+                                # text should be str
+                                self.type_err([(txt, (str,))], line, lines_ran)
                                 ret = wait_for_text_exact_all(
-                                    window, self.parse(0, line, f, sp, args)[2])
+                                    window, txt)
                             elif len(args) == 2:
-                                ret = wait_for_text_exact_all(window, self.parse(0, line, f, sp, args)[2],
-                                                              timeout=self.parse(1, line, f, sp, args)[2])
+                                txt = self.parse(0, line, f, sp, args)[2]
+                                timeout = self.parse(1, line, f, sp, args)[2]
+                                # text should be str and timeout should be float or int or complex
+                                self.type_err(
+                                    [(txt, (str,)), (timeout, (float, int, complex))], line, lines_ran)
+                                ret = wait_for_text_exact_all(window, txt,
+                                                              timeout=timeout)
 
                         # APPLICATION ACTIONS
                         # sends keystrokes to the application
                         # takes one argument, being the keystrokes to send
                         elif objfunc == 'write':
                             writing = self.parse(0, line, f, sp, args)[2]
+                            # writing should be a str
+                            self.type_err([(writing, (str,))], line, lines_ran)
                             try:
                                 # sends keystrokes to the application
                                 ret = window.type_keys(
@@ -2466,6 +2676,9 @@ class Interpreter:
                         elif objfunc == 'write_special':
                             # keystrokes
                             keystrokes = self.parse(0, line, f, sp, args)[2]
+                            # keystrokes should be a str
+                            self.type_err(
+                                [(keystrokes, (str,))], line, lines_ran)
                             # convert to special characters
                             ret = window.type_keys(convert_keys(
                                 keystrokes), with_spaces=True)
@@ -2480,50 +2693,43 @@ class Interpreter:
                         # sends keystrokes to the application
                         # takes one argument, being the keystrokes to send
                         elif objfunc == 'send_keys':
-
                             # import pywinauto.keyboard
                             import pywinauto
-
+                            keystrokes = self.parse(0, line, f, sp, args)[2]
+                            # keystrokes should be a str
+                            self.type_err(
+                                [(keystrokes, (str,))], line, lines_ran)
                             # sends keystrokes to the application
                             ret = pywinauto.keyboard.send_keys(convert_keys(
-                                self.parse(0, line, f, sp, args)[2]), with_spaces=True)
+                                keystrokes), with_spaces=True)
 
                         # gets the element that is currently hovered over
                         # recurses through all children, determining which elements have
                         # the mouses position
                         elif objfunc == 'hovered':
-
                             # import win32api
                             import win32api
-
                             # get the root window of this application
                             root = window.top_level_parent()
-
                             # get the current mouse position
                             x, y = win32api.GetCursorPos()
-
                             # recursively find all children from the root window
                             # that have the point specified
                             ret = get_all(root, x, y)
-
                         # opens the developer tools
                         elif objfunc == 'inspect':
                             # presses the shortcut keys to open the developer tools
                             ret = window.type_keys('{F12}')
-
                             # waits for the inspect window to appear
                             wait_for_text_all(window, 'Console')
-
                         # closes the developer tools
                         elif objfunc == 'close_inspect':
                             # presses the shortcut keys to close the developer tools
                             ret = window.type_keys('{F12}')
-
                         # refreshes the page
                         elif objfunc == 'refresh':
                             # presses the shortcut keys to refresh the page
                             ret = window.type_keys('{F5}')
-
                         # presses the enter key
                         elif objfunc == 'enter':
                             # presses the enter key
@@ -2540,28 +2746,9 @@ class Interpreter:
                         elif objfunc == 'page_up':
                             # presses the page up key
                             ret = window.type_keys('{PGUP}')
-
-                        # # collects all children within the entire page
-                        # # finds all scrollbars and scrolls throughout the entire page
-                        # # in all directions, collecting all children
-                        # if objfunc == 'collect_children':
-                        #     chld = set()
-                        #     # gets all scrollbars
-                        #     scrlbrs = window.scrollbars()
-                        #     # get the height of the screen
-                        #     height = window.rectangle().height
-
-                        #     return scrlbrs
-
-                        # # gets the vertical scrollbar
-                        # if objfunc == 'vertical_scrollbar':
-                        #     wd = window.child_window(control_type="Scroll")
-                        #     return self.ScrollBar(wd, 'vertical')
-
                         # release auto_lock
                         if p_thread:
                             auto_lock.release()
-
                         # return the object
                         return ret
 
@@ -2573,7 +2760,6 @@ class Interpreter:
                         window = object.window
                         # get the text of the AppElement object
                         name = object.name
-
                         # function to move the mouse from start to end,
                         # with a speed of speed
                         def movemouse(start, end, speed):
@@ -2593,25 +2779,20 @@ class Interpreter:
 
                             # releases the mouse at the end coordinates
                             mouse.release(coords=end)
-
                         p_thread = False
-
                         # thread based functions
                         # if the function is a thread based function
                         if objfunc.endswith(':lock'):
                             p_thread = True
                             auto_lock.acquire()
                             objfunc = objfunc[:-5]
-
                         # OBTAINING DIFFERENT TYPES OF CHILDREN
                         # get the element window
                         if objfunc == 'window':
                             ret = window
-
                         # element discovery with search()
                         if (srch := search(window)) != '<msnint2 no callable>':
                             ret = srch
-
                         # getting information about the current window
                         # gets the window text
                         elif objfunc == 'text':
@@ -2632,7 +2813,6 @@ class Interpreter:
                         elif objfunc == 'rectangle':
                             ret = [window.get_properties()['rectangle'].top, window.get_properties()[
                                 'rectangle'].bottom, window.get_properties()['rectangle'].left, window.get_properties()['rectangle'].right]
-
                         # computes the diameter of the window
                         elif objfunc == 'width':
                             try:
@@ -2652,7 +2832,6 @@ class Interpreter:
                                 ret = bottom - top
                             except:
                                 ret = None
-
                         # getting adjacent elements
                         # could or could not be decendants
                         # operation is very slow, should be used mainly
@@ -2661,9 +2840,11 @@ class Interpreter:
                             from pywinauto import mouse
                             # pixels above
                             pixels = self.parse(0, line, f, sp, args)[2]
+                            # pixels should be int
+                            self.type_err(
+                                [(pixels, (int,))], line, lines_ran)
                             # get the root window of this application
                             root = object.top_level_parent()
-
                             # get the top middle point of this element
                             top = object.get_properties(
                             )['rectangle'].top - pixels
@@ -2679,6 +2860,9 @@ class Interpreter:
                             from pywinauto import mouse
                             # pixels above
                             pixels = self.parse(0, line, f, sp, args)[2]
+                            # pixels should be int
+                            self.type_err(
+                                [(pixels, (int,))], line, lines_ran)
                             # get the root window of this application
                             root = object.top_level_parent()
                             # get the top middle point of this element
@@ -2695,9 +2879,11 @@ class Interpreter:
                             from pywinauto import mouse
                             # pixels to the left
                             pixels = self.parse(0, line, f, sp, args)[2]
+                            # pixels should be int
+                            self.type_err(
+                                [(pixels, (int,))], line, lines_ran)
                             # get the root window of this application
                             root = object.top_level_parent()
-
                             # get the left middle point of this element
                             left = object.get_properties(
                             )['rectangle'].left - pixels
@@ -2712,9 +2898,11 @@ class Interpreter:
                             from pywinauto import mouse
                             # pixels to the right
                             pixels = self.parse(0, line, f, sp, args)[2]
+                            # pixels should be int
+                            self.type_err(
+                                [(pixels, (int,))], line, lines_ran)
                             # get the root window of this application
                             root = object.top_level_parent()
-
                             # get the right middle point of this element
                             right = object.get_properties(
                             )['rectangle'].right + pixels
@@ -2725,21 +2913,21 @@ class Interpreter:
                             # recursively find all children from the root window
                             # that have the point specified
                             ret = rec(root, right, mid)
-
                         # focus on the window
                         elif objfunc == 'focus':
                             ret = window.set_focus()
-
                         # scrolls to the window
                         elif objfunc == 'scroll':
                             from pywinauto import mouse
                             ret = mouse.scroll(coords=(window.get_properties()['rectangle'].mid_point()[0],
                                                        window.get_properties()['rectangle'].mid_point()[1]))
-
                         # drags this element to either another AppElement
                         elif objfunc == 'drag':
                             # if one argument and that argument isinstance(AppElement)
                             first = self.parse(0, line, f, sp, args)[2]
+                            # first should be AppElement
+                            self.type_err(
+                                [(first, (self.AppElement,))], line, lines_ran)
                             # midpoint of the element to drag to
                             start = (window.get_properties()['rectangle'].mid_point()[0],
                                      window.get_properties()['rectangle'].mid_point()[1])
@@ -2754,39 +2942,50 @@ class Interpreter:
                             speed = 50
                             if len(args) == 2:
                                 speed = self.parse(1, line, f, sp, args)[2]
+                                # speed should be int
+                                self.type_err(
+                                    [(speed, (int,))], line, lines_ran)
                             # drags the mouse
                             movemouse(start, end, speed)
                             ret = True
-
                         # drags this AppElement to coordinates
                         elif objfunc == 'drag_coords':
-
                             start = (window.get_properties()['rectangle'].mid_point()[0],
                                      window.get_properties()['rectangle'].mid_point()[1])
-                            end = (self.parse(0, line, f, sp, args)[2],
-                                   self.parse(1, line, f, sp, args)[2])
-
+                            startcoord = self.parse(0, line, f, sp, args)[2]
+                            endcoord = self.parse(1, line, f, sp, args)[2]
+                            # both startcoord and endcoord should be int
+                            self.type_err(
+                                [(startcoord, (int,)), (endcoord, (int,))], line, lines_ran)
+                            end = (startcoord, endcoord)
                             # gets the speed, if specified
                             speed = 50
                             if len(args) == 3:
                                 speed = self.parse(2, line, f, sp, args)[2]
+                                # speed should be int
+                                self.type_err(
+                                    [(speed, (int,))], line, lines_ran)
                             # drags the mouse
                             movemouse(start, end, speed)
                             ret = True
-
                         # WINDOW ACTIONS
                         # sends keystrokes to the application
                         # takes one argument, being the keystrokes to send
                         elif objfunc == 'write':
                             writing = self.parse(0, line, f, sp, args)[2]
+                            # writing should be str
+                            self.type_err([(writing, (str,))], line, lines_ran)
                             timeout = False
                             # if a timeout between keystrokes is offered
                             if len(args) == 2:
                                 timeout = True
-
                             if timeout:
+                                delay = self.parse(1, line, f, sp, args)[2]
+                                # delay should be float or int or complex
+                                self.type_err(
+                                    [(delay, (float, int, complex))], line, lines_ran)
                                 ret = type_keys_with_delay(
-                                    window, writing, self.parse(1, line, f, sp, args)[2])
+                                    window, writing, delay)
                             else:
                                 try:
                                     ret = window.type_keys(
@@ -2794,7 +2993,6 @@ class Interpreter:
                                 except:
                                     window.set_focus()
                                     ret = window.type_keys(writing)
-
                         # presses backspace
                         # if no arguments, presses it one time
                         # else, presses it the first argument many times
@@ -2806,23 +3004,22 @@ class Interpreter:
                             # else, send {BACKSPACE} that many times
                             else:
                                 times = self.parse(0, line, f, sp, args)[2]
+                                # times should be int
+                                self.type_err(
+                                    [(times, (int,))], line, lines_ran)
                                 ret = window.type_keys('{BACKSPACE}' * times)
-
                         # presses the enter key
                         elif objfunc == 'enter':
                             ret = window.type_keys('{ENTER}')
-
                         # hovers over the window
                         elif objfunc == 'hover':
                             from pywinauto import mouse
                             # hovers the mouse over the window, using the mid point of the element
                             ret = mouse.move(
                                 coords=(window.get_properties()['rectangle'].mid_point()))
-
                         # different types of AppElements
                         # if the appelement is a button
                         if isinstance(object, self.Button):
-
                             # clicks the button
                             if objfunc == 'click' or objfunc == 'left_click':
                                 ret = object.click()
@@ -2830,11 +3027,14 @@ class Interpreter:
                             elif objfunc == 'right_click':
                                 ret = object.right_click()
                             ret = object
-
                         # working with Links
                         elif isinstance(object, self.Link):
                             waittime = self.parse(0, line, f, sp, args)[
                                 2] if args[0][0] != '' else 1
+
+                            # waittime should be float or int or complex
+                            self.type_err(
+                                [(waittime, (float, int, complex))], line, lines_ran)
                             # clicks the link
                             if objfunc == 'click' or objfunc == 'left_click':
                                 ret = clk(window, waittime=waittime)
@@ -2843,12 +3043,10 @@ class Interpreter:
                                 ret = clk(window, button='right',
                                           waittime=waittime)
                             ret = object
-
                         # working with Tables
                         elif isinstance(object, self.Table):
                             # get table
                             table = object.window
-
                             # gets a row by index, based on the above logic
                             def row(index):
                                 row = []
@@ -2876,7 +3074,6 @@ class Interpreter:
                                         break
                                 return row
                             # gets a column by index
-
                             def col(index):
                                 col = []
                                 for i in range(table.column_count()):
@@ -2891,16 +3088,17 @@ class Interpreter:
 
                             # gets a cell at a row and column
                             if objfunc == 'get':
-
                                 # get column
                                 col = self.parse(0, line, f, sp, args)[2]
                                 # get row
                                 row = self.parse(1, line, f, sp, args)[2]
+                                # column and row should be int
+                                self.type_err(
+                                    [(col, (int,)), (row, (int,))], line, lines_ran)
                                 wrapper = table.cell(row=row, column=col)
                                 # gets the cell
                                 ret = self.AppElement(
                                     wrapper, wrapper.window_text())
-
                             # try to accumulate all the rows
                             # up to sys.maxsize
                             elif objfunc == 'matrix':
@@ -2917,11 +3115,16 @@ class Interpreter:
                                 ret = matrix
                             # gets a row
                             elif objfunc == 'row':
-                                ret = row(self.parse(0, line, f, sp, args)[2])
+                                ind = self.parse(0, line, f, sp, args)[2]
+                                # ind should be int
+                                self.type_err([(ind, (int,))], line, lines_ran)
+                                ret = row(ind)
                             # gets a column
                             elif objfunc == 'column':
-                                ret = col(self.parse(0, line, f, sp, args)[2])
-
+                                ind = self.parse(0, line, f, sp, args)[2]
+                                # ind should be int
+                                self.type_err([(ind, (int,))], line, lines_ran)
+                                ret = col(ind)
                         # working with ToolBars
                         elif isinstance(object, self.ToolBar):
                             toolbar_window = object.window
@@ -2940,162 +3143,142 @@ class Interpreter:
                                     self.parse(0, line, f, sp, args)[2])
                             # finds all buttons with subtext in their names
                             if objfunc == 'find_buttons':
+                                txt = self.parse(0, line, f, sp, args)[2]
+                                # txt should be str
+                                self.type_err([(txt, (str,))], line, lines_ran)
                                 ret = find_buttons(
-                                    toolbar_window, self.parse(0, line, f, sp, args)[2])
+                                    toolbar_window, txt)
                             ret = object
-
                         # working with scrollbars
                         elif isinstance(object, self.ScrollBar):
                             scrollbar_window = object.window
-
                             if objfunc == 'scroll_down':
                                 ret = scrollbar_window.scroll_down(
                                     amount='page', count=1)
-
                         # extra methods such that this AppElement requires different logic
                         if objfunc == 'click' or objfunc == 'left_click':
-                            ret = clk(window, waittime=self.parse(
-                                0, line, f, sp, args)[2] if args[0][0] != '' else 1)
+                            waittime = self.parse(0, line, f, sp, args)[
+                                2] if args[0][0] != '' else 1
+                            # waittime must be float or int or complex
+                            self.type_err(
+                                [(waittime, (float, int, complex))], line, lines_ran)
+                            ret = clk(window, waittime=waittime)
                         elif objfunc == 'right_click':
-                            ret = clk(window, button='right', waittime=self.parse(
-                                0, line, f, sp, args)[2] if args[0][0] != '' else 1)
-
+                            waittime = self.parse(0, line, f, sp, args)[
+                                2] if args[0][0] != '' else 1
+                            # waittime must be float or int or complex
+                            self.type_err(
+                                [(waittime, (float, int, complex))], line, lines_ran)
+                            ret = clk(window, button='right', waittime=waittime)
                         # if thread based, release the lock
                         if p_thread:
                             auto_lock.release()
-
                         return ret
-
                     # if the object is a dictionary
                     elif isinstance(object, dict):
-
                         # allows for repetitive setting on a multiple indexed dictionary
                         if objfunc == 'set':
                             self.vars[vname].value[self.parse(0, line, f, sp, args)[
                                 2]] = self.parse(1, line, f, sp, args)[2]
                             return self.vars[vname].value
-
                         # first argument is what to set, should be called to_set
                         # rest of the arguments are the indices at which to index the object and set to_set
                         if objfunc == 'setn':
-
                             # what to set
                             to_set = self.parse(0, line, f, sp, args)[2]
-
                             # the rest of the arguments are the indices
                             # example: dict.setn('im being set', 'index1', 'index2', 'index3', ...)
                             # should equal: dict['index1']['index2']['index3'] = 'im being set'
-
                             # the object to set
                             obj = self.vars[vname].value
-
                             # iterates through the indices
                             for i in range(1, len(args)):
-
                                 # if the index is the last one
                                 if i == len(args) - 1:
-
                                     # sets the index to to_set
                                     obj[self.parse(i, line, f, sp, args)[
                                         2]] = to_set
-
                                 # if the index is not the last one
                                 else:
-
                                     # sets the object to the index
                                     obj = obj[self.parse(
                                         i, line, f, sp, args)[2]]
-
                             # returns the object
                             return self.vars[vname].value
-
                         # recursively gets a value in a dictionary
                         if objfunc == 'get':
-
                             # the object to get from
                             obj = self.vars[vname].value
-
                             # iterates through the indices
                             for i in range(len(args)):
-
-                                # sets the object to the index
-                                obj = obj[self.parse(i, line, f, sp, args)[2]]
-
+                                ind = self.parse(i, line, f, sp, args)[2]
+                                try:
+                                    # sets the object to the index
+                                    obj = obj[ind]
+                                except KeyError:
+                                    self.raise_key(ind, line)
                             # returns the object
                             return obj
-
                         # gets the keys of this dictionary
                         if objfunc == 'keys':
                             return self.vars[vname].value.keys()
-
                         # gets the values of this dictionary
                         if objfunc == 'values':
                             return self.vars[vname].value.values()
-
                         # gets the items of this dictionary
                         if objfunc == 'items':
                             return self.vars[vname].value.items()
-
                         # executes a function for each key-value pair
                         if objfunc == 'foreach':
-
                             # variable name of the key
                             keyname = self.parse(0, line, f, sp, args)[2]
-
                             # variable name of the value
                             valuename = self.parse(1, line, f, sp, args)[2]
-
+                            # check both keyname and valuename as varnames
+                            self.check_varname(keyname, line)
+                            self.check_varname(valuename, line)
                             # function to execute
                             function = args[2][0]
-
                             # loop through the dictionary
                             for key, value in self.vars[vname].value.items():
-
                                 # set the key and value variables
                                 self.vars[keyname] = Var(keyname, key)
                                 self.vars[valuename] = Var(valuename, value)
-
                                 # execute the function
                                 self.interpret(function)
-
                             # return the dictionary
                             return self.vars[vname].value
-
                         # maps each value in the dictionary to the output of the function
                         if objfunc == 'map':
-
                             # map arguments
                             keyvarname = self.parse(0, line, f, sp, args)[2]
                             valuevarname = self.parse(1, line, f, sp, args)[2]
+                            # check both for varnames
+                            self.check_varname(keyvarname, line)
+                            self.check_varname(valuevarname, line)
                             function = args[2][0]
-
                             new_dict = {}
-
                             # loop through the objects items, assigning the key to the key and
                             # value to the value
                             for key, value in self.vars[vname].value.items():
-
                                 # log old key
                                 old_key = key
-
                                 # execute the function
                                 self.vars[keyvarname] = Var(keyvarname, key)
                                 self.vars[valuevarname] = Var(
                                     valuevarname, value)
-
                                 # run the function
                                 ret = self.interpret(function)
-
                                 if self.vars[keyvarname].value == old_key:
                                     new_dict[old_key] = self.vars[valuevarname].value
                                 else:
                                     new_dict[self.vars[keyvarname].value] = self.vars[valuevarname].value
-
                             self.vars[vname].value = new_dict
-
                             return self.vars[vname].value
 
-                # user method execution requested
+                # user function execution requested
+                # user functions take priority
+                # over general msn2 functions
                 if func in self.methods:
                     method = self.methods[func]
                     # create func args
@@ -3159,8 +3342,10 @@ class Interpreter:
                 if func == 'redirect':
                     self.redirect_inside = []
                     # creates redirect for this interpreter
-                    self.redirect = [self.parse(0, line, f, sp, args)[
-                        2], args[1][0]]
+                    # check for type errors
+                    linevar = self.parse(0, line, f, sp, args)[2]
+                    self.type_err([(linevar, (str,))], line, lines_ran)
+                    self.redirect = [linevar, args[1][0]]
                     self.redirecting = True
                     return self.redirect
                 # request for Interpreter redirect cancellation
@@ -3181,6 +3366,8 @@ class Interpreter:
                 elif func == 'function':
                     # obtain the name of the function
                     fname = self.parse(0, line, f, sp, args)[2]
+                    # function name must be a string
+                    self.type_err([(fname, (str,))], line, lines_ran)
                     # function arguments
                     # create the new Method
                     new_method = self.Method(fname, self)
@@ -3192,6 +3379,8 @@ class Interpreter:
                         # adds variable name as an argument
                         # if any function specific argument is None, break
                         val = self.parse(i, line, f, sp, args)[2]
+                        # val must be a string
+                        self.type_err([(val, (str,))], line, lines_ran)
                         if val == None:
                             break
                         new_method.add_arg(val)
@@ -3201,6 +3390,8 @@ class Interpreter:
                 elif func == 'def':
                     # get the name of the new function
                     name = self.parse(0, line, f, sp, args)[2]
+                    # function name must be a string
+                    self.type_err([(name, (str,))], line, lines_ran)
                     # create the new function
                     new_func = self.Method(name, self)
                     func_args = []
@@ -3219,6 +3410,8 @@ class Interpreter:
                             # add this argument to the method
                             new_func.add_arg(self.parse(
                                 i, line, f, sp, args)[2])
+                            new_arg = self.parse(i, line, f, sp, args)[2]
+                            self.type_err([(new_arg, (str,))], line, lines_ran)
                     # add the body
                     new_func.add_body(f"ret('{name}',{args[-1][0]})")
                     # return buffer variable name
@@ -3235,15 +3428,24 @@ class Interpreter:
                     return name
                 # performs modular arithmetic on the two arguments given
                 elif func == 'mod':
-                    return self.parse(0, line, f, sp, args)[2] % self.parse(1, line, f, sp, args)[2]
+                    arg1 = self.parse(0, line, f, sp, args)[2]
+                    arg2 = self.parse(1, line, f, sp, args)[2]
+                    # verify both arguments are either int or float or complex or str
+                    self.type_err(
+                        [(arg1, (_allowed := (int, float, complex, str))), (arg2, allowed)], line, lines_ran)
+                    # both types must be int or float
+                    return arg1 % arg2
                 # returns a value to a function
                 # first argument is the function to return to
                 # second argument is the value to return
                 # ret() is used to create a return buffer for
                 #   multiprogramming.
                 elif func == 'ret':
+                    name = self.parse(0, line, f, sp, args)[2]
+                    # name must be a string
+                    self.type_err([(name, (str,))], line, lines_ran)
                     # function to return to
-                    vname = f"{self.parse(0, line, f, sp, args)[2]}__return__"
+                    vname = f"{name}__return__"
                     # value
                     value = self.parse(1, line, f, sp, args)[2]
                     # if the variable does not exist, we should create it
@@ -3264,6 +3466,13 @@ class Interpreter:
                     d = {}
                     if args[0][0] == '':
                         return d
+                    # cannot have an odd number of arguments
+                    if len(args) % 2 == 1:
+                        self.err(
+                            'Odd number of arguments in creating object',
+                            f'An even number of arguments required to have valid key-value pairs.\nYou said: {len(args)} arg(s)',
+                            line, lines_ran
+                        )
                     # step over arguments in steps of 2
                     for i in range(0, len(args), 2):
                         d[self.parse(i, line, f, sp, args)[2]] = self.parse(
@@ -3271,13 +3480,21 @@ class Interpreter:
                     return d
                 # splits the first argument by the second argument
                 if func == 'split':
+                    first = self.parse(0, line, f, sp, args)[2]
+                    second = self.parse(1, line, f, sp, args)[2]
+                    # first and second must be str
+                    self.type_err([(first, (str,)), (second, (str,))], line, lines_ran)
                     return self.parse(0, line, f, sp, args)[2].split(self.parse(1, line, f, sp, args)[2])
                 # obtains text between the first argument of the second argument
                 if func == 'between':
                     # surrounding token
                     surrounding = self.parse(0, line, f, sp, args)[2]
+                    # surrounding must be str
+                    self.type_err([(surrounding, (str,))], line, lines_ran)
                     # string to analyze
                     string = self.parse(1, line, f, sp, args)[2]
+                    # string must be str
+                    self.type_err([(string, (str,))], line, lines_ran)
                     funccalls = []
                     try:
                         while string.count(surrounding) > 1:
@@ -3301,17 +3518,30 @@ class Interpreter:
                     return isinstance(self.parse(0, line, f, sp, args)[2], int)
                 elif func == 'isdict':
                     return isinstance(self.parse(0, line, f, sp, args)[2], dict)
+                elif func == 'isinstance':
+                    return isinstance(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
 
                 # gets the sum of all arguments
                 if func == 'sum':
                     total = 0
                     for i in range(len(args)):
-                        total += sum(self.parse(i, line, f, sp, args)[2])
+                        try:
+                            total += sum(self.parse(i, line, f, sp, args)[2])
+                        except:
+                            try:
+                                total += self.parse(i, line, f, sp, args)[2]
+                            except Exception as e:
+                                self.err(
+                                    'Error computing sum',
+                                    e, line, lines_ran
+                                )
                     return total
                 # creates / sets a variable
                 if func == 'var':
                     # extract varname
                     varname = self.parse(0, line, f, sp, args)[2]
+                    # must be varname
+                    self.check_varname(varname, line)
                     # extract value
                     value = self.parse(1, line, f, sp, args)[2]
                     # add / set variable
@@ -3319,28 +3549,63 @@ class Interpreter:
                     return value
                 # converts the argument to a list
                 elif func == 'list':
-                    return list(self.parse(0, line, f, sp, args)[2])
+                    try:
+                        return list(self.parse(0, line, f, sp, args)[2])
+                    except:
+                        return self.err(
+                            'Casting error',
+                            'Could not cast arg to a list',
+                            line, lines_ran
+                        )
                 # absolute value
                 elif func == 'abs':
-                    return abs(self.parse(0, line, f, sp, args)[2])
+                    try:
+                        return abs(self.parse(0, line, f, sp, args)[2])
+                    except:
+                        return self.err(
+                            'Error computing absolute value',
+                            f'Could not compute absolute value of arg\nConsider changing arg to a number',
+                            line, lines_ran
+                        )
                 # zip
                 elif func == 'zip':
-                    return zip(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2])
+                    first = self.parse(0, line, f, sp, args)[2]
+                    second = self.parse(1, line, f, sp, args)[2]
+                    # verify both are iterable
+                    self.check_iterable(first, line)
+                    self.check_iterable(second, line)
+                    return zip(first, second)
                 # next
                 elif func == 'next':
-                    return next(self.parse(0, line, f, sp, args)[2])
+                    arg = self.parse(0, line, f, sp, args)[2]
+                    # arg must be iterable
+                    self.check_iterable(arg, line)
+                    return next(arg)
                 # iter
                 elif func == 'iter':
-                    return iter(self.parse(0, line, f, sp, args)[2])
+                    arg = self.parse(0, line, f, sp, args)[2]
+                    # arg must be iterable
+                    self.check_iterable(arg, line)
+                    return iter(arg)
                 # determines if a variable exists or not
                 elif func == 'exists':
-                    return self.parse(0, line, f, sp, args)[2] in self.vars
+                    arg = self.parse(0, line, f, sp, args)[2]
+                    # arg must be str
+                    self.type_err([(arg, (str,))], line, lines_ran)
+                    return arg in self.vars
                 # determine if a function exists or not
                 elif func == 'exists:function':
-                    return self.parse(0, line, f, sp, args)[2] in self.methods
+                    arg = self.parse(0, line, f, sp, args)[2]
+                    # arg must be str
+                    self.type_err([(arg, (str,))], line, lines_ran)
+                    return arg in self.methods
                 # gets the length of the first argument
                 elif func == 'len':
-                    return len(self.parse(0, line, f, sp, args)[2])
+                    # get the first argument
+                    arg = self.parse(0, line, f, sp, args)[2]
+                    # arg must be iterable
+                    self.check_iterable(arg, line)
+                    return len(arg)
                 # asserts each argument is True, prints and logs assertion error
                 elif func == 'assert':
                     for i in range(len(args)):
@@ -3356,7 +3621,7 @@ class Interpreter:
                 elif func == 'assert:err':
                     for i in range(len(args)):
                         try:
-                            self.trying = True                        
+                            self.trying = True
                             self.parse(i, line, f, sp, args)[2]
                             self.trying = False
                             self.err(
@@ -3368,7 +3633,10 @@ class Interpreter:
                 # trace capabilities
                 elif obj == 'trace':
                     if objfunc == 'before':
-                        return lines_ran[len(lines_ran) - self.parse(0, line, f, sp, args)[2]:]
+                        numlines = self.parse(0, line, f, sp, args)[2]
+                        # numlines must be int
+                        self.type_err([(numlines, (int,))], line, lines_ran)
+                        return lines_ran[len(lines_ran) - numlines:]
                     if objfunc == 'this':
                         return lines_ran[-1]
                     if objfunc == 'len':
@@ -3383,24 +3651,33 @@ class Interpreter:
                     # getting a variable from the current python environment
                     if objfunc == 'get':
                         vn = ''
+                        name = self.parse(0, line, f, sp, args)[2]
+                        # name must be str
+                        self.type_err([(name, (str,))], line, lines_ran)
                         try:
-                            return self._locals[self.parse(0, line, f, sp, args)[2]]
+                            return self._locals[name]
                         except KeyError:
                             self.no_var_err(
                                 vn, 'local', 'local', self._locals, line)
                     # setting a variable in the current python environment
                     elif objfunc == 'set':
+                        # name
+                        vn = self.parse(0, line, f, sp, args)[2]
+                        # vn must be str
+                        self.type_err([(vn, (str,))], line, lines_ran)
                         value = self.parse(1, line, f, sp, args)[2]
-                        self._locals[self.parse(0, line, f, sp, args)[
-                            2]] = value
+                        self._locals[vn] = value
                         return value
                     # get the locals
                     elif objfunc == 'locals':
                         return self._locals
                     # gets a local variable
                     elif objfunc == 'local':
+                        vn = self.parse(0, line, f, sp, args)[2]
+                        # vn must be str
+                        self.type_err([(vn, (str,))], line, lines_ran)
                         try:
-                            return self._locals[(vn := self.parse(0, line, f, sp, args)[2])]
+                            return self._locals[vn]
                         except KeyError:
                             self.no_var_err(
                                 vn, 'local', 'local', self._locals, line)
@@ -3409,16 +3686,22 @@ class Interpreter:
                         return self._globals
                     # gets a global variable
                     elif objfunc == 'global':
+                        vn = self.parse(0, line, f, sp, args)[2]
+                        # vn must be str
+                        self.type_err([(vn, (str,))], line, lines_ran)
                         try:
-                            return self._globals[(vn := self.parse(0, line, f, sp, args)[2])]
+                            return self._globals[vn]
                         except:
                             self.no_var_err(
                                 vn, 'global', 'global', self._globals, line)
                     # runs a stored python script
                     elif objfunc == 'run':
+                        scr = self.parse(0, line, f, sp, args)[2]
+                        # scr must be str
+                        self.type_err([(scr, (str,))], line, lines_ran)
                         # execute the python and return
                         # the snippet with arguments inserted
-                        return self.exec_python(self.parse(0, line, f, sp, args)[2])
+                        return self.exec_python(scr)
                     # return a local variable within the python
                     # environment
                     else:
@@ -3435,39 +3718,46 @@ class Interpreter:
                                                 'local and global', self._globals, line)
 
                 # casting
-                elif func == 'int':
-                    return int(self.parse(0, line, f, sp, args)[2])
-                elif func == 'float':
-                    return float(self.parse(0, line, f, sp, args)[2])
-                elif func == 'str':
-                    return str(self.parse(0, line, f, sp, args)[2])
-                elif func == 'bool':
-                    return bool(self.parse(0, line, f, sp, args)[2])
-                elif func == 'complex':
-                    return complex(self.parse(0, line, f, sp, args)[2])
-                # gets the type of the argument
-                elif func == 'type':
-                    return type(self.parse(0, line, f, sp, args)[2])
-                # gets the dir of the argument
-                elif func == 'dir':
-                    return dir(self.parse(0, line, f, sp, args)[2])
-                # casting to iterables / sets / dicts
-                elif func == 'set':
-                    # creates a set from all arguments
-                    if args[0][0] == '':
-                        return set()
-                    # creates a set from all arguments
-                    s = set()
-                    # adds all arguments to the set
-                    for i in range(len(args)):
-                        s.add(self.parse(i, line, f, sp, args)[2])
-                    return s
-                elif func == 'dict':
-                    return dict(self.parse(0, line, f, sp, args)[2])
-                elif func == 'tuple':
-                    return tuple(self.parse(0, line, f, sp, args)[2])
+                try:
+                    if func == 'int':
+                        return int(self.parse(0, line, f, sp, args)[2])
+                    elif func == 'float':
+                        return float(self.parse(0, line, f, sp, args)[2])
+                    elif func == 'str':
+                        return str(self.parse(0, line, f, sp, args)[2])
+                    elif func == 'bool':
+                        return bool(self.parse(0, line, f, sp, args)[2])
+                    elif func == 'complex':
+                        return complex(self.parse(0, line, f, sp, args)[2])
+                    # gets the type of the argument
+                    elif func == 'type':
+                        return type(self.parse(0, line, f, sp, args)[2])
+                    # gets the dir of the argument
+                    elif func == 'dir':
+                        return dir(self.parse(0, line, f, sp, args)[2])
+                    # casting to iterables / sets / dicts
+                    elif func == 'set':
+                        # creates a set from all arguments
+                        if args[0][0] == '':
+                            return set()
+                        # creates a set from all arguments
+                        s = set()
+                        # adds all arguments to the set
+                        for i in range(len(args)):
+                            s.add(self.parse(i, line, f, sp, args)[2])
+                        return s
+                    elif func == 'dict':
+                        return dict(self.parse(0, line, f, sp, args)[2])
+                    elif func == 'tuple':
+                        return tuple(self.parse(0, line, f, sp, args)[2])
+                except Exception as e:
+                    self.err(
+                        'Casting error',
+                        f'Could not cast arg to specified type\n{e}',
+                        line, lines_ran
+                    )
                 # conditional logic
-                elif func == 'if':
+                if func == 'if':
                     # false block is optional
                     try:
                         false_block_s = args[2][0]
@@ -3492,6 +3782,10 @@ class Interpreter:
                     start = self.parse(0, line, f, sp, args)[2]
                     end = self.parse(1, line, f, sp, args)[2]
                     loopvar = self.parse(2, line, f, sp, args)[2]
+                    # start must be int
+                    # end must be int
+                    # loopvar must be str
+                    self.type_err([(start, (int,)), (end, (int,)), (loopvar, (str,))], line, lines_ran)
                     self.vars[loopvar] = Var(loopvar, start)
                     # regular iteration
                     if start < end:
@@ -3525,8 +3819,12 @@ class Interpreter:
                 elif func == 'sortby':
                     # iterable to sort
                     iterable = self.parse(0, line, f, sp, args)[2]
+                    # iterable must be an iterable
+                    self.check_iterable(iterable, line)
                     # variable name
                     varname = self.parse(1, line, f, sp, args)[2]
+                    # check variable name
+                    self.check_varname(varname, line)
                     # pairing elements to their interpretations
                     pairing = []
                     for i in range(len(iterable)):
@@ -3543,8 +3841,12 @@ class Interpreter:
                     lst = []
                     # array to comprehend
                     arr = self.parse(0, line, f, sp, args)[2]
+                    # should be an iterable
+                    self.check_iterable(arr, line)
                     # varname for the element
                     varname = self.parse(1, line, f, sp, args)[2]
+                    # should be a varname
+                    self.check_varname(varname, line)
                     # block to perform
                     block = args[2][0]
                     # performs the list comprehension
@@ -3569,8 +3871,12 @@ class Interpreter:
                 elif func == 'filter':
                     # iterable to filter
                     iterable = self.parse(0, line, f, sp, args)[2]
+                    # check if iterable
+                    self.check_iterable(iterable, line)
                     # variable name
                     varname = self.parse(1, line, f, sp, args)[2]
+                    # check variable name
+                    self.check_varname(varname, line)
                     # new array
                     filtered = []
                     # iterate through each element
@@ -3588,6 +3894,8 @@ class Interpreter:
                 elif func == 'unpack':
                     # iterable to unpack
                     iterable = self.parse(0, line, f, sp, args)[2]
+                    # check if iterable
+                    self.check_iterable(iterable, line)
                     # variable names to unpack into
                     for i in range(1, len(args)):
                         varname = self.parse(i, line, f, sp, args)[2]
@@ -3599,7 +3907,13 @@ class Interpreter:
                 # the rest are elements to check for
                 elif func == 'has':
                     # optimized code:
-                    return all(self.parse(i + 1, line, f, sp, args)[2] in self.parse(0, line, f, sp, args)[2] for i in range(len(args) - 1))
+                    try:
+                        return all(self.parse(i + 1, line, f, sp, args)[2] in self.parse(0, line, f, sp, args)[2] for i in range(len(args) - 1))
+                    except Exception as e:
+                        return self.err(
+                            'Error in has()',
+                            e, line, lines_ran
+                        )
                 # gets the first element in the iterable
                 elif func == 'first' or func == 'head':
                     try:
@@ -3616,6 +3930,8 @@ class Interpreter:
                 elif func == 'add':
                     first = self.parse(0, line, f, sp, args)[2]
                     second = self.parse(1, line, f, sp, args)[2]
+                    # first must be a varname
+                    self.check_varname(first, line)
                     # case array
                     if isinstance(self.vars[first].value, list):
                         self.vars[first].value.append(second)
@@ -3625,82 +3941,105 @@ class Interpreter:
                     return self.vars[first].value
                 # performs basic operations on non-variable values
                 elif obj == 'op':
-                    # obtains the first argument
-                    arg1 = self.parse(0, line, f, sp, args)[2]
-                    # adds all arguments
-                    if objfunc == 'append' or objfunc == 'push' or objfunc == 'add' or objfunc == 'plus' or objfunc == '+' or objfunc == 'concat' or objfunc == 'concatenate' or objfunc == 'join' or objfunc == 'merge' or objfunc == 'sum':
-                        if isinstance(arg1, list):
+                    try:
+                        # obtains the first argument
+                        arg1 = self.parse(0, line, f, sp, args)[2]
+                        # adds all arguments
+                        if objfunc == 'append' or objfunc == 'push' or objfunc == 'add' or objfunc == 'plus' or objfunc == '+' or objfunc == 'concat' or objfunc == 'concatenate' or objfunc == 'join' or objfunc == 'merge' or objfunc == 'sum':
+                            if isinstance(arg1, list):
+                                for i in range(1, len(args)):
+                                    arg1.append(self.parse(
+                                        i, line, f, sp, args)[2])
+                                return arg1
+                            else:
+                                for i in range(1, len(args)):
+                                    arg1 += self.parse(i, line, f, sp, args)[2]
+                                return arg1
+                        # subtracts all arguments
+                        if objfunc == 'sub' or objfunc == 'minus' or objfunc == 'subtract' or objfunc == '-':
                             for i in range(1, len(args)):
-                                arg1.append(self.parse(
-                                    i, line, f, sp, args)[2])
+                                arg1 -= self.parse(i, line, f, sp, args)[2]
                             return arg1
-                        else:
+                        if objfunc == 'mul' or objfunc == 'times' or objfunc == 'x' or objfunc == '*' or objfunc == 'multiply':
                             for i in range(1, len(args)):
-                                arg1 += self.parse(i, line, f, sp, args)[2]
+                                arg1 *= self.parse(i, line, f, sp, args)[2]
                             return arg1
-                    # subtracts all arguments
-                    if objfunc == 'sub' or objfunc == 'minus' or objfunc == 'subtract' or objfunc == '-':
-                        for i in range(1, len(args)):
-                            arg1 -= self.parse(i, line, f, sp, args)[2]
-                        return arg1
-                    if objfunc == 'mul' or objfunc == 'times' or objfunc == 'x' or objfunc == '*' or objfunc == 'multiply':
-                        for i in range(1, len(args)):
-                            arg1 *= self.parse(i, line, f, sp, args)[2]
-                        return arg1
-                    if objfunc == 'div' or objfunc == 'divide' or objfunc == 'over' or objfunc == '/' or objfunc == '÷':
-                        for i in range(1, len(args)):
-                            arg1 /= self.parse(i, line, f, sp, args)[2]
-                        return arg1
-                    # integer division
-                    if objfunc == 'idiv' or objfunc == 'intdiv' or objfunc == 'intdivide' or objfunc == 'intover' or objfunc == '//' or objfunc == '÷÷':
-                        for i in range(1, len(args)):
-                            arg1 //= self.parse(i, line, f, sp, args)[2]
-                        return arg1
-                    if objfunc == 'mod' or objfunc == 'modulo' or objfunc == 'modulus' or objfunc == '%' or objfunc == 'remainder':
-                        for i in range(1, len(args)):
-                            arg1 %= self.parse(i, line, f, sp, args)[2]
-                        return arg1
-                    if objfunc == 'pow' or objfunc == 'power' or objfunc == 'exponent' or objfunc == '**':
-                        for i in range(1, len(args)):
-                            arg1 **= self.parse(i, line, f, sp, args)[2]
-                        return arg1
-                    if objfunc == 'root' or objfunc == 'nthroot' or objfunc == 'nthrt':
-                        for i in range(1, len(args)):
-                            arg1 **= (1 / self.parse(i, line, f, sp, args)[2])
-                        return arg1
-                    return '<msnint2 class>'
+                        if objfunc == 'div' or objfunc == 'divide' or objfunc == 'over' or objfunc == '/':
+                            for i in range(1, len(args)):
+                                arg1 /= self.parse(i, line, f, sp, args)[2]
+                            return arg1
+                        # integer division
+                        if objfunc == 'idiv' or objfunc == 'intdiv' or objfunc == 'intdivide' or objfunc == 'intover' or objfunc == '//' or objfunc == '÷÷':
+                            for i in range(1, len(args)):
+                                arg1 //= self.parse(i, line, f, sp, args)[2]
+                            return arg1
+                        if objfunc == 'mod' or objfunc == 'modulo' or objfunc == 'modulus' or objfunc == '%' or objfunc == 'remainder':
+                            for i in range(1, len(args)):
+                                arg1 %= self.parse(i, line, f, sp, args)[2]
+                            return arg1
+                        if objfunc == 'pow' or objfunc == 'power' or objfunc == 'exponent' or objfunc == '**':
+                            for i in range(1, len(args)):
+                                arg1 **= self.parse(i, line, f, sp, args)[2]
+                            return arg1
+                        if objfunc == 'root' or objfunc == 'nthroot' or objfunc == 'nthrt':
+                            for i in range(1, len(args)):
+                                arg1 **= (1 / self.parse(i, line, f, sp, args)[2])
+                            return arg1
+                        return '<msnint2 class>'
+                    except Exception as e:
+                        self.err(
+                            'Error in op() class',
+                            f'Could not perform operation on arguments\n{e}',
+                            line, lines_ran
+                        )
 
                 # computes the maximum value from all arguments
                 # takes any amount of arguments, all being
                 # either numbers or lists
                 elif func == 'maximum':
-                    maxval = max(_f) if isinstance(
-                        (_f := self.parse(0, line, f, sp, args)[2]), list) else _f
-                    for i in range(1, len(args)):
-                        val = self.parse(i, line, f, sp, args)[2]
-                        # is a list argument
-                        if isinstance(val, list):
-                            maxval = max(maxval, max(val))
-                        # is a number
-                        else:
-                            maxval = max(maxval, val)
+                    try:
+                        maxval = max(_f) if isinstance(
+                            (_f := self.parse(0, line, f, sp, args)[2] ), list) else _f
+                        for i in range(1, len(args)):
+                            val = self.parse(i, line, f, sp, args)[2]
+                            # is a list argument
+                            if isinstance(val, list):
+                                maxval = max(maxval, max(val))
+                            # is a number
+                            else:
+                                maxval = max(maxval, val)
+                    except Exception as e:
+                        self.err(
+                            'Error finding maximum value',
+                            e,
+                            line, lines_ran
+                        )
                     return maxval
                 elif func == 'minimum':
-                    minval = min(_f) if isinstance(
-                        (_f := self.parse(0, line, f, sp, args)[2]), list) else _f
-                    for i in range(1, len(args)):
-                        val = self.parse(i, line, f, sp, args)[2]
-                        # is a list argument
-                        if isinstance(val, list):
-                            minval = min(minval, min(val))
-                        # is a number
-                        else:
-                            minval = min(minval, val)
+                    try:
+                        minval = min(_f) if isinstance(
+                            (_f := self.parse(0, line, f, sp, args)[2]), list) else _f
+                        for i in range(1, len(args)):
+                            val = self.parse(i, line, f, sp, args)[2]
+                            # is a list argument
+                            if isinstance(val, list):
+                                minval = min(minval, min(val))
+                            # is a number
+                            else:
+                                minval = min(minval, val)
+                    except Exception as e:
+                        self.err(
+                            'Error finding minimum value',
+                            e,
+                            line, lines_ran
+                        )
                     return minval
 
                 # more support for functions
                 elif obj == 'function':
                     fname = self.parse(0, line, f, sp, args)[2]
+                    # fname must be a string
+                    self.type_err([(fname, (str,))], line, lines_ran)
                     # adds a line of code to a function / method's body
                     if objfunc == 'addbody':
                         self.methods[fname].add_body(
@@ -3708,13 +4047,19 @@ class Interpreter:
                         return fname
                     # adds an argument to a function
                     if objfunc == 'addarg':
+                        arg = self.parse(1, line, f, sp, args)[2]
+                        # arg must be a string
+                        self.type_err([(arg, (str,))], line, lines_ran)
                         self.methods[fname].add_arg(
-                            self.parse(1, line, f, sp, args)[2])
+                            arg)
                         return fname
                     # adds a return variable to this function
                     if objfunc == 'addreturn':
+                        ret = self.parse(1, line, f, sp, args)[2]
+                        # ret must be a string
+                        self.type_err([(ret, (str,))], line, lines_ran)
                         self.methods[fname].add_return(
-                            self.parse(1, line, f, sp, args)[2])
+                            ret)
                         return fname
                     if objfunc == 'getbody':
                         return self.methods[fname].body
@@ -3740,27 +4085,53 @@ class Interpreter:
                         return self.interpret(inst)
                     return '<msnint2 class>'
                 elif func == 'sub':
-                    self.vars[self.parse(0, line, f, sp, args)[
-                        2]].value -= self.parse(1, line, f, sp, args)[2]
+                    vn = self.parse(0, line, f, sp, args)[2]
+                    # vn must be a variable name
+                    self.check_varname(vn, line)
+                    # gets the substring
+                    other = self.parse(1, line, f, sp, args)[2]
+                    self.vars[vn].value -= other
                     return self.vars[first].value
                 elif func == 'mul':
-                    self.vars[self.parse(0, line, f, sp, args)[
-                        2]].value *= self.parse(1, line, f, sp, args)[2]
+                    vn = self.parse(0, line, f, sp, args)[2]
+                    # vn must be a variable name
+                    self.check_varname(vn, line)
+                    # gets the substring
+                    other = self.parse(1, line, f, sp, args)[2]
+                    self.vars[vn].value *= other
                     return self.vars[first].value
                 elif func == 'div':
-                    self.vars[self.parse(0, line, f, sp, args)[
-                        2]].value /= self.parse(1, line, f, sp, args)[2]
+                    vn = self.parse(0, line, f, sp, args)[2]
+                    # vn must be a variable name
+                    self.check_varname(vn, line)
+                    # gets the substring
+                    other = self.parse(1, line, f, sp, args)[2]
+                    self.vars[vn].value /= other
                     return self.vars[first].value
                 # appends to an array variable
                 elif func == 'append':
-                    # value to append
-                    value = self.parse(1, line, f, sp, args)[2]
-                    self.vars[self.parse(0, line, f, sp, args)[
-                        2]].value.append(value)
-                    return value
+                    # variable name
+                    vn = self.parse(0, line, f, sp, args)[2]
+                    # vn must be a variable name
+                    self.check_varname(vn, line)
+                    other = self.parse(1, line, f, sp, args)[2]
+                    # appends to the array
+                    self.vars[vn].value.append(other)
+                    return self.vars[vn].value
                 # gets at the index specified
                 elif func == '->':
-                    return self.parse(0, line, f, sp, args)[2][self.parse(1, line, f, sp, args)[2]]
+                    indexable = self.parse(0, line, f, sp, args)[2]
+                    # must be indexable
+                    if not isinstance(indexable, (list, str, dict, tuple)):
+                        self.err(
+                            'Error indexing with ->()',
+                            'First argument not indexable, indexable types are lists, strings, dicts, and tuples',
+                            line, lines_ran
+                        )
+                    try:    
+                        return indexable[self.parse(1, line, f, sp, args)[2]]
+                    except IndexError:
+                        return self.raise_index_out_of_bounds(line, lines_ran, self.Method('->', self))
                 # gets the MSNScript version of this interpreter
                 elif func == 'version':
                     return self.version
@@ -3768,6 +4139,9 @@ class Interpreter:
                 elif func == 'destroy':
                     for i in range(len(args)):
                         varname = self.parse(i, line, f, sp, args)[2]
+                        # varname must be varname
+                        self.check_varname(varname, line)
+                        # must be a varname
                         # deletes all variables or methods that start with '__'
                         if varname == '__':
                             for key in list(self.vars):
@@ -3784,22 +4158,30 @@ class Interpreter:
                     fname = None
                     for i in range(len(args)):
                         fname = self.parse(i, line, f, sp, args)[2]
+                        # must be a varname
+                        self.check_varname(fname, line)
                         self.methods.pop(fname)
                     return fname
 
                 # gets a range()
                 elif func == 'range':
                     start = self.parse(0, line, f, sp, args)[2]
+                    # start must be int
+                    self.type_err([(start, (int,))], line, lines_ran)
                     # if one argument
                     if len(args) == 1:
                         return range(start)
                     # get the end of the range
                     end = self.parse(1, line, f, sp, args)[2]
+                    # end must be int
+                    self.type_err([(end, (int,))], line, lines_ran)
                     # if two arguments
                     if len(args) == 2:
                         return range(start, end)
                     if len(args) == 3:
                         step = self.parse(2, line, f, sp, args)[2]
+                        # step must be int
+                        self.type_err([(step, (int,))], line, lines_ran)
                         return range(start, end, step)
                     return range()
 
@@ -3812,20 +4194,30 @@ class Interpreter:
                     # random number in range
                     elif len(args) == 2:
                         arg = self.parse(0, line, f, sp, args)[2]
+                        # arg must be int
+                        self.type_err([(arg, (int,))], line, lines_ran)
                         arg2 = self.parse(1, line, f, sp, args)[2]
+                        # arg2 must be int
+                        self.type_err([(arg2, (int,))], line, lines_ran)
                         return (random.random() * (arg2 - arg)) + arg
                     # random int in range
                     elif len(args) == 3:
                         # using math
                         import math
                         arg = self.parse(0, line, f, sp, args)[2]
+                        # arg must be int
+                        self.type_err([(arg, (int,))], line, lines_ran)
                         arg2 = self.parse(1, line, f, sp, args)[2]
+                        # arg must be int
+                        self.type_err([(arg2, (int,))], line, lines_ran)
                         return math.floor((random.random() * (arg2 - arg)) + arg)
                     return '<msnint2 class>'
 
                 # html parsing simplified
                 elif obj == 'html':
                     url = self.parse(0, line, f, sp, args)[2]
+                    # url must be str
+                    self.type_err([(url, (str,))], line, lines_ran)
                     # creates a BeautifulSoup object of a url
                     if objfunc == 'soup':
                         from bs4 import BeautifulSoup
@@ -3872,9 +4264,13 @@ class Interpreter:
                     # asks openai model a question
                     # simple ai, see top of file for definition
                     if objfunc == 'basic':
+                        prompt = self.parse(0, line, f, sp, args)[2]
+                        # prompt must be str
+                        self.type_err([(prompt, (str,))], line, lines_ran)
                         # creates an ai model
                         # creates and returns a custom ai model
                         def ai_response(model, prompt, creativity):
+                            # prompt must be str
                             # ChatGPT API
                             import openai
                             return openai.Completion.create(
@@ -3883,21 +4279,45 @@ class Interpreter:
                                 temperature=creativity
                             ).choices[0].text
                         # generates an ai response with the basic model
-                        return ai_response(models['basic']['model'], self.parse(0, line, f, sp, args)[2], models['basic']['creativity'])
+                        return ai_response(models['basic']['model'], prompt, models['basic']['creativity'])
                     return '<msnint2 class>'
                 # raises an msn2 exception
                 elif func == 'raise':
-                    self.err(self.parse(0, line, f, sp, args)[2], self.parse(
-                        1, line, f, sp, args)[2], self.parse(2, line, f, sp, args)[2], lines_ran)
+                    # get the error
+                    error = self.parse(0, line, f, sp, args)[2]
+                    # error must be str
+                    self.type_err([(error, (str,))], line, lines_ran)
+                    # get the message
+                    message = self.parse(1, line, f, sp, args)[2]
+                    # message must be str
+                    self.type_err([(message, (str,))], line, lines_ran)
+                    # get the line
+                    l = self.parse(2, line, f, sp, args)[2]
+                    # line must be str
+                    self.type_err([(l, (str,))], line, lines_ran)
+                    self.err(error, message, l, lines_ran)
                 # defines new syntax, see tests/validator.msn2 for documentation
                 elif func == 'syntax':
-                    return self.add_syntax(self.parse(0, line, f, sp, args)[2], self.parse(1, line, f, sp, args)[2], args[2][0])
+                    synt = self.parse(0, line, f, sp, args)[2]
+                    # synt must be str
+                    self.type_err([(synt, (str,))], line, lines_ran)
+                    # add the between
+                    between = self.parse(1, line, f, sp, args)[2]
+                    # between must be a varname
+                    self.check_varname(between, line)
+                    return self.add_syntax(synt, between, args[2][0])
                 # creates a new enclosed syntax that should execute the block
                 # specified on the line by which it was created
                 elif func == 'enclosedsyntax':
                     start = self.parse(0, line, f, sp, args)[2]
+                    # start must be str
+                    self.type_err([(start, (str,))], line, lines_ran)
                     end = self.parse(1, line, f, sp, args)[2]
+                    # end must be str
+                    self.type_err([(end, (str,))], line, lines_ran)
                     varname = self.parse(2, line, f, sp, args)[2]
+                    # varname must be a varname
+                    self.check_varname(varname, line)
                     index = f"{start}msnint2_reserved{end}"
                     enclosed[index] = [start, end, varname, args[3][0]]
                     if len(args) == 5:
@@ -3907,8 +4327,13 @@ class Interpreter:
                 # defines a new macro
                 elif func == 'macro':
                     token = self.parse(0, line, f, sp, args)[2]
-                    macros[token] = [token, self.parse(
-                        1, line, f, sp, args)[2], args[2][0]]
+                    # token must be str
+                    self.type_err([(token, (str,))], line, lines_ran)
+                    # get the symbol
+                    symbol = self.parse(1, line, f, sp, args)[2]
+                    # symbol must be str
+                    self.type_err([(symbol, (str,))], line, lines_ran)
+                    macros[token] = [token, symbol, args[2][0]]
                     # 4th argument offered as a return value from that macro
                     # as opposed to a block of code
                     if len(args) == 4:
@@ -3918,8 +4343,13 @@ class Interpreter:
                 # creates a macro that should be declared at the end of a line
                 elif func == 'postmacro':
                     token = self.parse(0, line, f, sp, args)[2]
-                    postmacros[token] = [token, self.parse(
-                        1, line, f, sp, args)[2], args[2][0]]
+                    # token must be str
+                    self.type_err([(token, (str,))], line, lines_ran)
+                    # get the symbol
+                    symbol = self.parse(1, line, f, sp, args)[2]
+                    # symbol must be str
+                    self.type_err([(symbol, (str,))], line, lines_ran)
+                    postmacros[token] = [token, symbol, args[2][0]]
                     # same as macro
                     if len(args) == 4:
                         postmacros[token].append(
@@ -3933,16 +4363,16 @@ class Interpreter:
                 # arguments are the same as enclosedsyntax
                 #
                 # WIPWIPWIPWIPWIP
-                elif func == 'inlinesyntax':
-                    start = self.parse(0, line, f, sp, args)[2]
-                    end = self.parse(1, line, f, sp, args)[2]
-                    index = f"{start}msnint2_reserved{end}"
-                    inlines[index] = [start, end, self.parse(
-                        2, line, f, sp, args)[2], args[3][0]]
-                    if len(args) == 5:
-                        inlines[index].append(
-                            self.parse(4, line, f, sp, args)[2])
-                    return inlines[index]
+                # elif func == 'inlinesyntax':
+                #     start = self.parse(0, line, f, sp, args)[2]
+                #     end = self.parse(1, line, f, sp, args)[2]
+                #     index = f"{start}msnint2_reserved{end}"
+                #     inlines[index] = [start, end, self.parse(
+                #         2, line, f, sp, args)[2], args[3][0]]
+                #     if len(args) == 5:
+                #         inlines[index].append(
+                #             self.parse(4, line, f, sp, args)[2])
+                #     return inlines[index]
                 # performs object based operations
                 elif obj == 'var':
                     # determines if all variables passed are equal
@@ -3955,16 +4385,28 @@ class Interpreter:
                 elif func == 'val':
                     # gets the variable name
                     varname = self.parse(0, line, f, sp, args)[2]
+                    # varname must be a varname
+                    self.check_varname(varname, line)
                     try:
                         return self.vars[varname].value
                     except:
                         return self.vars[varname]
                 # gets a sorted version of the array
                 elif func == 'sorted':
-                    return sorted(self.parse(0, line, f, sp, args)[2])
+                    # iterable
+                    iterable = self.parse(0, line, f, sp, args)[2]
+                    # iterable must be iterable
+                    self.check_iterable(iterable, line)
+                    return sorted(iterable)
                 # gets a copy of the object
                 elif func == 'copy':
-                    return self.parse(0, line, f, sp, args)[2].copy()
+                    try:
+                        return self.parse(0, line, f, sp, args)[2].copy()
+                    except Exception as e:
+                        self.err(
+                            'Error copying object',
+                            e, line, lines_ran
+                        )
                 # performs file-specific operations
                 elif obj == 'file':
                     # import shutil
@@ -3972,15 +4414,20 @@ class Interpreter:
                     # creates a file
                     if objfunc == 'create':
                         lock.acquire()
-                        line, as_s, filename = self.parse(0, line, f, sp, args)
-                        open(filename, 'w').close()
+                        path = self.parse(0, line, f, sp, args)[2]
+                        # path must be str
+                        self.type_err([(path, (str,))], line, lines_ran)
+                        open(path, 'w').close()
                         lock.release()
                         return True
                     # reads text from a file
                     if objfunc == 'read':
                         lock.acquire()
-                        file = open(self.parse(0, line, f, sp, args)[
-                                    2], "r", encoding='utf-8')
+                        # get filename
+                        path = self.parse(0, line, f, sp, args)[2]
+                        # path must be str
+                        self.type_err([(path, (str,))], line, lines_ran)
+                        file = open(path, "r", encoding='utf-8')
                         contents = file.read()
                         file.close()
                         lock.release()
@@ -3988,8 +4435,11 @@ class Interpreter:
                     # writes to a file
                     if objfunc == 'write':
                         lock.acquire()
-                        file = open(self.parse(0, line, f, sp, args)[2], "w")
-                        towrite = self.parse(1, line, f, sp, args)[2]
+                        path = self.parse(0, line, f, sp, args)[2]
+                        # path must be str
+                        self.type_err([(path, (str,))], line, lines_ran)
+                        file = open(path, "w")
+                        towrite = str(self.parse(1, line, f, sp, args)[2])
                         file.write(towrite)
                         file.close()
                         lock.release()
@@ -3997,7 +4447,10 @@ class Interpreter:
                     # writes the argument as code
                     if objfunc == 'writemsn':
                         lock.acquire()
-                        file = open(self.parse(0, line, f, sp, args)[2], "w")
+                        path = self.parse(0, line, f, sp, args)[2]
+                        # path must be str
+                        self.type_err([(path, (str,))], line, lines_ran)
+                        file = open(path, "w")
                         towrite = args[1][0]
                         file.write(towrite)
                         lock.release()
@@ -4005,7 +4458,10 @@ class Interpreter:
                     # clears a file of all text
                     if objfunc == 'clear':
                         lock.acquire()
-                        file = open(self.parse(0, line, f, sp, args)[2], "w")
+                        path = self.parse(0, line, f, sp, args)[2]
+                        # path must be str
+                        self.type_err([(path, (str,))], line, lines_ran)
+                        file = open(path, "w")
                         file.write("")
                         file.close()
                         lock.release()
@@ -4013,8 +4469,11 @@ class Interpreter:
                     # appends to a file
                     if objfunc == 'append':
                         lock.acquire()
-                        file = open(self.parse(0, line, f, sp, args)[2], "a")
-                        towrite = self.parse(1, line, f, sp, args)[2]
+                        path = self.parse(0, line, f, sp, args)[2]
+                        # path must be str
+                        self.type_err([(path, (str,))], line, lines_ran)
+                        file = open(path, "a")
+                        towrite = str(self.parse(1, line, f, sp, args)[2])
                         file.write(towrite)
                         file.close()
                         lock.release()
@@ -4023,6 +4482,8 @@ class Interpreter:
                     if objfunc == 'delete':
                         lock.acquire()
                         deleting = self.parse(0, line, f, sp, args)[2]
+                        # deleting must be str
+                        self.type_err([(deleting, (str,))], line, lines_ran)
                         try:
                             os.remove(deleting)
                         except:
@@ -4033,7 +4494,11 @@ class Interpreter:
                     if objfunc == 'rename':
                         lock.acquire()
                         old = self.parse(0, line, f, sp, args)[2]
+                        # old must be str
+                        self.type_err([(old, (str,))], line, lines_ran)
                         new = self.parse(1, line, f, sp, args)[2]
+                        # new must be str
+                        self.type_err([(new, (str,))], line, lines_ran)
                         os.rename(old, new)
                         lock.release()
                         return new
@@ -4041,27 +4506,41 @@ class Interpreter:
                     if objfunc == 'copy':
                         lock.acquire()
                         old = self.parse(0, line, f, sp, args)[2]
+                        # old must be str
+                        self.type_err([(old, (str,))], line, lines_ran)
                         new = self.parse(1, line, f, sp, args)[2]
+                        # new must be str
+                        self.type_err([(new, (str,))], line, lines_ran)
                         shutil.copy2(old, new)
                         lock.release()
                         return new
                     if objfunc == 'copy2':
                         lock.acquire()
                         old = self.parse(0, line, f, sp, args)[2]
+                        # old must be str
+                        self.type_err([(old, (str,))], line, lines_ran)
                         new = self.parse(1, line, f, sp, args)[2]
+                        # new must be str
+                        self.type_err([(new, (str,))], line, lines_ran)
                         shutil.copy2(old, new)
                         lock.release()
                         return new
                     if objfunc == 'copyfile':
                         lock.acquire()
                         old = self.parse(0, line, f, sp, args)[2]
+                        # old must be str
+                        self.type_err([(old, (str,))], line, lines_ran)
                         new = self.parse(1, line, f, sp, args)[2]
+                        # new must be str
+                        self.type_err([(new, (str,))], line, lines_ran)
                         shutil.copyfile(old, new)
                         lock.release()
                         return new
                     if objfunc == 'fullpath':
                         lock.acquire()
                         path = self.parse(0, line, f, sp, args)[2]
+                        # path must be str
+                        self.type_err([(path, (str,))], line, lines_ran)
                         fullpath = os.path.abspath(path)
                         lock.release()
                         return fullpath
@@ -4069,37 +4548,49 @@ class Interpreter:
                     if objfunc == 'move':
                         lock.acquire()
                         old = self.parse(0, line, f, sp, args)[2]
+                        # old must be str
+                        self.type_err([(old, (str,))], line, lines_ran)
                         new = self.parse(1, line, f, sp, args)[2]
+                        # new must be str
+                        self.type_err([(new, (str,))], line, lines_ran)
                         shutil.move(old, new)
                         lock.release()
                         return new
                     # determines if a file exists
                     if objfunc == 'exists':
                         lock.acquire()
-                        exists = os.path.exists(
-                            self.parse(0, line, f, sp, args)[2])
+                        path = self.parse(0, line, f, sp, args)[2]
+                        # path must be str
+                        self.type_err([(path, (str,))], line, lines_ran)
+                        exists = os.path.exists(path)
                         lock.release()
                         return exists
                     # determines if a file is a directory
                     if objfunc == 'isdir':
                         lock.acquire()
-                        isdir = os.path.isdir(
-                            self.parse(0, line, f, sp, args)[2])
+                        path = self.parse(0, line, f, sp, args)[2]
+                        # path must be str
+                        self.type_err([(path, (str,))], line, lines_ran)
+                        isdir = os.path.isdir(path)
                         lock.release()
                         return isdir
                     # determines if a file is a file
                     if objfunc == 'isfile':
                         lock.acquire()
-                        isfile = os.path.isfile(
-                            self.parse(0, line, f, sp, args)[2])
+                        path = self.parse(0, line, f, sp, args)[2]
+                        # path must be str
+                        self.type_err([(path, (str,))], line, lines_ran)
+                        isfile = os.path.isfile(path)
                         lock.release()
                         return isfile
                     # lists files in a directory
                     if objfunc == 'listdir':
                         lock.acquire()
+                        path = self.parse(0, line, f, sp, args)[2]
+                        # path must be str
+                        self.type_err([(path, (str,))], line, lines_ran)
                         try:
-                            listdir = os.listdir(
-                                self.parse(0, line, f, sp, args)[2])
+                            listdir = os.listdir(path)
                             lock.release()
                             return listdir
                         except FileNotFoundError:
@@ -4109,9 +4600,11 @@ class Interpreter:
                     # makes a directory
                     if objfunc == 'mkdir':
                         lock.acquire()
+                        path = self.parse(0, line, f, sp, args)[2]
+                        # path must be str
+                        self.type_err([(path, (str,))], line, lines_ran)
                         try:
-                            made = os.mkdir(self.parse(
-                                0, line, f, sp, args)[2])
+                            made = os.mkdir(path)
                             lock.release()
                             return made
                         except FileExistsError:
@@ -4120,8 +4613,11 @@ class Interpreter:
                     # removes a directory
                     if objfunc == 'rmdir':
                         lock.acquire()
+                        path = self.parse(0, line, f, sp, args)[2]
+                        # path must be str
+                        self.type_err([(path, (str,))], line, lines_ran)
                         try:
-                            rm = os.rmdir(self.parse(0, line, f, sp, args)[2])
+                            rm = os.rmdir(path)
                             lock.release()
                             return rm
                         except OSError:
@@ -4136,14 +4632,19 @@ class Interpreter:
                     # gets the size of a file
                     if objfunc == 'getsize':
                         lock.acquire()
-                        size = os.path.getsize(
-                            self.parse(0, line, f, sp, args)[2])
+                        # get filename
+                        path = self.parse(0, line, f, sp, args)[2]
+                        # path must be str
+                        self.type_err([(path, (str,))], line, lines_ran)
+                        size = os.path.getsize(path)
                         lock.release()
                         return size
                     # deletes all files and directories within a directory
                     if objfunc == 'emptydir':
                         lock.acquire()
                         directory = self.parse(0, line, f, sp, args)[2]
+                        # directory must be str
+                        self.type_err([(directory, (str,))], line, lines_ran)
                         try:
                             for file in os.listdir(directory):
                                 try:
@@ -4168,6 +4669,8 @@ class Interpreter:
                     # gets the largest element from a list of elements
                     if objfunc == 'largest':
                         elements = self.parse(0, line, f, sp, args)[2]
+                        # elements must be iterable
+                        self.check_iterable(elements, line)
                         if not elements:
                             return elements
                         largest = elements[0]
@@ -4191,53 +4694,64 @@ class Interpreter:
                         return askopenfilename(initialdir=os.getcwd(), filetypes=[("MSN2 Script", "*.msn2")])
                     return '<msnint2 class>'
                 # # performs math operations
-                elif obj == 'math':
-                    if objfunc == 'add':
-                        return self.parse(0, line, f, sp, args)[2] + self.parse(1, line, f, sp, args)[2]
-                    if objfunc == 'subtract':
-                        return self.parse(0, line, f, sp, args)[2] - self.parse(1, line, f, sp, args)[2]
-                    if objfunc == 'multiply':
-                        return self.parse(0, line, f, sp, args)[2] * self.parse(1, line, f, sp, args)[2]
-                    if objfunc == 'divide':
-                        return self.parse(0, line, f, sp, args)[2] / self.parse(1, line, f, sp, args)[2]
-                    if objfunc == 'power':
-                        return self.parse(0, line, f, sp, args)[2] ** self.parse(1, line, f, sp, args)[2]
-                    if objfunc == 'root':
-                        return self.parse(0, line, f, sp, args)[2] ** (1 / self.parse(1, line, f, sp, args)[2])
-                    if objfunc == 'sqrt':
-                        return self.parse(0, line, f, sp, args)[2] ** 0.5
-                    if objfunc == 'mod':
-                        return self.parse(0, line, f, sp, args)[2] % self.parse(1, line, f, sp, args)[2]
-                    if objfunc == 'floor':
-                        import math
-                        return math.floor(self.parse(0, line, f, sp, args)[2])
-                    if objfunc == 'ceil':
-                        import math
-                        return math.ceil(self.parse(0, line, f, sp, args)[2])
-                    if objfunc == 'round':
-                        return round(self.parse(0, line, f, sp, args)[2])
-                    if objfunc == 'abs':
-                        return abs(self.parse(0, line, f, sp, args)[2])
-                    if objfunc == 'sin':
-                        import math
-                        return math.sin(self.parse(0, line, f, sp, args)[2])
-                    if objfunc == 'cos':
-                        import math
-                        return math.cos(self.parse(0, line, f, sp, args)[2])
-                    if objfunc == 'tan':
-                        import math
-                        return math.tan(self.parse(0, line, f, sp, args)[2])
-                    if objfunc == 'asin':
-                        import math
-                        return math.asin(self.parse(0, line, f, sp, args)[2])
-                    return '<msnint2 class>'
+                try:
+                    if obj == 'math':
+                        if objfunc == 'add':
+                            return self.parse(0, line, f, sp, args)[2] + self.parse(1, line, f, sp, args)[2]
+                        if objfunc == 'subtract':
+                            return self.parse(0, line, f, sp, args)[2] - self.parse(1, line, f, sp, args)[2]
+                        if objfunc == 'multiply':
+                            return self.parse(0, line, f, sp, args)[2] * self.parse(1, line, f, sp, args)[2]
+                        if objfunc == 'divide':
+                            return self.parse(0, line, f, sp, args)[2] / self.parse(1, line, f, sp, args)[2]
+                        if objfunc == 'power':
+                            return self.parse(0, line, f, sp, args)[2] ** self.parse(1, line, f, sp, args)[2]
+                        if objfunc == 'root':
+                            return self.parse(0, line, f, sp, args)[2] ** (1 / self.parse(1, line, f, sp, args)[2])
+                        if objfunc == 'sqrt':
+                            return self.parse(0, line, f, sp, args)[2] ** 0.5
+                        if objfunc == 'mod':
+                            return self.parse(0, line, f, sp, args)[2] % self.parse(1, line, f, sp, args)[2]
+                        if objfunc == 'floor':
+                            import math
+                            return math.floor(self.parse(0, line, f, sp, args)[2])
+                        if objfunc == 'ceil':
+                            import math
+                            return math.ceil(self.parse(0, line, f, sp, args)[2])
+                        if objfunc == 'round':
+                            return round(self.parse(0, line, f, sp, args)[2])
+                        if objfunc == 'abs':
+                            return abs(self.parse(0, line, f, sp, args)[2])
+                        if objfunc == 'sin':
+                            import math
+                            return math.sin(self.parse(0, line, f, sp, args)[2])
+                        if objfunc == 'cos':
+                            import math
+                            return math.cos(self.parse(0, line, f, sp, args)[2])
+                        if objfunc == 'tan':
+                            import math
+                            return math.tan(self.parse(0, line, f, sp, args)[2])
+                        if objfunc == 'asin':
+                            import math
+                            return math.asin(self.parse(0, line, f, sp, args)[2])
+                        return '<msnint2 class>'
+                except Exception as e:
+                    self.err(
+                        'Error in math class',
+                        f'Unable to perform computation\n{e}',
+                        line, lines_ran
+                    )
 
                 # inserts a value into the iterable at the specified index
-                elif func == 'map':
+                if func == 'map':
                     # iterable
                     iterable = self.parse(0, line, f, sp, args)[2]
+                    # iterable must be iterable
+                    self.check_iterable(iterable, line)
                     # varname
                     varname = self.parse(1, line, f, sp, args)[2]
+                    # varname must be a varname
+                    self.check_varname(varname, line)
                     # map the function to each element in the iterable
                     for i, el in enumerate(iterable):
                         self.vars[varname] = Var(varname, el)
@@ -4245,7 +4759,18 @@ class Interpreter:
                     return iterable
                 # inserts a value into the iterable at the specified index
                 elif func == 'insert':
-                    return self.parse(0, line, f, sp, args)[2].insert(self.parse(1, line, f, sp, args)[2], self.parse(2, line, f, sp, args)[2])
+                    # iterable
+                    iterable = self.parse(0, line, f, sp, args)[2]
+                    # iterable must be iterable
+                    self.check_iterable(iterable, line)
+                    # index
+                    index = self.parse(1, line, f, sp, args)[2]
+                    # index must be int
+                    self.type_err([(index, (int,))], line, lines_ran)
+                    # value
+                    value = self.parse(2, line, f, sp, args)[2]
+                    # insert the value into the iterable
+                    return iterable.insert(index, value)
                 # gets the type of the first argument passed
                 elif func == 'type':
                     return type(self.parse(0, line, f, sp, args)[2])
@@ -4261,6 +4786,8 @@ class Interpreter:
                 elif func == 'del':
                     for i in range(len(args)):
                         first = self.parse(i, line, f, sp, args)[2]
+                        # first must be a varname
+                        self.check_varname(first, line)
                         del self.vars[first]
                     return True
                 # concatinates two strings
@@ -4283,23 +4810,32 @@ class Interpreter:
                 # ors two bools
                 elif func == 'or':
                     return self.parse(0, line, f, sp, args)[2] or self.parse(1, line, f, sp, args)[2]
-                # comparing numbers
-                elif func == 'greater' or func == 'g':
-                    return self.parse(0, line, f, sp, args)[2] > self.parse(1, line, f, sp, args)[2]
-                elif func == 'less' or func == 'l':
-                    return self.parse(0, line, f, sp, args)[2] < self.parse(1, line, f, sp, args)[2]
-                elif func == 'greaterequal' or func == 'ge':
-                    return self.parse(0, line, f, sp, args)[2] >= self.parse(1, line, f, sp, args)[2]
-                elif func == 'lessequal' or func == 'le':
-                    return self.parse(0, line, f, sp, args)[2] <= self.parse(1, line, f, sp, args)[2]
+                try:
+                    # comparing numbers
+                    if func == 'greater' or func == 'g':
+                        return self.parse(0, line, f, sp, args)[2] > self.parse(1, line, f, sp, args)[2]
+                    elif func == 'less' or func == 'l':
+                        return self.parse(0, line, f, sp, args)[2] < self.parse(1, line, f, sp, args)[2]
+                    elif func == 'greaterequal' or func == 'ge':
+                        return self.parse(0, line, f, sp, args)[2] >= self.parse(1, line, f, sp, args)[2]
+                    elif func == 'lessequal' or func == 'le':
+                        return self.parse(0, line, f, sp, args)[2] <= self.parse(1, line, f, sp, args)[2]
+                except Exception as e:
+                    self.err(
+                        'Comparison error',
+                        f'Unable to compare values\n{e}',
+                        line, lines_ran
+                    )
                 # data structure for holding multiple items
-                elif func == 'class':
+                if func == 'class':
                     # new interpreter
                     inter = Interpreter()
                     # log self
                     inter.parent = self
                     # extract class name
                     name = self.parse(0, line, f, sp, args)[2]
+                    # name must be a varname
+                    self.check_varname(name, line)
                     # execute the block in the private environment
                     inter.execute(args[1][0])
                     # creates a variable out of the new interpreters resources
@@ -4316,7 +4852,11 @@ class Interpreter:
                 # gets the first argument at the second argument
                 elif func == 'get':
                     iterable = self.parse(0, line, f, sp, args)[2]
+                    # iterable must be iterable
+                    self.check_iterable(iterable, line)
                     index = self.parse(1, line, f, sp, args)[2]
+                    # index must be int or str
+                    self.type_err([(index, (int, str))], line, lines_ran)
                     try:
                         return iterable[index]
                     except IndexError:
@@ -4328,7 +4868,15 @@ class Interpreter:
                         )
                 # get the keys of the first argument
                 elif func == 'keys':
-                    return self.parse(0, line, f, sp, args)[2].keys()
+                    arg = None
+                    try:
+                        return (arg := self.parse(0, line, f, sp, args)[2]).keys()
+                    except:
+                        self.err(
+                            'Error getting keys',
+                            f'Argument must be a dictionary\nYou said: {arg}',
+                            line, lines_ran
+                        )
                 # imports resources from another location
                 elif func == 'import' or func == 'launch' or func == 'include' or func == 'using':
                     # for each import
@@ -4340,6 +4888,8 @@ class Interpreter:
                 elif func == 'domain':
                     # get the name of the domain to create
                     domain_name = self.parse(0, line, f, sp, args)[2]
+                    # domain_name must be a varname
+                    self.check_varname(domain_name, line)
                     # domains cannot coexist
                     if domain_name in self.domains:
                         self.err(
@@ -4356,7 +4906,6 @@ class Interpreter:
                     inter.parent = self
                     inter.interpret(args[1][0])
                     # throws a domain error
-
                     def domain_err(name, object):
                         self.err(
                             'Domain Error',
@@ -4385,6 +4934,8 @@ class Interpreter:
                     # this directory is foramatted such that
                     # directory:directory:directory
                     domain_dir = self.parse(0, line, f, sp, args)[2]
+                    # domain_dir must be a varname
+                    self.check_varname(domain_dir, line)
                     # get all variables in the domain
                     # with the domain_dir chopped off
                     domain_vars = {}
@@ -4409,11 +4960,18 @@ class Interpreter:
                         return inval
                     # if 1 argument, get index of value from input
                     elif len(args) == 1:
-                        return inval[self.parse(0, line, f, sp, args)[2]]
+                        ind = self.parse(0, line, f, sp, args)[2]
+                        # ind must be int
+                        self.type_err([(ind, (int,))], line, lines_ran)
+                        return inval[ind]
                     # if 2 arguments, get slice of input
                     elif len(args) == 2:
                         start = self.parse(0, line, f, sp, args)[2]
+                        # start must be int
+                        self.type_err([(start, (int,))], line, lines_ran)
                         end = self.parse(1, line, f, sp, args)[2]
+                        # end must be int
+                        self.type_err([(end, (int,))], line, lines_ran)
                         return inval[start:end]
                     return inval
                 # exports values to an enclosing Python script
@@ -4469,7 +5027,10 @@ class Interpreter:
                 # sleeps the thread for the first argument amount of seconds
                 elif func == "sleep":
                     import time
-                    return time.sleep(self.parse(0, line, f, sp, args)[2])
+                    delay = self.parse(0, line, f, sp, args)[2]
+                    # delay must be int or float
+                    self.type_err([(delay, (int, float))], line, lines_ran)
+                    return time.sleep(delay)
                 # returns this interpreter
                 elif func == 'me':
                     return self.me()
@@ -4534,7 +5095,7 @@ class Interpreter:
                         return self.env_max_chars
                     # otherwise, a single variable was provided
                     # this will change the max chars
-                    new_maxchars = self.parse(0, line, f, sp, args)[2]
+                    new_maxchars = self.parse(0, line, f, sp, args)[2]                
                     # check for type errors
                     self.type_err([(new_maxchars, (int,))], line, lines_ran)
                     # alter the max chars
@@ -4543,77 +5104,82 @@ class Interpreter:
 
                 # arithmetic, equivalent to the op class
                 # executes MSNScript2 from its string representation
-
-                elif func == '-':
-                    if len(args) == 1:
-                        return self.interpret(self.parse(0, line, f, sp, args)[2])
-                    # subtracts all arguments from the first argument
-                    else:
+                try:
+                    if func == '-':
+                        if len(args) == 1:
+                            return self.interpret(self.parse(0, line, f, sp, args)[2])
+                        # subtracts all arguments from the first argument
+                        else:
+                            ret = self.parse(0, line, f, sp, args)[2]
+                            try:
+                                ret = ret.copy()
+                            except AttributeError:
+                                None
+                            for i in range(1, len(args)):
+                                ret -= self.parse(i, line, f, sp, args)[2]
+                            return ret
+                    elif func == '+':
                         ret = self.parse(0, line, f, sp, args)[2]
                         try:
                             ret = ret.copy()
                         except AttributeError:
                             None
                         for i in range(1, len(args)):
-                            ret -= self.parse(i, line, f, sp, args)[2]
+                            ret += self.parse(i, line, f, sp, args)[2]
                         return ret
-                elif func == '+':
-                    ret = self.parse(0, line, f, sp, args)[2]
-                    try:
-                        ret = ret.copy()
-                    except AttributeError:
-                        None
-                    for i in range(1, len(args)):
-                        ret += self.parse(i, line, f, sp, args)[2]
-                    return ret
-                elif func == 'x':
-                    ret = self.parse(0, line, f, sp, args)[2]
-                    try:
-                        ret = ret.copy()
-                    except AttributeError:
-                        None
-                    for i in range(1, len(args)):
-                        ret *= self.parse(i, line, f, sp, args)[2]
-                    return ret
-                elif func == '/':
-                    ret = self.parse(0, line, f, sp, args)[2]
-                    try:
-                        ret = ret.copy()
-                    except AttributeError:
-                        None
-                    for i in range(1, len(args)):
-                        ret /= self.parse(i, line, f, sp, args)[2]
-                    return ret
-                elif func == '//':
-                    ret = self.parse(0, line, f, sp, args)[2]
-                    try:
-                        ret = ret.copy()
-                    except AttributeError:
-                        None
-                    for i in range(1, len(args)):
-                        ret //= self.parse(i, line, f, sp, args)[2]
-                    return ret
-                elif func == '%':
-                    ret = self.parse(0, line, f, sp, args)[2]
-                    try:
-                        ret = ret.copy()
-                    except AttributeError:
-                        None
-                    for i in range(1, len(args)):
-                        ret %= self.parse(i, line, f, sp, args)[2]
-                    return ret
-                elif func == '^':
-                    ret = self.parse(0, line, f, sp, args)[2]
-                    try:
-                        ret = ret.copy()
-                    except AttributeError:
-                        None
-                    for i in range(1, len(args)):
-                        ret **= self.parse(i, line, f, sp, args)[2]
-                    return ret
+                    elif func == 'x':
+                        ret = self.parse(0, line, f, sp, args)[2]
+                        try:
+                            ret = ret.copy()
+                        except AttributeError:
+                            None
+                        for i in range(1, len(args)):
+                            ret *= self.parse(i, line, f, sp, args)[2]
+                        return ret
+                    elif func == '/':
+                        ret = self.parse(0, line, f, sp, args)[2]
+                        try:
+                            ret = ret.copy()
+                        except AttributeError:
+                            None
+                        for i in range(1, len(args)):
+                            ret /= self.parse(i, line, f, sp, args)[2]
+                        return ret
+                    elif func == '//':
+                        ret = self.parse(0, line, f, sp, args)[2]
+                        try:
+                            ret = ret.copy()
+                        except AttributeError:
+                            None
+                        for i in range(1, len(args)):
+                            ret //= self.parse(i, line, f, sp, args)[2]
+                        return ret
+                    elif func == '%':
+                        ret = self.parse(0, line, f, sp, args)[2]
+                        try:
+                            ret = ret.copy()
+                        except AttributeError:
+                            None
+                        for i in range(1, len(args)):
+                            ret %= self.parse(i, line, f, sp, args)[2]
+                        return ret
+                    elif func == '^':
+                        ret = self.parse(0, line, f, sp, args)[2]
+                        try:
+                            ret = ret.copy()
+                        except AttributeError:
+                            None
+                        for i in range(1, len(args)):
+                            ret **= self.parse(i, line, f, sp, args)[2]
+                        return ret
+                except Exception as e:
+                    self.err(
+                        'Error in arithmetic',
+                        e, line, lines_ran
+                    )
 
                 # determines if a string is a digit
-                elif func == 'isdigit':
+                if func == 'isdigit':
                     return self.parse(0, line, f, sp, args)[2].isdigit()
                 # determines if a string is alpha
                 elif func == 'isalpha':
@@ -4623,6 +5189,8 @@ class Interpreter:
                 elif func == 'as':
                     # temporary variable name
                     varname = self.parse(0, line, f, sp, args)[2]
+                    # varname must be a varname
+                    self.check_varname(varname, line)
                     # block to execute
                     block = args[2][0]
                     # set the variable
@@ -4635,13 +5203,38 @@ class Interpreter:
                     return ret
                 # strips a str
                 elif func == 'strip':
-                    return self.parse(0, line, f, sp, args)[2].strip()
+                    try:
+                        return self.parse(0, line, f, sp, args)[2].strip()
+                    except Exception as e:
+                        self.err(
+                            'Error in strip()',
+                            e, line, lines_ran
+                        )
                 # gets a slice
                 elif func == 'slice':
-                    return self.parse(0, line, f, sp, args)[2][self.parse(1, line, f, sp, args)[2]:self.parse(2, line, f, sp, args)[2]]
+                    # first
+                    first = self.parse(0, line, f, sp, args)[2]
+                    # first must be slicable
+                    self.check_iterable(first, line)
+                    # second
+                    second = self.parse(1, line, f, sp, args)[2]
+                    # second must be int
+                    self.type_err([(second, (int,))], line, lines_ran)
+                    # third
+                    third = self.parse(2, line, f, sp, args)[2]
+                    # third must be int
+                    self.type_err([(third, (int,))], line, lines_ran)
+                    return first[second:third]
                 # joins a str
                 elif func == 'array:join':
-                    return self.parse(1, line, f, sp, args)[2].join(self.parse(0, line, f, sp, args)[2])
+                    delimiter = self.parse(0, line, f, sp, args)[2]
+                    # delimiter must be str
+                    self.type_err([(delimiter, (str,))], line, lines_ran)
+                    # iterable
+                    iterable = self.parse(1, line, f, sp, args)[2]
+                    # iterable must be iterable
+                    self.check_iterable(iterable, line)
+                    return delimiter.join(iterable)
                 # returns the MSNScript2 passed as a string
                 elif func == 'async' or func == 'script' or func == 'HTML':
                     # inserts key tokens
@@ -4670,16 +5263,30 @@ class Interpreter:
                     return
                 # reverses the first argument
                 elif func == 'reverse':
-                    return self.parse(0, line, f, sp, args)[2][::-1]
+                    # arg
+                    arg = self.parse(0, line, f, sp, args)[2]
+                    # arg must be iterable
+                    self.check_iterable(arg, line)
+                    return arg[::-1]
                 # performs upper()
                 elif func == 'upper':
-                    return self.parse(0, line, f, sp, args)[2].upper()
+                    arg = self.parse(0, line, f, sp, args)[2]
+                    # arg must be str
+                    self.type_err([(arg, (str,))], line, lines_ran)
+                    return arg.upper()
                 # performs lower()
                 elif func == 'lower':
-                    return self.parse(0, line, f, sp, args)[2].lower()
+                    arg = self.parse(0, line, f, sp, args)[2]
+                    # arg must be str
+                    self.type_err([(arg, (str,))], line, lines_ran)
+                    return arg.lower()
                 # performs title()
                 elif func == 'title':
-                    return self.parse(0, line, f, sp, args)[2].title()
+                    arg = self.parse(0, line, f, sp, args)[2]
+                    # arg must be str
+                    self.type_err([(arg, (str,))], line, lines_ran)
+                    # return title
+                    return arg.title()
                 # inherits methods only from the parent context
                 elif func == 'inherit:methods':
                     for methodname in self.parent.methods:
@@ -4693,6 +5300,8 @@ class Interpreter:
                 # inherits a single variable or function
                 elif func == 'inherit:single':
                     name = self.parse(0, line, f, sp, args)[2]
+                    # name must be a varname
+                    self.check_varname(name, line)
                     if name in self.parent.vars:
                         self.vars[name] = self.parent.vars[name]
                     elif name in self.parent.methods:
@@ -4708,11 +5317,16 @@ class Interpreter:
                 # sets the python alias
                 # until the program stops
                 elif func == 'alias':
-                    return (python_alias := self.parse(0, line, f, sp, args)[2])
+                    new_al = self.parse(0, line, f, sp, args)[2]
+                    # new_al must be str
+                    self.type_err([(new_al, (str,))], line, lines_ran)
+                    return (python_alias := new_al)
                 # starts a new process with the first argument as the target
                 elif func == 'process':
                     # path to the process to run
                     path = self.parse(0, line, f, sp, args)[2]
+                    # path must be str
+                    self.type_err([(path, (str,))], line, lines_ran)
                     # if windows:
                     if os.name == 'nt':
                         import subprocess
@@ -4738,8 +5352,9 @@ class Interpreter:
                         self.interpret('import("lib/processes")')
                     # import the processes library and
                     # create a new process
+                    name = self.parse(0, line, f, sp, args)[2]
                     return self.interpret(
-                        f"(import('lib/processes'),processes:fork('{self.parse(0, line, f, sp, args)[2]}',private(async({args[1][0]}))))")
+                        f"(import('lib/processes'),processes:fork('{name}',private(async({args[1][0]}))))")
                 # gets the pid of the working process
                 elif func == 'pid':
                     return os.getpid()
@@ -4753,7 +5368,9 @@ class Interpreter:
                         block = args[0][0]
                     # name provided (2 arguments provided)
                     else:
-                        name = self.parse(0, line, f, sp, args)[2]
+                        name = str(self.parse(0, line, f, sp, args)[2])
+                        # name must be a varname
+                        self.check_varname(name, line)
                         block = args[1][0]
                     thread = threading.Thread(
                         target=self.interpret, args=(block,))
@@ -4767,7 +5384,10 @@ class Interpreter:
                     # get the amount of threads to create
                     # create the thread pool
                     # submit the block to the pool
-                    concurrent.futures.ThreadPoolExecutor(self.parse(0, line, f, sp, args)[2]).submit(self.interpret, args[1][0])
+                    max_workers = self.parse(0, line, f, sp, args)[2]
+                    # max_workers must be int
+                    self.type_err([(max_workers, (int,))], line, lines_ran)
+                    concurrent.futures.ThreadPoolExecutor(max_workers).submit(self.interpret, args[1][0])
                     return True
 
                 # creates or edits thread variable
@@ -4811,7 +5431,8 @@ class Interpreter:
                 # joins the current working thread with the thread name specified
                 elif func == 'join':
                     for i in range(len(args)):
-                        thread = self.thread_by_name(self.parse(i, line, f, sp, args)[2])
+                        name = self.parse(i, line, f, sp, args)[2]
+                        thread = self.thread_by_name(name)
                         while thread == None:
                             None
                         thread.join()
@@ -4848,6 +5469,8 @@ class Interpreter:
                     elif len(args) == 3:
                         import time
                         s = self.parse(2, line, f, sp, args)[2]
+                        # s must be int or float
+                        self.type_err([(s, (int, float))], line, lines_ran)
                         while not (ret := self.interpret(args[0][0])):
                             self.interpret(args[1][0])
                             time.sleep(s)
@@ -4863,10 +5486,14 @@ class Interpreter:
                     import time
                     # amount of seconds
                     seconds = self.parse(0, line, f, sp, args)[2]
+                    # seconds must be int or float
+                    self.type_err([(seconds, (int, float))], line, lines_ran)
                     # if the interval should last for a certain amount of seconds
                     # should account for the first argument to correctly wait
                     if len(args) == 3:
                         extra = self.parse(2, line, f, sp, args)[2]
+                        # extra must be int or float
+                        self.type_err([(extra, (int, float))], line, lines_ran)
                         # if time is negative, we set it to infinity
                         if extra == -1:
                             extra = float('inf')
@@ -4886,6 +5513,8 @@ class Interpreter:
                     last_arg = self.parse(len(args) - 1, line, f, sp, args)[2]
                     for i in range(len(args)):
                         varname = self.parse(i, line, f, sp, args)[2]
+                        # varname must be a varname
+                        self.check_varname(varname, line)
                         if varname in self.vars:
                             if isinstance(last_arg, bool):
                                 # if self.vars[varname].value is any type of number
@@ -4907,6 +5536,8 @@ class Interpreter:
                 elif func == 'exportas':
                     # variable name
                     varname = self.parse(0, line, f, sp, args)[2]
+                    # varname must be a varname
+                    self.check_varname(varname, line)
                     # value
                     val = self.parse(1, line, f, sp, args)[2]
                     # export to parent context
@@ -4927,7 +5558,10 @@ class Interpreter:
                     # of the last argument
                     ret = None
                     for i in range(len(args)):
-                        ret = os.system(self.parse(i, line, f, sp, args)[2])
+                        command = self.parse(i, line, f, sp, args)[2]
+                        # command must be str
+                        self.type_err([(command, (str,))], line, lines_ran)
+                        ret = os.system(command)
                     return ret
                 # Execute the command and capture the output
                 # only takes one argument
@@ -4935,8 +5569,10 @@ class Interpreter:
                     import subprocess
                     # returns the console output
                     # of the last argument
-                    process = subprocess.run(self.parse(0, line, f, sp, args)[
-                                             2], shell=True, capture_output=True, text=True)
+                    command = self.parse(0, line, f, sp, args)[2]
+                    # command must be str
+                    self.type_err([(command, (str,))], line, lines_ran)
+                    process = subprocess.run(command, shell=True, capture_output=True, text=True)
                     if process.returncode == 0:
                         return process.stdout
                     else:
@@ -4949,6 +5585,8 @@ class Interpreter:
                     import requests
                     # get URL to request from
                     url = self.parse(0, line, f, sp, args)[2]
+                    # url must be str
+                    self.type_err([(url, (str,))], line, lines_ran)
                     try:
                         # get parameters
                         params = self.parse(1, line, f, sp, args)[2]
@@ -4997,24 +5635,38 @@ class Interpreter:
                     if len(args) == 1:
                         # path to endpoint
                         path = self.parse(0, line, f, sp, args)[2]
+                        # path should be str
+                        self.type_err([(path, (str,))], line, lines_ran)
                         last_arg = path
                     # 2 arguments, defaults to 127.0.0.1:5000/path = init_data
                     elif len(args) == 2:
                         # path to endpoint
                         path = self.parse(0, line, f, sp, args)[2]
+                        # path should be str
+                        self.type_err([(path, (str,))], line, lines_ran)
                         # json to initialize at the endpoint
                         init_data = self.parse(1, line, f, sp, args)[2]
+                        # init_data should be dict
+                        self.type_err([(init_data, (dict,))], line, lines_ran)
                         last_arg = init_data
                     # 3 arguments, defaults to host:port/path = init_data
                     else:
                         # host to endpoint as first argument
                         host = self.parse(0, line, f, sp, args)[2]
+                        # host should be str
+                        self.type_err([(host, (str,))], line, lines_ran)
                         # port to endpoint as second argument
                         port = self.parse(1, line, f, sp, args)[2]
+                        # port should be int
+                        self.type_err([(port, (int,))], line, lines_ran)
                         # path to endpoint
                         path = self.parse(2, line, f, sp, args)[2]
+                        # path should be str
+                        self.type_err([(path, (str,))], line, lines_ran)
                         # json to initialize at the endpoint
                         init_data = self.parse(3, line, f, sp, args)[2]
+                        # init_data should be dict
+                        self.type_err([(init_data, (dict,))], line, lines_ran)
                         last_arg = init_data
                         if len(args) == 5:
                             last_arg = self.parse(4, line, f, sp, args)[2]
@@ -5056,6 +5708,7 @@ class Interpreter:
                             self.make_api(current_data)
                             return current_data
                         # DELETE
+
                         def delete(self):
                             self.make_api({})
                             return self.response
@@ -5084,12 +5737,20 @@ class Interpreter:
                     import requests
                     # url to post to, defaults to localhost
                     host = self.parse(0, line, f, sp, args)[2]
+                    # host must be str
+                    self.type_err([(host, (str,))], line, lines_ran)
                     # port to post to
                     port = self.parse(1, line, f, sp, args)[2]
+                    # port must be int
+                    self.type_err([(port, (int,))], line, lines_ran)
                     # path after url
                     path = self.parse(2, line, f, sp, args)[2]
+                    # path must be str
+                    self.type_err([(path, (str,))], line, lines_ran)
                     # data to post
                     data = self.parse(3, line, f, sp, args)[2]
+                    # data must be dict
+                    self.type_err([(data, (dict,))], line, lines_ran)
                     # if local network
                     if host == '0.0.0.0':
                         response = requests.post(
@@ -5106,10 +5767,16 @@ class Interpreter:
                     import requests
                     # url to get from, defaults to localhost
                     host = self.parse(0, line, f, sp, args)[2]
+                    # host must be str
+                    self.type_err([(host, (str,))], line, lines_ran)
                     # port to get from
                     port = self.parse(1, line, f, sp, args)[2]
+                    # port must be int
+                    self.type_err([(port, (int,))], line, lines_ran)
                     # path after url
                     path = self.parse(2, line, f, sp, args)[2]
+                    # path must be str
+                    self.type_err([(path, (str,))], line, lines_ran)
                     # if local network
                     if host == '0.0.0.0':
                         return requests.get(url=('http://127.0.0.1:' + str(port) + path)).json()
@@ -5121,10 +5788,16 @@ class Interpreter:
                     import requests
                     # url to delete from, defaults to localhost
                     host = self.parse(0, line, f, sp, args)[2]
+                    # host must be str
+                    self.type_err([(host, (str,))], line, lines_ran)
                     # port to delete from
                     port = self.parse(1, line, f, sp, args)[2]
+                    # port must be int
+                    self.type_err([(port, (int,))], line, lines_ran)
                     # path after url
                     path = self.parse(2, line, f, sp, args)[2]
+                    # path must be str
+                    self.type_err([(path, (str,))], line, lines_ran)
                     if host == '0.0.0.0':
                         response = requests.delete(
                             url=('http://127.0.0.1:' + str(port) + path))
@@ -5151,7 +5824,13 @@ class Interpreter:
                     return True
                 # gets the value from a Var object
                 elif func == 'static':
-                    return self.parse(0, line, f, sp, args)[2].value
+                    try:
+                        return self.parse(0, line, f, sp, args)[2].value
+                    except Exception as e:
+                        self.err(
+                            'Error in static()',
+                            e, line, lines_ran
+                        )
                 # object instance requested
                 # if the function is in the variables
                 # and the variable is a class
@@ -5193,13 +5872,19 @@ class Interpreter:
                     return instance
                 # gets an attribute of an instance of a class
                 elif func == 'getattr':
-                    return self.vars[self.parse(0, line, f, sp, args)[2]].value[self.parse(1, line, f, sp, args)[2]]
+                    vn = self.parse(0, line, f, sp, args)[2]
+                    # vn must be a varname
+                    self.check_varname(vn, line)
+                    # get the attribute
+                    return self.vars[vn].value[self.parse(1, line, f, sp, args)[2]]
                 # sets an attribute of an instance of a class
                 elif func == 'setattr':
                     # current working object
                     o = self.vars[self.parse(0, line, f, sp, args)[2]].value
                     # name of attribute to set
                     attr = self.parse(1, line, f, sp, args)[2]
+                    # attr must be a string
+                    self.type_err([(attr, (str,))], line, lines_ran)
                     # value to set
                     val = self.parse(2, line, f, sp, args)[2]
                     # set the value
@@ -5227,6 +5912,8 @@ class Interpreter:
                         timings.Timings.after_menu_wait = 0.001
                     # get the path to the application
                     path = self.parse(0, line, f, sp, args)[2]
+                    # path must be str
+                    self.type_err([(path, (str,))], line, lines_ran)
                     # if there is not second argument, we do not kill any
                     # existing instances of the application
                     name = None
@@ -5248,7 +5935,6 @@ class Interpreter:
                 # the first argument is an instance of self.App
                 elif func == 'connect':
                     from pywinauto.application import Application
-                    # connecting to
                     appl = self.parse(0, line, f, sp, args)[2]
                     a = Application(backend="uia").connect(
                         process=appl.application.process)
@@ -5266,6 +5952,8 @@ class Interpreter:
                     # automating Excel
                     import openpyxl
                     path = self.parse(0, line, f, sp, args)[2]
+                    # path must be str
+                    self.type_err([(path, (str,))], line, lines_ran)
                     # creates and returns a Workbook
                     return self.Workbook(openpyxl.load_workbook(path), path)
                 # quicker conditional operator as functional prefix
@@ -5303,6 +5991,7 @@ class Interpreter:
                     # and executes the C code
                     # returns the environment
                     # including the out and variables
+
                     def retrieve_c_environment(c_code):
                         import subprocess
                         # executable
@@ -5363,6 +6052,7 @@ class Interpreter:
                     # and executes the JavaScript code
                     # returns the environment
                     # including the out and variables
+
                     def retrieve_js_environment(js_code):
                         import subprocess
                         # executable
@@ -5413,6 +6103,7 @@ class Interpreter:
                     # and executes the Java code
                     # returns the environment
                     # including the out and variables
+
                     def retrieve_java_environment(java_code):
                         import subprocess
                         # create a new process
@@ -5514,8 +6205,13 @@ class Interpreter:
                     elif objfunc == 'right_click':
                         # if args are provided
                         if len(args) == 2:
-                            ret = mouse.right_click(coords=(self.parse(0, line, f, sp, args)[
-                                                    2], self.parse(1, line, f, sp, args)[2]))
+                            start = self.parse(0, line, f, sp, args)[2]
+                            # start must be int
+                            self.type_err([(start, (int,))], line, lines_ran)
+                            end = self.parse(1, line, f, sp, args)[2]
+                            # end must be int
+                            self.type_err([(end, (int,))], line, lines_ran)
+                            ret = mouse.right_click(coords=(start, end))
                         # if no args are provided
                         else:
                             # import win32api
@@ -5526,8 +6222,13 @@ class Interpreter:
                     elif objfunc == 'double_click':
                         # if args are provided
                         if len(args) == 2:
-                            ret = mouse.double_click(coords=(self.parse(0, line, f, sp, args)[
-                                                     2], self.parse(1, line, f, sp, args)[2]))
+                            start = self.parse(0, line, f, sp, args)[2]
+                            # start must be int
+                            self.type_err([(start, (int,))], line, lines_ran)
+                            end = self.parse(1, line, f, sp, args)[2]
+                            # end must be int
+                            self.type_err([(end, (int,))], line, lines_ran)
+                            ret = mouse.double_click(coords=(start, end))
                         # if no args are provided
                         else:
                             import win32api
@@ -5545,8 +6246,10 @@ class Interpreter:
                             wheel_dist=-9999999, coords=win32api.GetCursorPos())
                     elif objfunc == 'scroll':
                         import win32api
-                        ret = mouse.scroll(wheel_dist=self.parse(0, line, f, sp, args)[
-                                           2], coords=win32api.GetCursorPos())
+                        dist = self.parse(0, line, f, sp, args)[2]
+                        # dist must be int
+                        self.type_err([(dist, (int,))], line, lines_ran)
+                        ret = mouse.scroll(wheel_dist=dist, coords=win32api.GetCursorPos())
 
                     # determines if the left mouse button is down
                     elif objfunc == 'left_down':
@@ -5598,26 +6301,38 @@ class Interpreter:
                     elif objfunc == 'down':
                         import win32api
                         curr_x, curr_y = win32api.GetCursorPos()
+                        moving = self.parse(0, line, f, sp, args)[2]
+                        # moving must be int
+                        self.type_err([(moving, (int,))], line, lines_ran)
                         ret = mouse.move(
-                            coords=(curr_x, curr_y + self.parse(0, line, f, sp, args)[2]))
+                            coords=(curr_x, curr_y + moving))
                     # moves the mouse up from its current location
                     elif objfunc == 'up':
                         import win32api
                         curr_x, curr_y = win32api.GetCursorPos()
+                        moving = self.parse(0, line, f, sp, args)[2]
+                        # moving must be int
+                        self.type_err([(moving, (int,))], line, lines_ran)
                         ret = mouse.move(
-                            coords=(curr_x, curr_y - self.parse(0, line, f, sp, args)[2]))
+                            coords=(curr_x, curr_y - moving))
                     # moves the mouse left from its current location
                     elif objfunc == 'left':
                         import win32api
                         curr_x, curr_y = win32api.GetCursorPos()
+                        moving = self.parse(0, line, f, sp, args)[2]
+                        # moving must be int
+                        self.type_err([(moving, (int,))], line, lines_ran)
                         ret = mouse.move(
-                            coords=(curr_x - self.parse(0, line, f, sp, args)[2], curr_y))
+                            coords=(curr_x - moving, curr_y))
                     # moves the mouse right from its current location
                     elif objfunc == 'right':
                         import win32api
                         curr_x, curr_y = win32api.GetCursorPos()
+                        moving = self.parse(0, line, f, sp, args)[2]
+                        # moving must be int
+                        self.type_err([(moving, (int,))], line, lines_ran)
                         ret = mouse.move(
-                            coords=(curr_x + self.parse(0, line, f, sp, args)[2], curr_y))
+                            coords=(curr_x + moving, curr_y))
                     # drags the mouse
                     # takes 4 or 5 arguments
                     # the first two are the starting coordinates
@@ -5627,8 +6342,14 @@ class Interpreter:
                         import time
                         start = (self.parse(0, line, f, sp, args)[2],
                                  self.parse(1, line, f, sp, args)[2])
+                        # start[1] and [2] must be int
+                        self.type_err([(start[0], (int,)),
+                                       (start[1], (int,))], line, lines_ran)
                         end = (self.parse(2, line, f, sp, args)[2],
                                self.parse(3, line, f, sp, args)[2])
+                        # end[1] and [2] must be int
+                        self.type_err([(end[0], (int,)),
+                                        (end[1], (int,))], line, lines_ran)
                         # presses the mouse down at the coordinates
                         mouse.press(coords=start)
                         # slowly moves the mouse to the end coordinates
@@ -5639,6 +6360,8 @@ class Interpreter:
                         speed = 50
                         if len(args) == 5:
                             speed = self.parse(4, line, f, sp, args)[2]
+                            # speed must be int
+                            self.type_err([(speed, (int,))], line, lines_ran)
                         # reverse the speed, so a speed of 50 gives
                         # end_range of 50, and a speed of 75 gives
                         # end_range of 25
@@ -5668,7 +6391,7 @@ class Interpreter:
                         return pyperclip.paste()
                     # if one argument
                     else:
-                        copying = self.parse(0, line, f, sp, args)[2]
+                        copying = str(self.parse(0, line, f, sp, args)[2])
                         pyperclip.copy(copying)
                         return copying
                 # functional syntax I decided to add to make loops a tiny bit faster,
@@ -5798,7 +6521,8 @@ class Interpreter:
                 else:
                     i += 1
             # recursively interpret the code between the tags
-            interpreted_code = self.interpret(recurse_tags(scr[first+len(tag):i]))
+            interpreted_code = self.interpret(
+                recurse_tags(scr[first+len(tag):i]))
             if force_string:
                 interpreted_code = f'"{interpreted_code}"'
             new_scr = f'{scr[:first]}{interpreted_code}{scr[i+len(endtag):]}'
@@ -5830,6 +6554,8 @@ class Interpreter:
     # returns True if should go to the next file to import
     def imp(self, i, line, f, sp, args, can_exit):
         path = self.parse(i, line, f, sp, args)[2]
+        # path must be a string
+        self.type_err([(path, (str,))], line, lines_ran)
         if not path.endswith('.msn2'):
             path += '.msn2'
         if path in can_exit:
@@ -6125,24 +6851,98 @@ class Interpreter:
             'MSN2 Exception thrown, see above for details')
         # set printing color to white
 
+    # throws a keyerror
+    def raise_key(self, key, line):
+        return self.err(
+            'Key not found in dictionary',
+            f'Key "{key}" not found in dictionary',
+            line, lines_ran
+        )
+
     # throws msn2 error for a work in progress mechanism
     def raise_wip(self, what_is_wip, line, lines_ran):
         # get the version for this interpreter
-        self.err(
+        return self.err(
             'Work in progress',
             f'{what_is_wip} is a work in progress in MSN2 v{self.version} and not been fully implemented.',
+            line, lines_ran
+        )
+    # verifies a type is iterable
+    # iterable types include: list, tuple, dict, set, str
+    def check_iterable(self, value, line):
+        import collections.abc
+        if not isinstance(value, collections.abc.Iterable):
+            return self.type_err([(value, (collections.abc.Iterable,))], line, lines_ran)
+        return True
+
+    # checks for validity of a variable name being set
+    # by its string representation
+    def check_varname(self, varname, line):
+        # varname must be a string
+        self.type_err([(varname, (str,))], line, lines_ran)
+        # varname must exist
+        if not varname:
+            self.raise_varname_chars(varname, line, lines_ran)
+
+    # throws an operation error
+    def raise_operation_err(self, vname, operator, line):
+        # operation error
+        return self.err(
+            f'Operation error: "{operator}"',
+            f'There was an error applying the operator "{operator}" to "{vname}" and its argument(s).\n',
+            line, lines_ran
+        )
+    # throws an error asking for a variable name to at least contain characters
+
+    def raise_varname_chars(self, varname, line, lines_ran):
+        return self.err(
+            'New variable name must contain characters.',
+            f'Variable name "{varname}" is an invalid name.',
+            line,
+            lines_ran
+        )
+    # throws msn2 error for comparison error
+
+    def raise_comp(self, comp_operation, vname, line):
+        return self.err(
+            'Comparison error',
+            f'Could not perform comparison operation "{comp_operation}" on variable "{vname}" and the supplied argument(s)',
+            line, lines_ran
+        )
+    # empty array error
+
+    def raise_empty_array(self, line):
+        return self.err(
+            'Error computing average',
+            f'Array is empty',
+            line, lines_ran
+        )
+    # non_numeric value error
+
+    def raise_avg(self, line):
+        return self.err(
+            'Error computing average',
+            f'Array contains non-numeric values',
+            line, lines_ran
+        )
+    # value is not in the list
+
+    def raise_value(self, value, line):
+        return self.err(
+            'Value error',
+            f'Value "{value}" is not in the list.',
             line, lines_ran
         )
     # throws msn2 error for Incorrect number of arguments
 
     def raise_incorrect_args(self, expected, actual, line, lines_ran, method):
-        self.err(f'Incorrect number of function arguments for {method.name}',
-                 f'Expected {expected}, got {actual}', line, lines_ran)
+        return self.err(f'Incorrect number of function arguments for {method.name}',
+                        f'Expected {expected}, got {actual}', line, lines_ran)
     # throws msn2 error for Index out of bounds
 
     def raise_index_out_of_bounds(self, line, lines_ran, method):
-        self.err(f'Index out of bounds in body of {method.name}',
-                 f'Index out of bounds', line, lines_ran)
+        return self.err(f'Index out of bounds in body of {method.name}',
+                        f'Index out of bounds', line, lines_ran)
 
     def __del__(self):
         None
@@ -6337,8 +7137,8 @@ class Interpreter:
                 else:
                     element += c
 
-
     # scrapes all html elements from a URL
+
     def html_all_elements(self, url):
         import requests
         # web scraping
@@ -6374,14 +7174,19 @@ class Interpreter:
             self.returns = []
             self.ended = False
             self.interpreter = interpreter
+
         def add_arg(self, arg):
             self.args.append(arg)
+
         def add_body(self, body):
             self.body.append(body)
+
         def add_return(self, ret):
             self.returns.append(ret)
+
         def default(self, func_insert, index):
             return not func_insert and isinstance(self.args[index], list)
+
         def run(self, args, inter, actual_args=None):
             # finds an argument in the list of arguments
             def find_arg(func_var):
@@ -6471,6 +7276,7 @@ class Interpreter:
             for line in self.body:
                 method_ret = inter.interpret(line)
             return method_ret
+
         def is_str(self, value):
             return (value[0] == '"' and value[-1] == '"') or (value[0] == "'" and value[-1] == "'")
     # class for an App
@@ -6549,48 +7355,57 @@ class Interpreter:
             # call super constructor
             super().__init__(window, name)
         # clicks the button
+
         def click(self):
             self.window.click()
         # right clicks the button
+
         def right_click(self):
             self.window.click_input(button='right')
     # class for a Link
+
     class Link(AppElement):
         # constructor
         def __init__(self, window, name):
             # call super constructor
             super().__init__(window, name)
     # class for a Menu
+
     class Menu(AppElement):
         # constructor
         def __init__(self, window, name):
             # call super constructor
             super().__init__(window, name)
     # class for a ToolBar
+
     class ToolBar(AppElement):
         # constructor
         def __init__(self, window, name):
             # call super constructor
             super().__init__(window, name)
     # class for a scrollbar
+
     class ScrollBar(AppElement):
         # constructor
         def __init__(self, window, name):
             # call super constructor
             super().__init__(window, name)
     # class for TabItems
+
     class TabItem(AppElement):
         # constructor
         def __init__(self, window, name):
             # call super constructor
             super().__init__(window, name)
     # class for Hyperlink
+
     class Hyperlink(AppElement):
         # constructor
         def __init__(self, window, name):
             # call super constructor
             super().__init__(window, name)
     # class for Inputs
+
     class Input(AppElement):
         # constructor
         def __init__(self, window, name):
@@ -6601,6 +7416,7 @@ class Interpreter:
         def type_keys(self, text):
             self.window.type_keys(text)
     # class for Tables
+
     class Table(AppElement):
         # constructor
         def __init__(self, window, name):

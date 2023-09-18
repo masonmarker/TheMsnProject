@@ -75,8 +75,22 @@ assert(equals(add([1, 2], [3, 4]), 10))
 
 # as of 2.0.388, functions now have an argument specification
 # syntax, which allows for default arguments, and named arguments
-# to be passed in any order
+# to be passed in any order.
+#
+# named arguments are specified with the '&' symbol
 # examples:
+def('add', 'arg1', 'arg2', &arg3=5, 
+    +(arg1, arg2, arg3))
+
+# ignoring default value
+assert(equals(add(1, 2, 3), 6))
+# accepting default value
+assert(equals(add(1, 2), 8))
+# setting value via named argument
+assert(equals(add(1, 2, &arg3=10), 13))
+# setting all values via named arguments
+# and out of order for demonstration
+assert(equals(add(&arg3=10, &arg2=2, &arg1=1), 13))
 
 # ----------------------- VARIABLES -----------------------
 @ a = 1

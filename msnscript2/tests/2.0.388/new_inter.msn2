@@ -36,6 +36,19 @@ def('func',
 )
 # invocation
 assert(equals(func('Hello', 'World', 'Sup', 'Dude'), 'HelloWorldSupDude'))
+# with 2 arguments
+assert(equals(func('Hello', 'World'), 'HelloWorldDefaultDefault'))
+# with 1 argument
+assert(equals(func('Hello'), 'HelloDefaultDefaultDefault'))
+# with no arguments
+assert(equals(func(), 'DefaultDefaultDefaultDefault'))
+# specifying two arguments
+assert(equals(func(&arg1='Hello', &arg2='World'), 'HelloWorldDefaultDefault'))
+# specifying one argument
+assert(equals(func(&arg1='Hello'), 'HelloDefaultDefaultDefault'))
+# specifying all arguments backwards
+assert(equals(func(&arg4='Dude', &arg3='Sup', &arg2='World', &arg1='Hello'), 'HelloWorldSupDude'))
+
 # ------------------------------------
 
 # line ending in '='
@@ -48,3 +61,10 @@ assert(c.equals(1))
     [1,2,3,4,5]
 # assert the assignment was made
 assert(c.equals([1,2,3,4,5]))
+
+# ------------------------------------
+# ending a line with '{='
+assert(equals(script({=
+549375398475
+=}), "549375398475"))
+
