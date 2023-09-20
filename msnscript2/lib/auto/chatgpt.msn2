@@ -107,3 +107,95 @@ function('chatgpt:active_ask_gpt', (
     # returns the responses and the app instance opened
     ret('chatgpt:active_ask_gpt', active_ask_gpt:_responses)
 ), 'chatgpt:_appinstance', 'active_ask_gpt:_messages', 'active_ask_gpt:_enterurl')
+
+# Makes a query to the ChatGPT API.
+# implemented for named arguments
+# 2.0.388
+def('chatgpt:query', 
+    &chatgpt:query:prompt=None,
+    &chatgpt:query:model='gpt-3.5-turbo',
+    &chatgpt:query:temperature=0.9,
+    &chatgpt:query:max_tokens=150,
+    &chatgpt:query:top_p=1,
+    &chatgpt:query:frequency_penalty=0.0,
+    &chatgpt:query:presence_penalty=0.6,
+    &chatgpt:query:stop='###',
+    # make the query
+    ai.query(
+        chatgpt:query:model,
+        chatgpt:query:prompt,
+        chatgpt:query:temperature,
+        chatgpt:query:max_tokens,
+        chatgpt:query:top_p,
+        chatgpt:query:frequency_penalty,
+        chatgpt:query:presence_penalty,
+        chatgpt:query:stop
+    )
+)
+
+# chatgpt:instance
+# ChatGPT class granting greater control over a ChatGPT thread
+# 2.0.388
+class ('chatgpt:instance', (
+    # model
+    # either advanced or basic
+    @ model = 'gpt-3.5-turbo',
+    # retain context?
+    # whether or not to keep the previous messages in the context
+    @ retain_context = True,
+    # messages
+    @ messages = [],
+    # temperature
+    # how random the response is
+    @ temperature = 0.9,
+    # max tokens
+    # how many tokens to generate
+    @ max_tokens = 150,
+    # top p
+    # how many tokens to choose from
+    @ top_p = 1,
+    # frequency penalty
+    # how much to penalize words that have already been used
+    @ frequency_penalty = 0.0,
+    # presence penalty
+    # how much to penalize words that have already been used
+    @ presence_penalty = 0.6,
+    # stop
+    # what to stop the response at
+    @ stop = '###',
+    
+    # asks a question
+    def('ask', 'self', 'chatgpt:instance:ask:prompt', (
+        # return response based on model type
+        # if using advanced models
+       if (self.is_advanced(), (
+            # add entry to messages
+            self.messages(
+                as('chatgpt:instance:t', self.messages(), chatgpt:instance:t.add(object(
+                    'role', 'user',
+                    'content', chatgpt:instance:ask:prompt
+                )))
+            ),
+            # make a query to the advanced model
+            chatgpt:query(
+                &chatgpt:query:prompt=self.messages(),
+                &chatgpt:query:model=self.model(),
+                &chatgpt:query:temperature=self.temperature(),
+                &chatgpt:query:max_tokens=self.max_tokens(),
+                &chatgpt:query:top_p=self.top_p(),
+                &chatgpt:query:frequency_penalty=self.frequency_penalty(),
+                &chatgpt:query:presence_penalty=self.presence_penalty(),
+                &chatgpt:query:stop=self.stop()
+            )
+        # otherwise, use the basic model
+        ), ai.basic(chatgpt:instance:ask:prompt))
+    )),
+    # whether or not this object has an advanced model or not
+    def('is_advanced', 'self', and(
+        not(startswith(self.model(), 'text')), 
+        not(equals(self.model(), 'gpt-3.5-turbo-instruct')))),
+    # gets the number of tokens in a string for self model
+    def('tokens', 'self', 'chatgpt:instance:token_str', (
+        ai.tokens(chatgpt:instance:token_str, self.model()))
+    )
+))

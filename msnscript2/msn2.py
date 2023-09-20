@@ -41,6 +41,9 @@ for i in range(1, len(sys.argv)):
     # launches a file browser for running an msn2 script
     elif filename == 'file':
         filename = 'system/file.msn2'
+    # launches an interaction with ChatGPT in the console
+    elif filename == 'gpt':
+        filename = 'system/gpt.msn2'
         
     # if the file does not end in .msn2, add it
     if not filename.endswith('.msn2'):

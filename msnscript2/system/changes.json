@@ -7,6 +7,8 @@
     "2.0.888": {
         "1": "Added '!' specifier for object methods, this specifier forces the method to be destructive regardless of the prior value of the variable calling the method.",
         "2": "Added partial type enforcements, this has only been applied to the existing MSN2 package functions. User functions may come in the future.",
-        "3": "Enabled the MSN2 interpreter to interpret multi-lined blocks of code for a few more cases (line ending with ',', etc...)"
+        "3": "Enabled the MSN2 interpreter to interpret multi-lined blocks of code for a few more cases (line ending with ',', etc...)",
+        "4": "Added ai.tokens(), ai.advanced(), in the msn2 ai class",
+        "5": "Added chatgpt:instance class to lib/auto/chatgpt for more control over a ChatGPT model (demo in demos folder)"
     }
 }

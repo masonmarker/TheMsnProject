@@ -76,7 +76,8 @@
         'verify': 'Launches the validation script, testing the integrity of this msn2 version.\\n
                   this file is at tests/validator.msn2',
         'int': 'If int is specified, the launcher will start the msn2 interpreter in the command line.',
-        'file': 'If file is specified, the launcher will prompt for a file with a .msn2 extension to run.'
+        'file': 'If file is specified, the launcher will prompt for a file with a .msn2 extension to run.',
+        'gpt': 'Starts an interaction with a ChatGPT thread in the console. You should have your OPENAI environment variables set properly to use this command.'
     },
 
     # for each command pair

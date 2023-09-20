@@ -18,6 +18,7 @@ pip install -U pywinauto
 pip install openpyxl
 pip install pyperclip
 pip install requests-html
+pip install tiktoken
 
 -- LANG DEPENDENCIES
 JavaScript: node.js

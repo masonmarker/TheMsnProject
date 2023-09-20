@@ -71,7 +71,7 @@ class ('chrome:instance', (
     )),
 
     # searches in Chrome in a new tab
-    def ('search_in_new_tab', 'self', 'chrome:instance:search', 
+    def('search_in_new_tab', 'self', 'chrome:instance:search', 
         as(
             'chrome:instance:app_temp',
             self.app(), (
@@ -96,7 +96,4 @@ class ('chrome:instance', (
             ))
         ))
     ))
-
-    
-
 ))

@@ -101,9 +101,9 @@ def('nav_menu', (
             'fore', 'green'
         )
     )),
-
+    @ driver:page = strip(input()),
     # asks the user for a page to navigate to
-    try(goto(strip(input())), goto(error_key))
+    try(goto(driver:page), goto(error_key))
 ))
 
 # generates a page in the console

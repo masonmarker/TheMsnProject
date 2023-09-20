@@ -721,6 +721,7 @@ class Interpreter:
                             f"{vname}.{objfunc[:-1]}({mergedargs})"
                         )
                         return self.vars[vname].value
+                    
 
                     # methods available to all types
                     if objfunc == 'copy':
@@ -4253,33 +4254,134 @@ class Interpreter:
                                 f"OpenAI API key not found. Please set your OPENAI_API_KEY environment variable to your OpenAI API key.", True, '', lines_ran)
                     # if models not defined, define them
                     if not models:
+                        # determines if a model needs chatcompletion
+                        def needs_completion(model):
+                            return model.startswith('text') or model == 'gpt-3.5-turbo-instruct'
+                        # gets responses from the models
+                        def response(model, prompt):
+                            # enforce model as str and prompt as str
+                            self.type_err([(model, (str,)), (prompt, (str,))], line, lines_ran)
+                            if needs_completion(model):
+                                # return v1/completions endpoint
+                                return openai.Completion.create(
+                                    model=model,
+                                    prompt=prompt,
+                                    temperature=0.5,
+                                    max_tokens=models[model]['max_tokens'] // 2
+                                ).choices[0].text
+                            else:
+                                return openai.ChatCompletion.create(
+                                    model=model,
+                                    messages=[{'role': 'user', 'content': prompt}],
+                                    temperature=0.5,
+                                    max_tokens=models[model]['max_tokens'] // 2
+                                ).choices[0]['message']['content']
+                        # available models for use by the query
                         models = {
-                            # standard model, answers questions will little to no creativity
-                            'basic': {'model': 'text-davinci-003', 'creativity': 0},
-                            # creative model, answers questions with creativity
-                            'creative': {'model': 'text-davinci-003', 'creativity': 0.5},
-                            # advanced model, answers questions with high creativity
-                            'advanced': {'model': 'text-davinci-003', 'creativity': 1}
+                            "text-davinci-003": {
+                                "max_tokens": 4097
+                            },
+                            'gpt-3.5-turbo-instruct': {
+                                "max_tokens": 4097,
+                                "price_per_token": 0.0015 // 1000
+                            },
+                            'gpt-3.5-turbo': {
+                                "max_tokens": 4097,
+                                "price_per_token": 0.0015 // 1000
+                            },
+                            'gpt-3.5-turbo-16k': {
+                                "max_tokens": 16384,
+                                "price_per_token": 0.003 // 1000
+                            },
+                            # gets responses from these models
+                            'response': response,
+                            'needs_completion': needs_completion
                         }
                     # asks openai model a question
                     # simple ai, see top of file for definition
+                    # simple ask of the AI without context
                     if objfunc == 'basic':
+                        import openai
+                        # generates an ai response with the basic model
+                        return models['response']('gpt-3.5-turbo', self.parse(0, line, f, sp, args)[2])
+                    # asks an advanced model a question, no context
+                    elif objfunc == 'advanced':
+                        import openai
+                        # generates an ai response with the advanced model
+                        return models['response']('gpt-3.5-turbo-16k', self.parse(0, line, f, sp, args)[2])
+                    # 2.0.388
+                    # makes a fully customized query to the openai api
+                    elif objfunc == 'query':
+                        import openai
+                        # model to use
+                        model = self.parse(0, line, f, sp, args)[2]
+                        # model must be str
+                        self.type_err([(model, (str,))], line, lines_ran)
+                        # messages
+                        messages = self.parse(1, line, f, sp, args)[2]
+                        # messages must be list
+                        self.type_err([(messages, (list,))], line, lines_ran)
+                        # temperature
+                        temperature = self.parse(2, line, f, sp, args)[2]
+                        # temp must be int or float
+                        self.type_err([(temperature, (int, float))], line, lines_ran)
+                        # max_tokens
+                        max_tokens = self.parse(3, line, f, sp, args)[2]
+                        # max_tokens must be int
+                        self.type_err([(max_tokens, (int,))], line, lines_ran)
+                        # top_p
+                        top_p = self.parse(4, line, f, sp, args)[2]
+                        # top_p must be int or float
+                        self.type_err([(top_p, (int, float))], line, lines_ran)
+                        # frequency_penalty
+                        frequency_penalty = self.parse(5, line, f, sp, args)[2]
+                        # frequency_penalty must be int or float
+                        self.type_err([(frequency_penalty, (int, float))], line, lines_ran)
+                        # presence_penalty
+                        presence_penalty = self.parse(6, line, f, sp, args)[2]
+                        # presence_penalty must be int or float
+                        self.type_err([(presence_penalty, (int, float))], line, lines_ran)
+                        # stop
+                        stop = self.parse(7, line, f, sp, args)[2]
+                        # stop must be str
+                        self.type_err([(stop, (str,))], line, lines_ran)
+                        # if model is standard
+                        if models['needs_completion'](model):
+                            return openai.Completion.create(
+                                model=model,
+                                prompt=messages,
+                                temperature=temperature,
+                                max_tokens=max_tokens,
+                                top_p=top_p,
+                                frequency_penalty=frequency_penalty,
+                                presence_penalty=presence_penalty,
+                                stop=stop
+                            ).choices[0].text
+                        else:
+                            return openai.ChatCompletion.create(
+                                model=model,
+                                messages=messages,
+                                temperature=temperature,
+                                top_p=top_p,
+                                frequency_penalty=frequency_penalty,
+                                presence_penalty=presence_penalty,
+                                stop=stop
+                            ).choices[0]['message']['content']
+                            
+                    # gets the amount of tokens for a string given a ChatGPT model
+                    elif objfunc == 'tokens':
+                        import tiktoken
+                        # string to check
                         prompt = self.parse(0, line, f, sp, args)[2]
                         # prompt must be str
                         self.type_err([(prompt, (str,))], line, lines_ran)
-                        # creates an ai model
-                        # creates and returns a custom ai model
-                        def ai_response(model, prompt, creativity):
-                            # prompt must be str
-                            # ChatGPT API
-                            import openai
-                            return openai.Completion.create(
-                                model=model,
-                                prompt=prompt,
-                                temperature=creativity
-                            ).choices[0].text
-                        # generates an ai response with the basic model
-                        return ai_response(models['basic']['model'], prompt, models['basic']['creativity'])
+                        # model to check
+                        model_name = self.parse(1, line, f, sp, args)[2]
+                        # model must be str
+                        self.type_err([(model_name, (str,))], line, lines_ran)
+                        # get the encoding
+                        encoding = tiktoken.encoding_for_model(model_name)
+                        return len(encoding.encode(prompt))
                     return '<msnint2 class>'
                 # raises an msn2 exception
                 elif func == 'raise':
@@ -5037,8 +5139,10 @@ class Interpreter:
                 # provides a representation of the current environment
                 elif func == 'env':
                     should_print = False
-                    if self.parse(0, line, f, sp, args)[2]:
+                    if args[0][0] != '':
                         should_print = True
+                    # first argument should be either string or integer
+                    first = self.parse(0, line, f, sp, args)[2]
                     strenv = "--------- environment ---------"
                     strenv += f"\nout:\n{self.out}"
                     strenv += "\nvariables:\n"
@@ -5174,7 +5278,7 @@ class Interpreter:
                         return ret
                 except Exception as e:
                     self.err(
-                        'Error in arithmetic',
+                        'Error',
                         e, line, lines_ran
                     )
 
@@ -5201,6 +5305,28 @@ class Interpreter:
                     # delete the variable
                     del self.vars[varname]
                     return ret
+                # startswith
+                elif func == 'startswith':
+                    # arg
+                    arg = self.parse(0, line, f, sp, args)[2]
+                    # arg must be str
+                    self.type_err([(arg, (str,))], line, lines_ran)
+                    # prefix
+                    prefix = self.parse(1, line, f, sp, args)[2]
+                    # prefix must be str
+                    self.type_err([(prefix, (str,))], line, lines_ran)
+                    return arg.startswith(prefix)
+                # endswith
+                elif func == 'endswith':
+                    # arg
+                    arg = self.parse(0, line, f, sp, args)[2]
+                    # arg must be str
+                    self.type_err([(arg, (str,))], line, lines_ran)
+                    # suffix
+                    suffix = self.parse(1, line, f, sp, args)[2]
+                    # suffix must be str
+                    self.type_err([(suffix, (str,))], line, lines_ran)
+                    return arg.endswith(suffix)
                 # strips a str
                 elif func == 'strip':
                     try:
@@ -6788,7 +6914,7 @@ class Interpreter:
                 # print the caller
                 print_err([
                     {'text': '>> ', 'style': 'bold', 'fore': 'black'},
-                    {'text': _branch[0].strip(), 'style': 'bold',
+                    {'text': self.shortened(_branch[0].strip()), 'style': 'bold',
                      'fore': _branch_color},
                     {'text': ' <<< ' if is_caller else '',
                         'style': 'bold', 'fore': 'yellow'},
@@ -6800,7 +6926,7 @@ class Interpreter:
                     # print the lines branching off
                     print_err([
                         {'text': '    at   ', 'style': 'bold', 'fore': 'black'},
-                        {'text': _branch[0].strip(), 'style': 'bold',
+                        {'text': self.shortened(_branch[0].strip()), 'style': 'bold',
                          'fore': _branch_color}
                     ])
                     # print ...
@@ -6822,7 +6948,7 @@ class Interpreter:
                             print_err([
                                 {'text': '    at   ',
                                     'style': 'bold', 'fore': 'black'},
-                                {'text': _branch2.strip(), 'style': 'bold',
+                                {'text': self.shortened(_branch2.strip()), 'style': 'bold',
                                  'fore': _branch_color}
                             ])
                     else:
@@ -6831,7 +6957,7 @@ class Interpreter:
                             print_err([
                                 {'text': '    at   ',
                                     'style': 'bold', 'fore': 'black'},
-                                {'text': _branch2.strip(), 'style': 'bold',
+                                {'text': self.shortened(_branch2.strip()), 'style': 'bold',
                                  'fore': _branch_color}
                             ])
             # print the finishing divider
