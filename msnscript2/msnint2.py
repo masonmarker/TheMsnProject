@@ -3907,9 +3907,12 @@ class Interpreter:
                 # first argument is the iterable
                 # the rest are elements to check for
                 elif func == 'has':
+                    iterable = self.parse(0, line, f, sp, args)[2]
+                    # iterable must be iterable
+                    self.check_iterable(iterable, line)
                     # optimized code:
                     try:
-                        return all(self.parse(i + 1, line, f, sp, args)[2] in self.parse(0, line, f, sp, args)[2] for i in range(len(args) - 1))
+                        return all(self.parse(i + 1, line, f, sp, args)[2] in iterable for i in range(len(args) - 1))
                     except Exception as e:
                         return self.err(
                             'Error in has()',
@@ -3993,7 +3996,35 @@ class Interpreter:
                             f'Could not perform operation on arguments\n{e}',
                             line, lines_ran
                         )
-
+                # formats a number to a money string
+                elif func == 'USD':
+                    # number to format
+                    num = self.parse(0, line, f, sp, args)[2]
+                    # number must be int or float
+                    self.type_err([(num, (int, float))], line, lines_ran)
+                    return f"${num:,.2f}"
+                # formats a number to a certain number of decimal places
+                elif func == 'format':
+                    # number to format
+                    num = self.parse(0, line, f, sp, args)[2]
+                    # number must be int or float
+                    self.type_err([(num, (int, float))], line, lines_ran)
+                    # number of decimal places
+                    places = self.parse(1, line, f, sp, args)[2]
+                    # places must be int
+                    self.type_err([(places, (int,))], line, lines_ran)
+                    return f"{num:.{places}f}"
+                # rounds a number
+                elif func == 'round':
+                    # number to round
+                    num = self.parse(0, line, f, sp, args)[2]
+                    # number must be int or float
+                    self.type_err([(num, (int, float))], line, lines_ran)
+                    # number of digits to round to
+                    digits = self.parse(1, line, f, sp, args)[2]
+                    # digits must be int
+                    self.type_err([(digits, (int,))], line, lines_ran)
+                    return round(num, digits)
                 # computes the maximum value from all arguments
                 # takes any amount of arguments, all being
                 # either numbers or lists
@@ -4257,6 +4288,17 @@ class Interpreter:
                         # determines if a model needs chatcompletion
                         def needs_completion(model):
                             return model.startswith('text') or model == 'gpt-3.5-turbo-instruct'
+                        # determines if arguments for 'model' are str and in models
+                        def check_model(model):
+                            # model must be str
+                            self.type_err([(model, (str,))], line, lines_ran)
+                            # model must exist
+                            if model not in models:
+                                self.err(
+                                    'Model not found',
+                                    f'Model {model} not found. Available models are {", ".join(models.keys())}',
+                                    line, lines_ran
+                                )
                         # gets responses from the models
                         def response(model, prompt):
                             # enforce model as str and prompt as str
@@ -4275,28 +4317,51 @@ class Interpreter:
                                     messages=[{'role': 'user', 'content': prompt}],
                                     temperature=0.5,
                                     max_tokens=models[model]['max_tokens'] // 2
-                                ).choices[0]['message']['content']
+                                )
                         # available models for use by the query
                         models = {
-                            "text-davinci-003": {
-                                "max_tokens": 4097
-                            },
                             'gpt-3.5-turbo-instruct': {
                                 "max_tokens": 4097,
-                                "price_per_token": 0.0015 // 1000
+                                # compute $0.0015 / 1K tokens
+                                "price_per_token": 0.0015 / 1000
                             },
                             'gpt-3.5-turbo': {
                                 "max_tokens": 4097,
-                                "price_per_token": 0.0015 // 1000
+                                "price_per_token": 0.0015 / 1000
                             },
                             'gpt-3.5-turbo-16k': {
                                 "max_tokens": 16384,
-                                "price_per_token": 0.003 // 1000
+                                "price_per_token": 0.003 / 1000
+                            },
+                            "text-davinci-003": {
+                                "max_tokens": 4097,
+                                # turbo * 10, as stated by OPENAI model pricing documentation
+                                "price_per_token": (0.0015 / 1000) * 10
                             },
                             # gets responses from these models
                             'response': response,
-                            'needs_completion': needs_completion
+                            'needs_completion': needs_completion,
+                            'check_model': check_model
                         }
+                    # gets the available models
+                    if objfunc == 'models':
+                        return models
+                    # gets max tokens for a model
+                    elif objfunc == 'max_tokens':
+                        # get model
+                        model = self.parse(0, line, f, sp, args)[2]
+                        # check model
+                        models['check_model'](model)
+                        # return max tokens
+                        return models[model]['max_tokens']
+                    # gets price per token for a model
+                    elif objfunc == 'price_per_token':
+                        # get the model
+                        model = self.parse(0, line, f, sp, args)[2]
+                        # check the model
+                        models['check_model'](model)
+                        # return price per token
+                        return models[model]['price_per_token']
                     # asks openai model a question
                     # simple ai, see top of file for definition
                     # simple ask of the AI without context
@@ -4315,8 +4380,8 @@ class Interpreter:
                         import openai
                         # model to use
                         model = self.parse(0, line, f, sp, args)[2]
-                        # model must be str
-                        self.type_err([(model, (str,))], line, lines_ran)
+                        # check model
+                        models['check_model'](model)
                         # messages
                         messages = self.parse(1, line, f, sp, args)[2]
                         # messages must be list
@@ -4366,7 +4431,7 @@ class Interpreter:
                                 frequency_penalty=frequency_penalty,
                                 presence_penalty=presence_penalty,
                                 stop=stop
-                            ).choices[0]['message']['content']
+                            )
                             
                     # gets the amount of tokens for a string given a ChatGPT model
                     elif objfunc == 'tokens':
@@ -4377,14 +4442,37 @@ class Interpreter:
                         self.type_err([(prompt, (str,))], line, lines_ran)
                         # model to check
                         model_name = self.parse(1, line, f, sp, args)[2]
-                        # model must be str
-                        self.type_err([(model_name, (str,))], line, lines_ran)
+                        # check model
+                        models['check_model'](model_name)
                         # get the encoding
                         encoding = tiktoken.encoding_for_model(model_name)
                         return len(encoding.encode(prompt))
                     return '<msnint2 class>'
+                # merges all arguments into one
+                elif func == 'merge':
+                    # gets the first argument
+                    arg1 = self.parse(0, line, f, sp, args)[2]
+                    # arg must exist
+                    if arg1 is None:
+                        self.err(
+                            'Error in merge()',
+                            'First argument must exist',
+                            line, lines_ran
+                        )
+                    # gets the rest of the arguments
+                    for i in range(1, len(args)):
+                        _arg = self.parse(i, line, f, sp, args)[2]
+                        # arg must exist
+                        if _arg is None:
+                            self.err(
+                                'Error in merge()',
+                                'Merging arguments must exist',
+                                line, lines_ran
+                            )
+                        arg1 |= self.parse(i, line, f, sp, args)[2]
+                    return arg1
                 # raises an msn2 exception
-                elif func == 'raise':
+                elif func == 'exception':
                     # get the error
                     error = self.parse(0, line, f, sp, args)[2]
                     # error must be str
@@ -4968,6 +5056,33 @@ class Interpreter:
                             line,
                             lines_ran
                         )
+                # gets the first argument as an iterable at the indices specified
+                # can take unlimited arguments for unlimited indexing
+                elif func == 'getn':
+                    # get iterable
+                    iterable = self.parse(0, line, f, sp, args)[2]
+                    # iterable must be iterable
+                    self.check_iterable(iterable, line)
+                    try:
+                        # must have at least one index
+                        ind1 = self.parse(1, line, f, sp, args)[2]
+                        # get at the index
+                        obj = iterable[ind1]
+                        # get the rest of the indices
+                        for i in range(2, len(args)):
+                            # get the index
+                            ind = self.parse(i, line, f, sp, args)[2]
+                            # index must be int or str
+                            self.type_err([(ind, (int, str))], line, lines_ran)
+                            # get at the index
+                            obj = obj[ind]
+                        return obj
+                    except:
+                        self.err(
+                            'Error in getn()',
+                            'Could not index the iterable',
+                            line, lines_ran
+                        )
                 # get the keys of the first argument
                 elif func == 'keys':
                     arg = None
@@ -5352,7 +5467,7 @@ class Interpreter:
                     self.type_err([(third, (int,))], line, lines_ran)
                     return first[second:third]
                 # joins a str
-                elif func == 'array:join':
+                elif func == 'iterable:join':
                     delimiter = self.parse(0, line, f, sp, args)[2]
                     # delimiter must be str
                     self.type_err([(delimiter, (str,))], line, lines_ran)
@@ -6771,7 +6886,6 @@ class Interpreter:
 
     # parses an argument from a function
     def parse(self, arg_number, line, f, sp, args):
-        # check for IndexError
         as_s = args[arg_number][0]
         line, ret = self.convert_arg(as_s, line, f, sp, args)
         return line, as_s, ret
@@ -6798,7 +6912,9 @@ class Interpreter:
     # logs something to the console
 
     def logg(self, msg, line):
-        self.log += "[*] " + msg + " : " + line + "\n"
+        # self.log += "[*] " + msg + " : " + line + "\n"
+        # do the above but with f strings
+        self.log += f"[*] {msg} : {line}\n"
 
     # prints an array with styling
     # the only argument is an array of maps,
@@ -6890,7 +7006,7 @@ class Interpreter:
                  'style': 'bold', 'fore': 'green'},
             ])
             _branches = []
-            root_nums = []
+            root_nums = []            
             for k, (root_num, code_line) in inst_tree.items():
                 root_nums.append(root_num)
             root_nums = list(set(root_nums))

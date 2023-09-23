@@ -7,4 +7,74 @@
 import ('lib/os.msn2')
 os:clear()
 
-print(ai.basic('what is 2 + 2'))
+# simple ai call
+# print(ai.basic('what is 2 + 2'))
+
+# advanced model ai call
+# returns object similar to:
+# {
+#   "id": "chatcmpl-81QNLLuXNIvsj4lcOf41arhWSpY6p",
+#   "object": "chat.completion",
+#   "created": 1695350407,
+#   "model": "gpt-3.5-turbo-16k-0613",
+#   "choices": [
+#     {
+#       "index": 0,
+#       "message": {
+#         "role": "assistant",
+#         "content": "2 + 2 equals 4."
+#       },
+#       "finish_reason": "stop"
+#     }
+#   ],
+#   "usage": {
+#     "prompt_tokens": 14,
+#     "completion_tokens": 8,
+#     "total_tokens": 22
+#   }
+# }
+# print(ai.advanced('what is 2 + 2'))
+
+import ('lib/auto/chatgpt')
+
+
+# create ChatGPT instance
+@ gpt = chatgpt:instance('gpt-3.5-turbo')
+
+# determine if advanced
+# print(gpt.is_advanced())
+
+# get max tokens for this model
+# print(gpt.max_tokens())
+
+# gets price per token for this model
+# print(gpt.price_per_token())
+
+# estimates number of tokens for a prompt for the current model
+# print(gpt.tokens_for_prompt('what is 2 + 2'))
+
+# estimates the price for a prompt for the current model
+# print(cat('$', format(gpt.price_of_prompt('what is 2 + 2' * 5434), 10)))
+
+# gets the number of tokens in a string for this model
+# print(gpt.ask('what is 2 + 2'))
+
+# makes a query to the model, retrieves the text response from the 
+# ask request, also starts retaining context, as well as
+# cost and token accumulation
+# print(gpt.ask('what is 2 + 2'))
+# # print(gpt.cost(), gpt.tokens())
+
+# # prove retaining context
+# print(gpt.ask('what was the answer again?'))
+# print(gpt.ask('what was the answer again?'))
+# print(gpt.ask('what was the answer again?'))
+# print(gpt.ask('what was the answer again?'))
+
+# # clearing context
+# print(gpt.clear_context())
+# # ai will not know what the answer is
+# print(gpt.ask('what was the answer again?'))
+
+# asking too large of a prompt
+print(gpt.ask('what is 2 + 2'))

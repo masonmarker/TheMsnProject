@@ -107,7 +107,7 @@
             # get the line without the first two words
             # and without the last word
             @ page:suggested_usage:line = 
-                array:join(
+                iterable:join(
                     slice(page:suggested_usage:line.split(' '), 2, -1), ' '),
 
             console:print(arr(

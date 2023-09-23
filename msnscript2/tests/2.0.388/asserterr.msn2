@@ -12,7 +12,7 @@ import ('tests/resources/start')
 # make assertions
 assert:err(
     # common raise
-    raise('', '', ''), 
+    exception('', '', ''), 
 
     # indexing error
     private((

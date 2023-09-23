@@ -28,27 +28,20 @@ function('chatgpt:ask_gpt', (
     ask_gpt:_chrome.start(),
     ask_gpt:_chrome.write('https://chat.openai.com/'),
     ask_gpt:_chrome.enter(),
-
     # waits for the message input to appear
     @ ask_gpt:_message_input = ask_gpt:_chrome.wait_for_input('Send a message'),
-
     # opens the inspect element panel
     ask_gpt:_chrome.inspect(),
-
     # responses from ChatGPT
     @ ask_gpt:_responses = [],
-
     # for each message
     ask_gpt:_messages.each('ask_gpt:_message', (
-
         # asks ChatGPT a question
         ask_gpt:_message_input.focus(),
         ask_gpt:_chrome.write(ask_gpt:_message),
         ask_gpt:_chrome.enter(),
-
         # wait for a response
         ask_gpt:_chrome.wait_for_text('Regenerate'),
-
         # opens and injects JavaScript into the application's element 
         # inspection console
         # arguments: browser, script, inspect element is open?
@@ -60,7 +53,6 @@ function('chatgpt:ask_gpt', (
             console.log(lm.innerText+"%$@".repeat(1000));
         ), True))
     )),
-
     # returns the responses and the app instance opened
     ret('chatgpt:ask_gpt', arr(ask_gpt:_chrome, ask_gpt:_responses))
 ), 'ask_gpt:_messages')
@@ -161,31 +153,91 @@ class ('chatgpt:instance', (
     # how much to penalize words that have already been used
     @ presence_penalty = 0.6,
     # stop
-    # what to stop the response at
+    # where to stop the response
     @ stop = '###',
+    # cost of the running conversation (or last request if not retaining context)
+    @ cost = 0,
+    # token accumulation of the running conversation (or last request if not retaining context)
+    @ tokens = 0,
+    # turning on or off warnings
+    @ warning:tokens = True,
+    # constructor
+    def('const', 'self', if (not(has(ai.models(), self.model())), 
+        # model must exist
+        exception(
+            cat('Model ', self.model(), ' does not exist.'),
+            cat('Available models: ', iterable:join(", ", ai.models())),
+            ''
+        )
+    )),
+
+    # makes a query to this model
+    def('query', 'self', 'chatgpt:instance:query:prompt', chatgpt:query(
+        &chatgpt:query:prompt=chatgpt:instance:query:prompt,
+        &chatgpt:query:model=self.model(),
+        &chatgpt:query:temperature=self.temperature(),
+        &chatgpt:query:max_tokens=self.max_tokens(),
+        &chatgpt:query:top_p=self.top_p(),
+        &chatgpt:query:frequency_penalty=self.frequency_penalty(),
+        &chatgpt:query:presence_penalty=self.presence_penalty(),
+        &chatgpt:query:stop=self.stop()
+    )),
     
     # asks a question
     def('ask', 'self', 'chatgpt:instance:ask:prompt', (
         # return response based on model type
         # if using advanced models
-       if (self.is_advanced(), (
-            # add entry to messages
-            self.messages(
-                as('chatgpt:instance:t', self.messages(), chatgpt:instance:t.add(object(
-                    'role', 'user',
-                    'content', chatgpt:instance:ask:prompt
-                )))
-            ),
-            # make a query to the advanced model
-            chatgpt:query(
-                &chatgpt:query:prompt=self.messages(),
-                &chatgpt:query:model=self.model(),
-                &chatgpt:query:temperature=self.temperature(),
-                &chatgpt:query:max_tokens=self.max_tokens(),
-                &chatgpt:query:top_p=self.top_p(),
-                &chatgpt:query:frequency_penalty=self.frequency_penalty(),
-                &chatgpt:query:presence_penalty=self.presence_penalty(),
-                &chatgpt:query:stop=self.stop()
+        if (self.is_advanced(), (
+            # if retaining context
+            if (self.retain_context(), (
+                # get esimated tokens for this prompt
+                @ chatgpt:instance:estimated_tokens = self.tokens_for_prompt(chatgpt:instance:ask:prompt),
+                # check for exceptions
+                if (and(self.warning:tokens(), chatgpt:instance:estimated_tokens.greater(self.max_tokens())), exception(
+                    'Prompt too large', 
+                    script(Your prompt ({=chatgpt:instance:estimated_tokens=} tokens) has more tokens than the limit for this model ({=self.max_tokens()=} tokens)), 
+                    ''
+                )),
+                # check for warnings
+                # send warning if prompt tokens are over half this model's max tokens
+                if (and(self.warning:tokens(), chatgpt:instance:estimated_tokens.greater(//(self.max_tokens(), 2))), (
+                    self.warn(
+                        script(The number of tokens in your prompt ({=chatgpt:instance:estimated_tokens=} tokens
+                        ) is over half the limit for this model ({=self.max_tokens()=} tokens).),
+                    )
+                )),
+                # add entry to messages
+                self.messages(
+                    as('chatgpt:instance:t', self.messages(), chatgpt:instance:t.add(object(
+                        'role', 'user',
+                        'content', chatgpt:instance:ask:prompt
+                    )))
+                ),
+                # make query
+                @ chatgpt:instance:ask_request = self.query(self.messages()),
+                # accumulate tokens
+                self.tokens(+(self.tokens(), chatgpt:instance:ask_request.get('usage', 'total_tokens'))),
+                # recompute cost of tokens
+                self.cost(x(self.price_per_token(), self.tokens())),
+                # make a query to the advanced model
+                # with the current context
+                @ chatgpt:instance:ask_message = 
+                    dict(chatgpt:instance:ask_request.get('choices', 0, 'message')),
+                # merge messages
+                self.messages(
+                    as('chatgpt:instance:t', self.messages(), (
+                        chatgpt:instance:t.add(chatgpt:instance:ask_message),
+                        chatgpt:instance:t
+                    ))
+                ),
+                # return response as string
+                chatgpt:instance:ask_message.get('content')
+            ), 
+                # make a simple query without retaining context
+                # return the content
+                getn(self.query(
+                    arr(object('role', 'user', 'content', chatgpt:instance:ask:prompt))), 
+                        'choices', 0, 'message', 'content')
             )
         # otherwise, use the basic model
         ), ai.basic(chatgpt:instance:ask:prompt))
@@ -194,8 +246,36 @@ class ('chatgpt:instance', (
     def('is_advanced', 'self', and(
         not(startswith(self.model(), 'text')), 
         not(equals(self.model(), 'gpt-3.5-turbo-instruct')))),
-    # gets the number of tokens in a string for self model
-    def('tokens', 'self', 'chatgpt:instance:token_str', (
-        ai.tokens(chatgpt:instance:token_str, self.model()))
-    )
+
+    # information
+    # gets the max_tokens for this model
+    def('max_tokens', 'self', ai.max_tokens(self.model())),
+    # gets the price per token for this model
+    def('price_per_token', 'self', ai.price_per_token(self.model())),
+
+    # potential prompting computations
+    # attempts to compute the number of tokens for a prompt
+    # this is an ESTIMATE
+    def('tokens_for_prompt', 'self', 'chatgpt:instance:token_str', (
+        ai.tokens(chatgpt:instance:token_str, self.model()))),
+    # potential cost for prompt computation
+    # this is an ESTIMATE
+    # gets the price for a prompt, this doesn't include ChatGPT's completion
+    def('price_of_prompt', 'self', 'chatgpt:instance:prompt', 
+        x(self.price_per_token(), self.tokens_for_prompt(chatgpt:instance:prompt))),
+    # clears the running context
+    def('clear_context', 'self', (self.messages([]),)),
+    # prints a warning in the console
+    def('warn', 'self', 'chatgpt:instance:warning', print:color(
+        object(
+            'text', cat('[WARNING] ', chatgpt:instance:warning, ' Suppress this warning with '),
+            'style', 'bold',
+            'fore', 'yellow'
+        ),
+        object(
+            'text', 'chatgpt:instance.warning:tokens(False)\n',
+            'style', 'italic',
+            'fore', 'cyan'
+        ),
+    ))
 ))
