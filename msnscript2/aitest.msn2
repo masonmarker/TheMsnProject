@@ -4,10 +4,6 @@
 # author : Mason Marker
 # date : 9/26/2023
 
-
-
-
-
 # import library
 import ('lib/auto/chatgpt')
 
@@ -18,9 +14,9 @@ import ('lib/auto/chatgpt')
 # is not context dependent (saves $$$)
 gpt.retain_context(False)
 
-# generates 100 answers to the 
+# generates 50 answers to the 
 # same question
-100(thread(private(
+50(thread(private(
     print(gpt.ask('meaning of life in 5 words'))
 )))
 
