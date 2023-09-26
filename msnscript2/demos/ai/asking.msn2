@@ -103,7 +103,7 @@ import ('lib/auto/chatgpt')
 # this method can be called multiple times within a single conversation
 # to train the model to respond as different people, figures, characters, items, etc.
 # 
-gpt.train_as('Garfield the Cat')
+# gpt.train_as('Garfield the Cat')
 
 # answers the question as the figure requested
 # print(gpt.ask('what is your least favorite thing?'))
@@ -114,8 +114,9 @@ gpt.train_as('Garfield the Cat')
 
 # multithreaded responses for double the response generation
 # speed
+
 # thread(@thread1='t1', private((
-#     print(cat(thread1, ': ', gpt.ask('who are you in 10 words?'))),
+#     print(cat(thread1, ': ', gpt.ask('tell me a joke'))),
 #     print(cat(thread1, ': cost: ', gpt.cost(), ', tokens: ', gpt.tokens())) 
 # )))
 # thread(@thread2='t2', private((
@@ -129,3 +130,13 @@ gpt.train_as('Garfield the Cat')
 # despite being in a private context, objects are still shared
 # print('final:', gpt.cost(), gpt.tokens())
 
+
+# disabling warnings
+# gpt.warning:tokens(False)
+# gpt.warning:context_tokens(False)
+
+# upping the ante
+# >:)
+# generating hundreds of ChatGPT responses in parallel
+# and printing the cost and tokens
+# thread(print(gpt.ask('how are you?')))

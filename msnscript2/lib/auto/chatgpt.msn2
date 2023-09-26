@@ -164,7 +164,6 @@ class ('chatgpt:instance', (
         chatgpt:instance:models:key.startswith('text'),
         chatgpt:instance:models:key.startswith('gpt')
     )),
-
     # turning on or off warnings
     # prompt half max tokens
     @ warning:tokens = True,
@@ -199,21 +198,23 @@ class ('chatgpt:instance', (
             # if retaining context
             if (self.retain_context(), (
                 # get esimated tokens for this prompt
-                @ chatgpt:instance:estimated_tokens = self.tokens_for_prompt(chatgpt:instance:ask:prompt),
+                @ chatgpt:instance:estimated_tokens = private(self.tokens_for_prompt(chatgpt:instance:ask:prompt)),
                 # check for exceptions
-                if (and(self.warning:tokens(), chatgpt:instance:estimated_tokens.greater(self.max_tokens())), exception(
-                    'Prompt too large', 
-                    script(Your prompt (est. {=chatgpt:instance:estimated_tokens=} tokens) has more tokens than the limit for this model ({=self.max_tokens()=} tokens).), 
-                    ''
-                )),
+                if (and(self.warning:tokens(), chatgpt:instance:estimated_tokens.greater(self.max_tokens())), 
+                    exception(
+                        'Prompt too large', 
+                        script(Your prompt (est. {=chatgpt:instance:estimated_tokens=} tokens) has more tokens than the limit for this model ({=self.max_tokens()=} tokens).), 
+                        ''
+                    )
+                ),
                 # check for warnings
                 # send warning if retained context tokens + tokens of this prompt would be over half the model's max tokens
                 if (and(self.warning:context_tokens(), greater(self.tokens(), //(self.max_tokens(), 2))), 
                     self.warn(
                         script(The number of tokens in your context (est. {=self.tokens()=} tokens) plus the number of tokens in your prompt (
                             est. {=chatgpt:instance:estimated_tokens=} tokens) is over half the limit for this model (
-                                {=self.max_tokens()=} tokens).<nl>Try setting the model to one with a higher context(,) here are your options: {=
-                                    iterable:join(', ', self.models())=}.),
+                                {=self.max_tokens()=} tokens).<nl>Try setting the model to one with a higher context(,) here are your options:
+                                {=iterable:join(', ', self.models())=}.),
                                 'warning:context_tokens'
                     )
                 ),

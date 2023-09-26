@@ -4280,6 +4280,7 @@ class Interpreter:
                 elif obj == 'ai':
                     # ChatGPT API
                     import openai
+                    import tiktoken
                     global models
                     # verify existence of openai api key
                     if not openai.api_key:
@@ -4372,18 +4373,15 @@ class Interpreter:
                     # simple ai, see top of file for definition
                     # simple ask of the AI without context
                     if objfunc == 'basic':
-                        import openai
                         # generates an ai response with the basic model
                         return models['response']('gpt-3.5-turbo', self.parse(0, line, f, sp, args)[2])
                     # asks an advanced model a question, no context
                     elif objfunc == 'advanced':
-                        import openai
                         # generates an ai response with the advanced model
                         return models['response']('gpt-3.5-turbo-16k', self.parse(0, line, f, sp, args)[2])
                     # 2.0.388
                     # makes a fully customized query to the openai api
                     elif objfunc == 'query':
-                        import openai
                         # model to use
                         model = self.parse(0, line, f, sp, args)[2]
                         # check model
@@ -4441,7 +4439,6 @@ class Interpreter:
                             
                     # gets the amount of tokens for a string given a ChatGPT model
                     elif objfunc == 'tokens':
-                        import tiktoken
                         # string to check
                         prompt = self.parse(0, line, f, sp, args)[2]
                         # prompt must be str
@@ -4451,8 +4448,7 @@ class Interpreter:
                         # check model
                         models['check_model'](model_name)
                         # get the encoding
-                        encoding = tiktoken.encoding_for_model(model_name)
-                        return len(encoding.encode(prompt))
+                        return len(tiktoken.encoding_for_model(model_name).encode(prompt))
                     return '<msnint2 class>'
                 # merges all arguments into one
                 elif func == 'merge':
