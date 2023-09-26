@@ -18,10 +18,10 @@ import ('lib/auto/chatgpt')
 # is not context dependent (saves $$$)
 gpt.retain_context(False)
 
-# generates 20 answers to the 
+# generates 100 answers to the 
 # same question
 100(thread(private(
-    print(gpt.ask('hello!'))
+    print(gpt.ask('meaning of life in 5 words'))
 )))
 
 

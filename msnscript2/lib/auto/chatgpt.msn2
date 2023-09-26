@@ -198,7 +198,7 @@ class ('chatgpt:instance', (
             # if retaining context
             if (self.retain_context(), (
                 # get esimated tokens for this prompt
-                @ chatgpt:instance:estimated_tokens = self.tokens_for_prompt(chatgpt:instance:ask:prompt),
+                @ chatgpt:instance:estimated_tokens = private(self.tokens_for_prompt(chatgpt:instance:ask:prompt)),
                 # check for exceptions
                 if (and(self.warning:tokens(), chatgpt:instance:estimated_tokens.greater(self.max_tokens())), 
                     exception(
@@ -255,9 +255,9 @@ class ('chatgpt:instance', (
             ), (
                 # make a simple query without retaining context
                 # return the content
-                @ q = self.query(
+                @ chatgpt:instance:ask_request2 = self.query(
                     arr(object('role', 'user', 'content', chatgpt:instance:ask:prompt))),
-                q.get('choices', 0, 'message', 'content')
+                chatgpt:instance:ask_request2.get('choices', 0, 'message', 'content')
             ))
         # otherwise, use the basic model
         ), ai.basic(chatgpt:instance:ask:prompt))
