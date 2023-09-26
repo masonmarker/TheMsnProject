@@ -20,3 +20,5 @@ assert:err(
         array.get(32)
     ))
 )
+
+assert:err(exception('', '', ''))

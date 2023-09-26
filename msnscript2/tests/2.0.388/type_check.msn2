@@ -158,7 +158,7 @@ assert:err(print(op.add(3, 'asdf')))
 @ array = [1, 2, 3, 4, 5]
 assert(equals(->(array, 3), 4))
 # non indexable
-assert:err(->(4, 2))
+assert:err(->(4h, 2))
 # out of bounds error
 assert:err(->(array, 100))
 # ------------------------- syntax() -------------------------

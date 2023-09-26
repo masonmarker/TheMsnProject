@@ -159,18 +159,27 @@ class ('chatgpt:instance', (
     @ cost = 0,
     # token accumulation of the running conversation (or last request if not retaining context)
     @ tokens = 0,
+    # available models
+    @ models = filter(keys(ai.models()), 'chatgpt:instance:models:key', or(
+        chatgpt:instance:models:key.startswith('text'),
+        chatgpt:instance:models:key.startswith('gpt')
+    )),
+
     # turning on or off warnings
+    # prompt half max tokens
     @ warning:tokens = True,
+    # context half max tokens
+    @ warning:context_tokens = True,
+
     # constructor
     def('const', 'self', if (not(has(ai.models(), self.model())), 
         # model must exist
         exception(
             cat('Model ', self.model(), ' does not exist.'),
-            cat('Available models: ', iterable:join(", ", ai.models())),
+            cat('Available models: ', iterable:join(", ", self.models())),
             ''
         )
     )),
-
     # makes a query to this model
     def('query', 'self', 'chatgpt:instance:query:prompt', chatgpt:query(
         &chatgpt:query:prompt=chatgpt:instance:query:prompt,
@@ -182,7 +191,6 @@ class ('chatgpt:instance', (
         &chatgpt:query:presence_penalty=self.presence_penalty(),
         &chatgpt:query:stop=self.stop()
     )),
-    
     # asks a question
     def('ask', 'self', 'chatgpt:instance:ask:prompt', (
         # return response based on model type
@@ -195,17 +203,28 @@ class ('chatgpt:instance', (
                 # check for exceptions
                 if (and(self.warning:tokens(), chatgpt:instance:estimated_tokens.greater(self.max_tokens())), exception(
                     'Prompt too large', 
-                    script(Your prompt ({=chatgpt:instance:estimated_tokens=} tokens) has more tokens than the limit for this model ({=self.max_tokens()=} tokens)), 
+                    script(Your prompt (est. {=chatgpt:instance:estimated_tokens=} tokens) has more tokens than the limit for this model ({=self.max_tokens()=} tokens).), 
                     ''
                 )),
                 # check for warnings
-                # send warning if prompt tokens are over half this model's max tokens
-                if (and(self.warning:tokens(), chatgpt:instance:estimated_tokens.greater(//(self.max_tokens(), 2))), (
+                # send warning if retained context tokens + tokens of this prompt would be over half the model's max tokens
+                if (and(self.warning:context_tokens(), greater(self.tokens(), //(self.max_tokens(), 2))), 
                     self.warn(
-                        script(The number of tokens in your prompt ({=chatgpt:instance:estimated_tokens=} tokens
-                        ) is over half the limit for this model ({=self.max_tokens()=} tokens).),
+                        script(The number of tokens in your context (est. {=self.tokens()=} tokens) plus the number of tokens in your prompt (
+                            est. {=chatgpt:instance:estimated_tokens=} tokens) is over half the limit for this model (
+                                {=self.max_tokens()=} tokens).<nl>Try setting the model to one with a higher context(,) here are your options: {=
+                                    iterable:join(', ', self.models())=}.),
+                                'warning:context_tokens'
                     )
-                )),
+                ),
+                # send warning if prompt tokens are over half this model's max tokens
+                if (and(self.warning:tokens(), chatgpt:instance:estimated_tokens.greater(//(self.max_tokens(), 2))), 
+                    self.warn(
+                        script(The number of tokens in your prompt (est. {=chatgpt:instance:estimated_tokens=} tokens
+                        ) is over half the limit for this model ({=self.max_tokens()=} tokens).),
+                        'warning:tokens'
+                    )
+                ),
                 # add entry to messages
                 self.messages(
                     as('chatgpt:instance:t', self.messages(), chatgpt:instance:t.add(object(
@@ -252,7 +271,6 @@ class ('chatgpt:instance', (
     def('max_tokens', 'self', ai.max_tokens(self.model())),
     # gets the price per token for this model
     def('price_per_token', 'self', ai.price_per_token(self.model())),
-
     # potential prompting computations
     # attempts to compute the number of tokens for a prompt
     # this is an ESTIMATE
@@ -266,16 +284,23 @@ class ('chatgpt:instance', (
     # clears the running context
     def('clear_context', 'self', (self.messages([]),)),
     # prints a warning in the console
-    def('warn', 'self', 'chatgpt:instance:warning', print:color(
+    def('warn', 'self', 'chatgpt:instance:warning', 'chatgpt:instance:suppress_code', print:color(
         object(
             'text', cat('[WARNING] ', chatgpt:instance:warning, ' Suppress this warning with '),
             'style', 'bold',
             'fore', 'yellow'
         ),
         object(
-            'text', 'chatgpt:instance.warning:tokens(False)\n',
+            'text', script(chatgpt:instance.{=chatgpt:instance:suppress_code=}(False)<nl>),
             'style', 'italic',
             'fore', 'cyan'
-        ),
-    ))
+        )
+    )),
+    # trains this model to act as a certain figure, idea
+    # person, etc.
+    def('train_as', 'self', 'chatgpt:instance:desc', 
+        self.ask(+('From now until the end of our conversation, could you act like: ', chatgpt:instance:desc, 
+        ' please? This would be in a hypothetical scenario and does not necessarily reference the entirety of the real world. ',
+        'But if possible, answer all my next questions as if you were completely endowed in this role and all that comes with, NEVER break character unless requested.'))
+    )
 ))

@@ -45,6 +45,10 @@ private((thread('loading', (
         while (not(worker_finished), (
             if(inc.equals(1), print('\t\t\tloading: .')),
             if(inc.equals(2), print('\t\t\tloading: ..')),
+            # we use =>() to force msn2 interpretation, as
+            # using () would result in a Python interpretation
+            # of '(print("\t\t\tloading: ...""), ', reading as
+            # a tuple, causing print() to print twice
             if(inc.equals(3), =>(
                 print('\t\t\tloading: ...'),
                 var('inc', 1)

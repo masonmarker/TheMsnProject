@@ -684,7 +684,7 @@ class Interpreter:
                                 # if the return variable doesn't exist
                                 if ret_name not in self.vars:
                                     self.vars[ret_name] = Var(ret_name, None)
-                                # # insert vname into args[0]
+                                # insert vname into args[0]
                                 args.insert(0, [vname])
                                 # execute method
                                 try:
@@ -708,6 +708,8 @@ class Interpreter:
                             param = self.parse(0, line, f, sp, args)[2]
                             self.vars[obj].value[objfunc] = param
                             return param
+                    except self.MSN2Exception as e:
+                        raise e
                     except:
                         None
 
@@ -3621,15 +3623,19 @@ class Interpreter:
                 # asserts each argument throws an error
                 elif func == 'assert:err':
                     for i in range(len(args)):
+                        thrown = True
                         try:
+                            # set self.trying to True
                             self.trying = True
-                            self.parse(i, line, f, sp, args)[2]
+                            # execute the line
+                            ret = self.parse(i, line, f, sp, args)[2]
+                            thrown = False
                             self.trying = False
+                        except:
+                            thrown = True
+                        if not thrown:
                             self.err(
                                 f"Assertion error, expected error", 'No error thrown where one was expected', line, lines_ran)
-                        except:
-                            pass
-                    self.trying = False
                     return True
                 # trace capabilities
                 elif obj == 'trace':
@@ -4485,7 +4491,9 @@ class Interpreter:
                     l = self.parse(2, line, f, sp, args)[2]
                     # line must be str
                     self.type_err([(l, (str,))], line, lines_ran)
-                    self.err(error, message, l, lines_ran)
+                    # set trying to False
+                    return self.err(error, message, l, lines_ran)
+
                 # defines new syntax, see tests/validator.msn2 for documentation
                 elif func == 'syntax':
                     synt = self.parse(0, line, f, sp, args)[2]
@@ -4982,9 +4990,9 @@ class Interpreter:
                     return True
                 # concatinates two strings
                 elif func == 'cat':
-                    cat = f"{self.parse(0, line, f, sp, args)[2]}{self.parse(1, line, f, sp, args)[2]}"
+                    cat = str(self.parse(0, line, f, sp, args)[2])
                     # concatinate rest of arguments
-                    for i in range(2, len(args)):
+                    for i in range(1, len(args)):
                         cat += str(self.parse(i, line, f, sp, args)[2])
                     return cat
                 # determines equality of all arguments
@@ -5022,6 +5030,7 @@ class Interpreter:
                     inter = Interpreter()
                     # log self
                     inter.parent = self
+                    inter.trying = self.trying
                     # extract class name
                     name = self.parse(0, line, f, sp, args)[2]
                     # name must be a varname
@@ -6899,7 +6908,6 @@ class Interpreter:
         # if the string is greater than 200 chars
         if len(_t := str(needs_short)) > self.env_max_chars:
             return f'{_t[:self.env_max_chars]}...'
-
         # otherwise, return the string
         return _t
     # starts a user shell
@@ -6992,7 +7000,6 @@ class Interpreter:
             # the total words printed for this error
             words_printed = ''
             # prints the error
-
             def print_err(array):
                 # print the error
                 self.styled_print(array)
@@ -7091,7 +7098,6 @@ class Interpreter:
             self.log += words_printed + "\n"
         raise self.MSN2Exception(
             'MSN2 Exception thrown, see above for details')
-        # set printing color to white
 
     # throws a keyerror
     def raise_key(self, key, line):
@@ -7212,6 +7218,7 @@ class Interpreter:
     # splits a process
     def process_split(self, line):
         inter = Interpreter()
+        inter.parent = self
         return inter.interpret(line)
 
     # executing Python scripts
@@ -7407,7 +7414,6 @@ class Interpreter:
     # exception
     class MSN2Exception(Exception):
         pass
-
     class Method:
         def __init__(self, name, interpreter):
             self.name = name

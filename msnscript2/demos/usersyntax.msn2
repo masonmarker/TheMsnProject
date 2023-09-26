@@ -62,7 +62,7 @@ syntax('/t', 'line', (
 }
 
 # using user syntax across multiple lines with block syntax
-=>(
+(
     /t
         assert(1, 1, 1, not(0), << True >>,
          <<not(not(True))>>)

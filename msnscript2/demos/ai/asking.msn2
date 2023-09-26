@@ -4,7 +4,7 @@
 # date : 12/16/2022
 
 # specifically for clearing the console
-import ('lib/os.msn2')
+import ('lib/os')
 os:clear()
 
 # simple ai call
@@ -35,6 +35,7 @@ os:clear()
 # }
 # print(ai.advanced('what is 2 + 2'))
 
+# importing ChatGPT library
 import ('lib/auto/chatgpt')
 
 
@@ -76,5 +77,55 @@ import ('lib/auto/chatgpt')
 # # ai will not know what the answer is
 # print(gpt.ask('what was the answer again?'))
 
-# asking too large of a prompt
-print(gpt.ask('what is 2 + 2'))
+
+# would suppress warning for next line
+# gpt.warning:tokens(False)
+
+# sending a warning if over half of model max token limit
+# print(gpt.ask('what is 2 + 2' * 550))
+
+# would suppress warning for next line
+# gpt.warning:context_tokens(False)
+
+# sending a warning if retained context tokens over half of model's max token limit
+# add a large previous conversation (also raises prompt warning)
+# print(gpt.ask('what is 2 + 2' * 550))
+
+# raises context is getting large warning,
+# suggests raising context size by changing model
+# gpt.ask('hello!')
+
+# should throw an exception
+# assert:err(gpt.ask('what is 2 + 2' * 9999))
+
+# trains a model as a certain person, figure, character, item, etc.
+# takes one argument as a description of the person, figure, character, item, etc.
+# this method can be called multiple times within a single conversation
+# to train the model to respond as different people, figures, characters, items, etc.
+# 
+gpt.train_as('Garfield the Cat')
+
+# answers the question as the figure requested
+# print(gpt.ask('what is your least favorite thing?'))
+# print(gpt.ask('who do you like more, jon or odie?'))
+
+# starting cost and tokens
+# print('starting:', gpt.cost(), gpt.tokens())
+
+# multithreaded responses for double the response generation
+# speed
+# thread(@thread1='t1', private((
+#     print(cat(thread1, ': ', gpt.ask('who are you in 10 words?'))),
+#     print(cat(thread1, ': cost: ', gpt.cost(), ', tokens: ', gpt.tokens())) 
+# )))
+# thread(@thread2='t2', private((
+#     print(cat(thread2, ': ', gpt.ask('what is your favorite food?'))),
+#     print(cat(thread2, ': cost: ', gpt.cost(), ', tokens: ', gpt.tokens()))
+# )))
+#
+# join the two threads
+# join('t1', 't2')
+# print the final cost and tokens,
+# despite being in a private context, objects are still shared
+# print('final:', gpt.cost(), gpt.tokens())
+
