@@ -136,7 +136,16 @@ import ('lib/auto/chatgpt')
 # gpt.warning:context_tokens(False)
 
 # upping the ante
-# >:)
 # generating hundreds of ChatGPT responses in parallel
 # and printing the cost and tokens
-# thread(print(gpt.ask('how are you?')))
+# >:)
+
+# we clear context and no longer retain
+# to avoid unneccessarily large charges from OPENAI
+gpt.clear_context()
+gpt.retain_context(False)
+
+# create 10 private threads to make requests
+20(thread(private(
+    print(gpt.ask('tell me a random joke'))
+)))

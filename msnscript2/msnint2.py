@@ -1322,8 +1322,6 @@ class Interpreter:
                         # gets a character in this string
                         if objfunc == 'get':
                             ind = self.parse(0, line, f, sp, args)[2]
-                            # ind must be an int
-                            self.type_err([(ind, (int,))], line, lines_ran)
                             return self.vars[vname].value[ind]
                         # uppercases the string
                         if objfunc == 'upper':
@@ -4388,8 +4386,7 @@ class Interpreter:
                         models['check_model'](model)
                         # messages
                         messages = self.parse(1, line, f, sp, args)[2]
-                        # messages must be list
-                        self.type_err([(messages, (list,))], line, lines_ran)
+                        self.type_err([(messages, (list, str))], line, lines_ran)
                         # temperature
                         temperature = self.parse(2, line, f, sp, args)[2]
                         # temp must be int or float
@@ -5077,8 +5074,6 @@ class Interpreter:
                         for i in range(2, len(args)):
                             # get the index
                             ind = self.parse(i, line, f, sp, args)[2]
-                            # index must be int or str
-                            self.type_err([(ind, (int, str))], line, lines_ran)
                             # get at the index
                             obj = obj[ind]
                         return obj

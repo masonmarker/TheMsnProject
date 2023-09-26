@@ -1,0 +1,42 @@
+# Tests various features of 
+# the MSN2 ChatGPT library.
+#
+# author : Mason Marker
+# date : 9/26/2023
+
+
+
+
+
+# import library
+import ('lib/auto/chatgpt')
+
+# create ChatGPT instance
+@gpt = chatgpt:instance('gpt-3.5-turbo')
+
+# don't retain context, as the question
+# is not context dependent (saves $$$)
+gpt.retain_context(False)
+
+# generates 20 answers to the 
+# same question
+100(thread(private(
+    print(gpt.ask('hello!'))
+)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
