@@ -49,8 +49,24 @@
 # (it definitely exists)
 
 # TODO
-# 2.0.388
+# 2.0.389
 #
+# * BYPASS CHATGPT TOKEN LIMIT WITH MULTITHREADING
+# - with ease of multithreading, we should theoretically able to
+#   achieve unlimited tokens in a single prompt with multithreading, 
+#   here's how it'll work:
+#                  
+#    1. prompt is chunked into (chatgpt:instance.max_tokens() // 2)
+#       estimated token sized chunks, this leaves approx. half chatgpt:instance.max_tokens()
+#       for request and half for response. These chunks 
+# 
+#
+# * FIX ARGUMENT PASSING WITH EMPTY OR FALSE VALUE
+# - currently, if an argument is passed with an empty or false value,
+#   the mapping to the function arguments is not applied correctly.
+#
+# 
+#  ----- Less Important -----
 # * CHROME BROWSER
 # - finish lib/auto/chrome class extension
 #
@@ -61,7 +77,8 @@
 
 # the current logical implementation is conceptual,
 # deoptimized, and exists to prove functionality as speed can
-# be enhanced later
+# be enhanced later, however, opportunities for speed enhancement
+# are still implemented if less major.
 
 # NOTE
 # Python runner's alias are determined by
@@ -270,10 +287,10 @@ class Interpreter:
         skipping = False
         # for each line of code
         for line in script.split("\n"):
-            # add to list of lines
+            # add to list of liness
             self.lines.append(line)
             # continue if this line is a comment
-            if not line or self.is_comment(line):
+            if self.is_comment(line):
                 continue
             # for running Python
             if not keep_space and line.endswith('\\\\'):
@@ -435,7 +452,7 @@ class Interpreter:
         l = len(line)
         # whether the line should immediately continue or not
         cont = False
-        if line == '':
+        if not line:
             return
         # the below conditions interpret a line based on initial appearances
         # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
@@ -660,6 +677,7 @@ class Interpreter:
                     except:
                         object = self.vars[obj]
                     try:
+                        
                         # if the object is a class
                         if objfunc in object:
                             # if the object is a self.Method
@@ -1267,6 +1285,12 @@ class Interpreter:
                         # gets the lines of this string
                         if objfunc == 'lines':
                             return self.vars[vname].value.split('\n')
+                        # gets the words of this string
+                        if objfunc == 'words':
+                            return self.vars[vname].value.split(' ')
+                        # gets the characters of this string
+                        if objfunc == 'chars':
+                            return list(self.vars[vname].value)
                         # determines if the string is a digit
                         if objfunc == 'isdigit':
                             return self.vars[vname].value.isdigit()
@@ -3291,13 +3315,12 @@ class Interpreter:
                             as_s = args[i][0].strip()
                             meth_argname = None
                             if as_s[0] == '&':
-                                func_args, meth_argname, arg, _ = self.split_named_arg(
-                                    as_s, method, func_args)
+                                func_args, meth_argname, arg, ind = self.split_named_arg(
+                                    as_s, method, func_args, user_func=True)
                             # else, just append the argument
                             else:
                                 arg = self.parse(i, line, f, sp, args)[2]
-                                func_args.append(self.parse(
-                                    i, line, f, sp, args)[2])
+                                func_args.append(arg)
                             try:
                                 meth_argname = method.args[i]
                             # incorrect amount of function arguments supplied
@@ -6854,7 +6877,7 @@ class Interpreter:
         return None
     # splits a named argument in a function
 
-    def split_named_arg(self, as_s, method, func_args):
+    def split_named_arg(self, as_s, method, func_args, user_func=False):
         # name of argument
         meth_argname = ''
         # iterate up to the first '=' in as_s
@@ -6873,13 +6896,17 @@ class Interpreter:
         # get the index of the named argument in method.args
         try:
             ind = method.args.index(meth_argname)
-        except ValueError:
-            # add the meth_argname to method.args
+        except ValueError:            
+            #if not user_func:
+            # find the argument
             method.args.append(meth_argname)
             ind = method.args.index(meth_argname)
+            #else:
+                
         # adjust the func_args list to the correct size
         if len(func_args) < ind + 1:
             func_args += [None] * (ind + 1 - len(func_args))
+        #print(func_args, ind)
         # set the argument at the index to the value
         func_args[ind] = self.interpret(arg)
         return func_args, meth_argname, arg, ind
@@ -7000,16 +7027,16 @@ class Interpreter:
             # printing the traceback
             print_err([
                 {'text': 'MSN2 Traceback:\n', 'style': 'bold', 'fore': 'green'},
-                {'text': (divider := '--------------'),
+                {'text': (divider := '-' * 15),
                  'style': 'bold', 'fore': 'green'},
             ])
             _branches = []
-            root_nums = []            
-            for k, (root_num, code_line) in inst_tree.items():
-                root_nums.append(root_num)
-            root_nums = list(set(root_nums))
-            root_nums.sort()
-            for root_num in root_nums:
+            root_nums = {root_num for _, (root_num, _) in inst_tree.items()}            
+            # for k, (root_num, code_line) in inst_tree.items():
+            #     root_nums.add(root_num)
+            # #root_nums = list(set(root_nums))
+            # #root_nums.sort()
+            for root_num in sorted(root_nums):
                 branches = []
                 for k, (root_num2, code_line2) in inst_tree.items():
                     if root_num2 == root_num:
@@ -7026,15 +7053,16 @@ class Interpreter:
                 else:
                     _branch_color = 'white'
                 # print the caller
-                print_err([
-                    {'text': '>> ', 'style': 'bold', 'fore': 'black'},
-                    {'text': self.shortened(_branch[0].strip()), 'style': 'bold',
-                     'fore': _branch_color},
-                    {'text': ' <<< ' if is_caller else '',
-                        'style': 'bold', 'fore': 'yellow'},
-                    {'text': 'SOURCE' if is_caller else '',
-                        'style': 'bold', 'fore': 'yellow'}
-                ])
+                if (_b := _branch[0].strip()) != '':
+                    print_err([
+                        {'text': '>> ', 'style': 'bold', 'fore': 'black'},
+                        {'text': self.shortened(_b), 'style': 'bold',
+                        'fore': _branch_color},
+                        {'text': ' <<< ' if is_caller else '',
+                            'style': 'bold', 'fore': 'yellow'},
+                        {'text': 'SOURCE' if is_caller else '',
+                            'style': 'bold', 'fore': 'yellow'}
+                    ])
                 # if branches more than 3
                 if len(_branch) > 4 and not is_caller:
                     # print the lines branching off
@@ -7067,7 +7095,6 @@ class Interpreter:
                             ])
                     else:
                         for _branch2 in _branch[1:]:
-
                             print_err([
                                 {'text': '    at   ',
                                     'style': 'bold', 'fore': 'black'},
@@ -7086,7 +7113,7 @@ class Interpreter:
                 {'text': msg, 'style': 'bold', 'fore': 'red'},
             ])
             # add to log
-            self.log += words_printed + "\n"
+            self.log += f"{words_printed}\n"
         raise self.MSN2Exception(
             'MSN2 Exception thrown, see above for details')
 
@@ -7424,9 +7451,9 @@ class Interpreter:
             self.returns.append(ret)
 
         def default(self, func_insert, index):
-            return not func_insert and isinstance(self.args[index], list)
+            return isinstance(self.args[index], list) and func_insert == None
 
-        def run(self, args, inter, actual_args=None):
+        def run(self, args, inter, actual_args=None):            
             # finds an argument in the list of arguments
             def find_arg(func_var):
                 ind = -1
@@ -7458,7 +7485,7 @@ class Interpreter:
                             self.args[ind][0], self.args[ind][1])
                     else:
                         inter.vars[func_var] = Var(func_var, func_insert)
-                except:
+                except Exception:
                     try:
                         if self.default(func_insert, i):
                             raise TypeError()
@@ -7471,6 +7498,7 @@ class Interpreter:
                             inter.vars[func_var] = Var(func_var, args[ind])
                         elif default_value:
                             inter.vars[func_var] = Var(func_var, default_value)
+
             # loop through arguments to set
             for i in range(len(self.args)):
                 if actual_args:
@@ -7485,7 +7513,9 @@ class Interpreter:
                     inter.vars[self.args[i]] = inter.vars[args[i]]
                 except:
                     try:
+                        # print('func_var: ', self.args[i], 'func_insert: ', args[i], 'args: ', args)
                         try_var(self.args[i], args[i])
+                        # print('stayed')
                     except IndexError:
                         # using default value
                         args.append(self.args[i][1])

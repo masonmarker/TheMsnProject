@@ -10,6 +10,7 @@
         "3": "Enabled the MSN2 interpreter to interpret multi-lined blocks of code for a few more cases (line ending with ',', etc...)",
         "4": "Added ai.tokens(), ai.advanced(), ai.query() in the msn2 ai class",
         "5": "Added chatgpt:instance class to lib/auto/chatgpt for more control over a ChatGPT model (demo in demos folder)",
-        "6": "Updated the msn2 ai class model structure, and with a few more models (WIP)"
+        "6": "Updated the msn2 ai class model structure, and with a few more models (WIP)",
+        "7": "Improved performance in raising errors"
     }
 }

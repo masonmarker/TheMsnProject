@@ -12,6 +12,7 @@
 # author : Mason Marker
 # date : 6/2/2023
 # updated in 2.0.387
+# updated again in 2.0.388
 
 # import automated JavaScript injection library
 import ('lib/auto/inject')
@@ -190,15 +191,35 @@ class ('chatgpt:instance', (
         &chatgpt:query:presence_penalty=self.presence_penalty(),
         &chatgpt:query:stop=self.stop()
     )),
+
+    # helper method for ask
+    def('_ask_recompute', 'self', 'chatgpt:instance:helper:ask_request', (
+        # accumulate tokens
+        self.tokens(+(self.tokens(), chatgpt:instance:helper:ask_request.get('usage', 'total_tokens'))),
+        # recompute cost of tokens
+        self.cost(x(self.price_per_token(), self.tokens())),
+    )),
+    # applies constraints to the response
+    # forces a requery if the response is not valid
+    def('_apply_constraints', 'chatgpt:instance:_apply_constraints:prompt', 'chatgpt:instance:_apply_constraints:constraints', (
+        
+    )),
+
     # asks a question
-    def('ask', 'self', 'chatgpt:instance:ask:prompt', (
+    #
+    # chatgpt:instance:ask:prompt - the prompt to ask
+    def('ask', 'self', 'chatgpt:instance:ask:prompt', &chatgpt:instance:ask:constraints="", (
+
+        # apply constraints to the prompt
+        print(chatgpt:instance:ask:prompt, chatgpt:instance:ask:constraints),
+
         # return response based on model type
         # if using advanced models
         if (self.is_advanced(), (
             # if retaining context
             if (self.retain_context(), (
                 # get esimated tokens for this prompt
-                @ chatgpt:instance:estimated_tokens = private(self.tokens_for_prompt(chatgpt:instance:ask:prompt)),
+                @ chatgpt:instance:estimated_tokens = self.tokens_for_prompt(chatgpt:instance:ask:prompt),
                 # check for exceptions
                 if (and(self.warning:tokens(), chatgpt:instance:estimated_tokens.greater(self.max_tokens())), 
                     exception(
@@ -236,9 +257,7 @@ class ('chatgpt:instance', (
                 # make query
                 @ chatgpt:instance:ask_request = self.query(self.messages()),
                 # accumulate tokens
-                self.tokens(+(self.tokens(), chatgpt:instance:ask_request.get('usage', 'total_tokens'))),
-                # recompute cost of tokens
-                self.cost(x(self.price_per_token(), self.tokens())),
+                self._ask_recompute(chatgpt:instance:ask_request),
                 # make a query to the advanced model
                 # with the current context
                 @ chatgpt:instance:ask_message = 
@@ -257,16 +276,20 @@ class ('chatgpt:instance', (
                 # return the content
                 @ chatgpt:instance:ask_request2 = self.query(
                     arr(object('role', 'user', 'content', chatgpt:instance:ask:prompt))),
+                # accumulate tokens
+                self._ask_recompute(chatgpt:instance:ask_request2),
                 chatgpt:instance:ask_request2.get('choices', 0, 'message', 'content')
             ))
-        # otherwise, use the basic model
+        # otherwise, use the basic model, cost and token accumulation not implemented yet,
+        # and may never be implemented as the basic model is much more costly and slower
+        # than advanced models
         ), ai.basic(chatgpt:instance:ask:prompt))
     )),
+
     # whether or not this object has an advanced model or not
     def('is_advanced', 'self', and(
         not(startswith(self.model(), 'text')), 
         not(equals(self.model(), 'gpt-3.5-turbo-instruct')))),
-
     # information
     # gets the max_tokens for this model
     def('max_tokens', 'self', ai.max_tokens(self.model())),
