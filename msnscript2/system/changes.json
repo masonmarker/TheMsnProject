@@ -11,6 +11,7 @@
         "4": "Added ai.tokens(), ai.advanced(), ai.query() in the msn2 ai class",
         "5": "Added chatgpt:instance class to lib/auto/chatgpt for more control over a ChatGPT model (demo in demos folder)",
         "6": "Updated the msn2 ai class model structure, and with a few more models (WIP)",
-        "7": "Improved performance in raising errors"
+        "7": "Improved performance in raising errors",
+        "8": "Improved performance in general interpretation. This includes simplifying potentially tight loops and common method executions such as argument parsing."
     }
 }

@@ -430,7 +430,7 @@ func9('hello', '')
 
 
 
-# one named argument
+# #one named argument
 # print("-->  func9('hello', &arg4=[])")
-# uncomment to induce error
+# #uncomment to induce error
 # func9('hello', &arg4=[])

@@ -1,27 +1,65 @@
+(don't edit this file)
 
 
 --- GENERAL DEPENDENCIES
---- these are all the dependencies used
-    by the msn2 interpreter, though not all programs
-    may use all of these dependencies, as they are
-    imported when an msn2 program requires it.
-    this is as of 2.0.387
+---     don't feel overwhelmed by this list!! ,
 
+    these are all the dependencies used
+    by the ENTIRE msn2 interpreter, not all programs
+    will even use a single one of these dependencies (this is as of 2.0.387), 
+    as they are imported when an msn2 program requests them to be imported.
+    
+    see the source code (msnint2.py) to find out what msn2 code
+    imports what dependencies.
+
+
+for HTML and web scraping:
 pip install bs4
 pip install html5lib
+pip install requests-html
+
+for openai and chatgpt interactions:
 pip install openai
+pip install tiktoken
+pip install langchain
+
+for starting api endpoints and interacting:
 pip install requests
 pip install flask
 pip install flask_restful
 pip install flask_cors
+
+for windows automation:
 pip install -U pywinauto
+
+for excel and spreadsheet interactions:
 pip install openpyxl
+
+for clipboard interactions:
 pip install pyperclip
-pip install requests-html
-pip install tiktoken
+
+you can install all of the above 'pip' installs via
+    "{python_alias} install_deps.py"
+if you plan on using the entirety of msn2's functionality,
+otherwise unnecessary dependencies will be installed.
 
 -- LANG DEPENDENCIES
-JavaScript: node.js
-C / C++: gcc  (easily installed with 'choco install mingw')
+    you will have a need to install these dependencies
+    on your machine if you want to use msn2 calls such as
+    those specified below.
+
+JavaScript "JS()" in msn2: 
+    node.js
+
+C "C()" in msn2: 
+    gcc  (easily installed with 'choco install mingw')
               (this switches Python alias to 'py', and you
                may have to reinstall dependencies)
+
+Java "JAVA()" in msn2:
+    To install Java you need to install 
+    the JDK (Java Development Kit) on your system.
+
+
+
+"{python_alias} msn2.py help" for more information

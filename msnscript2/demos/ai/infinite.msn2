@@ -1,0 +1,25 @@
+# Tests the processing and response for a prompt of unlimited
+# length.
+#
+# author : Mason Marker
+# date : 10/01/2023
+# version : 2.0.388
+
+# import chatgpt
+import ('lib/auto/chatgpt')
+
+# create ChatGPT instance
+@gpt = chatgpt:instance()
+
+# disable prompt length estimation warnings
+gpt.warning:tokens(False)
+gpt.warning:context_tokens(False)
+
+# console information messages
+gpt.verbose(True)
+
+# asking a question with an infinite context
+# regarding the question
+print(gpt.ask(
+    'give me a short summary of the paper',
+     file.read('demos/ai/longpaper.txt')))
