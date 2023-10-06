@@ -3,7 +3,6 @@ Mason Marker
 Computer Science
 James Madison University
 Harrisonburg, Virginia, United States
-markermd@dukes.jmu.edu
 ABSTRACT
 One excels in the field of medicine upon proving themselves 
 reliable in terms of correctness and consistency. This includes 

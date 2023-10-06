@@ -188,6 +188,11 @@ class ('chatgpt:instance', (
             ''
         )
     )),
+    # disables all warnings for this instance
+    def('disable_warnings', 'self', (
+        self.warning:tokens(False),
+        self.warning:context_tokens(False)
+    )),
     # makes a query to this model
     def('query', 'self', 'chatgpt:instance:query:prompt', chatgpt:query(
         &chatgpt:query:prompt=chatgpt:instance:query:prompt,

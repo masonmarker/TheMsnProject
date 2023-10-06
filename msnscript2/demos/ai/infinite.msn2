@@ -1,19 +1,20 @@
-# Tests the processing and response for a prompt of unlimited
-# length.
+# Tests the processing and 
+# response quality for a prompt of 
+# unlimited length.
 #
 # author : Mason Marker
-# date : 10/01/2023
+# date : 10/05/2023
 # version : 2.0.388
 
-# import chatgpt
+# import ChatGPT interactions
 import ('lib/auto/chatgpt')
 
 # create ChatGPT instance
 @gpt = chatgpt:instance()
 
-# disable prompt length estimation warnings
-gpt.warning:tokens(False)
-gpt.warning:context_tokens(False)
+# disables all prompt token length
+# warnings
+gpt.disable_warnings()
 
 # console information messages
 gpt.verbose(True)
@@ -22,4 +23,5 @@ gpt.verbose(True)
 # regarding the question
 print(gpt.ask(
     'give me a short summary of the paper',
-     file.read('demos/ai/longpaper.txt')))
+     file.read('demos/ai/longpaper.txt')
+))
