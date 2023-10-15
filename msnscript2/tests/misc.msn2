@@ -16,8 +16,10 @@
 
 
 # appending to file
-@ path = 'demos/ai/lotsofdata.txt'
-for(0, 1000, 'i', (
-    for(0, 100, 'j', file.append(path, random(0, 10,))),
-    file.append(path, '\n')
-))
+# @ path = 'demos/ai/lotsofdata.txt'
+# for(0, 1000, 'i', (
+#     for(0, 100, 'j', file.append(path, random(0, 10,))),
+#     file.append(path, '\n')
+# ))
+
+print(insert([1, 2, 3, 4], 2, 100))

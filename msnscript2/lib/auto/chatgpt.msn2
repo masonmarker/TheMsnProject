@@ -193,6 +193,15 @@ class ('chatgpt:instance', (
         self.warning:tokens(False),
         self.warning:context_tokens(False)
     )),
+    # resets all ChatCompletion settings to their default values
+    def('reset', 'self', (
+        self.temperature(0.9),
+        self.max_tokens(150),
+        self.top_p(1),
+        self.frequency_penalty(0.0),
+        self.presence_penalty(0.6),
+        self.stop('###')
+    )),
     # makes a query to this model
     def('query', 'self', 'chatgpt:instance:query:prompt', chatgpt:query(
         &chatgpt:query:prompt=chatgpt:instance:query:prompt,
@@ -204,7 +213,6 @@ class ('chatgpt:instance', (
         &chatgpt:query:presence_penalty=self.presence_penalty(),
         &chatgpt:query:stop=self.stop()
     )),
-
     # helper method for ask
     def('_ask_recompute', 'self', 'chatgpt:instance:helper:ask_request', (
         # accumulate tokens
@@ -333,7 +341,6 @@ class ('chatgpt:instance', (
             @chatgpt:instance:ask:simplified_context = 
                 self.simplify_infinite_context(chatgpt:instance:ask:prompt, 
                     chatgpt:instance:ask:context)
-            
         ))
     )),
     # Attempts to answer a question about a context of infinite length.
@@ -506,5 +513,35 @@ class ('chatgpt:instance', (
         self.ask(+('From now until the end of our conversation, could you act like: ', chatgpt:instance:desc, 
         ' please? This would be in a hypothetical scenario and does not necessarily reference the entirety of the real world. ',
         'But if possible, answer all my next questions as if you were completely endowed in this role and all that comes with, NEVER break character unless requested.'))
-    )
+    ),
+    # generates code for a specific programming language
+    #
+    # chatgpt:instance:ask:code:lang - the language to generate code for
+    # chatgpt:instance:ask:code:desc - the description of the code to generate
+    def('ask:code', 'self', 'chatgpt:instance:ask:code:lang', 'chatgpt:instance:ask:code:desc', (
+        # ask for code from the specified programming language with the description provided
+        @chatgpt:instance:ask:code:prompt = script(
+            give me {=chatgpt:instance:ask:code:lang=} code that does the following: <nl>
+            {=chatgpt:instance:ask:code:desc=}<nl><nl>
+            (GIVE CODE ONLY)<nl>
+        ),
+        # extract text between ``` and ```
+        @chatgpt:instance:ask:code:response = self.ask(chatgpt:instance:ask:code:prompt),
+        # extract code
+        @chatgpt:instance:ask:code:between = between('```', chatgpt:instance:ask:code:response),
+        # if between is empty, return the response
+        if (equals(len(chatgpt:instance:ask:code:between), 0), 
+            # return response
+            chatgpt:instance:ask:code:response,
+            # otherwise, return the first element in between, 
+            # add a '#' to the front
+            insert(chatgpt:instance:ask:code:between.get(0), 0, '# ')
+        )
+    )),
+    # set conciseness of responses
+    def('answer_only', 'self', (
+        self.temperature(0.0),
+        self.max_tokens(50),
+        True
+    ))
 ))

@@ -1290,6 +1290,34 @@ class Interpreter:
                         # gets the words of this string
                         if objfunc == 'words':
                             return self.vars[vname].value.split(' ')
+                        # removes a certain number of words from the left side of the string
+                        if objfunc == 'lwordremove':
+                            # number of words to remove
+                            num = self.parse(0, line, args)[2]
+                            # num must be an int
+                            self.type_err([(num, (int,))], line, lines_ran)
+                            # number cannot be negative
+                            if num < 0:
+                                self.err(
+                                    'Value error', 'Number of words to remove cannot be negative.', line, lines_ran)
+                            # remove the words
+                            self.vars[vname].value = ' '.join(
+                                self.vars[vname].value.split(' ')[num:])
+                            return self.vars[vname].value
+                        # removes a certain number of words from the right side of the string
+                        if objfunc == 'rwordremove':
+                            # number of words to remove
+                            num = self.parse(0, line, args)[2]
+                            # num must be an int
+                            self.type_err([(num, (int,))], line, lines_ran)
+                            # number cannot be negative
+                            if num < 0:
+                                self.err(
+                                    'Value error', 'Number of words to remove cannot be negative.', line, lines_ran)
+                            # remove the words
+                            self.vars[vname].value = ' '.join(
+                                self.vars[vname].value.split(' ')[:-num])
+                            return self.vars[vname].value
                         # gets the characters of this string
                         if objfunc == 'chars':
                             return list(self.vars[vname].value)
@@ -3511,6 +3539,17 @@ class Interpreter:
                     # first and second must be str
                     self.type_err([(first, (str,)), (second, (str,))], line, lines_ran)
                     return self.parse(0, line, args)[2].split(self.parse(1, line, args)[2])
+                # gets the lines of the string
+                if func == 'lines':
+                    return self.parse(0, line, args)[2].split('\n')
+                # evaluates the first argument as a math expression
+                if func == 'eval':
+                    # get the first argument
+                    arg = self.parse(0, line, args)[2]
+                    # first arg should be a str
+                    self.type_err([(arg, (str,))], line, lines_ran)
+                    # evaluate the first argument
+                    return eval(arg)
                 # obtains text between the first argument of the second argument
                 if func == 'between':
                     # surrounding token
@@ -3726,7 +3765,10 @@ class Interpreter:
                                 vn, 'global', 'global', self._globals, line)
                     # runs a stored python script
                     elif objfunc == 'run':
+                        # get the script
                         scr = self.parse(0, line, args)[2]
+                        # remove all lines starting with '#'
+                        scr = '\n'.join([i for i in scr.split('\n') if not i.startswith('#')])
                         # scr must be str
                         self.type_err([(scr, (str,))], line, lines_ran)
                         # execute the python and return
@@ -5006,7 +5048,8 @@ class Interpreter:
                     # value
                     value = self.parse(2, line, args)[2]
                     # insert the value into the iterable
-                    return iterable.insert(index, value)
+                    iterable.insert(index, value)
+                    return iterable
                 # gets the type of the first argument passed
                 elif func == 'type':
                     return type(self.parse(0, line, args)[2])
@@ -6401,8 +6444,7 @@ class Interpreter:
                     # creates a new process
                     # and executes the Java code
                     # returns the environment
-                    # including the out and variables
-
+                    # including the out and variablesz
                     def retrieve_java_environment(java_code):
                         import subprocess
                         # create a new process

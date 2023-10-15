@@ -1686,6 +1686,36 @@ def('test_try', (
     try(array.get(5), try(array.get(6), assert(1))),
     True
 ))
+# -------------------------------------------
+# ------------------ TESTING NEW STRING FUNCTIONS ------------------
+# in 2.0.388, there are new string functions
+# these functions are tested correctly in the below test function
+def('test_new_string_functions', (
+    # resets the test string
+    def('reset', @ a = "hello, how are you?"),
+    reset(),
+    # testing lwordremove
+    # removes a certain number of words from the string
+    a.lwordremove(2),
+    a.equals("are you?") ??,
+    reset(),
+    # testing with 0
+    a.lwordremove(0),
+    a.equals("hello, how are you?") ??,
+    # testing with a negative number
+    try(a.lwordremove(-1)),
+    a.equals("hello, how are you?") ??,
+    # testing rwordremove
+    # removes a certain number of words from the string
+    a.rwordremove(2),
+    a.equals("hello, how") ??,
+    # remove the last two words
+    a.rwordremove(2),
+    a.equals("") ??,
+    True
+))
+
+
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
 
 # test information
@@ -1733,6 +1763,7 @@ def('run_tests', (
     TEST test_sets(),
     TEST test_python_snippets(),
     TEST test_try(),
+    TEST test_new_string_functions(),
     # testing macros
     TEST (
         assert(test_macros())
