@@ -1,0 +1,32 @@
+# Tests MSN2 conversion to JavaScript
+#
+# author : Mason Marker
+# date : 12/15/2023
+
+
+# Its important to recognize that when
+# using the JavaScript converter, only
+# MSN2 code is permitted, this includes code
+# snippets that are automatically interpreted by Python,
+# such as 'print("hello!")'
+#
+# a function call such as the call above will execute
+# normally, without converting any code to JavaScript
+
+
+# using javascript conversion until
+# instructed otherwise
+JS:
+
+
+file.write('hello.txt', prnt('hey bruh'))
+
+
+
+
+# no longer using JavaScript, switch
+# back to general MSN2 interpretation
+:JS
+
+@ v = 1
+prnt('------------\n', v)

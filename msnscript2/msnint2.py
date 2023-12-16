@@ -49,22 +49,11 @@
 # (it definitely exists)
 
 # TODO
-# 2.0.389
+# 2.0.400
 #
-# * BYPASS CHATGPT TOKEN LIMIT WITH MULTITHREADING
-# - with ease of multithreading, we should theoretically able to
-#   achieve unlimited tokens in a single prompt with multithreading, 
-#   here's how it'll work:
-#                  
-#    1. prompt is chunked into (chatgpt:instance.max_tokens() // 2)
-#       estimated token sized chunks, this leaves approx. half chatgpt:instance.max_tokens()
-#       for request and half for response. These chunks 
-# 
-#
-# * FIX ARGUMENT PASSING WITH EMPTY OR FALSE VALUE
-# - currently, if an argument is passed with an empty or false value,
-#   the mapping to the function arguments is not applied correctly.
-#
+# * MSN2 code conversion to JavaScript
+# - be able to generate JavaScript code
+#   from MSN2 code
 # 
 #  ----- Less Important -----
 # * CHROME BROWSER
@@ -266,6 +255,8 @@ class Interpreter:
         self._locals = {}
         # in a try block
         self.trying = False
+        # converting JavaScript?
+        self.usingJS = False
     # determines if a line is a comment or not
 
     def is_comment(self, _line):
@@ -454,6 +445,7 @@ class Interpreter:
         cont = False
         if not line:
             return
+        
         # the below conditions interpret a line based on initial appearances
         # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
 
@@ -472,6 +464,13 @@ class Interpreter:
         # msn1 fallback
         if line[0] == '@':
             return self.interpret_msnscript_1(line[1:])
+            # determine if we're using JS
+        if line.startswith('JS:'):
+            self.usingJS = True
+            return self.usingJS
+        if line.endswith(':JS'):
+            self.usingJS = False
+            return self.usingJS
         # python fallback mode specification,
         # both <<>> and
         if line.startswith('<<'):
@@ -3389,10 +3388,14 @@ class Interpreter:
                     except:
                         return str(self.vars[ret_name])
 
+                # if usingJS
+                if self.usingJS:
+                    from js import convertToJS
+                    return convertToJS(line, func, objfunc, args, self)
+
                 # the below conditions interpret a line based on initial appearances
                 # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
                 # request for Interpreter redirect to a block of code
-                # the first argument is
                 if func == 'redirect':
                     self.redirect_inside = []
                     # creates redirect for this interpreter
@@ -5287,13 +5290,14 @@ class Interpreter:
                     return outting
                 # interpreter printing mechanism
                 elif func == 'prnt':
+                    srep = ""
                     for i in range(len(args)):
                         srep = str(self.parse(i, line, args)[2])
                         if i != len(args) - 1:
                             self.out += srep + ' '
                         else:
                             self.out += srep + '\n'
-                    return first
+                    return srep
                 # python print
                 elif func == 'print':
                     ret = None
