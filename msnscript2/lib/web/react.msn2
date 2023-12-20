@@ -183,3 +183,21 @@ def('react:page', 'react:default:page_url', 'react:default:component_script', (
     prettify(react:default:page_url),
     :JS
 ))
+
+# renders an api route
+def('react:api:route', 
+    'react:route_name', 
+    'react:req_var_name', 
+    'react:res_var_name',
+    # what will the api function return?
+    'react:api_function',
+    # return an api route
+    api:route(react:route_name,
+        # api function options
+        react:req_var_name, react:res_var_name, -(react:api_function),
+        # handler for fetchin in client side code
+        'react:body', async(
+            api:get(react:route_name)
+        )
+    )
+)

@@ -18,6 +18,8 @@ def get_pages_path(inst):
 
 # tries to create the api/ directory in the pages/ directory
 # if it doesn't exist
+
+
 def try_create_api_dir(inst):
     import os
     # get the pages/ directory path
@@ -28,6 +30,8 @@ def try_create_api_dir(inst):
         os.mkdir(pages_path + 'api')
 
 # gets the root project directory path from next entry point
+
+
 def get_root_dir(inst):
     # get the next entry point
     next_entry = inst.interpreter.next_entry_path
@@ -36,9 +40,11 @@ def get_root_dir(inst):
     root_dir = get_pages_path(inst)[:-6]
     return root_dir
 
-# tries to create an api/functions directory in 
+# tries to create an api/functions directory in
 # the parent directory of the next entry point
 # (root project directory)
+
+
 def try_create_api_functions(inst, api_functions_script):
     import os
     global api_functions_created
@@ -75,10 +81,6 @@ def try_create_api_functions(inst, api_functions_script):
         file.write(api_functions_script)
     # close the file
     file.close()
-        
-    
-        
-    
 
 
 # adds an api route to the api/ directory
@@ -96,8 +98,10 @@ def add_api_route(inst, path, pages_api_script, api_functions_script):
     file.close()
     # try to create the api/functions directory
     try_create_api_functions(inst, api_functions_script)
-    
+
 # generates a serialized route name
+
+
 def generate_serialized_route_name(path):
     global serialized_value
     # increment the serialized value
@@ -106,10 +110,14 @@ def generate_serialized_route_name(path):
     return f"route{serialized_value}"
 
 # gets the path of a route given a route_name
+
+
 def get_route_path(inst, route_name):
     return f"/{route_name}"
 
 # adds a component route (page route)
+
+
 def add_route(inst, path, script):
     # creates a file at the pages directory
     file = open(get_pages_path(inst) + path + '.jsx', 'w')
@@ -117,7 +125,6 @@ def add_route(inst, path, script):
     file.write(script)
     # close the file
     file.close()
-    
 
 
 # writes to a file
@@ -210,6 +217,9 @@ def define(inst, lines_ran):
     # return the name of the function
     return name
 
+# runs a user function
+
+
 # interprets a multi-lined function call
 
 
@@ -292,10 +302,13 @@ def comment(text):
     return f"\n// {text} ::\n"
 
 # creates a callback
+
+
 def callback(inst, is_async=False):
     from js import parse
     # insert a mobile arrow function
-    as_js = "(" + ("async " if is_async else "") + "() => {" if inst.has_args() else ""
+    as_js = "(" + ("async " if is_async else "") + \
+        "() => {" if inst.has_args() else ""
     # add each instruction
     for i in range(len(inst.args)):
         if i != len(inst.args) - 1:
@@ -399,13 +412,13 @@ def parse_props(inst):
 
 
 def tag(inst, children, html_tag="", props={}):
-    # create props string
-    prop_str = ""
-    for key, value in props.items():
-        if value:
-            prop_str += " " + key + "={" + str(value) + "}"
     # apply style, if applicable
     if isinstance(children, str):
+        # create props string
+        prop_str = ""
+        for key, value in props.items():
+            if value:
+                prop_str += " " + key + "={" + str(value) + "}"
         return f"<{html_tag}{prop_str}>{children}</{html_tag}>" if html_tag != "" else children
     return tag(inst, "".join([(tag(inst, i) if i != None else "") for i in children]), html_tag, props=props)
 
@@ -430,10 +443,14 @@ def is_arrow_function(string):
     q = string.strip()
     return q.startswith('((') and (q.endswith('}') or q.endswith('()'))
 
+# determines if a call is a call from msn2 react
+def is_msn2_react_call(inst):
+    return inst.line.strip().startswith('react:')
+
 def merge_props(props, inst):
     from js import html_attributes
     from js import html_attribute_defaults
-    merged = props
+    merged = props.copy()
     parsed_props = parse_props(inst)
 
     # for each possible html attribute
@@ -457,15 +474,32 @@ def merge_props(props, inst):
                 merged[key] = {**merged[key], **value}
     return merged
 
+# sub function to determine if a string is react code
+
+
+def is_react_code(string):
+    import esprima
+    # parse the string
+    parsed = esprima.parseScript(string)
+    # return whether or not the string is react code
+    return parsed.body[0].type == "ExpressionStatement" and parsed.body[0].expression.type == "JSXElement"
+    
+# determines if an element is a JSX Element
+def is_jsx_element(string):
+    string = string.strip()
+    return (string.startswith("<") and string.endswith(">")) or \
+        (string.startswith("{") and string.endswith("}"))
 
 # renders a component / collection of components
- 
+
 
 def component(inst, html_tag="div", props={}):
     inst.in_html = True
-    return tag(inst, [(inst.parse(i) if not is_prop(inst, i) else "") if not (as_s := inst.args[i][0].strip()) in inst.interpreter.states else ("{" + as_s + "}") for i in range(len(inst.args))], html_tag, props=merge_props(props, inst))
+    return tag(inst, [((inst.parse(i) if not is_prop(inst, i) else "") if not (as_s := inst.args[i][0].strip()) in inst.interpreter.states else ("{" + as_s + "}")) if not is_jsx_element(_v := inst.args[i][0].strip()) else _v for i in range(len(inst.args))], html_tag, props=merge_props(props, inst))
 
 # creates a useEffect hook
+
+
 def use_effect(inst):
     from js import parse
     # cannot be in html
@@ -476,11 +510,12 @@ def use_effect(inst):
         inst.interpreter.web_imports.add(imp)
         # insert the import
         insert_line_at_marker(inst, inst.interpreter.next_entry_path, "imports",
-                                "import { useEffect } from 'react';")
+                              "import { useEffect } from 'react';")
     # create the effect
     return f"useEffect(() => {{\n{parse(inst, 0)}\n}}, {parse(inst, 1)})\n"
 
 # generates a module.css file for a component
+
 
 def generate_css_module(inst):
     # generates

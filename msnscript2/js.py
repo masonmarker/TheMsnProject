@@ -164,9 +164,8 @@ def convert_to_js(inst, lock, lines_ran):
     """
     # user function execution requested
     if inst.func in inst.interpreter.methods:
-        from functions import user_function_exec
-        # # execute the function
-        # user_function_exec(inst, lines_ran)
+        from functions import is_msn2_react_call, user_function_exec
+        # execute the function
         as_js = f"{inst.func}("
         for i in range(len(inst.args)):
             if i != len(inst.args) - 1:

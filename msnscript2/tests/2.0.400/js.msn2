@@ -40,4 +40,5 @@ file.write(path,
 :JS
 
 # # run the script
-# console(+("node ", path))
+# delete the file
+file.delete(path)
