@@ -1,0 +1,59 @@
+# Updates this NextJS project with MSN2 translated code
+#
+# author : Mason Marker
+# date : 12/16/2023
+
+# import React MSN2 library
+import ('lib/web/react')
+
+# create page at the given path
+react:page('tests/next_2.0.400/my-app/pages/index.jsx', script((
+    # creating variables / states
+    state('value', 0),
+    state('value2', 50),
+    const('value3', 'test'),
+    const('node', <div><h1>{value}</h1></div>),
+
+    # -----------------------------------------------
+    # create an api reacher
+    api:route('getstuff', 
+        # api function
+        'req', 'res', (
+            res.status(200).json({'name': 'John Doe'})
+        ),
+        # function options for fetcher in client side code
+        'body', async(
+            api:get('getstuff', {'thing': 'some test stuff'})
+        )
+    ),
+    # -----------------------------------------------
+
+    # -----------------------------------------------
+    # MSN2 useEffect insertion
+    effect(async(
+        prnt(value),
+        const('response', api:get('getstuff')),
+        setValue(response.name)
+    ), []),
+    # -----------------------------------------------
+
+    # -----------------------------------------------
+    # return a div with the style
+    center(
+        className=(
+            const('g', 10),
+            const('h', 20),
+            'center'
+        ),
+        vstack(
+            style={
+                'fontStyle': 'italic',
+                'color': 'red',
+            },
+            h1(value),
+            h2('hello'),
+            div(node)
+        ),
+    )
+    # -----------------------------------------------
+)))

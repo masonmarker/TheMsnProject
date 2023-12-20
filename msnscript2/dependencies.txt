@@ -38,6 +38,10 @@ pip install openpyxl
 for clipboard interactions:
 pip install pyperclip
 
+for JavaScript parsing
+pip install esprima
+pip install jsbeautifier
+
 you can install all of the above 'pip' installs via
     "{python_alias} install_deps.py"
 if you plan on using the entirety of msn2's functionality,

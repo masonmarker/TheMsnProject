@@ -3,6 +3,12 @@
 # author : Mason Marker
 # date : 12/15/2023
 
+# start tests
+import ('tests/resources/start')
+
+
+# file path for JavaScript conversion
+@ path = "hello.jsx"
 
 # Its important to recognize that when
 # using the JavaScript converter, only
@@ -18,15 +24,20 @@
 # instructed otherwise
 JS:
 
-
-file.write('hello.txt', prnt('hey bruh'))
-
-
-
+# write JavaScript code to file
+file.write(path, 
+    # exporting default App component
+    exdefault(
+        # main App component
+        def('App', 'props', (
+            props.get('style')
+        ))
+    )
+)
 
 # no longer using JavaScript, switch
-# back to general MSN2 interpretation
+# back to standard MSN2 interpretation
 :JS
 
-@ v = 1
-prnt('------------\n', v)
+# # run the script
+# console(+("node ", path))

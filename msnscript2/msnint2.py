@@ -54,7 +54,7 @@
 # * MSN2 code conversion to JavaScript
 # - be able to generate JavaScript code
 #   from MSN2 code
-# 
+#
 #  ----- Less Important -----
 # * CHROME BROWSER
 # - finish lib/auto/chrome class extension
@@ -82,6 +82,8 @@
 # for all lines of execution
 import os
 import threading
+from instruction import Instruction
+
 
 # remove warnings for calling of integers: "10()"
 import warnings
@@ -255,8 +257,17 @@ class Interpreter:
         self._locals = {}
         # in a try block
         self.trying = False
+        # web
         # converting JavaScript?
-        self.usingJS = False
+        self.using_js = False
+        # web imports
+        self.web_imports = set()
+        # states
+        self.states = {}
+        # routes
+        self.routes = {}
+        # entry point for NextJS generation
+        self.next_entry_path = None
     # determines if a line is a comment or not
 
     def is_comment(self, _line):
@@ -445,7 +456,7 @@ class Interpreter:
         cont = False
         if not line:
             return
-        
+
         # the below conditions interpret a line based on initial appearances
         # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
 
@@ -466,11 +477,11 @@ class Interpreter:
             return self.interpret_msnscript_1(line[1:])
             # determine if we're using JS
         if line.startswith('JS:'):
-            self.usingJS = True
-            return self.usingJS
+            self.using_js = True
+            return self.using_js
         if line.endswith(':JS'):
-            self.usingJS = False
-            return self.usingJS
+            self.using_js = False
+            return self.using_js
         # python fallback mode specification,
         # both <<>> and
         if line.startswith('<<'):
@@ -661,8 +672,13 @@ class Interpreter:
                 # clean function for handling
                 func = func.strip()
                 objfunc = objfunc.strip()
-
+                # create an instruction from parsed data
+                inst = Instruction(
+                    line, func, obj, objfunc, args, inst_tree, self)
                 # retrieving arguments
+                # if using_js
+                if self.using_js:
+                    return inst.convert_to_js(lock, lines_ran)
 
                 # class attribute / method access
                 if obj in self.vars:
@@ -676,7 +692,6 @@ class Interpreter:
                     except:
                         object = self.vars[obj]
                     try:
-                        
                         # if the object is a class
                         if objfunc in object:
                             # if the object is a self.Method
@@ -740,7 +755,6 @@ class Interpreter:
                             f"{vname}.{objfunc[:-1]}({mergedargs})"
                         )
                         return self.vars[vname].value
-                    
 
                     # methods available to all types
                     if objfunc == 'copy':
@@ -2816,6 +2830,7 @@ class Interpreter:
                         name = object.name
                         # function to move the mouse from start to end,
                         # with a speed of speed
+
                         def movemouse(start, end, speed):
                             import time
                             from pywinauto import mouse
@@ -3102,6 +3117,7 @@ class Interpreter:
                             # get table
                             table = object.window
                             # gets a row by index, based on the above logic
+
                             def row(index):
                                 row = []
                                 items = []
@@ -3128,6 +3144,7 @@ class Interpreter:
                                         break
                                 return row
                             # gets a column by index
+
                             def col(index):
                                 col = []
                                 for i in range(table.column_count()):
@@ -3223,7 +3240,8 @@ class Interpreter:
                             # waittime must be float or int or complex
                             self.type_err(
                                 [(waittime, (float, int, complex))], line, lines_ran)
-                            ret = clk(window, button='right', waittime=waittime)
+                            ret = clk(window, button='right',
+                                      waittime=waittime)
                         # if thread based, release the lock
                         if p_thread:
                             auto_lock.release()
@@ -3334,64 +3352,8 @@ class Interpreter:
                 # user functions take priority
                 # over general msn2 functions
                 if func in self.methods:
-                    method = self.methods[func]
-                    # create func args
-                    func_args = []
-                    # if arguments supplied
-                    if not args[0][0] == '':
-                        for i in range(len(args)):
-                            # check if we're setting a certain argument
-                            as_s = args[i][0].strip()
-                            meth_argname = None
-                            if as_s[0] == '&':
-                                func_args, meth_argname, arg, ind = self.split_named_arg(
-                                    as_s, method, func_args, user_func=True)
-                            # else, just append the argument
-                            else:
-                                arg = self.parse(i, line, args)[2]
-                                func_args.append(arg)
-                            try:
-                                meth_argname = method.args[i]
-                            # incorrect amount of function arguments supplied
-                            except IndexError:
-                                self.raise_incorrect_args(str(len(method.args)), str(
-                                    self.arg_count(args)), line, lines_ran, method)
-                            try:
-                                self.vars[meth_argname] = Var(
-                                    meth_argname, arg)
-                            # unhashable type:list, this means a named argument
-                            # is being requested to be set
-                            except TypeError:
-                                self.vars[meth_argname[0]] = Var(
-                                    meth_argname[0], arg)
-                    # create return variable
-                    ret_name = method.returns[0]
-                    # add the return variable if not exists
-                    if ret_name not in self.vars:
-                        self.vars[ret_name] = Var(ret_name, None)
-                    # execute method
-                    try:
-                        method.run(func_args, self, args)
-                    # index out of bounds error in method run
-                    except IndexError:
-                        # raise msn2 error
-                        self.raise_index_out_of_bounds(line, lines_ran, method)
-                    # if its a variable
-                    if ret_name in self.vars:
-                        return self.vars[ret_name].value
-                    try:
-                        return eval(str(self.vars[ret_name].value), {}, {})
-                    except:
-                        pass
-                    try:
-                        return str(self.vars[ret_name].value)
-                    except:
-                        return str(self.vars[ret_name])
-
-                # if usingJS
-                if self.usingJS:
-                    from js import convertToJS
-                    return convertToJS(line, func, objfunc, args, self)
+                    from functions import user_function_exec
+                    return user_function_exec(inst, lines_ran)
 
                 # the below conditions interpret a line based on initial appearances
                 # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
@@ -3445,44 +3407,8 @@ class Interpreter:
                     return fname
                 # simpler way to create a function
                 elif func == 'def':
-                    # get the name of the new function
-                    name = self.parse(0, line, args)[2]
-                    # function name must be a string
-                    self.type_err([(name, (str,))], line, lines_ran)
-                    # create the new function
-                    new_func = self.Method(name, self)
-                    func_args = []
-                    __temp = self.Method('', self)
-                    # get the args for this function between the name and the body
-                    # parse all args between the name and the body
-                    for i in range(1, len(args) - 1):
-                        # get the stripped string rep of this arg
-                        as_s = args[i][0].strip()
-                        if as_s[0] == '&':
-                            func_args, meth_argname, _, ind = self.split_named_arg(
-                                as_s, __temp, func_args)
-                            # add argument with default value
-                            new_func.add_arg([meth_argname, func_args[ind]])
-                        else:
-                            # add this argument to the method
-                            new_func.add_arg(self.parse(
-                                i, line, args)[2])
-                            new_arg = self.parse(i, line, args)[2]
-                            self.type_err([(new_arg, (str,))], line, lines_ran)
-                    # add the body
-                    new_func.add_body(f"ret('{name}',{args[-1][0]})")
-                    # return buffer variable name
-                    r_name = f"{name}__return__"
-                    # if the return buffer doesn't exist, create it
-                    if r_name not in self.vars:
-                        # create the return variable
-                        self.vars[r_name] = Var(r_name, None)
-                    # add the return variable
-                    new_func.add_return(r_name)
-                    # add the function to the methods
-                    self.methods[name] = new_func
-                    # return the name of the function
-                    return name
+                    from functions import define
+                    return define(inst, lines_ran)
                 # performs modular arithmetic on the two arguments given
                 elif func == 'mod':
                     arg1 = self.parse(0, line, args)[2]
@@ -3540,7 +3466,8 @@ class Interpreter:
                     first = self.parse(0, line, args)[2]
                     second = self.parse(1, line, args)[2]
                     # first and second must be str
-                    self.type_err([(first, (str,)), (second, (str,))], line, lines_ran)
+                    self.type_err(
+                        [(first, (str,)), (second, (str,))], line, lines_ran)
                     return self.parse(0, line, args)[2].split(self.parse(1, line, args)[2])
                 # gets the lines of the string
                 if func == 'lines':
@@ -3771,7 +3698,8 @@ class Interpreter:
                         # get the script
                         scr = self.parse(0, line, args)[2]
                         # remove all lines starting with '#'
-                        scr = '\n'.join([i for i in scr.split('\n') if not i.startswith('#')])
+                        scr = '\n'.join(
+                            [i for i in scr.split('\n') if not i.startswith('#')])
                         # scr must be str
                         self.type_err([(scr, (str,))], line, lines_ran)
                         # execute the python and return
@@ -3860,7 +3788,8 @@ class Interpreter:
                     # start must be int
                     # end must be int
                     # loopvar must be str
-                    self.type_err([(start, (int,)), (end, (int,)), (loopvar, (str,))], line, lines_ran)
+                    self.type_err([(start, (int,)), (end, (int,)),
+                                  (loopvar, (str,))], line, lines_ran)
                     self.vars[loopvar] = Var(loopvar, start)
                     # regular iteration
                     if start < end:
@@ -4105,7 +4034,7 @@ class Interpreter:
                 elif func == 'maximum':
                     try:
                         maxval = max(_f) if isinstance(
-                            (_f := self.parse(0, line, args)[2] ), list) else _f
+                            (_f := self.parse(0, line, args)[2]), list) else _f
                         for i in range(1, len(args)):
                             val = self.parse(i, line, args)[2]
                             # is a list argument
@@ -4234,7 +4163,7 @@ class Interpreter:
                             'First argument not indexable, indexable types are lists, strings, dicts, and tuples',
                             line, lines_ran
                         )
-                    try:    
+                    try:
                         return indexable[self.parse(1, line, args)[2]]
                     except IndexError:
                         return self.raise_index_out_of_bounds(line, lines_ran, self.Method('->', self))
@@ -4364,6 +4293,7 @@ class Interpreter:
                         def needs_completion(model):
                             return model.startswith('text') or model == 'gpt-3.5-turbo-instruct'
                         # determines if arguments for 'model' are str and in models
+
                         def check_model(model):
                             # model must be str
                             self.type_err([(model, (str,))], line, lines_ran)
@@ -4375,9 +4305,11 @@ class Interpreter:
                                     line, lines_ran
                                 )
                         # gets responses from the models
+
                         def response(model, prompt):
                             # enforce model as str and prompt as str
-                            self.type_err([(model, (str,)), (prompt, (str,))], line, lines_ran)
+                            self.type_err(
+                                [(model, (str,)), (prompt, (str,))], line, lines_ran)
                             if needs_completion(model):
                                 # return v1/completions endpoint
                                 return openai.Completion.create(
@@ -4389,7 +4321,8 @@ class Interpreter:
                             else:
                                 return openai.ChatCompletion.create(
                                     model=model,
-                                    messages=[{'role': 'user', 'content': prompt}],
+                                    messages=[
+                                        {'role': 'user', 'content': prompt}],
                                     temperature=0.5,
                                     max_tokens=models[model]['max_tokens'] // 2
                                 )
@@ -4456,11 +4389,13 @@ class Interpreter:
                         models['check_model'](model)
                         # messages
                         messages = self.parse(1, line, args)[2]
-                        self.type_err([(messages, (list, str))], line, lines_ran)
+                        self.type_err([(messages, (list, str))],
+                                      line, lines_ran)
                         # temperature
                         temperature = self.parse(2, line, args)[2]
                         # temp must be int or float
-                        self.type_err([(temperature, (int, float))], line, lines_ran)
+                        self.type_err(
+                            [(temperature, (int, float))], line, lines_ran)
                         # max_tokens
                         max_tokens = self.parse(3, line, args)[2]
                         # max_tokens must be int
@@ -4472,11 +4407,13 @@ class Interpreter:
                         # frequency_penalty
                         frequency_penalty = self.parse(5, line, args)[2]
                         # frequency_penalty must be int or float
-                        self.type_err([(frequency_penalty, (int, float))], line, lines_ran)
+                        self.type_err(
+                            [(frequency_penalty, (int, float))], line, lines_ran)
                         # presence_penalty
                         presence_penalty = self.parse(6, line, args)[2]
                         # presence_penalty must be int or float
-                        self.type_err([(presence_penalty, (int, float))], line, lines_ran)
+                        self.type_err(
+                            [(presence_penalty, (int, float))], line, lines_ran)
                         # stop
                         stop = self.parse(7, line, args)[2]
                         # stop must be str
@@ -4503,7 +4440,7 @@ class Interpreter:
                                 presence_penalty=presence_penalty,
                                 stop=stop
                             )
-                            
+
                     # gets the amount of tokens for a string given a ChatGPT model
                     elif objfunc == 'tokens':
                         # string to check
@@ -4533,7 +4470,8 @@ class Interpreter:
                         # string must be str
                         self.type_err([(string, (str,))], line, lines_ran)
                         # get the splitter, split by sentence
-                        splitter = TokenTextSplitter(chunk_size=chunk_size, chunk_overlap=0, model_name=model_name)
+                        splitter = TokenTextSplitter(
+                            chunk_size=chunk_size, chunk_overlap=0, model_name=model_name)
                         # split the string
                         return splitter.split_text(string)
                     return '<msnint2 class>'
@@ -4715,16 +4653,8 @@ class Interpreter:
                         return contents
                     # writes to a file
                     if objfunc == 'write':
-                        lock.acquire()
-                        path = self.parse(0, line, args)[2]
-                        # path must be str
-                        self.type_err([(path, (str,))], line, lines_ran)
-                        file = open(path, "w")
-                        towrite = str(self.parse(1, line, args)[2])
-                        file.write(towrite)
-                        file.close()
-                        lock.release()
-                        return towrite
+                        from functions import file_write
+                        return file_write(inst, lock, lines_ran)
                     # writes the argument as code
                     if objfunc == 'writemsn':
                         lock.acquire()
@@ -4749,16 +4679,8 @@ class Interpreter:
                         return True
                     # appends to a file
                     if objfunc == 'append':
-                        lock.acquire()
-                        path = self.parse(0, line, args)[2]
-                        # path must be str
-                        self.type_err([(path, (str,))], line, lines_ran)
-                        file = open(path, "a")
-                        towrite = str(self.parse(1, line, args)[2])
-                        file.write(towrite)
-                        file.close()
-                        lock.release()
-                        return towrite
+                        from functions import file_append
+                        return file_append(inst, lock, lines_ran)
                     # deletes a file
                     if objfunc == 'delete':
                         lock.acquire()
@@ -5210,6 +5132,7 @@ class Interpreter:
                     inter = self.new_int()
                     inter.interpret(args[1][0])
                     # throws a domain error
+
                     def domain_err(name, object):
                         self.err(
                             'Domain Error',
@@ -5339,6 +5262,10 @@ class Interpreter:
                 # returns this interpreter
                 elif func == 'me':
                     return self.me()
+                # sets next entry path
+                elif func == 'next_entry_path':
+                    self.next_entry_path = self.parse(0, line, args)[2]
+                    return self.next_entry_path
                 # provides a representation of the current environment
                 elif func == 'env':
                     should_print = False
@@ -5376,7 +5303,7 @@ class Interpreter:
                     if len(postmacros) > 0:
                         strenv += "\n\tpostmacros:\n\t\t"
                         for macro in postmacros:
-                            #strenv += macro + "\n\t\t"
+                            # strenv += macro + "\n\t\t"
                             strenv += f"{macro}\n\t\t"
                     if len(syntax) > 0:
                         strenv += "\n\tsyntax:\n\t\t"
@@ -5402,7 +5329,7 @@ class Interpreter:
                         return self.env_max_chars
                     # otherwise, a single variable was provided
                     # this will change the max chars
-                    new_maxchars = self.parse(0, line, args)[2]                
+                    new_maxchars = self.parse(0, line, args)[2]
                     # check for type errors
                     self.type_err([(new_maxchars, (int,))], line, lines_ran)
                     # alter the max chars
@@ -5413,18 +5340,8 @@ class Interpreter:
                 # executes MSNScript2 from its string representation
                 try:
                     if func == '-':
-                        if len(args) == 1:
-                            return self.interpret(self.parse(0, line, args)[2])
-                        # subtracts all arguments from the first argument
-                        else:
-                            ret = self.parse(0, line, args)[2]
-                            try:
-                                ret = ret.copy()
-                            except AttributeError:
-                                None
-                            for i in range(1, len(args)):
-                                ret -= self.parse(i, line, args)[2]
-                            return ret
+                        from functions import hyphen
+                        return hyphen(inst)
                     elif func == '+':
                         ret = self.parse(0, line, args)[2]
                         try:
@@ -5715,7 +5632,8 @@ class Interpreter:
                     max_workers = self.parse(0, line, args)[2]
                     # max_workers must be int
                     self.type_err([(max_workers, (int,))], line, lines_ran)
-                    concurrent.futures.ThreadPoolExecutor(max_workers).submit(self.interpret, args[1][0])
+                    concurrent.futures.ThreadPoolExecutor(
+                        max_workers).submit(self.interpret, args[1][0])
                     return True
 
                 # creates or edits thread variable
@@ -5918,7 +5836,8 @@ class Interpreter:
                     command = self.parse(0, line, args)[2]
                     # command must be str
                     self.type_err([(command, (str,))], line, lines_ran)
-                    process = subprocess.run(command, shell=True, capture_output=True, text=True)
+                    process = subprocess.run(
+                        command, shell=True, capture_output=True, text=True)
                     if process.returncode == 0:
                         return process.stdout
                     else:
@@ -6035,15 +5954,18 @@ class Interpreter:
                     # gets Flask Api
                     api = Api(app)
                     # api endpoint class
+
                     class EndPoint(Resource):
                         @classmethod
                         def make_api(cls, response):
                             cls.response = response
                             return cls
                         # GET
+
                         def get(self):
                             return self.response
                         # POST
+
                         def post(self):
                             from flask import request
                             # obtains current endpoint data
@@ -6449,6 +6371,7 @@ class Interpreter:
                     # and executes the Java code
                     # returns the environment
                     # including the out and variablesz
+
                     def retrieve_java_environment(java_code):
                         import subprocess
                         # create a new process
@@ -6484,10 +6407,8 @@ class Interpreter:
                 # inline function, takes any amount of instructions
                 # returns the result of the last instruction
                 elif func == "=>" or (func == '' and objfunc == ''):
-                    ret = None
-                    for i in range(len(args)):
-                        ret = self.parse(i, line, args)[2]
-                    return ret
+                    from functions import multi_lined
+                    return multi_lined(inst)
                 # if the function, when parsed, is an integer,
                 # then it is a loop that runs func times
                 elif (_i := self.get_int(func)) != None:
@@ -6588,7 +6509,8 @@ class Interpreter:
                         dist = self.parse(0, line, args)[2]
                         # dist must be int
                         self.type_err([(dist, (int,))], line, lines_ran)
-                        ret = mouse.scroll(wheel_dist=dist, coords=win32api.GetCursorPos())
+                        ret = mouse.scroll(
+                            wheel_dist=dist, coords=win32api.GetCursorPos())
 
                     # determines if the left mouse button is down
                     elif objfunc == 'left_down':
@@ -6688,7 +6610,7 @@ class Interpreter:
                                self.parse(3, line, args)[2])
                         # end[1] and [2] must be int
                         self.type_err([(end[0], (int,)),
-                                        (end[1], (int,))], line, lines_ran)
+                                       (end[1], (int,))], line, lines_ran)
                         # presses the mouse down at the coordinates
                         mouse.press(coords=start)
                         # slowly moves the mouse to the end coordinates
@@ -6988,17 +6910,17 @@ class Interpreter:
         # get the index of the named argument in method.args
         try:
             ind = method.args.index(meth_argname)
-        except ValueError:            
-            #if not user_func:
+        except ValueError:
+            # if not user_func:
             # find the argument
             method.args.append(meth_argname)
             ind = method.args.index(meth_argname)
-            #else:
-                
+            # else:
+
         # adjust the func_args list to the correct size
         if len(func_args) < ind + 1:
             func_args += [None] * (ind + 1 - len(func_args))
-        #print(func_args, ind)
+        # print(func_args, ind)
         # set the argument at the index to the value
         func_args[ind] = self.interpret(arg)
         return func_args, meth_argname, arg, ind
@@ -7105,6 +7027,7 @@ class Interpreter:
             # the total words printed for this error
             words_printed = ''
             # prints the error
+
             def print_err(array):
                 # print the error
                 self.styled_print(array)
@@ -7118,7 +7041,7 @@ class Interpreter:
                  'style': 'bold', 'fore': 'green'},
             ])
             _branches = []
-            root_nums = {root_num for _, (root_num, _) in inst_tree.items()}            
+            root_nums = {root_num for _, (root_num, _) in inst_tree.items()}
             # for k, (root_num, code_line) in inst_tree.items():
             #     root_nums.add(root_num)
             # #root_nums = list(set(root_nums))
@@ -7144,7 +7067,7 @@ class Interpreter:
                     print_err([
                         {'text': '>> ', 'style': 'bold', 'fore': 'black'},
                         {'text': self.shortened(_b), 'style': 'bold',
-                        'fore': _branch_color},
+                         'fore': _branch_color},
                         {'text': ' <<< ' if is_caller else '',
                             'style': 'bold', 'fore': 'yellow'},
                         {'text': 'SOURCE' if is_caller else '',
@@ -7222,6 +7145,7 @@ class Interpreter:
         )
     # verifies a type is iterable
     # iterable types include: list, tuple, dict, set, str
+
     def check_iterable(self, value, line):
         import collections.abc
         if not isinstance(value, collections.abc.Iterable):
@@ -7351,7 +7275,7 @@ class Interpreter:
 
     def is_py_str(self, line):
         try:
-            return line[0] == '"' and line[len(line) - 1] == '"'
+            return (line[0] == '"' and line[len(line) - 1] == '"') or (line[0] == "'" and line[len(line) - 1] == "'")
         except:
             return False
 
@@ -7518,6 +7442,7 @@ class Interpreter:
     # exception
     class MSN2Exception(Exception):
         pass
+
     class Method:
         def __init__(self, name, interpreter):
             self.name = name
@@ -7534,12 +7459,14 @@ class Interpreter:
             self.body.append(body)
 
         def add_return(self, ret):
-            self.returns.append(ret)    
+            self.returns.append(ret)
         # determines if the argument is a default value
+
         def default(self, func_insert, index):
             return isinstance(self.args[index], list) and func_insert == None
         # runs the method with the arguments passed
-        def run(self, args, inter, actual_args=None):            
+
+        def run(self, args, inter, actual_args=None):
             # finds an argument in the list of arguments
             def find_arg(func_var):
                 ind = -1
