@@ -12,30 +12,49 @@
  */
 
 // imports ::
-import {
-  useState
-} from 'react';
-import {
-  useEffect
-} from 'react';
+import { useState } from "react";
+import { useEffect } from "react";
 
 // default component export ::
 export default function Index(props) {
-  // hooks ::
   return (() => {
-    const [value, setValue] = useState(0);
-    const [value2, setValue2] = useState(50);
-    const value3 = `test`;
-    const node = <div><h1>{value}</h1></div>;
+    const value = 3;
+    const value3 = 50;
+    const [value2, setValue2] = useState(4);
     useEffect(() => {
-      (async () => {
-        console.log(value);
-        const response = await fetch('/api/getstuff').then(res => res.json());
-        return setValue(response.name)
-      })()
-    }, []);
-    return <div style={{'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center'}} className={(() => {const g = 10
-;const h = 20
-;return `center`})()}><div style={{'display': 'flex', 'flexDirection': 'column', 'fontStyle': 'italic', 'color': 'red'}}><h1>{value}</h1><h2>hello</h2><div><div><h1>{value}</h1></div></div></div></div>
-  })()
+      // value2 useEffect ::
+    }, [value2]);
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", flexDirection: "row" }}>
+            <h1>Hello World!</h1>
+          </div>
+          <div style={{ display: "flex", flexDirection: "row" }}>
+            <button
+              onClick={async () => {
+                (async () => {
+                  setValue2(value2 + 1);
+                  return console.log(
+                    await fetch("/api/getstuff").then((res) => res.json()),
+                    value2
+                  );
+                })();
+              }}
+            >
+              press me
+            </button>
+          </div>
+          <h1>{value2}</h1>
+        </div>
+      </div>
+    );
+  })();
 }

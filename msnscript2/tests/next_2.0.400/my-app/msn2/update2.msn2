@@ -1,0 +1,69 @@
+# Updates this NextJS project with MSN2 translated code.
+#
+# test 2
+#
+# author : Mason Marker
+# date : 12/16/2023
+
+
+
+
+
+
+
+
+
+# import React MSN2 library
+import ('lib/web/react')
+
+# create page at the given path
+react:page('tests/next_2.0.400/my-app/pages/index.jsx', script((
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # define an api script
+    defineapi('getstuff', 'req', 'res', (
+        # send a response
+        res.status(200).json({'name': 'John Doe'})
+    )),
+
+    # create some variables
+    const value = 3,
+    const value3 = 50,
+    state('value2', 4),
+
+    # return component
+    center(
+        vstack(
+            hstack(
+                h1('Hello World!'),
+            ),
+            hstack(
+                button(
+                    onClick=do(async(
+                        value2.set(value2 + 1),
+                        prnt(apiget('getstuff'), value2)
+                    )),
+                    'press me'
+                )
+            ),
+            h1(value2),
+        )
+   )
+)))

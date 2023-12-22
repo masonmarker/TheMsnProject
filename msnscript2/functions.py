@@ -310,12 +310,12 @@ def callback(inst, is_async=False):
     as_js = "(" + ("async " if is_async else "") + \
         "() => {" if inst.has_args() else ""
     # add each instruction
-    for i in range(len(inst.args)):
+    for i in range(len(inst.args) - 1):
         if i != len(inst.args) - 1:
             as_js += f"{(_v := parse(inst, i))}{';' if _v != '' and _v != None else ''}"
     last = parse(inst, -1)
     # return the last instruction
-    as_js += f"return " + str(last) + \
+    as_js += f"return " + (str(last) if last else ";") + \
         "})()" if inst.has_args() else last
     return as_js
 
@@ -328,7 +328,7 @@ def callback(inst, is_async=False):
 # 5. write the lines back to the file
 
 
-def insert_line_at_marker(inst, path, keyword, line):
+def insert_line_at_marker(inst, path, keyword, line, check_for_dups=False):
     # read in lines from path
     file = open(path, "r")
     lines = file.readlines()
@@ -341,7 +341,10 @@ def insert_line_at_marker(inst, path, keyword, line):
         if l == keyword:
             # insert the line at the next empty line
             for j in range(i + 1, len(lines)):
-                if lines[j].strip() == '':
+                curr_line = lines[j].strip()
+                if check_for_dups and curr_line == line:
+                    break
+                if curr_line == '':
                     lines.insert(j, line + '\n')
                     break
             break
@@ -376,7 +379,7 @@ def insert_line_at_marker(inst, path, keyword, line):
 
 
 def parse_props(inst):
-    from js import html_attribute_defaults
+    from js import html_attribute_defaults, parse, parse_string
     props = {}
     # parse props from line
     # line is formatted: style=...
@@ -403,6 +406,7 @@ def parse_props(inst):
             value = prop[ind + 1:]
             # interpret value
             value = inst.interpreter.interpret(value)
+            # value = parse_string(inst, value)
             # add the value to the props
             props[key] = value if value else html_attribute_defaults[key]
     # return component with props
@@ -436,20 +440,31 @@ def is_prop(inst, i):
 
 # merges parsed props and default props
 
-# determines if a string is representing a JavaScript arrow function
+# determines if a string is representing a JavaScript function or function call
 
 
-def is_arrow_function(string):
+def is_function(string):
+    import esprima
     q = string.strip()
-    return q.startswith('((') and (q.endswith('}') or q.endswith('()'))
+    try:
+        parsed = esprima.parseScript(q)
+        ret = (parsed.body[0].type == "FunctionDeclaration") or \
+              (parsed.body[0].expression.type == "ArrowFunctionExpression" or
+               parsed.body[0].expression.type == "FunctionExpression" or 
+               parsed.body[0].expression.type == "CallExpression")
+        return ret
+    except:
+        return False
 
 # determines if a call is a call from msn2 react
+
+
 def is_msn2_react_call(inst):
     return inst.line.strip().startswith('react:')
 
+
 def merge_props(props, inst):
-    from js import html_attributes
-    from js import html_attribute_defaults
+    from js import html_attributes, html_attribute_defaults
     merged = props.copy()
     parsed_props = parse_props(inst)
 
@@ -458,20 +473,21 @@ def merge_props(props, inst):
         props_t = {key: value.strip() for key, value in props[attr].items(
         ) if value} if attr in props and props[attr] else {}
         parsed_props_t = {key: value.strip() for key, value in parsed_props[attr].items(
-        ) if value} if attr in parsed_props and parsed_props[attr] and type(parsed_props[attr]) != type(html_attribute_defaults[attr]) else {}
+        ) if value} if attr in parsed_props and parsed_props[attr] and \
+            type(parsed_props[attr]) != type(html_attribute_defaults[attr]) else {}
         merged[attr] = {**props_t, **parsed_props_t}
     # add rest of props
     for key, value in parsed_props.items():
         # append based on type
         if not merged[key]:
-            if is_arrow_function(value):
+            if is_function(value):
                 merged[key] = value
+            elif type(value) == dict:
+                merged[key] = {**merged[key], **value}
             elif inst.interpreter.is_py_str(value):
                 merged[key] = f"`{value}`"
             elif type(html_attribute_defaults[key]) == str:
                 merged[key] = f"`{value}`"
-            elif type(value) == dict:
-                merged[key] = {**merged[key], **value}
     return merged
 
 # sub function to determine if a string is react code
@@ -480,22 +496,38 @@ def merge_props(props, inst):
 def is_react_code(string):
     import esprima
     # parse the string
-    parsed = esprima.parseScript(string)
+    try:
+        parsed = esprima.parseScript(string)
+    except:
+        return False
     # return whether or not the string is react code
     return parsed.body[0].type == "ExpressionStatement" and parsed.body[0].expression.type == "JSXElement"
-    
+
 # determines if an element is a JSX Element
+
+
 def is_jsx_element(string):
+    import esprima
     string = string.strip()
-    return (string.startswith("<") and string.endswith(">")) or \
-        (string.startswith("{") and string.endswith("}"))
+    # parse the string
+    try:
+        parsed = esprima.parseScript(string)
+        ret = (parsed.body[0].type == "ExpressionStatement" and parsed.body[0].expression.type == "JSXElement") or \
+            (parsed.body[0].type == "BlockStatement")
+        return ret
+    except:
+        return (string.startswith("<") and string.endswith(">")) or \
+            (string.startswith("{") and string.endswith("}"))
 
 # renders a component / collection of components
 
 
 def component(inst, html_tag="div", props={}):
     inst.in_html = True
-    return tag(inst, [((inst.parse(i) if not is_prop(inst, i) else "") if not (as_s := inst.args[i][0].strip()) in inst.interpreter.states else ("{" + as_s + "}")) if not is_jsx_element(_v := inst.args[i][0].strip()) else _v for i in range(len(inst.args))], html_tag, props=merge_props(props, inst))
+    return tag(inst, [((inst.parse(i) if not is_prop(inst, i) else "") \
+                if not (as_s := inst.args[i][0].strip()) in inst.interpreter.states else  \
+                ("{" + as_s + "}")) if not is_jsx_element(_v := inst.args[i][0].strip()) else \
+                      _v for i in range(len(inst.args))], html_tag, props=merge_props(props, inst))
 
 # creates a useEffect hook
 
@@ -510,7 +542,7 @@ def use_effect(inst):
         inst.interpreter.web_imports.add(imp)
         # insert the import
         insert_line_at_marker(inst, inst.interpreter.next_entry_path, "imports",
-                              "import { useEffect } from 'react';")
+                              "import { useEffect } from 'react';", check_for_dups=True)
     # create the effect
     return f"useEffect(() => {{\n{parse(inst, 0)}\n}}, {parse(inst, 1)})\n"
 
@@ -520,3 +552,32 @@ def use_effect(inst):
 def generate_css_module(inst):
     # generates
     ...
+
+# generates an api route as js script
+def generate_api_scripts(route_name, route_req_name, route_res_name, script, fetch_body_name, fetch_body_script):
+    # create the api route function to place at the default export
+    # function called when fetched at this route
+    api_route_script = "export default async function " + \
+        route_name + "(" + route_req_name + ", " + route_res_name + ")  \
+        {\n" + script + "\n}"
+    # fetches the api route
+    api_func_script = "export async function " + route_name +  \
+        "(" + fetch_body_name + ") {\nreturn " + fetch_body_script + "\n}"
+    return api_route_script, api_func_script
+
+# generates api scripts and adds them to an api route
+def generate_api_scripts_and_add(inst, route_name, route_req_name, route_res_name, script, fetch_body_name, fetch_body_script):
+    # generate the api scripts
+    api_route_script, api_func_script = generate_api_scripts(route_name, route_req_name, route_res_name, script, fetch_body_name, fetch_body_script)
+    # add the api route
+    add_api_route(inst, route_name, api_route_script, api_func_script)
+    # add route to interpreter
+    inst.interpreter.routes[route_name] = api_route_script
+    
+# generates an api fetch snippet
+def generate_fetch(path):
+    return "await fetch('/api/" + path + "').then(res => res.json())"
+
+# generates a set function for a state variable name
+def generate_set_function(name):
+    return f"set{name.capitalize()}"

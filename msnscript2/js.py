@@ -11,137 +11,13 @@ html_elements = (
 
 # available React HTML attributes
 html_attributes = (
+    "onAbort", "onAbortCapture", "onAnimationEnd", "onAnimationEndCapture", "onAnimationIteration", "onAnimationIterationCapture", "onAnimationStart", "onAnimationStartCapture", "onAuxClick", "onAuxClickCapture", "onBlur", "onBlurCapture", "onCanPlay", "onCanPlayCapture", "onCanPlayThrough", "onCanPlayThroughCapture", "onChange", "onChangeCapture", "onClick", "onClickCapture", "onCompositionEnd", "onCompositionEndCapture", "onCompositionStart", "onCompositionStartCapture", "onCompositionUpdate", "onCompositionUpdateCapture", "onContextMenu", "onContextMenuCapture", "onCopy", "onCopyCapture", "onCut", "onCutCapture", "onDoubleClick", "onDoubleClickCapture", "onDrag", "onDragCapture", "onDragEnd", "onDragEndCapture", "onDragEnter", "onDragEnterCapture", "onDragExit", "onDragExitCapture", "onDragLeave", "onDragLeaveCapture", "onDragOver", "onDragOverCapture", "onDragStart", "onDragStartCapture", "onDrop", "onDropCapture", "onDurationChange", "onDurationChangeCapture", "onEmptied", "onEmptiedCapture", "onEncrypted", "onEncryptedCapture", "onEnded", "onEndedCapture", "onError", "onErrorCapture", "onFocus", "onFocusCapture", "onGotPointerCapture", "onGotPointerCaptureCapture", "onInput", "onInputCapture", "onInvalid", "onInvalidCapture", "onKeyDown", "onKeyDownCapture", "onKeyPress", "onKeyPressCapture", "onKeyUp", "onKeyUpCapture", "onLoad", "onLoadCapture", "onLoadStart", "onLoadStartCapture", "onLoadedData", "onLoadedDataCapture", "onLoadedMetadata", "onLoadedMetadataCapture", "onLostPointerCapture", "onLostPointerCaptureCapture", "onMouseDown", "onMouseDownCapture", "onMouseEnter", "onMouseLeave", "onMouseMove", "onMouseMoveCapture", "onMouseOut", "onMouseOutCapture", "onMouseOver", "onMouseOverCapture", "onMouseUp", "onMouseUpCapture", "onPaste", "onPasteCapture", "onPause", "onPauseCapture", "onPlay", "onPlayCapture", "onPlaying", "onPlayingCapture", "onPointerCancel", "onPointerCancelCapture", "onPointerDown", "onPointerDownCapture", "onPointerEnter", "onPointerEnterCapture", "onPointerLeave", "onPointerLeaveCapture", "onPointerMove", "onPointerMoveCapture", "onPointerOut", "onPointerOutCapture", "onPointerOver", "onPointerOverCapture", "onPointerUp", "onPointerUpCapture", "onProgress", "onProgressCapture", "onRateChange", "onRateChangeCapture", "onReset", "onResetCapture", "onResize", "onResizeCapture", "onScroll", "onScrollCapture", "onSeeked", "onSeekedCapture", "onSeeking", "onSeekingCapture", "onSelect", "onSelectCapture", "onStalled", "onStalledCapture", "onSubmit", "onSubmitCapture", "onSuspend", "onSuspendCapture", "onTimeUpdate", "onTimeUpdateCapture", "onToggle", "onToggleCapture", "onTouchCancel", "onTouchCancelCapture", "onTouchEnd", "onTouchEndCapture", "onTouchMove", "onTouchMoveCapture", "onTouchStart", "onTouchStartCapture", "onTransitionEnd", "onTransitionEndCapture", "onVolumeChange", "onVolumeChangeCapture", "onWaiting", "onWaitingCapture", "onWheel", "onWheelCapture",
     "accept", "acceptCharset", "accessKey", "action", "allowFullScreen", "allowTransparency", "alt", "async", "autoComplete", "autoFocus", "autoPlay", "capture", "cellPadding", "cellSpacing", "challenge", "charSet", "checked", "cite", "classID", "className", "colSpan", "cols", "content", "contentEditable", "contextMenu", "controls", "controlsList", "coords", "crossOrigin", "data", "dateTime", "default", "defer", "dir", "disabled", "download", "draggable", "encType", "form", "formAction", "formEncType", "formMethod", "formNoValidate", "formTarget", "frameBorder", "headers", "height", "hidden", "high", "href", "hrefLang", "htmlFor", "httpEquiv", "icon", "id", "inputMode", "integrity", "is", "keyParams", "keyType", "kind", "label", "lang", "list", "loop", "low", "manifest", "marginHeight", "marginWidth", "max", "maxLength", "media", "mediaGroup", "method", "min", "minLength", "multiple", "muted", "name", "noValidate", "nonce", "open", "optimum", "pattern", "placeholder", "poster", "preload", "profile", "radioGroup", "readOnly", "referrerPolicy", "rel", "required", "reversed", "role", "rowSpan", "rows", "sandbox", "scope", "scoped", "scrolling", "seamless", "selected", "shape", "size", "sizes", "span", "spellCheck", "src", "srcDoc", "srcLang", "srcSet", "start", "step", "style", "summary", "tabIndex", "target", "title", "type", "useMap", "value", "width", "wmode", "wrap"
 )
 
 # map of all html_attributes to their default values
-html_attribute_defaults = {
-    "accept": "",
-    "acceptCharset": "",
-    "accessKey": "",
-    "action": "",
-    "allowFullScreen": False,
-    "allowTransparency": False,
-    "alt": "",
-    "async": False,
-    "autoComplete": "",
-    "autoFocus": False,
-    "autoPlay": False,
-    "capture": False,
-    "cellPadding": "",
-    "cellSpacing": "",
-    "challenge": "",
-    "charSet": "",
-    "checked": False,
-    "cite": "",
-    "classID": "",
-    "className": "",
-    "colSpan": "",
-    "cols": "",
-    "content": "",
-    "contentEditable": "",
-    "contextMenu": "",
-    "controls": False,
-    "controlsList": "",
-    "coords": "",
-    "crossOrigin": "",
-    "data": "",
-    "dateTime": "",
-    "default": False,
-    "defer": False,
-    "dir": "",
-    "disabled": False,
-    "download": "",
-    "draggable": False,
-    "encType": "",
-    "form": "",
-    "formAction": "",
-    "formEncType": "",
-    "formMethod": "",
-    "formNoValidate": False,
-    "formTarget": "",
-    "frameBorder": "",
-    "headers": "",
-    "height": "",
-    "hidden": False,
-    "high": "",
-    "href": "",
-    "hrefLang": "",
-    "htmlFor": "",
-    "httpEquiv": "",
-    "icon": "",
-    "id": "",
-    "inputMode": "",
-    "integrity": "",
-    "is": "",
-    "keyParams": "",
-    "keyType": "",
-    "kind": "",
-    "label": "",
-    "lang": "",
-    "list": "",
-    "loop": False,
-    "low": "",
-    "manifest": "",
-    "marginHeight": "",
-    "marginWidth": "",
-    "max": "",
-    "maxLength": "",
-    "media": "",
-    "mediaGroup": "",
-    "method": "",
-    "min": "",
-    "minLength": "",
-    "multiple": False,
-    "muted": False,
-    "name": "",
-    "noValidate": False,
-    "nonce": "",
-    "open": False,
-    "optimum": "",
-    "pattern": "",
-    "placeholder": "",
-    "poster": "",
-    "preload": "",
-    "profile": "",
-    "radioGroup": "",
-    "readOnly": False,
-    "referrerPolicy": "",
-    "rel": "",
-    "required": False,
-    "reversed": False,
-    "role": "",
-    "rowSpan": "",
-    "rows": "",
-    "sandbox": "",
-    "scope": "",
-    "scoped": False,
-    "scrolling": "",
-    "seamless": False,
-    "selected": False,
-    "shape": "",
-    "size": "",
-    "sizes": "",
-    "span": "",
-    "spellCheck": False,
-    "src": "",
-    "srcDoc": "",
-    "srcLang": "",
-    "srcSet": "",
-    "start": "",
-    "step": "",
-    "style": "",
-    "summary": "",
-    "tabIndex": "",
-    "target": "",
-    "title": "",
-    "type": "",
-    "useMap": "",
-    "value": "",
-    "width": "",
-    "wmode": "",
-    "wrap": ""
-}
+html_attribute_defaults = {"accept": "",    "acceptCharset": "",    "accessKey": "",    "action": "",    "allowFullScreen": False,    "allowTransparency": False,    "alt": "",    "async": False,    "autoComplete": "",    "autoFocus": False,    "autoPlay": False,    "capture": False,    "cellPadding": "",    "cellSpacing": "",    "challenge": "",    "charSet": "",    "checked": False,    "cite": "",    "classID": "",    "className": "",    "colSpan": "",    "cols": "",    "content": "",    "contentEditable": "",    "contextMenu": "",    "controls": False,    "controlsList": "",    "coords": "",    "crossOrigin": "",    "data": "",    "dateTime": "",    "default": False,    "defer": False,    "dir": "",    "disabled": False,    "download": "",    "draggable": False,    "encType": "",    "form": "",    "formAction": "",    "formEncType": "",    "formMethod": "",    "formNoValidate": False,    "formTarget": "",    "frameBorder": "",    "headers": "",    "height": "",    "hidden": False,    "high": "",    "href": "",    "hrefLang": "",    "htmlFor": "",    "httpEquiv": "",    "icon": "",    "id": "",    "inputMode": "",    "integrity": "",    "is": "",    "keyParams": "",    "keyType": "",    "kind": "",    "label": "",    "lang": "",    "list": "",    "loop": False,    "low": "",    "manifest": "",    "marginHeight": "",    "marginWidth": "",    "max": "",    "maxLength": "",    "media": "",    "mediaGroup": "",    "method": "",    "min": "",    "minLength": "",    "multiple": False,    "muted": False,    "name": "",    "noValidate": False,    "nonce": "",    "open": False,    "optimum": "",    "onAbort": "",    "onAbortCapture": "",    "onAnimationEnd": "",    "onAnimationEndCapture": "",    "onAnimationIteration": "",    "onAnimationIterationCapture": "",    "onAnimationStart": "",    "onAnimationStartCapture": "",    "onAuxClick": "",    "onAuxClickCapture": "",    "onBlur": "",    "onBlurCapture": "",    "onCanPlay": "",    "onCanPlayCapture": "",    "onCanPlayThrough": "",    "onCanPlayThroughCapture": "",    "onChange": "",    "onChangeCapture": "",    "onClick": "",    "onClickCapture": "",    "onCompositionEnd": "",    "onCompositionEndCapture": "",    "onCompositionStart": "",    "onCompositionStartCapture": "",    "onCompositionUpdate": "",    "onCompositionUpdateCapture": "",    "onContextMenu": "",    "onContextMenuCapture": "",    "onCopy": "",    "onCopyCapture": "",    "onCut": "",    "onCutCapture": "",    "onDoubleClick": "",    "onDoubleClickCapture": "",    "onDrag": "",    "onDragCapture": "",    "onDragEnd": "",    "onDragEndCapture": "",    "onDragEnter": "",    "onDragEnterCapture": "",    "onDragExit": "",    "onDragExitCapture": "",    "onDragLeave": "",    "onDragLeaveCapture": "",    "onDragOver": "",    "onDragOverCapture": "",    "onDragStart": "",    "onDragStartCapture": "",    "onDrop": "",    "onDropCapture": "",    "onDurationChange": "",    "onDurationChangeCapture": "",    "onEmptied": "",    "onEmptiedCapture": "",    "onEncrypted": "",    "onEncryptedCapture": "",    "onEnded": "",    "onEndedCapture": "",    "onError": "",    "onErrorCapture": "",    "onFocus": "",    "onFocusCapture": "",    "onGotPointerCapture": "",
+                           "onGotPointerCaptureCapture": "",    "onInput": "",    "onInputCapture": "",    "onInvalid": "",    "onInvalidCapture": "",    "onKeyDown": "",    "onKeyDownCapture": "",    "onKeyPress": "",    "onKeyPressCapture": "",    "onKeyUp": "",    "onKeyUpCapture": "",    "onLoad": "",    "onLoadCapture": "",    "onLoadStart": "",    "onLoadStartCapture": "",    "onLoadedData": "",    "onLoadedDataCapture": "",    "onLoadedMetadata": "",    "onLoadedMetadataCapture": "",    "onLostPointerCapture": "",    "onLostPointerCaptureCapture": "",    "onMouseDown": "",    "onMouseDownCapture": "",    "onMouseEnter": "",    "onMouseLeave": "",    "onMouseMove": "",    "onMouseMoveCapture": "",    "onMouseOut": "",    "onMouseOutCapture": "",    "onMouseOver": "",    "onMouseOverCapture": "",    "onMouseUp": "",    "onMouseUpCapture": "",    "onPaste": "",    "onPasteCapture": "",    "onPause": "",    "onPauseCapture": "",    "onPlay": "",    "onPlayCapture": "",    "onPlaying": "",    "onPlayingCapture": "",    "onPointerCancel": "",    "onPointerCancelCapture": "",    "onPointerDown": "",    "onPointerDownCapture": "",    "onPointerEnter": "",    "onPointerEnterCapture": "",    "onPointerLeave": "",    "onPointerLeaveCapture": "",    "onPointerMove": "",    "onPointerMoveCapture": "",    "onPointerOut": "",    "onPointerOutCapture": "",    "onPointerOver": "",    "onPointerOverCapture": "",    "onPointerUp": "",    "onPointerUpCapture": "",    "onProgress": "",    "onProgressCapture": "",    "onRateChange": "",    "onRateChangeCapture": "",    "onReset": "",    "onResetCapture": "",    "onResize": "",    "onResizeCapture": "",    "onScroll": "",    "onScrollCapture": "",    "onSeeked": "",    "onSeekedCapture": "",    "onSeeking": "",    "onSeekingCapture": "",    "onSelect": "",    "onSelectCapture": "",    "onStalled": "",    "onStalledCapture": "",    "onSubmit": "",    "onSubmitCapture": "",    "onSuspend": "",    "onSuspendCapture": "",    "onTimeUpdate": "",    "onTimeUpdateCapture": "",    "onToggle": "",    "onToggleCapture": "",    "onTouchCancel": "",    "onTouchCancelCapture": "",    "onTouchEnd": "",    "onTouchEndCapture": "",    "onTouchMove": "",    "onTouchMoveCapture": "",    "onTouchStart": "",    "onTouchStartCapture": "",    "onTransitionEnd": "",    "onTransitionEndCapture": "",    "onVolumeChange": "",    "onVolumeChangeCapture": "",    "onWaiting": "",    "onWaitingCapture": "",    "onWheel": "",    "onWheelCapture": "",    "pattern": "",    "placeholder": "",    "poster": "",    "preload": "",    "profile": "",    "radioGroup": "",    "readOnly": False,    "referrerPolicy": "",    "rel": "",    "required": False,    "reversed": False,    "role": "",    "rowSpan": "",    "rows": "",    "sandbox": "",    "scope": "",    "scoped": False,    "scrolling": "",    "seamless": False,    "selected": False,    "shape": "",    "size": "",    "sizes": "",    "span": "",    "spellCheck": False,    "src": "",    "srcDoc": "",    "srcLang": "",    "srcSet": "",    "start": "",    "step": "",    "style": "",    "summary": "",    "tabIndex": "",    "target": "",    "title": "",    "type": "",    "useMap": "",    "value": "",    "width": "",    "wmode": "",    "wrap": ""}
 
 # converts an MSN2 instruction to JS
 
@@ -149,6 +25,7 @@ html_attribute_defaults = {
 
 
 def parse(inst, i):
+    from functions import is_jsx_element
     strp = inst.args[i][0].strip()
     if inst.interpreter.is_py_str(strp):
         return f"`{inst.parse(i)}`"
@@ -156,6 +33,16 @@ def parse(inst, i):
     if ret == None:
         ret = strp
     return ret
+
+
+def parse_string(inst, string):
+    strp = string.strip()
+    if inst.interpreter.is_py_str(strp):
+        return f"`{inst.interpreter.interpret(string)}`"
+    ret = inst.interpreter.interpret(string)
+    if ret == None:
+        ret = strp
+    return string
 
 
 def convert_to_js(inst, lock, lines_ran):
@@ -177,10 +64,22 @@ def convert_to_js(inst, lock, lines_ran):
     elif inst.func in inst.interpreter.routes:
         from functions import insert_line_at_marker
         # import this route
-        
-        
+        raise NotImplementedError
+    # if in inst.interpreter.states
+    elif inst.obj in inst.interpreter.states:
+        state_name = inst.obj
+        # get the state value
+        state_value = inst.interpreter.states[state_name].value
+        if inst.objfunc == 'set':
+            from functions import generate_set_function, insert_line_at_marker
+            # generate the set function
+            set_function = generate_set_function(state_name)
+            # return the set function
+            return f"{set_function}({parse(inst, 0)})"
+        # otherwise, return the state
+        return state_name
     elif inst.func == "+":
-        return f"({inst.parse(0)} + {inst.parse(1)})"
+        return f"({parse(inst, 0)} + {parse(inst, 1)})"
     elif inst.func == "-":
         from functions import hyphen
         return hyphen(inst)
@@ -211,14 +110,18 @@ def convert_to_js(inst, lock, lines_ran):
     # creating a const
     elif inst.func == "const":
         from msnint2 import Var
+        from functions import is_react_code
         name = inst.parse(0)
         value = parse(inst, 1)
+        # if value is react code
         # create variable in inst.interpreter.vars
-        inst.interpreter.vars[name] = Var(name, value)
+        inst.interpreter.vars[name] = Var(name, name if not is_react_code else f"{{{name}}}")
         return f"const {name} = {value}\n"
     # creates a state
     elif inst.func == "state":
         from msnint2 import Var
+        from functions import generate_set_function
+
         # determine if useState has been imported
         if (imp := ('useState', 'react')) not in inst.interpreter.web_imports:
             from functions import insert_line_at_marker
@@ -226,22 +129,30 @@ def convert_to_js(inst, lock, lines_ran):
             inst.interpreter.web_imports.add(imp)
             # insert the import
             insert_line_at_marker(inst, inst.interpreter.next_entry_path, "imports",
-                                  "import { useState } from 'react';")
+                                  "import { useState } from 'react';", check_for_dups=True)
+            # insert useEffect
+            insert_line_at_marker(inst, inst.interpreter.next_entry_path, "imports",
+                                  "import { useEffect } from 'react';", check_for_dups=True)
         name = inst.parse(0)
-        set_function = f"set{name.capitalize()}"
-        default_value = parse(inst, 1)
+        set_function = generate_set_function(name)
+        # default value or new value
+        default_value_or_new_value = parse(inst, 1)
+        # if this state is already defined
+        if name in inst.interpreter.states:
+            return generate_set_function(name) + f"({name} => " + " {return " + str(default_value_or_new_value) + "})\n"
         # add state to list of states
-        inst.interpreter.states[name] = Var(name, default_value)
+        inst.interpreter.states[name] = Var(name, default_value_or_new_value)
         # create new variable
-        return f"const [{name}, {set_function}] = useState({default_value})\n"
+        return f"const [{name}, {set_function}] = useState({default_value_or_new_value})\nuseEffect(() => {{\n// {name} useEffect ::\n}}, [{name}])\n"
+
     # inserts a useEffect hook
     elif inst.func == "effect":
         from functions import use_effect
         return use_effect(inst)
     # creates a /pages/api/*route*.js file for api interaction
     # also (creates and) appends to /api/functions.js file for api functions
-    elif inst.func == "api:route":
-        from functions import add_api_route
+    elif inst.func == "apiroute":
+        from functions import add_api_route, generate_api_scripts_and_add
         # take input
         route_name = inst.parse(0)
         # route request variable name
@@ -256,40 +167,59 @@ def convert_to_js(inst, lock, lines_ran):
         fetch_body_script = parse(inst, 5)
         # create the api route function to place at the default export
         # function called when fetched at this route
-        api_route_script = "export default async function " + \
-            route_name + "(" + route_req_name + ", " + route_res_name + ")  \
-            {\n" + script + "\n}"
-        # fetches the api route
-        api_func_script = "export async function " + route_name +  \
-        "(" + fetch_body_name + ") {\nreturn " + fetch_body_script + "\n}"
-        # add the api route
-        add_api_route(inst, route_name, api_route_script, api_func_script)
-        # add route to interpreter
-        inst.interpreter.routes[route_name] = api_route_script
+        # api_route_script = "export default async function " + \
+        #     route_name + "(" + route_req_name + ", " + route_res_name + ")  \
+        #     {\n" + script + "\n}"
+        # # fetches the api route
+        # api_func_script = "export async function " + route_name +  \
+        #     "(" + fetch_body_name + ") {\nreturn " + fetch_body_script + "\n}"
+        generate_api_scripts_and_add(inst, route_name, route_req_name,
+                                     route_res_name, script, fetch_body_name, fetch_body_script)
+        return ""
+    # simpler apiroute
+    elif inst.func == "defineapi":
+        from functions import add_api_route, generate_api_scripts, generate_fetch
+        # take route_name
+        route_name = inst.parse(0)
+        # take request variable name
+        route_req_name = inst.parse(1)
+        # take response variable name
+        route_res_name = inst.parse(2)
+        # take script
+        script = parse(inst, 3)
+        # create the api route function to place at the default export
+        # function called when fetched at this route
+        generate_api_scripts(route_name, route_req_name,
+                             route_res_name, script, 'body', generate_fetch(route_name))
         return ""
     # gets from api:route
-    elif inst.func == "api:get":
+    elif inst.func == "apiget":
+        from functions import generate_fetch
         # path to get from
         path = inst.parse(0)
         # request body
-        # body = str(parse(inst, 1))
-        return "await fetch('/api/" + path + "').then(res => res.json())"
+        return generate_fetch(inst.parse(0))
     # creates a component route
     elif inst.func == "route":
         from functions import add_route
         return add_route(inst, inst.parse(0), inst.parse(1))
-    
+
     # creates a page route to a script
     # HTML elements
     elif inst.func in html_elements:
         from functions import component
         return component(inst, inst.func)
+    # general text
+    elif inst.func == "text":
+        from functions import component
+        return component(inst, "span")
     # vcenter: centers an element vertically
     elif inst.func == "vcenter":
         from functions import component
         return component(inst, "div", {'style': {
             'display': 'flex',
             'alignItems': 'center',
+            'textAlign': 'center'
         }})
     # hcenter: centers an element horizontally
     elif inst.func == "hcenter":
@@ -298,6 +228,7 @@ def convert_to_js(inst, lock, lines_ran):
             'height': "10rem",
             'display': 'flex',
             'justifyContent': 'center',
+            'textAlign': 'center'
         }})
     # centers children both horizontally and vertically
     elif inst.func == "center":
@@ -306,6 +237,7 @@ def convert_to_js(inst, lock, lines_ran):
             'display': 'flex',
             'justifyContent': 'center',
             'alignItems': 'center',
+            'textAlign': 'center'
         }})
     # vertical stack of components
     elif inst.func == "vstack":
@@ -330,14 +262,15 @@ def convert_to_js(inst, lock, lines_ran):
             from functions import file_append
             return file_append(inst, lock, lines_ran)
     # creating a JS import
-    elif inst.func == "import":
-        from functions import insert_line_at_marker
-        # component to import
-        comp = inst.parse(0)
-        # path to import from
-        path = inst.parse(1)
-        insert_line_at_marker(inst, inst.interpreter.next_entry_path, "imports", f"import {comp} from '{path}';")
-        return ""
+    # elif inst.func == "import":
+    #     from functions import insert_line_at_marker
+    #     # component to import
+    #     comp = inst.parse(0)
+    #     # path to import from
+    #     path = inst.parse(1)
+    #     insert_line_at_marker(inst, inst.interpreter.next_entry_path,
+    #                           "imports", f"import {comp} from '{path}';", check_for_dups=True)
+    #     return ""
     # general print, JavaScript equivalent
     # is the notorious 'console.log'
     elif inst.func in ("prnt", "print"):
@@ -352,7 +285,20 @@ def convert_to_js(inst, lock, lines_ran):
             else:
                 as_js += curr
         return as_js + ")"
-    # creates a function
+    # general unnamed function with possible arguments
+    elif inst.func == "do":
+        # if no arguments
+        if inst.args[0][0] == "":
+            return "async () => {}"
+        # get arguments, aka all arguments except the last
+        args = [inst.parse(i) for i in range(len(inst.args) - 1)]
+        # get function body, aka the last argument
+        body = parse(inst, -1)
+        return f"async ({', '.join([str(arg) for arg in args if arg])}) => \u007b{body}\u007d"
+    # awaits a function
+    elif inst.func == "await":
+        return f"await {parse(inst, 0)}"
+    # detailed named function with arguments
     elif inst.func == 'def':
         from functions import define
         # define the function so it may be recognized as a method
@@ -365,10 +311,11 @@ def convert_to_js(inst, lock, lines_ran):
                 as_js += f"{inst.parse(i)}, "
             else:
                 as_js += f"{inst.parse(i)}"
-        as_js += ") {\n// hooks ::\n"
+        as_js += ") {\n"
         as_js += f"return {inst.parse(-1)}"
         as_js += "}"
         return as_js
+    # creates and executes a function in one call
     elif inst.func == "=>" or (inst.func == '' and inst.objfunc == ''):
         from functions import callback
         return callback(inst)
