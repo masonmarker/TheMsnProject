@@ -450,7 +450,7 @@ def is_function(string):
         parsed = esprima.parseScript(q)
         ret = (parsed.body[0].type == "FunctionDeclaration") or \
               (parsed.body[0].expression.type == "ArrowFunctionExpression" or
-               parsed.body[0].expression.type == "FunctionExpression" or 
+               parsed.body[0].expression.type == "FunctionExpression" or
                parsed.body[0].expression.type == "CallExpression")
         return ret
     except:
@@ -524,9 +524,9 @@ def is_jsx_element(string):
 
 def component(inst, html_tag="div", props={}):
     inst.in_html = True
-    return tag(inst, [((inst.parse(i) if not is_prop(inst, i) else "") \
-                if not (as_s := inst.args[i][0].strip()) in inst.interpreter.states else  \
-                ("{" + as_s + "}")) if not is_jsx_element(_v := inst.args[i][0].strip()) else \
+    return tag(inst, [((inst.parse(i) if not is_prop(inst, i) else "")
+                       if not (as_s := inst.args[i][0].strip()) in inst.interpreter.states else
+                       ("{" + as_s + "}")) if not is_jsx_element(_v := inst.args[i][0].strip()) else
                       _v for i in range(len(inst.args))], html_tag, props=merge_props(props, inst))
 
 # creates a useEffect hook
@@ -554,6 +554,8 @@ def generate_css_module(inst):
     ...
 
 # generates an api route as js script
+
+
 def generate_api_scripts(route_name, route_req_name, route_res_name, script, fetch_body_name, fetch_body_script):
     # create the api route function to place at the default export
     # function called when fetched at this route
@@ -566,18 +568,39 @@ def generate_api_scripts(route_name, route_req_name, route_res_name, script, fet
     return api_route_script, api_func_script
 
 # generates api scripts and adds them to an api route
+
+
 def generate_api_scripts_and_add(inst, route_name, route_req_name, route_res_name, script, fetch_body_name, fetch_body_script):
     # generate the api scripts
-    api_route_script, api_func_script = generate_api_scripts(route_name, route_req_name, route_res_name, script, fetch_body_name, fetch_body_script)
+    api_route_script, api_func_script = generate_api_scripts(
+        route_name, route_req_name, route_res_name, script, fetch_body_name, fetch_body_script)
     # add the api route
     add_api_route(inst, route_name, api_route_script, api_func_script)
     # add route to interpreter
     inst.interpreter.routes[route_name] = api_route_script
-    
+
 # generates an api fetch snippet
+
+
 def generate_fetch(path):
     return "await fetch('/api/" + path + "').then(res => res.json())"
 
 # generates a set function for a state variable name
+
+
 def generate_set_function(name):
     return f"set{name.capitalize()}"
+
+# adds to web imports
+
+
+def try_add_web_import(inst, importItems=[]):
+    # for each import item
+    for is_default, importName, importLocation in importItems:
+        # if the import item is not in the web imports
+        if (importName, importLocation) not in inst.interpreter.web_imports:
+            # add the import item to the web imports
+            inst.interpreter.web_imports.add((importName, importLocation))
+            # insert the import
+            insert_line_at_marker(inst, inst.interpreter.next_entry_path, "imports",
+                                  f"import {'{' if not is_default else ''}{importName}{'}' if not is_default else ''} from '{importLocation}';", check_for_dups=True)

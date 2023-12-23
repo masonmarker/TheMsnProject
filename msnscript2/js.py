@@ -6,7 +6,7 @@
 
 # available HTML elements
 html_elements = (
-    "h1", "h2", "h3", "h4", "h5", "h6", "div", "span", "p", "a", "b", "i", "u", "ul", "li", "ol", "br", "hr", "img", "input", "button", "form", "label", "select", "option", "textarea", "table", "thead", "tbody", "tr", "th", "td", "canvas", "audio", "video", "iframe", "script", "style", "link", "meta", "title", "head", "body", "html", "pre", "code"
+    "nav", "h1", "h2", "h3", "h4", "h5", "h6", "div", "span", "p", "a", "b", "i", "u", "ul", "li", "ol", "br", "hr", "img", "input", "button", "form", "label", "select", "option", "textarea", "table", "thead", "tbody", "tr", "th", "td", "canvas", "audio", "video", "iframe", "script", "style", "link", "meta", "title", "head", "body", "html", "pre", "code"
 )
 
 # available React HTML attributes
@@ -120,19 +120,21 @@ def convert_to_js(inst, lock, lines_ran):
     # creates a state
     elif inst.func == "state":
         from msnint2 import Var
-        from functions import generate_set_function
+        from functions import generate_set_function, try_add_web_import
 
-        # determine if useState has been imported
-        if (imp := ('useState', 'react')) not in inst.interpreter.web_imports:
-            from functions import insert_line_at_marker
-            # insert_line_at_marker()
-            inst.interpreter.web_imports.add(imp)
-            # insert the import
-            insert_line_at_marker(inst, inst.interpreter.next_entry_path, "imports",
-                                  "import { useState } from 'react';", check_for_dups=True)
-            # insert useEffect
-            insert_line_at_marker(inst, inst.interpreter.next_entry_path, "imports",
-                                  "import { useEffect } from 'react';", check_for_dups=True)
+        # # determine if useState has been imported
+        # if (imp := ('useState', 'react')) not in inst.interpreter.web_imports:
+        #     from functions import insert_line_at_marker
+        #     # insert_line_at_marker()
+        #     inst.interpreter.web_imports.add(imp)
+        #     # insert the import
+        #     insert_line_at_marker(inst, inst.interpreter.next_entry_path, "imports",
+        #                           "import { useState } from 'react';", check_for_dups=True)
+        #     # insert useEffect
+        #     insert_line_at_marker(inst, inst.interpreter.next_entry_path, "imports",
+        #                           "import { useEffect } from 'react';", check_for_dups=True)
+        try_add_web_import(inst, [(False, 'useState', 'react'), (False, 'useEffect', 'react')])
+        
         name = inst.parse(0)
         set_function = generate_set_function(name)
         # default value or new value
@@ -143,8 +145,7 @@ def convert_to_js(inst, lock, lines_ran):
         # add state to list of states
         inst.interpreter.states[name] = Var(name, default_value_or_new_value)
         # create new variable
-        return f"const [{name}, {set_function}] = useState({default_value_or_new_value})\nuseEffect(() => {{\n// {name} useEffect ::\n}}, [{name}])\n"
-
+        return f"const [{name}, {set_function}] = useState({default_value_or_new_value})\nuseEffect(() => {{\n// {name} useEffect ::\n}}, [{name}])\n"        
     # inserts a useEffect hook
     elif inst.func == "effect":
         from functions import use_effect
@@ -178,7 +179,7 @@ def convert_to_js(inst, lock, lines_ran):
         return ""
     # simpler apiroute
     elif inst.func == "defineapi":
-        from functions import add_api_route, generate_api_scripts, generate_fetch
+        from functions import generate_api_scripts, generate_fetch
         # take route_name
         route_name = inst.parse(0)
         # take request variable name
@@ -203,7 +204,22 @@ def convert_to_js(inst, lock, lines_ran):
     elif inst.func == "route":
         from functions import add_route
         return add_route(inst, inst.parse(0), inst.parse(1))
-
+    # grid
+    # forces row and columns
+    elif inst.func == "grid":
+        # get number of rows and columns
+        rows = inst.parse(0)
+        cols = inst.parse(1)
+        # remove the first 2 args in inst.args
+        # to prepare component
+        inst.args = inst.args[2:]
+        # return component
+        from functions import component
+        return component(inst, "div", {'style': {
+            'display': 'grid',
+            'gridTemplateRows': f"repeat({rows}, 1fr)",
+            'gridTemplateColumns': f"repeat({cols}, 1fr)"
+        }})
     # creates a page route to a script
     # HTML elements
     elif inst.func in html_elements:
@@ -261,16 +277,33 @@ def convert_to_js(inst, lock, lines_ran):
         elif inst.objfunc == "append":
             from functions import file_append
             return file_append(inst, lock, lines_ran)
-    # creating a JS import
-    # elif inst.func == "import":
-    #     from functions import insert_line_at_marker
-    #     # component to import
-    #     comp = inst.parse(0)
-    #     # path to import from
-    #     path = inst.parse(1)
-    #     insert_line_at_marker(inst, inst.interpreter.next_entry_path,
-    #                           "imports", f"import {comp} from '{path}';", check_for_dups=True)
-    #     return ""
+    # imports from an msn2 file
+    elif inst.func == "import":
+        from js import parse_string
+        from functions import get_root_dir
+        import os
+        # get the path of the file
+        path = inst.parse(0)
+        # get the root dir
+        root_dir = get_root_dir(inst)
+        # find file
+        path = f"{root_dir}msn2/{path}"
+        # add .msn2 extension if not already
+        if not path.endswith(".msn2"):
+            path += ".msn2"
+        # get the lines of the file
+        with open(path, 'r') as f:
+            lines = f.readlines()
+        strrep = ""
+        for line in lines:
+            line = line.strip()
+            # if the line is a comment
+            if inst.interpreter.is_comment(line):
+                continue
+            if line:
+                strrep += line + "\n"    
+        # return the string representation of the file    
+        return inst.interpreter.interpret(strrep)
     # general print, JavaScript equivalent
     # is the notorious 'console.log'
     elif inst.func in ("prnt", "print"):

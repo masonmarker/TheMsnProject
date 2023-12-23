@@ -86,53 +86,7 @@ def('react:prerender_check', 'react:prerender_check:page_url', (
             " */\n\n",
             "// imports ::\n\n",
             "// default component export ::\n"
-        )),
-        @ react:update_has_written = True,
-        # finished updating page URL
-        # do the above but more compact
-        console:print(arr(
-            object('text', '[', 'style', 'bold', 'fore', 'white'),
-            object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
-            object('text', '] ', 'style', 'bold', 'fore', 'white'),
-            object('text', 'finished updating: ', 'style', 'bold', 'fore', 'blue'),
-            object('text', react:prerender_check:page_url, 'style', 'bold', 'fore', 'green'),
-        )),
-        # print long string
-        react:print_long_string(),
-        # print 'next steps: '  in blue
-        console:print(arr(
-            object('text', '[', 'style', 'bold', 'fore', 'white'),
-            object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
-            object('text', '] ', 'style', 'bold', 'fore', 'white'),
-            object('text', 'DEV TODO: ', 'style', 'bold', 'fore', 'blue'),
-        )),
-        # ask user to check if page.js compiled successfully
-        console:print(arr(
-            object('text', '[', 'style', 'bold', 'fore', 'white'),
-            object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
-            object('text', '] ', 'style', 'bold', 'fore', 'white'),
-            object('text', ' - ', 'style', 'bold', 'fore', 'blue'),
-            object('text', 'verify a successful compilation in updated files', 'style', 'bold', 'fore', 'yellow'),
-        )),
-        # add another todo that says refresh localhost if changes have not been made
-        console:print(arr(
-            object('text', '[', 'style', 'bold', 'fore', 'white'),
-            object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
-            object('text', '] ', 'style', 'bold', 'fore', 'white'),
-            object('text', ' - ', 'style', 'bold', 'fore', 'blue'),
-            object('text', 'refresh localhost if changes have not been made', 'style', 'bold', 'fore', 'yellow'),
-        )),
-        # print long string
-        react:print_long_string(),
-        # print DONE in green
-        print(),
-        console:print(arr(
-            object('text', '[', 'style', 'bold', 'fore', 'white'),
-            object('text', 'MSN2', 'style', 'bold', 'fore', 'green'),
-            object('text', '] ', 'style', 'bold', 'fore', 'white'),
-            object('text', +(' ' * 5, 'GENERATION SUCCESSFUL'), 'style', 'bold', 'fore', 'green'),
-        )),
-        print()
+        ))
     ))
 ))
 
@@ -181,7 +135,53 @@ def('react:page', 'react:default:page_url', 'react:default:component_script', (
     # prettify the code at this path
     JS:,
     prettify(react:default:page_url),
-    :JS
+    :JS,
+    @ react:update_has_written = True,
+    # finished updating page URL
+    # do the above but more compact
+    console:print(arr(
+        object('text', '[', 'style', 'bold', 'fore', 'white'),
+        object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
+        object('text', '] ', 'style', 'bold', 'fore', 'white'),
+        object('text', 'finished updating: ', 'style', 'bold', 'fore', 'blue'),
+        object('text', react:prerender_check:page_url, 'style', 'bold', 'fore', 'green'),
+    )),
+    # print long string
+    react:print_long_string(),
+    # print 'next steps: '  in blue
+    console:print(arr(
+        object('text', '[', 'style', 'bold', 'fore', 'white'),
+        object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
+        object('text', '] ', 'style', 'bold', 'fore', 'white'),
+        object('text', 'DEV TODO: ', 'style', 'bold', 'fore', 'blue'),
+    )),
+    # ask user to check if page.js compiled successfully
+    console:print(arr(
+        object('text', '[', 'style', 'bold', 'fore', 'white'),
+        object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
+        object('text', '] ', 'style', 'bold', 'fore', 'white'),
+        object('text', ' - ', 'style', 'bold', 'fore', 'blue'),
+        object('text', 'verify a successful compilation in updated files', 'style', 'bold', 'fore', 'yellow'),
+    )),
+    # add another todo that says refresh localhost if changes have not been made
+    console:print(arr(
+        object('text', '[', 'style', 'bold', 'fore', 'white'),
+        object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
+        object('text', '] ', 'style', 'bold', 'fore', 'white'),
+        object('text', ' - ', 'style', 'bold', 'fore', 'blue'),
+        object('text', 'refresh localhost if changes have not been made', 'style', 'bold', 'fore', 'yellow'),
+    )),
+    # print long string
+    react:print_long_string(),
+    # print DONE in green
+    print(),
+    console:print(arr(
+        object('text', '[', 'style', 'bold', 'fore', 'white'),
+        object('text', 'MSN2', 'style', 'bold', 'fore', 'green'),
+        object('text', '] ', 'style', 'bold', 'fore', 'white'),
+        object('text', +(' ' * 5, 'GENERATION SUCCESSFUL'), 'style', 'bold', 'fore', 'green'),
+    )),
+    print()
 ))
 
 # renders an api route
