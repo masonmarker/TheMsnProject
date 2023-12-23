@@ -186,7 +186,7 @@ def('react:page', 'react:default:page_url', 'react:default:component_script', (
 
 # renders an api route
 def('react:api:route', 
-    'react:route_name', 
+    'react:route_name',
     'react:req_var_name', 
     'react:res_var_name',
     # what will the api function return?

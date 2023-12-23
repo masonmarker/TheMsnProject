@@ -115,7 +115,8 @@ def convert_to_js(inst, lock, lines_ran):
         value = parse(inst, 1)
         # if value is react code
         # create variable in inst.interpreter.vars
-        inst.interpreter.vars[name] = Var(name, name if not is_react_code else f"{{{name}}}")
+        inst.interpreter.vars[name] = Var(
+            name, name if not is_react_code else f"{{{name}}}")
         return f"const {name} = {value}\n"
     # creates a state
     elif inst.func == "state":
@@ -133,8 +134,9 @@ def convert_to_js(inst, lock, lines_ran):
         #     # insert useEffect
         #     insert_line_at_marker(inst, inst.interpreter.next_entry_path, "imports",
         #                           "import { useEffect } from 'react';", check_for_dups=True)
-        try_add_web_import(inst, [(False, 'useState', 'react'), (False, 'useEffect', 'react')])
-        
+        try_add_web_import(
+            inst, [(False, 'useState', 'react'), (False, 'useEffect', 'react')])
+
         name = inst.parse(0)
         set_function = generate_set_function(name)
         # default value or new value
@@ -145,7 +147,7 @@ def convert_to_js(inst, lock, lines_ran):
         # add state to list of states
         inst.interpreter.states[name] = Var(name, default_value_or_new_value)
         # create new variable
-        return f"const [{name}, {set_function}] = useState({default_value_or_new_value})\nuseEffect(() => {{\n// {name} useEffect ::\n}}, [{name}])\n"        
+        return f"const [{name}, {set_function}] = useState({default_value_or_new_value})\nuseEffect(() => {{\n// {name} useEffect ::\n}}, [{name}])\n"
     # inserts a useEffect hook
     elif inst.func == "effect":
         from functions import use_effect
@@ -179,7 +181,7 @@ def convert_to_js(inst, lock, lines_ran):
         return ""
     # simpler apiroute
     elif inst.func == "defineapi":
-        from functions import generate_api_scripts, generate_fetch
+        from functions import generate_api_scripts_and_add, generate_fetch
         # take route_name
         route_name = inst.parse(0)
         # take request variable name
@@ -190,8 +192,8 @@ def convert_to_js(inst, lock, lines_ran):
         script = parse(inst, 3)
         # create the api route function to place at the default export
         # function called when fetched at this route
-        generate_api_scripts(route_name, route_req_name,
-                             route_res_name, script, 'body', generate_fetch(route_name))
+        generate_api_scripts_and_add(inst, route_name, route_req_name,
+                                     route_res_name, script, 'body', generate_fetch(route_name))
         return ""
     # gets from api:route
     elif inst.func == "apiget":
@@ -301,8 +303,8 @@ def convert_to_js(inst, lock, lines_ran):
             if inst.interpreter.is_comment(line):
                 continue
             if line:
-                strrep += line + "\n"    
-        # return the string representation of the file    
+                strrep += line + "\n"
+        # return the string representation of the file
         return inst.interpreter.interpret(strrep)
     # general print, JavaScript equivalent
     # is the notorious 'console.log'

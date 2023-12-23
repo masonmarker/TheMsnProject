@@ -22,27 +22,27 @@ import {
 // default component export ::
 export default function Index(props) {
   return (() => {
-    const [value, setValue] = useState(0)
-    useEffect(() => {
-      // value useEffect ::
-    }, [value]);
-    const [value2, setValue2] = useState(50)
+    function Navbar(props) {
+      return (() => {
+        function Nav(props) {
+          return (() => {
+            return <h1 style={{'color': 'red'}}>this is the red navbar!</h1>
+          })()
+        };
+        return <nav><h1>this is the black navbar!</h1><Nav /></nav>
+      })()
+    };
+    const value = 3;
+    const value3 = 50;
+    const Navigation = <Navbar />;
+    const [value2, setValue2] = useState(4)
     useEffect(() => {
       // value2 useEffect ::
     }, [value2]);
-    const value3 = `test`;
-    const node = <div><h2>Hi!</h2><h1 style={{'color': 'green'}}>{value}</h1></div>;
-
-    function SubComponent(props) {
-      return <div style={{'display': 'flex', 'flexDirection': 'column', 'textAlign': 'center', 'border': '1px solid black'}}><h1 style={{'fontStyle': 'bold'}}>{props['title']}</h1><h5 style={{'fontStyle': 'italic'}}>{props['subtitle']}</h5></div>
-    };
-    const component1 = <SubComponent title="subcomponent"subtitle="a reusable component" />
-;useEffect(() => {
-(async () => {const response = await fetch('/api/getstuff').then(res => res.json())
-;return setValue(response.name)})()
-}, [])
-;return <div style={{'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'textAlign': 'center'}} className={(() => {const g = 10
-;const h = 20
-;return `center`})()}><h5>list of things:</h5><div style={{'display': 'flex', 'flexDirection': 'column', 'fontStyle': 'italic'}}><h1 style={{'color': 'red'}}>{value}</h1><h2>hello</h2><div>{node}</div><hr style={{'backgroundColor': 'green', 'height': '10px', 'width': '100%'}}></hr><div><div><h2>hello again</h2>{component1}<SubComponent title="subcomponent2"subtitle="a reusable component2" /></div></div></div></div>
+    const [value4, setValue4] = useState(`thing`)
+    useEffect(() => {
+      // value4 useEffect ::
+    }, [value4]);
+    return <div style={{'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'textAlign': 'center'}}><div style={{'display': 'flex', 'flexDirection': 'column'}}><div style={{'display': 'flex', 'flexDirection': 'row'}}>{Navigation}</div><div style={{'display': 'flex', 'flexDirection': 'row'}}><button onClick={async () => {(async () => {setValue2(value2 + 1);return console.log(await fetch('/api/getstuff').then(res => res.json()),value2)})()}}>press me</button></div><h1>{value2}</h1><div style={{'display': 'grid', 'gridTemplateRows': 'repeat(2, 1fr)', 'gridTemplateColumns': 'repeat(2, 1fr)'}}><button>1</button><button>2</button><button>3</button><button>4</button></div></div></div>
   })()
 }
