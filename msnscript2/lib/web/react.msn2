@@ -102,6 +102,15 @@ def('react:render', 'react:render:page_url', 'react:render:component_script', (
     :JS
 ))
 
+# cleans the NextJS project of all relevant / generated files
+def('react:clean', (
+    # empty pages directory
+    file.emptydir(+(next_project_path(), '/pages')),
+    # empty api folder
+    file.emptydir(+(next_project_path(), '/api'))
+))
+
+
 # py script to prettify js script
 \\
 import jsbeautifier
@@ -119,8 +128,14 @@ react:prettify_py_script \\
 
 # renders the default export at a route
 def('react:page', 'react:default:page_url', 'react:default:component_script', (
-    # set entry path
-    next_entry_path(react:default:page_url),
+    if (not(next_entry_path()), (
+        # set entry path if not already set
+        next_entry_path(react:default:page_url),
+        # clean this project
+        react:clean()
+    )),
+    if (react:update_has_written,
+         @react:default:page_url = +(next_project_path(), '/pages/', react:default:page_url)),
     # run prerender check
     react:prerender_check(react:default:page_url),
     # render component
@@ -134,7 +149,7 @@ def('react:page', 'react:default:page_url', 'react:default:component_script', (
     )),
     # prettify the code at this path
     JS:,
-    prettify(react:default:page_url),
+        prettify(react:default:page_url),
     :JS,
     @ react:update_has_written = True,
     # finished updating page URL

@@ -266,8 +266,9 @@ class Interpreter:
         self.states = {}
         # routes
         self.routes = {}
-        # entry point for NextJS generation
+        # NextJS generation
         self.next_entry_path = None
+        self.next_project_path = None
     # determines if a line is a comment or not
 
     def is_comment(self, _line):
@@ -5264,8 +5265,20 @@ class Interpreter:
                     return self.me()
                 # sets next entry path
                 elif func == 'next_entry_path':
+                    # if no args
+                    if args[0][0] == '':
+                        return self.next_entry_path
+                    # otherwise, we're setting it
                     self.next_entry_path = self.parse(0, line, args)[2]
+                    # compute and set the next project path, it should be
+                    # two directories up from the next entry path
+                    self.next_project_path = os.path.dirname(
+                        os.path.dirname(self.next_entry_path))
+                    
                     return self.next_entry_path
+                # gets the next project path
+                elif func == 'next_project_path':
+                    return self.next_project_path
                 # provides a representation of the current environment
                 elif func == 'env':
                     should_print = False

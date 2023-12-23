@@ -53,3 +53,9 @@ react:page('tests/next_2.0.400/my-app/pages/index.jsx', script((
         )
    )
 )))
+
+react:page('newpage.jsx', script((
+    
+
+    center('this is the newpage!!!')
+)))

@@ -53,6 +53,10 @@ def try_create_api_functions(inst, api_functions_script):
     # get the root project directory (parent of pages directory)
     root_dir = get_root_dir(inst)
     file_path = root_dir + '/api/functions.jsx'
+    # remove any double slashes
+    file_path = file_path.replace('//', '/')
+    # print updating
+    print_updating_file(inst, file_path)
     # if the api/ directory doesn't exist
     if 'api' not in os.listdir(root_dir):
         # create the api/ directory
@@ -81,6 +85,8 @@ def try_create_api_functions(inst, api_functions_script):
         file.write(api_functions_script)
     # close the file
     file.close()
+    # print finished file
+    print_finished_file(inst, file_path)
 
 
 # adds an api route to the api/ directory
@@ -90,15 +96,19 @@ def try_create_api_functions(inst, api_functions_script):
 def add_api_route(inst, path, pages_api_script, api_functions_script):
     # try to add the api/ directory
     try_create_api_dir(inst)
+    p = get_pages_path(inst) + 'api/' + path + '.js'
+    # print starting
+    print_updating_file(inst, p)
     # create the file
-    file = open(get_pages_path(inst) + 'api/' + path + '.js', 'w')
+    file = open(p, 'w')
     # write the file
     file.write(pages_api_script)
     # close the file
     file.close()
+    # print finished
+    print_finished_file(inst, p)
     # try to create the api/functions directory
     try_create_api_functions(inst, api_functions_script)
-
 # generates a serialized route name
 
 
@@ -566,6 +576,26 @@ def generate_api_scripts(route_name, route_req_name, route_res_name, script, fet
     api_func_script = "export async function " + route_name +  \
         "(" + fetch_body_name + ") {\nreturn " + fetch_body_script + "\n}"
     return api_route_script, api_func_script
+
+# prints updating a file
+def print_updating_file(inst, path):
+    inst.interpreter.styled_print([
+        {'text': '[', 'fore': 'white', 'style': 'bold'}, 
+        {'text': 'MSN2', 'fore': 'black',  'style': 'bold'},
+        {'text': '] ', 'fore': 'white',  'style': 'bold'},
+        {'text': 'updating: ', 'fore': 'blue',  'style': 'bold'},
+        {'text': path, 'fore': 'green',  'style': 'bold'}
+    ])
+# prints finishing a file
+def print_finished_file(inst, path):
+    inst.interpreter.styled_print([
+        {'text': '[', 'fore': 'white', 'style': 'bold'}, 
+        {'text': 'MSN2', 'fore': 'black',  'style': 'bold'},
+        {'text': '] ', 'fore': 'white',  'style': 'bold'},
+        {'text': 'finished updating: ', 'fore': 'blue',  'style': 'bold'},
+        {'text': path, 'fore': 'green',  'style': 'bold'}
+    ])
+
 
 # generates api scripts and adds them to an api route
 
