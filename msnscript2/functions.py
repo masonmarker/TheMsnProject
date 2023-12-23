@@ -474,12 +474,17 @@ def is_msn2_react_call(inst):
 
 
 def merge_props(props, inst):
-    from js import html_attributes, html_attribute_defaults
+    from js import html_attributes, html_attribute_defaults, parse_string
     merged = props.copy()
     parsed_props = parse_props(inst)
 
     # for each possible html attribute
     for attr in html_attributes:
+
+        if attr in props and type(props[attr]) == str:
+            props[attr] = parse_string(inst, props[attr])
+            merged[attr] = f"`{props[attr]}`"
+            continue
         props_t = {key: value.strip() for key, value in props[attr].items(
         ) if value} if attr in props and props[attr] else {}
         parsed_props_t = {key: value.strip() for key, value in parsed_props[attr].items(
@@ -578,18 +583,26 @@ def generate_api_scripts(route_name, route_req_name, route_res_name, script, fet
     return api_route_script, api_func_script
 
 # prints updating a file
+
+
 def print_updating_file(inst, path):
+    # remove the next project path from path
+    path = path.replace(get_root_dir(inst), '')
     inst.interpreter.styled_print([
-        {'text': '[', 'fore': 'white', 'style': 'bold'}, 
+        {'text': '[', 'fore': 'white', 'style': 'bold'},
         {'text': 'MSN2', 'fore': 'black',  'style': 'bold'},
         {'text': '] ', 'fore': 'white',  'style': 'bold'},
         {'text': 'updating: ', 'fore': 'blue',  'style': 'bold'},
         {'text': path, 'fore': 'green',  'style': 'bold'}
     ])
 # prints finishing a file
+
+
 def print_finished_file(inst, path):
+    # remove the next project path from path
+    path = path.replace(get_root_dir(inst), '')
     inst.interpreter.styled_print([
-        {'text': '[', 'fore': 'white', 'style': 'bold'}, 
+        {'text': '[', 'fore': 'white', 'style': 'bold'},
         {'text': 'MSN2', 'fore': 'black',  'style': 'bold'},
         {'text': '] ', 'fore': 'white',  'style': 'bold'},
         {'text': 'finished updating: ', 'fore': 'blue',  'style': 'bold'},

@@ -206,6 +206,21 @@ def convert_to_js(inst, lock, lines_ran):
     elif inst.func == "route":
         from functions import add_route
         return add_route(inst, inst.parse(0), inst.parse(1))
+    # link to a different page
+    elif inst.func == "linkto":
+        # import nextlink and useRouter
+        from functions import try_add_web_import
+        # get the page to navigate to
+        page = inst.parse(0)
+        # remove the first 2 args in inst.args
+        # to prepare component
+        inst.args = inst.args[1:]
+        # add the imports
+        try_add_web_import(inst, [(False, 'useRouter', 'next/router'),
+                                  (True, 'Link', 'next/link')])
+        from functions import component
+        # return the link
+        return component(inst, "Link", {'href': page})
     # grid
     # forces row and columns
     elif inst.func == "grid":

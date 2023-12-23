@@ -48,26 +48,6 @@ def('react:print_long_string', (
 def('react:prerender_check', 'react:prerender_check:page_url', (
     # determine if the update has been written or not
     if (not(react:update_has_written), (
-        # clear terminal
-        os:clear(),
-        print:box(+(' MSN2 NextJS Generator ', version(), ' ')),
-        # intro
-        console:print(arr(
-            object('text', '[', 'style', 'bold', 'fore', 'white'),
-            object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
-            object('text', '] ', 'style', 'bold', 'fore', 'white'),
-            object('text', 'starting generation', 'style', 'bold', 'fore', 'yellow'),
-        )),
-        # print long string
-        react:print_long_string(),
-        # do the above but more compact
-        console:print(arr(
-            object('text', '[', 'style', 'bold', 'fore', 'white'),
-            object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
-            object('text', '] ', 'style', 'bold', 'fore', 'white'),
-            object('text', 'updating: ', 'style', 'bold', 'fore', 'blue'),
-            object('text', react:prerender_check:page_url, 'style', 'bold', 'fore', 'green'),
-        )),
         # clear file
         file.clear(react:prerender_check:page_url),
         # write header comments
@@ -114,7 +94,6 @@ def('react:clean', (
 # py script to prettify js script
 \\
 import jsbeautifier
-thing = "awefawef"
 formatted_code = jsbeautifier.beautify('{=react:prettify_py_script:arg1=}', {
     "indent_size": 2,
     "indent_char": " ",
@@ -132,12 +111,66 @@ def('react:page', 'react:default:page_url', 'react:default:component_script', (
         # set entry path if not already set
         next_entry_path(react:default:page_url),
         # clean this project
-        react:clean()
+        react:clean(),
+        # clear terminal
+        os:clear(),
+        print:box(+(' MSN2 NextJS Generator ', version(), ' ')),
+        # intro
+        console:print(arr(
+            object('text', '[', 'style', 'bold', 'fore', 'white'),
+            object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
+            object('text', '] ', 'style', 'bold', 'fore', 'white'),
+            object('text', 'starting generation', 'style', 'bold', 'fore', 'yellow')
+        )),
+        console:print(arr(
+            object('text', '[', 'style', 'bold', 'fore', 'white'),
+            object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
+            object('text', '] ', 'style', 'bold', 'fore', 'white'),
+            object('text', 'NextJS project path: ', 'style', 'bold', 'fore', 'yellow'),
+            object('text', @react:prerender_check:project_path = +(next_project_path(), '/'), 
+                'style', 'bold', 'fore', 'green')
+        )),
+        # print long string
+        react:print_long_string()
     )),
-    if (react:update_has_written,
-         @react:default:page_url = +(next_project_path(), '/pages/', react:default:page_url)),
+    if (react:update_has_written, (
+        # modify given path to be relative to entry path
+        @react:default:page_url = +(next_project_path(), '/pages/', react:default:page_url),
+        # if file does not exist at the path, create the folders to
+        # and the file itself
+        if (not(file.exists(react:default:page_url)), (
+            # split by / and remove the last element
+            @react:default:page_url_split = react:default:page_url.split('/'),
+            # remove the last element
+            react:default:file_name = react:default:page_url_split.pop(),
+            # for each folder in the path
+            for(0, -(len(react:default:page_url_split), 1), 'react:default:i', (
+                @react:default:curr = react:default:page_url_split.get(react:default:i),
+                # get the previous path from this path
+                @react:default:curr_page_url = cat(iterable:join('/', slice(react:default:page_url_split, 0, react:default:i)), '/', react:default:curr),
+                # if the path does not exist, create it
+                if (not(file.exists(react:default:curr_page_url)), (
+                    # create the folder
+                    file.mkdir(react:default:curr_page_url)
+                ))
+            )),
+            # create the file
+            file.create(react:default:page_url)
+        ))
+    )),
     # run prerender check
     react:prerender_check(react:default:page_url),
+    console:print(arr(
+        object('text', '[', 'style', 'bold', 'fore', 'white'),
+        object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
+        object('text', '] ', 'style', 'bold', 'fore', 'white'),
+        object('text', 'updating: ', 'style', 'bold', 'fore', 'blue'),
+        object('text', (
+            @ react:prerender_check:_r = react:prerender_check:page_url,
+            @ react:prerender_check:_r = react:prerender_check:_r.replace(react:prerender_check:project_path, ''),
+            react:prerender_check:_r
+        ), 'style', 'bold', 'fore', 'green')
+    )),
     # render component
     # switch to JavaScript translation
     react:render(react:default:page_url, script(
@@ -159,44 +192,10 @@ def('react:page', 'react:default:page_url', 'react:default:component_script', (
         object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
         object('text', '] ', 'style', 'bold', 'fore', 'white'),
         object('text', 'finished updating: ', 'style', 'bold', 'fore', 'blue'),
-        object('text', react:prerender_check:page_url, 'style', 'bold', 'fore', 'green'),
+        object('text', react:prerender_check:_r, 'style', 'bold', 'fore', 'green'),
     )),
     # print long string
-    react:print_long_string(),
-    # print 'next steps: '  in blue
-    console:print(arr(
-        object('text', '[', 'style', 'bold', 'fore', 'white'),
-        object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
-        object('text', '] ', 'style', 'bold', 'fore', 'white'),
-        object('text', 'DEV TODO: ', 'style', 'bold', 'fore', 'blue'),
-    )),
-    # ask user to check if page.js compiled successfully
-    console:print(arr(
-        object('text', '[', 'style', 'bold', 'fore', 'white'),
-        object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
-        object('text', '] ', 'style', 'bold', 'fore', 'white'),
-        object('text', ' - ', 'style', 'bold', 'fore', 'blue'),
-        object('text', 'verify a successful compilation in updated files', 'style', 'bold', 'fore', 'yellow'),
-    )),
-    # add another todo that says refresh localhost if changes have not been made
-    console:print(arr(
-        object('text', '[', 'style', 'bold', 'fore', 'white'),
-        object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
-        object('text', '] ', 'style', 'bold', 'fore', 'white'),
-        object('text', ' - ', 'style', 'bold', 'fore', 'blue'),
-        object('text', 'refresh localhost if changes have not been made', 'style', 'bold', 'fore', 'yellow'),
-    )),
-    # print long string
-    react:print_long_string(),
-    # print DONE in green
-    print(),
-    console:print(arr(
-        object('text', '[', 'style', 'bold', 'fore', 'white'),
-        object('text', 'MSN2', 'style', 'bold', 'fore', 'green'),
-        object('text', '] ', 'style', 'bold', 'fore', 'white'),
-        object('text', +(' ' * 5, 'GENERATION SUCCESSFUL'), 'style', 'bold', 'fore', 'green'),
-    )),
-    print()
+    react:print_long_string()
 ))
 
 # renders an api route
