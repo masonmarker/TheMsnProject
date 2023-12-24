@@ -634,6 +634,13 @@ def generate_fetch(path):
 def generate_set_function(name):
     return f"set{name.capitalize()}"
 
+# generates a safer set function
+def generate_safe_set_function(inst, state_name):
+    from js import parse
+    set_function = generate_set_function(state_name)
+    return f"{set_function}({state_name} => {{return {parse(inst, 0)}}})"
+    
+
 # adds to web imports
 
 

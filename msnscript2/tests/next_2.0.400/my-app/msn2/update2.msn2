@@ -45,30 +45,35 @@ react:page('tests/next_2.0.400/my-app/pages/index.jsx', script((
                 )
             ),
             h1(value2),
-            grid(2, 2, 
-                button('1'),
-                button('2'),
-                button('3'),
-                button('4')
-            ),
+            grid(2, 2,
+                # minor hiccup with children after style tag, style
+                # should be last child, or encased in '()' like below
+                style=({
+                    'border': '5px solid black',
+                    'padding': '10px',
+                    'margin': '10px'
+                }),
+                map(['1', '2', '3', '4'], 'el', 
+                    button(onClick=do('el', console.log(el.target.innerText)), {el})),
+            )
             # link to another page
             linkto('/user/mason', 'go to the mason page'),
         )
    )
 )))
 
-# since we've specified the full entry path once,
-# we only need to write the path from "next_project_path()/pages/"
-# msn2 will create all nested folders and files as needed
-react:page('user/mason.jsx', script((
-    center(
-        vstack(
-            h1(
-                style={'color': 'red'},
-                'this is at users/mason.jsx'
-            ),
-            # go back home
-            linkto('/', 'go back home')
-        )
-    )
-)))
+# # since we've specified the full entry path once,
+# # we only need to write the path from "next_project_path()/pages/"
+# # msn2 will create all nested folders and files as needed
+# react:page('user/mason.jsx', script((
+#     center(
+#         vstack(
+#             h1(
+#                 style={'color': 'red'},
+#                 'this is at users/mason.jsx'
+#             ),
+#             # go back home
+#             linkto('/', 'go back home')
+#         )
+#     )
+# )))

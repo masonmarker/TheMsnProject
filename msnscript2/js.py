@@ -71,11 +71,8 @@ def convert_to_js(inst, lock, lines_ran):
         # get the state value
         state_value = inst.interpreter.states[state_name].value
         if inst.objfunc == 'set':
-            from functions import generate_set_function, insert_line_at_marker
-            # generate the set function
-            set_function = generate_set_function(state_name)
-            # return the set function
-            return f"{set_function}({parse(inst, 0)})"
+            from functions import generate_safe_set_function
+            return generate_safe_set_function(inst, state_name)
         # otherwise, return the state
         return state_name
     elif inst.func == "+":
@@ -152,6 +149,27 @@ def convert_to_js(inst, lock, lines_ran):
     elif inst.func == "effect":
         from functions import use_effect
         return use_effect(inst)
+    # map(iterable, element_varname, (opt) index_varname, js_script) function
+    elif inst.func == "map":
+        from msnint2 import Var
+        # grab the iterable
+        iterable = inst.parse(0)
+        # grab the element variable name
+        element_varname = inst.parse(1)
+        # create element_varname as a variable
+        inst.interpreter.vars[element_varname] = Var(
+            element_varname, element_varname)
+        # if len of args is 4, then there is an index variable name
+        if len(inst.args) == 4:
+            index_varname = inst.parse(2)
+            # create index_varname as a variable
+            inst.interpreter.vars[index_varname] = Var(
+                index_varname, index_varname)
+        else:
+            index_varname = None
+
+        return f"{{{iterable}.map(({element_varname}{', ' + index_varname if index_varname else ''}) => \u007breturn {parse(inst, -1)}\u007d)}}"
+
     # creates a /pages/api/*route*.js file for api interaction
     # also (creates and) appends to /api/functions.js file for api functions
     elif inst.func == "apiroute":
