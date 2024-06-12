@@ -1,3 +1,3 @@
-export async function getstuff(body) {
-return await fetch('/api/getstuff').then(res => res.json())
+export async function getRandomFact(body) {
+return await fetch('/api/getRandomFact').then(res => res.json())
 }

@@ -49,6 +49,7 @@ def convert_to_js(inst, lock, lines_ran):
     """
     Converts a 'line' of MSN2 code to JavaScript
     """
+
     # user function execution requested
     if inst.func in inst.interpreter.methods:
         from functions import is_msn2_react_call, user_function_exec
@@ -103,6 +104,28 @@ def convert_to_js(inst, lock, lines_ran):
         with open(file_path, 'w') as f:
             f.write(contents)
         return ""
+    # creates a new css module
+    elif inst.func == "css":
+        # get root dir
+        import os
+        from functions import get_root_dir, try_add_web_import
+        root_dir = get_root_dir(inst)
+        # create a styles folder if it doesn't exist
+        if not os.path.exists(f"{root_dir}styles"):
+            os.mkdir(f"{root_dir}styles")
+        # get the name of the css module
+        name = inst.parse(0)
+        # get the css code
+        css_code = parse(inst, 1)
+        # get the path to write to
+        path = f"{root_dir}styles/{name}.module.css"
+        # create the css module
+        with open(path, 'w') as f:
+            f.write(css_code)
+        # add import
+        try_add_web_import(inst, [(True, name, f"../styles/{name}.module.css")])
+        # add the css path to 
+        return ""
     # variables
     # creating a const
     elif inst.func == "const":
@@ -115,10 +138,32 @@ def convert_to_js(inst, lock, lines_ran):
         inst.interpreter.vars[name] = Var(
             name, name if not is_react_code else f"{{{name}}}")
         return f"const {name} = {value}\n"
+    # let
+    elif inst.func == "let":
+        from msnint2 import Var
+        from functions import is_react_code
+        name = inst.parse(0)
+        value = parse(inst, 1)
+        # if value is react code
+        # create variable in inst.interpreter.vars
+        inst.interpreter.vars[name] = Var(
+            name, name if not is_react_code else f"{{{name}}}")
+        return f"let {name} = {value}\n"
+    # var
+    elif inst.func == "var":
+        from msnint2 import Var
+        from functions import is_react_code
+        name = inst.parse(0)
+        value = parse(inst, 1)
+        # if value is react code
+        # create variable in inst.interpreter.vars
+        inst.interpreter.vars[name] = Var(
+            name, name if not is_react_code else f"{{{name}}}")
+        return f"var {name} = {value}\n"
     # creates a state
     elif inst.func == "state":
         from msnint2 import Var
-        from functions import generate_set_function, try_add_web_import
+        from functions import generate_set_function, try_add_web_import, add_state
 
         # # determine if useState has been imported
         # if (imp := ('useState', 'react')) not in inst.interpreter.web_imports:
@@ -133,22 +178,61 @@ def convert_to_js(inst, lock, lines_ran):
         #                           "import { useEffect } from 'react';", check_for_dups=True)
         try_add_web_import(
             inst, [(False, 'useState', 'react'), (False, 'useEffect', 'react')])
-
+        # get the name of the state
         name = inst.parse(0)
         set_function = generate_set_function(name)
         # default value or new value
         default_value_or_new_value = parse(inst, 1)
-        # if this state is already defined
-        if name in inst.interpreter.states:
-            return generate_set_function(name) + f"({name} => " + " {return " + str(default_value_or_new_value) + "})\n"
-        # add state to list of states
-        inst.interpreter.states[name] = Var(name, default_value_or_new_value)
+        # try to add state
+        if (generated := add_state(inst, name, default_value_or_new_value)) != None:
+            return generated
         # create new variable
         return f"const [{name}, {set_function}] = useState({default_value_or_new_value})\nuseEffect(() => {{\n// {name} useEffect ::\n}}, [{name}])\n"
     # inserts a useEffect hook
     elif inst.func == "effect":
         from functions import use_effect
         return use_effect(inst)
+    # states a piece of code as effectful code
+    elif inst.func == "effectful":
+        # creates a useEffect and a state for this effectful code
+        # try to add web import useEffect
+        from functions import try_add_web_import, generate_serialized_state, generate_set_function, add_state
+        try_add_web_import(
+            inst, [(False, 'useEffect', 'react'), (False, 'useState', 'react')])
+        # get the name of the state
+        state_name = inst.parse(0)
+        # get the effectful code
+        effectful_code = parse(inst, 1)
+        # get the default value while this state is not loading
+        default_value = parse(inst, 2)
+        # create a loading state
+        loading_state_script = f"const [{state_name}Loading, {(set_loading := generate_set_function(f'{state_name}Loading'))}] = useState(true)"
+        # add state
+        add_state(inst, state_name, default_value)
+        # get the name of the set function
+        set_function = generate_set_function(state_name)
+        # create the general state creation script
+        state_creation_script = f"const [{state_name}, {set_function}] = useState({default_value})"
+        # create the useEffect script to set the serialized state to the effectful code
+        use_effect_script = f"useEffect(() => {{(async () => {{\n{set_function}({effectful_code})\n{set_loading}(false);}})();}}, [])"
+        # return the loading state, the general state creation script, and the useEffect script
+        return f"{loading_state_script};\n{state_creation_script};\n{use_effect_script}"
+    # logic
+    # if statement returned as && when theres two arguments
+    # otherwise returned as ternary operator when theres three arguments
+    elif inst.func == "if":
+        # get first argument
+        first_arg = parse(inst, 0)
+        # get second argument
+        second_arg = parse(inst, 1)
+        # if there is a third argument
+        if len(inst.args) == 3:
+            # get third argument
+            third_arg = parse(inst, 2)
+            # return if statement
+            return f"({first_arg} ? {second_arg} : {third_arg})"
+        # otherwise, return &&
+        return f"({first_arg} && {second_arg})"
     # map(iterable, element_varname, (opt) index_varname, js_script) function
     elif inst.func == "map":
         from msnint2 import Var
@@ -173,7 +257,7 @@ def convert_to_js(inst, lock, lines_ran):
     # creates a /pages/api/*route*.js file for api interaction
     # also (creates and) appends to /api/functions.js file for api functions
     elif inst.func == "apiroute":
-        from functions import add_api_route, generate_api_scripts_and_add
+        from functions import generate_api_scripts_and_add
         # take input
         route_name = inst.parse(0)
         # route request variable name
@@ -212,6 +296,34 @@ def convert_to_js(inst, lock, lines_ran):
         # function called when fetched at this route
         generate_api_scripts_and_add(inst, route_name, route_req_name,
                                      route_res_name, script, 'body', generate_fetch(route_name))
+        return ""
+    # defines an entire api script at next_project_root/pages/api/*route*.js
+    elif inst.func == "defineapiscript":
+        from functions import generate_api_scripts_and_add, generate_fetch, get_pages_path
+        # take route_name
+        route_name = inst.parse(0)
+        # take initial script
+        script = parse(inst, 1)
+        # get req name
+        req_name = inst.parse(2)
+        # get res name
+        res_name = inst.parse(3)
+        # get function body
+        body = parse(inst, 4)
+        # create the api route function to place at the default export
+        # function called when fetched at this route
+        generate_api_scripts_and_add(inst, route_name, req_name,
+                                     res_name, body, 'body', generate_fetch(route_name))
+        # insert into the new api path
+        new_api_path = f"{get_pages_path(inst)}/api/{route_name}.js"
+        # get the lines from the api file
+        with open(new_api_path, 'r') as f:
+            lines = f.readlines()
+        # insert script into beginning of file
+        lines.insert(0, script)
+        # write the lines back to the file
+        with open(new_api_path, 'w') as f:
+            f.writelines(lines)
         return ""
     # gets from api:route
     elif inst.func == "apiget":
@@ -353,6 +465,10 @@ def convert_to_js(inst, lock, lines_ran):
             else:
                 as_js += curr
         return as_js + ")"
+    # queries an html element
+    elif inst.func == "query":
+        # return "document.querySelector(" + parse(inst, 0) + ")"
+        return f"document.querySelector({parse(inst, 0)})"
     # general unnamed function with possible arguments
     elif inst.func == "do":
         # if no arguments

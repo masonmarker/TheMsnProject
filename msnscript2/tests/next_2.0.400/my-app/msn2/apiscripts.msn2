@@ -1,0 +1,53 @@
+# Updates this NextJS project with code defining an api script and using it in the same file.
+#
+# author : Mason Marker
+# date : 6/12/2024
+# version : 2.0.400
+
+# import React
+import ('lib/web/react')
+
+# create an index page
+react:page(
+    # NextJS index.jsx is at the path below
+    'tests/next_2.0.400/my-app/pages/index.jsx',
+    # MSN2 script to convert to React-compliant code
+    script((
+        # define an api
+        defineapi('getRandomFact', 
+            # function options for this api function
+            'req', 'res', (
+                fetch('https://uselessfacts.jsph.pl/api/v2/facts/random?language=en').then((response) => {
+                    response.json().then((data) => {
+                        res.json(data.text)
+                    })
+                })
+            )
+        ),
+
+        # creates a state capable of effectful initial value
+        # generates functions setApiresponse and apiresponseLoading
+        effectful(
+            # name of the state (set function becomes setApiresponse)
+            'apiresponse',
+            # effectful initial value to retrieve
+            apiget('getRandomFact'),
+            # initial value while loading second argument
+            'loading random facts...'
+        ),
+
+        # return front end component
+        vstack(
+            h1(
+                # apply a style to this tag
+                style={"fontWeight": "bold"}, 
+                'API responded with:'
+            ),
+            h2(
+                style={"color": "lightgreen"},
+                # content of this tag is the apiresponse state 
+                apiresponse
+            )
+        )
+    )          
+))
