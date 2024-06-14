@@ -388,8 +388,25 @@ def insert_line_at_marker(inst, path, keyword, line, check_for_dups=False):
 
 # web based functions
 
+unique_hash_counter = 0
+
 # parse prop
 
+def unique_hash(inst):
+    global unique_hash_counter
+    import time
+    import hashlib
+    # Increment the counter first to ensure uniqueness
+    unique_hash_counter += 1
+    
+    # Get the current clock tick in nanoseconds
+    current_tick_ns = time.perf_counter_ns()
+    
+    # Combine the tick and the counter to create a unique string
+    unique_str = f"{current_tick_ns}{unique_hash_counter}"
+
+    
+    return unique_str
 
 def parse_props(inst):
     from js import html_attribute_defaults, parse, parse_string

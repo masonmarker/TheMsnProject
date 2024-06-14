@@ -12,24 +12,61 @@
  */
 
 // imports ::
-import {
-  useEffect
-} from 'react';
-import {
-  useState
-} from 'react';
+import { useEffect } from "react";
+import { useState } from "react";
 
 // default component export ::
 export default function Index(props) {
   return (() => {
-    const [apiresponseLoading, setApiresponseloading] = useState(true);
-    const [apiresponse, setApiresponse] = useState(`loading random facts...`);
-    useEffect(() => {
-      (async () => {
-        setApiresponse(await fetch('/api/getRandomFact').then(res => res.json()))
-        setApiresponseloading(false);
+    function ApiResponse(key) {
+      return (() => {
+        const [responseLoading, setResponseloading] = useState(true);
+        const [response, setResponse] = useState(`API response loading...`);
+        useEffect(() => {
+          (async () => {
+            setResponse(
+              await fetch("/api/getRandomFact").then((res) => res.json())
+            );
+            setResponseloading(false);
+          })();
+        }, []);
+        return (
+          <div
+            style={{ display: "flex", flexDirection: "row" }}
+            key={(() => {
+              return key;
+            })()}
+          >
+            <h4>API responded with:</h4>
+            <h4 style={{ color: "lightgreen" }}>{response.text}</h4>
+          </div>
+        );
       })();
-    }, []);
-    return <div style={{'display': 'flex', 'flexDirection': 'column'}}><h1 style={{'fontWeight': 'bold'}}>API responded with:</h1><h2 style={{'color': 'lightgreen'}}>{apiresponse}</h2></div>
-  })()
+    }
+    const apiResponseCount = 3;
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <h1>
+            MSN2 with{" "}
+            <span style={{ fontWeight: "bold", color: "red" }}>NextJS</span>
+          </h1>
+          <div>
+            {[
+              ApiResponse(763369835545001),
+              ApiResponse(763369837570002),
+              ApiResponse(763369838526003),
+            ]}
+          </div>
+        </div>
+      </div>
+    );
+  })();
 }
