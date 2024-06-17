@@ -23,7 +23,7 @@ def('refresh', (
     # run the update script
     console(refresh:script),
     chrome.refresh(),
-    '[+] refreshed.'
+    '[+] refreshed, see NextJS server outputs'
 ))
 
 

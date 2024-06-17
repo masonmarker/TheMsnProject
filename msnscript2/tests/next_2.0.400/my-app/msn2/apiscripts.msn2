@@ -18,11 +18,9 @@ react:page(
         defineapi('getRandomFact', 
             # function options for this api function
             'req', 'res', 
-            # rewrite the above fetch but without stalled requests (the above comment does that)
-            const ret = (await (await fetch(
+            res.status(200).json((await (await fetch(
                 'https://uselessfacts.jsph.pl/api/v2/facts/random?language=en'
-            )).json());
-            res.status(200).json(ret)
+            )).json()))
         ),
 
         # create a subcomponent that will be used in the main component
@@ -46,9 +44,6 @@ react:page(
                 )
             )
         )),
-
-        # creating a standard const variable
-        const('apiResponseCount', 3),
 
         # return front end component
         center(vstack(
