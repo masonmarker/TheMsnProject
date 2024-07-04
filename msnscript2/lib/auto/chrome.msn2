@@ -95,5 +95,13 @@ class ('chrome:instance', (
                 chrome:instance:app_temp.enter()
             ))
         ))
-    ))
+    )),
+
+    # refreshes the current tab
+    def('refresh', 'self', 
+        # refresh the current tab
+        as('chrome:instance:app_temp', self.app(), 
+            chrome:instance:app_temp.write('{F5}')
+        )
+    ),
 ))

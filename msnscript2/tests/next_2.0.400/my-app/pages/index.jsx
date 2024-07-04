@@ -12,11 +12,11 @@
  */
 
 // imports ::
-import styles from '../styles/styles.module.css';
 
 // default component export ::
 export default function Index(props) {
   return (() => {
-    return <h1 className={(() => {return styles.class1})()}>hi, this is some text!</h1>
+    const variable = `Hello World!`;
+    return <div style={{'height': '100svh', 'width': '100svw'}}><div style={{'height': 'inherit', 'width': 'inherit', 'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'textAlign': 'center'}}><div style={{'fontFamily': 'Poppins'}}><h1><div style={{'color': 'orange'}}>MSN2 with</div><div style={{'color': 'red'}}>NextJS</div></h1><h2>{variable}</h2></div></div></div>
   })()
 }

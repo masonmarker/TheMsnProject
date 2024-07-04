@@ -152,8 +152,13 @@ def('react:page', 'react:default:page_url', 'react:default:component_script', (
     if (react:update_has_written, (
         # modify given path to be relative to entry path
         @react:default:page_url = +(next_project_path(), '/pages/', react:default:page_url),
+
+        # ---------------------------------------
+        # CREATING NEXTJS PAGE UNDER pages/
+        #
         # if file does not exist at the path, create the folders to
         # and the file itself
+        # ---------------------------------------
         if (not(file.exists(react:default:page_url)), (
             # split by / and remove the last element
             @react:default:page_url_split = react:default:page_url.split('/'),
@@ -174,6 +179,40 @@ def('react:page', 'react:default:page_url', 'react:default:component_script', (
             file.create(react:default:page_url)
         ))
     )),
+    # ---------------------------------------
+    # CREATING app.css UNDER styles/
+    #
+    # if file does not exist at the path, create the folders to
+    # and the file itself
+    # ---------------------------------------
+    @react:default:styles_path = +(next_project_path(), '/styles/'),
+    if (not(file.exists(react:default:styles_path)), (
+        # create the directory
+        file.mkdir(react:default:styles_path),
+        # create the file
+        file.write(+(react:default:styles_path, 'app.css'), "
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+        html, body {margin: 0; padding: 0;}
+        ")
+    )),
+    # ---------------------------------------
+    # CREATING _app.js UNDER pages/
+    #
+    # if file does not exist at the path, create the folders to
+    # and the file itself
+    # ---------------------------------------
+    @react:default:app_path = +(next_project_path(), '/pages/_app.js'),
+    if (not(file.exists(react:default:app_path)), (
+        # create the file
+        file.write(react:default:app_path, cat(
+            "import '../styles/app.css'\n\n",
+            "function MyApp({ Component, pageProps }) {\n",
+            "  return <Component {...pageProps} />\n",
+            "}\n\n",
+            "export default MyApp\n"
+        ))
+    )),
+    
     # run prerender check
     react:prerender_check(react:default:page_url),
     console:print(arr(
