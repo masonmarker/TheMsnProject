@@ -12,93 +12,11 @@
  */
 
 // imports ::
-import { useState } from "react";
-import { useEffect } from "react";
+import styles from '../styles/styles.module.css';
 
 // default component export ::
 export default function Index(props) {
   return (() => {
-    function Navbar(props) {
-      return (() => {
-        function Nav(props) {
-          return (() => {
-            return <h1 style={{ color: "red" }}>this is the red navbar!</h1>;
-          })();
-        }
-        return (
-          <nav>
-            <h1>this is the black navbar!</h1>
-            <Nav />
-          </nav>
-        );
-      })();
-    }
-    const value = 3;
-    const value3 = 50;
-    const Navigation = <Navbar />;
-    const [value2, setValue2] = useState(4);
-    useEffect(() => {
-      // value2 useEffect ::
-    }, [value2]);
-    const [value4, setValue4] = useState(`thing`);
-    useEffect(() => {
-      // value4 useEffect ::
-    }, [value4]);
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          textAlign: "center",
-        }}
-      >
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", flexDirection: "row" }}>
-            {Navigation}
-          </div>
-          <div style={{ display: "flex", flexDirection: "row" }}>
-            <button
-              onClick={async () => {
-                (async () => {
-                  setValue2((value2) => {
-                    return value2 + 1;
-                  });
-                  return console.log(
-                    await fetch("/api/getstuff").then((res) => res.json()),
-                    value2
-                  );
-                })();
-              }}
-            >
-              press me
-            </button>
-          </div>
-          <h1>{value2}</h1>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateRows: "repeat(2, 1fr)",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              border: "5px solid black",
-              padding: "10px",
-              margin: "10px",
-            }}
-          >
-            {["1", "2", "3", "4"].map((el) => {
-              return (
-                <button
-                  onClick={async (el) => {
-                    console.log(el.target.innerText);
-                  }}
-                >
-                  {el}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    );
-  })();
+    return <h1 className={(() => {return styles.class1})()}>hi, this is some text!</h1>
+  })()
 }

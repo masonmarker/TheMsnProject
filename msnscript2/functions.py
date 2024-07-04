@@ -6,9 +6,12 @@
 api_functions_created = False
 # serialized value for generating api routes
 serialized_value = 0
-
+# global serial for states
+states_serial = 0
 
 # gets the pages/ directory path from next entry point
+
+
 def get_pages_path(inst):
     # get the next entry point
     next_entry = inst.interpreter.next_entry_path
@@ -418,9 +421,35 @@ def parse_props(inst):
             value = inst.interpreter.interpret(value)
             # value = parse_string(inst, value)
             # add the value to the props
-            props[key] = value if value else html_attribute_defaults[key]
+            if key not in html_attribute_defaults:
+                # remove
+                props[key] = value
+            elif value:
+                props[key] = value
+            else:
+                props[key] = html_attribute_defaults[key]
+            # props[key] = value if value else html_attribute_defaults[key]
     # return component with props
     return props
+
+# custom prop on react node
+
+
+def custom_prop(inst, props, key, value):
+    # determine the custom prop
+    # delete this key from props
+    if key == "classNames":
+        # print the value
+        # className prop value to return
+        classNameValue = ""
+        # for each value in the iterable,
+        # append the value to the classNameValue
+        for className in value:
+            classNameValue += f" {className}"
+        return "className", f"`{classNameValue.strip()}`"
+
+    # if none of the above, throw unknown prop error
+    raise Exception(f"Unknown prop '{key}'")
 
 # creates a string representation of an HTML tag
 
@@ -494,7 +523,10 @@ def merge_props(props, inst):
     # add rest of props
     for key, value in parsed_props.items():
         # append based on type
-        if not merged[key]:
+        if key not in merged:
+            newKey, value = custom_prop(inst, merged, key, value)
+            merged[newKey] = value
+        elif not merged[key]:
             if is_function(value):
                 merged[key] = value
             elif type(value) == dict:
@@ -635,16 +667,18 @@ def generate_set_function(name):
     return f"set{name.capitalize()}"
 
 # generates a safer set function
+
+
 def generate_safe_set_function(inst, state_name):
     from js import parse
     set_function = generate_set_function(state_name)
     return f"{set_function}({state_name} => {{return {parse(inst, 0)}}})"
-    
+
 
 # adds to web imports
 
 
-def try_add_web_import(inst, importItems=[]):
+def try_add_web_import(inst, importItems=[], import_only=False):
     # for each import item
     for is_default, importName, importLocation in importItems:
         # if the import item is not in the web imports
@@ -653,4 +687,24 @@ def try_add_web_import(inst, importItems=[]):
             inst.interpreter.web_imports.add((importName, importLocation))
             # insert the import
             insert_line_at_marker(inst, inst.interpreter.next_entry_path, "imports",
-                                  f"import {'{' if not is_default else ''}{importName}{'}' if not is_default else ''} from '{importLocation}';", check_for_dups=True)
+                                  (f"import {'{' if not is_default else ''}{importName}{'}' if not is_default else ''} from '{importLocation}';") if not import_only else f"import {importName}", check_for_dups=True)
+
+# generates a serialized state name
+
+
+def generate_serialized_state():
+    global states_serial
+    states_serial += 1
+    state_name = f"msn2_generated_state_{states_serial}"
+    return f"[{state_name}, {generate_set_function(state_name)}]", state_name
+
+# adds a state to the list of states
+
+
+def add_state(inst, name, default_value_or_new_value):
+    from msnint2 import Var
+    # if this state is already defined
+    if name in inst.interpreter.states:
+        return generate_set_function(name) + f"({name} => " + " {return " + str(default_value_or_new_value) + "})\n"
+    # add state to list of states
+    inst.interpreter.states[name] = Var(name, default_value_or_new_value)

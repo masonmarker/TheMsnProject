@@ -37,6 +37,7 @@ react:page('tests/next_2.0.400/my-app/pages/index.jsx', script((
             ),
             hstack(
                 button(
+                    # needs async() to react out to api
                     onClick=do(async(
                         value2.set(value2 + 1),
                         prnt(apiget('getstuff'), value2)
@@ -53,11 +54,24 @@ react:page('tests/next_2.0.400/my-app/pages/index.jsx', script((
                     'padding': '10px',
                     'margin': '10px'
                 }),
+                # mapping over an array
                 map(['1', '2', '3', '4'], 'el', 
-                    button(onClick=do('el', console.log(el.target.innerText)), {el})),
-            )
+                    button(
+                        # print this button's innerText
+                        onClick=do('el', 
+                            console.log(el.target.innerText)
+                        ),
+                        # on mouse enter, print this button's innerText
+                        onMouseEnter=do('el', 
+                            console.log('mouse moved over', el.target.innerText)
+                        ),
+                        # el as react insert
+                        {el}
+                    )
+                ),
+            ),
             # link to another page
-            linkto('/user/mason', 'go to the mason page'),
+            linkto('/user/mason', style=({'fontSize': '10rem'}), 'go to the mason page'),
         )
    )
 )))

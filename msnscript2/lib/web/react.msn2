@@ -84,10 +84,26 @@ def('react:render', 'react:render:page_url', 'react:render:component_script', (
 
 # cleans the NextJS project of all relevant / generated files
 def('react:clean', (
+    os:clear(),
+    # print cleaning...
+    console:print(arr(
+        object('text', '[', 'style', 'bold', 'fore', 'white'),
+        object('text', 'MSN2', 'style', 'bold', 'fore', 'black'),
+        object('text', '] ', 'style', 'bold', 'fore', 'white'),
+        object('text', 'cleaning project...', 'style', 'bold', 'fore', 'yellow')
+    )),
+    # get next project path
+    @ react:clean:project_path = next_project_path(),
     # empty pages directory
-    file.emptydir(+(next_project_path(), '/pages')),
+    file.emptydir(+(react:clean:project_path, '/pages')),
     # empty api folder
-    file.emptydir(+(next_project_path(), '/api'))
+    file.emptydir(+(react:clean:project_path, '/api')),
+    # delete /pages/api
+    file.rmdir(+(react:clean:project_path, '/api')),
+    # empty /styles
+    file.emptydir(+(react:clean:project_path, '/styles')),
+    # delete /styles
+    file.rmdir(+(react:clean:project_path, '/styles'))
 ))
 
 
