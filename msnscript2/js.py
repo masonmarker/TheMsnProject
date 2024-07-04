@@ -147,6 +147,46 @@ def convert_to_js(inst, lock, lines_ran):
         try_add_web_import(inst, [(True, name, f"../styles/{name}.module.css")])
         # add the css path to 
         return ""
+    # uses a UI library
+    elif inst.func == "UI":
+        # get the _app.js full path from the inst.interpreter vars at react:default:app_path
+        app_path = inst.interpreter.vars["react:default:app_path"].value
+        # get the UI library name
+        ui_name = inst.parse(0)
+        # if the name is "chakra"
+        if ui_name == "chakra":
+            import re
+            print('using chakra')
+            def append_parent_to_app_js(file_path, parent_tag):
+                # Read the content of the _app.js file
+                with open(file_path, 'r') as file:
+                    content = file.read()
+
+                # Find the import statements
+                imports = re.findall(r'^import .+;$', content, re.MULTILINE)
+                import_statements = '\n'.join(imports)
+                
+                # Find the component returning part
+                return_match = re.search(r'return\s*\(([\s\S]*?)\);', content)
+                
+                if not return_match:
+                    raise ValueError("Could not find the return statement in the _app.js file.")
+                
+                return_content = return_match.group(1).strip()
+                
+                # Create the new return content with the parent tag
+                new_return_content = f'<{parent_tag}>{return_content}</{parent_tag}>'
+                
+                # Replace the old return content with the new one
+                new_content = re.sub(r'return\s*\([\s\S]*?\);', f'return (\n{new_return_content}\n);', content)
+                
+                # Write the new content back to the file
+                with open(file_path, 'w') as file:
+                    file.write(new_content)
+
+            # Example usage
+            append_parent_to_app_js(app_path, 'div')
+        return ""
     # variables
     # creating a const
     elif inst.func == "const":

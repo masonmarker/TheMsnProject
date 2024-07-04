@@ -7,6 +7,7 @@
 # import MSN2 React tools
 import ('lib/web/react')
 
+
 # create an index page
 react:page(
     # NextJS index.jsx is at the path below

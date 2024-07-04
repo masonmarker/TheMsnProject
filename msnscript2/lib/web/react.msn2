@@ -20,17 +20,6 @@ class('react:page', (
     @ components = {},
 ))
 
-
-# React Node class
-class('react:reactnode', (
-    @ style = {},
-    @ children = [],
-    @ type = 'div',
-    @ props = {},
-    @ key = None,
-    @ ref = None,
-))
-
 # long string
 @ react:long_string = "-" * 30
 
@@ -122,7 +111,7 @@ formatted_code = jsbeautifier.beautify('{=react:prettify_py_script:arg1=}', {
 react:prettify_py_script \\
 
 # renders the default export at a route
-def('react:page', 'react:default:page_url', 'react:default:component_script', (
+def('react:page', 'react:default:page_url', 'react:default:component_script', &react:default:ui_library="none", (
     if (not(next_entry_path()), (
         # set entry path if not already set
         next_entry_path(react:default:page_url),
@@ -203,11 +192,24 @@ def('react:page', 'react:default:page_url', 'react:default:component_script', (
     # ---------------------------------------
     @react:default:app_path = +(next_project_path(), '/pages/_app.js'),
     if (not(file.exists(react:default:app_path)), (
+        # whether or not we're using Chakra right now
+        @react:default:using_chakra = react:default:ui_library.equals("chakra"),
         # create the file
         file.write(react:default:app_path, cat(
+            cat("// Generated at ", now(), "\n"),
+
+            "// appwide styles",
             "import '../styles/app.css'\n\n",
+
+            # if using Chakra
+            if (react:default:using_chakra,  "import { ChakraProvider } from '@chakra-ui/react'\n", ""),
+
+
+            "// main app component\n",
             "function MyApp({ Component, pageProps }) {\n",
-            "  return <Component {...pageProps} />\n",
+                if (react:default:using_chakra, "return <ChakraProvider>", ""),
+                    cat(if(not(react:default:using_chakra), "return", ""), " <Component {...pageProps} />\n"),
+                if(react:default:using_chakra, "</ChakraProvider>", ""),
             "}\n\n",
             "export default MyApp\n"
         ))
