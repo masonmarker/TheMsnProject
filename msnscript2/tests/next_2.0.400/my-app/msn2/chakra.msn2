@@ -36,7 +36,9 @@ react:page(
                 gap: 5px;
             }
             # insert a purple shine animation className "shineOnHover"
-            {=animations:shine("shineOnHover", "purple")=}
+            {=animations:shine("shineOnHover", "red")=}
+            {=animations:shine("whiteShineOnHover")=}
+            {=animations:border("borderAnimation")=}
         ),
 
         # states for username and password
@@ -59,7 +61,7 @@ react:page(
             className=(styles.background),
             # create the card component=
             chakra:Card( 
-                className=(styles.shineOnHover),
+                className=(styles.borderAnimation),
                 chakra:CardHeader(
                     chakra:Heading(className=(styles.head), "Login"),
                 ),
@@ -86,6 +88,7 @@ react:page(
                     hstack(
                         className=(styles.gap),
                         chakra:Button(
+                            className=(styles.shineOnHover),
                             colorScheme="purple",
                             variant="outline",
                             onClick=(handleGoHome),
@@ -93,6 +96,7 @@ react:page(
                             "Back"
                         ),
                         chakra:Button(
+                            className=(styles.whiteShineOnHover),
                             colorScheme="purple",
                             rightIcon=chakra:icon:UnlockIcon(),
                             onClick=(handleLogin),

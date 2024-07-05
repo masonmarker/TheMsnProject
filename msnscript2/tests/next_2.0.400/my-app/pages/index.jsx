@@ -12,72 +12,148 @@
  */
 
 // imports ::
-import styles from '../styles/styles.module.css';
-import {
-  useState
-} from 'react';
-import {
-  useEffect
-} from 'react';
-import {
-  Card
-} from '@chakra-ui/react';
-import {
-  CardHeader
-} from '@chakra-ui/react';
-import {
-  Heading
-} from '@chakra-ui/react';
-import {
-  CardBody
-} from '@chakra-ui/react';
-import {
-  Input
-} from '@chakra-ui/react';
-import {
-  CardFooter
-} from '@chakra-ui/react';
-import {
-  Button
-} from '@chakra-ui/react';
-import {
-  ArrowBackIcon
-} from '@chakra-ui/icons';
-import {
-  UnlockIcon
-} from '@chakra-ui/icons';
+import styles from "../styles/styles.module.css";
+import { useState } from "react";
+import { useEffect } from "react";
+import { Card } from "@chakra-ui/react";
+import { CardHeader } from "@chakra-ui/react";
+import { Heading } from "@chakra-ui/react";
+import { CardBody } from "@chakra-ui/react";
+import { Input } from "@chakra-ui/react";
+import { CardFooter } from "@chakra-ui/react";
+import { Button } from "@chakra-ui/react";
+import { ArrowBackIcon } from "@chakra-ui/icons";
+import { UnlockIcon } from "@chakra-ui/icons";
 
 // default component export ::
 export default function Index(props) {
   return (() => {
-    const [username, setUsername] = useState(null)
+    const [username, setUsername] = useState(null);
     useEffect(() => {
       // username useEffect ::
     }, [username]);
-    const [password, setPassword] = useState(null)
+    const [password, setPassword] = useState(null);
     useEffect(() => {
       // password useEffect ::
     }, [password]);
 
     function handleLogin() {
-      return username !== null && password !== null && alert('logging in as ' + username)
-    };
+      return (
+        username !== null &&
+        password !== null &&
+        alert("logging in as " + username)
+      );
+    }
 
     function handleGoHome() {
-      return alert('Going home...')
-    };
+      return alert("Going home...");
+    }
 
     function handleUsernameChange(e) {
-      return setUsername(username => {
-        return e.target.value
-      })
-    };
+      return setUsername((username) => {
+        return e.target.value;
+      });
+    }
 
     function handlePasswordChange(e) {
-      return setPassword(password => {
-        return e.target.value
-      })
-    };
-    return <div style={{'height': '100svh', 'width': '100svw'}}><div style={{'height': 'inherit', 'width': 'inherit', 'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'textAlign': 'center'}} className={(() => {return styles.background})()}><Card className={(() => {return styles.shineOnHover})()}><CardHeader><Heading className={(() => {return styles.head})()}>Login</Heading></CardHeader><CardBody><div style={{'display': 'flex', 'flexDirection': 'column'}} className={(() => {return styles.gap})()}><Input onChange={(() => {return handleUsernameChange})()} placeholder={`Username`} value={(() => {return username})()}></Input><Input onChange={(() => {return handlePasswordChange})()} placeholder={`Password`} type={`password`} value={(() => {return password})()}></Input></div></CardBody><CardFooter justify={`center`}><div style={{'display': 'flex', 'flexDirection': 'row'}} className={(() => {return styles.gap})()}><Button onClick={(() => {return handleGoHome})()} colorScheme={`purple`} variant={`outline`} leftIcon={<ArrowBackIcon></ArrowBackIcon>}>Back</Button><Button onClick={(() => {return handleLogin})()} colorScheme={`purple`} rightIcon={<UnlockIcon></UnlockIcon>}>Login</Button></div></CardFooter></Card></div></div>
-  })()
+      return setPassword((password) => {
+        return e.target.value;
+      });
+    }
+    return (
+      <div style={{ height: "100svh", width: "100svw" }}>
+        <div
+          style={{
+            height: "inherit",
+            width: "inherit",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            textAlign: "center",
+          }}
+          className={(() => {
+            return styles.background;
+          })()}
+        >
+          <Card
+            className={(() => {
+              return styles.borderAnimation;
+            })()}
+          >
+            <CardHeader>
+              <Heading
+                className={(() => {
+                  return styles.head;
+                })()}
+              >
+                Login
+              </Heading>
+            </CardHeader>
+            <CardBody>
+              <div
+                style={{ display: "flex", flexDirection: "column" }}
+                className={(() => {
+                  return styles.gap;
+                })()}
+              >
+                <Input
+                  onChange={(() => {
+                    return handleUsernameChange;
+                  })()}
+                  placeholder={`Username`}
+                  value={(() => {
+                    return username;
+                  })()}
+                ></Input>
+                <Input
+                  onChange={(() => {
+                    return handlePasswordChange;
+                  })()}
+                  placeholder={`Password`}
+                  type={`password`}
+                  value={(() => {
+                    return password;
+                  })()}
+                ></Input>
+              </div>
+            </CardBody>
+            <CardFooter justify={`center`}>
+              <div
+                style={{ display: "flex", flexDirection: "row" }}
+                className={(() => {
+                  return styles.gap;
+                })()}
+              >
+                <Button
+                  onClick={(() => {
+                    return handleGoHome;
+                  })()}
+                  className={(() => {
+                    return styles.shineOnHover;
+                  })()}
+                  colorScheme={`purple`}
+                  variant={`outline`}
+                  leftIcon={<ArrowBackIcon></ArrowBackIcon>}
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={(() => {
+                    return handleLogin;
+                  })()}
+                  className={(() => {
+                    return styles.whiteShineOnHover;
+                  })()}
+                  colorScheme={`purple`}
+                  rightIcon={<UnlockIcon></UnlockIcon>}
+                >
+                  Login
+                </Button>
+              </div>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
+    );
+  })();
 }
