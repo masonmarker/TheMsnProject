@@ -35,8 +35,8 @@ react:page(
             .gap {
                 gap: 5px;
             }
-            # insert a purple shine animation className "shine"
-            {=animations:shine("shine", "purple")=}
+            # insert a purple shine animation className "shineOnHover"
+            {=animations:shine("shineOnHover", "purple")=}
         ),
 
         # states for username and password
@@ -59,7 +59,7 @@ react:page(
             className=(styles.background),
             # create the card component=
             chakra:Card( 
-                className=(styles.shine),
+                className=(styles.shineOnHover),
                 chakra:CardHeader(
                     chakra:Heading(className=(styles.head), "Login"),
                 ),
