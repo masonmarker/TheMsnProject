@@ -12,11 +12,72 @@
  */
 
 // imports ::
+import styles from '../styles/styles.module.css';
+import {
+  useState
+} from 'react';
+import {
+  useEffect
+} from 'react';
+import {
+  Card
+} from '@chakra-ui/react';
+import {
+  CardHeader
+} from '@chakra-ui/react';
+import {
+  Heading
+} from '@chakra-ui/react';
+import {
+  CardBody
+} from '@chakra-ui/react';
+import {
+  Input
+} from '@chakra-ui/react';
+import {
+  CardFooter
+} from '@chakra-ui/react';
+import {
+  Button
+} from '@chakra-ui/react';
+import {
+  ArrowBackIcon
+} from '@chakra-ui/icons';
+import {
+  UnlockIcon
+} from '@chakra-ui/icons';
 
 // default component export ::
 export default function Index(props) {
   return (() => {
-    const variable = `Hello World!`;
-    return <div style={{'height': '100svh', 'width': '100svw'}}><div style={{'height': 'inherit', 'width': 'inherit', 'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'textAlign': 'center'}}><div style={{'fontFamily': 'Poppins'}}><h1><div style={{'color': 'orange'}}>MSN2 with</div><div style={{'color': 'red'}}>NextJS</div></h1><h2>{variable}</h2></div></div></div>
+    const [username, setUsername] = useState(null)
+    useEffect(() => {
+      // username useEffect ::
+    }, [username]);
+    const [password, setPassword] = useState(null)
+    useEffect(() => {
+      // password useEffect ::
+    }, [password]);
+
+    function handleLogin() {
+      return username !== null && password !== null && alert('logging in as ' + username)
+    };
+
+    function handleGoHome() {
+      return alert('Going home...')
+    };
+
+    function handleUsernameChange(e) {
+      return setUsername(username => {
+        return e.target.value
+      })
+    };
+
+    function handlePasswordChange(e) {
+      return setPassword(password => {
+        return e.target.value
+      })
+    };
+    return <div style={{'height': '100svh', 'width': '100svw'}}><div style={{'height': 'inherit', 'width': 'inherit', 'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'textAlign': 'center'}} className={(() => {return styles.background})()}><Card className={(() => {return styles.shine})()}><CardHeader><Heading className={(() => {return styles.head})()}>Login</Heading></CardHeader><CardBody><div style={{'display': 'flex', 'flexDirection': 'column'}} className={(() => {return styles.gap})()}><Input onChange={(() => {return handleUsernameChange})()} placeholder={`Username`} value={(() => {return username})()}></Input><Input onChange={(() => {return handlePasswordChange})()} placeholder={`Password`} type={`password`} value={(() => {return password})()}></Input></div></CardBody><CardFooter justify={`center`}><div style={{'display': 'flex', 'flexDirection': 'row'}} className={(() => {return styles.gap})()}><Button onClick={(() => {return handleGoHome})()} colorScheme={`purple`} variant={`outline`} leftIcon={<ArrowBackIcon></ArrowBackIcon>}>Back</Button><Button onClick={(() => {return handleLogin})()} colorScheme={`purple`} rightIcon={<UnlockIcon></UnlockIcon>}>Login</Button></div></CardFooter></Card></div></div>
   })()
 }

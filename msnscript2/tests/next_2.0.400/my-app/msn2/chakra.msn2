@@ -6,6 +6,9 @@
 
 # import React
 import ('lib/web/react')
+# animations library
+import ('lib/web/animations')
+
 
 # create an index page
 react:page(
@@ -20,14 +23,84 @@ react:page(
 
         # create a css module for this page
         css('styles',
-            .class1 {color: red;}
+            .background * {
+                transition: 0.4s ease-out;
+            }
+            .background {
+                background-color: #322659;   
+            }
+            .head {
+                font-family: Poppins;
+            }
+            .gap {
+                gap: 5px;
+            }
+            # insert a purple shine animation className "shine"
+            {=animations:shine("shine", "purple")=}
         ),
 
-        # return component
-        h1(
-            # add classname from this page's css module
-            className=(styles.class1), 
-            'hi, this is some text!'
-        )
+        # states for username and password
+        state('username', null),
+        state('password', null),
+
+        # event handlers
+        def('handleLogin', 
+            username !== null && 
+            password !== null && 
+            alert('logging in as ' + username)
+        ),
+        def('handleGoHome', alert('Going home...')),
+        def('handleUsernameChange', 'e', username.set(e.target.value)),
+        def('handlePasswordChange', 'e', password.set(e.target.value)),
+
+
+        # return the positioned the card component
+        fitscreen(center(
+            className=(styles.background),
+            # create the card component=
+            chakra:Card( 
+                className=(styles.shine),
+                chakra:CardHeader(
+                    chakra:Heading(className=(styles.head), "Login"),
+                ),
+
+                chakra:CardBody(
+                    vstack(
+                        className=(styles.gap),
+                        chakra:Input(
+                            placeholder="Username", 
+                            value=(username), 
+                            onChange=(handleUsernameChange)
+                        ),
+                        chakra:Input(
+                            type="password", 
+                            placeholder="Password", 
+                            value=(password), 
+                            onChange=(handlePasswordChange)
+                        )
+                    )
+                ),
+                # create a card footer
+                chakra:CardFooter(
+                    justify="center",
+                    hstack(
+                        className=(styles.gap),
+                        chakra:Button(
+                            colorScheme="purple",
+                            variant="outline",
+                            onClick=(handleGoHome),
+                            leftIcon=chakra:icon:ArrowBackIcon(),
+                            "Back"
+                        ),
+                        chakra:Button(
+                            colorScheme="purple",
+                            rightIcon=chakra:icon:UnlockIcon(),
+                            onClick=(handleLogin),
+                            "Login"
+                        )
+                    )
+                )
+            )
+        ))
     ))
 )

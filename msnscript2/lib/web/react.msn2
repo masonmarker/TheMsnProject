@@ -198,18 +198,17 @@ def('react:page', 'react:default:page_url', 'react:default:component_script', &r
         file.write(react:default:app_path, cat(
             cat("// Generated at ", now(), "\n"),
 
-            "// appwide styles",
+            "// appwide styles\n",
             "import '../styles/app.css'\n\n",
+            "// imports ::\n\n",
 
-            # if using Chakra
-            if (react:default:using_chakra,  "import { ChakraProvider } from '@chakra-ui/react'\n", ""),
-
+            # # if using Chakra
+            # if (react:default:using_chakra,  "import { ChakraProvider } from '@chakra-ui/react'\n", ""),
 
             "// main app component\n",
             "function MyApp({ Component, pageProps }) {\n",
-                if (react:default:using_chakra, "return <ChakraProvider>", ""),
-                    cat(if(not(react:default:using_chakra), "return", ""), " <Component {...pageProps} />\n"),
-                if(react:default:using_chakra, "</ChakraProvider>", ""),
+                "return (\n// return ::\n\n<Component {...pageProps} />\n",
+                "{/** endreturn */}\n\n)",
             "}\n\n",
             "export default MyApp\n"
         ))

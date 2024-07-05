@@ -1,9 +1,20 @@
-// Generated at 1720114100.6613526
-// appwide stylesimport '../styles/app.css'
+// Generated at 1720148862.7498505
+// appwide styles
+import '../styles/app.css'
+
+// imports ::
+import { ChakraProvider } from '@chakra-ui/react';
 
 // main app component
 function MyApp({ Component, pageProps }) {
-return <Component {...pageProps} />
-}
+return (
+// return ::
+<ChakraProvider>
+
+<Component {...pageProps} />
+{/** endreturn */}
+</ChakraProvider>
+
+)}
 
 export default MyApp

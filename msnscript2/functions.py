@@ -314,6 +314,9 @@ def stringify(val):
 def comment(text):
     return f"\n// {text} ::\n"
 
+# reads from the main _app.js path
+
+
 # creates a callback
 
 
@@ -348,9 +351,9 @@ def insert_line_at_marker(inst, path, keyword, line, check_for_dups=False):
     file.close()
     # find the marker
     for i, l in enumerate(lines):
-        if not l.endswith('::\n'):
+        if not (_1 := l.endswith('::\n')) and not (_2 := l.endswith('*/}\n')):
             continue
-        l = l[2:-3].strip()
+        l = l[2:-3].strip() if _1 else (l[5:-4].strip() if _2 else l)
         if l == keyword:
             # insert the line at the next empty line
             for j in range(i + 1, len(lines)):
@@ -388,9 +391,11 @@ def insert_line_at_marker(inst, path, keyword, line, check_for_dups=False):
 
 # web based functions
 
+
 unique_hash_counter = 0
 
 # parse prop
+
 
 def unique_hash(inst):
     global unique_hash_counter
@@ -398,15 +403,15 @@ def unique_hash(inst):
     import hashlib
     # Increment the counter first to ensure uniqueness
     unique_hash_counter += 1
-    
+
     # Get the current clock tick in nanoseconds
     current_tick_ns = time.perf_counter_ns()
-    
+
     # Combine the tick and the counter to create a unique string
     unique_str = f"{current_tick_ns}{unique_hash_counter}"
 
-    
     return unique_str
+
 
 def parse_props(inst):
     from js import html_attribute_defaults, parse, parse_string
@@ -464,7 +469,9 @@ def custom_prop(inst, props, key, value):
         for className in value:
             classNameValue += f" {className}"
         return "className", f"`{classNameValue.strip()}`"
-
+    # just return the key and value
+    return key, value
+    
     # if none of the above, throw unknown prop error
     raise Exception(f"Unknown prop '{key}'")
 
@@ -531,6 +538,10 @@ def merge_props(props, inst):
             props[attr] = parse_string(inst, props[attr])
             merged[attr] = f"`{props[attr]}`"
             continue
+        # for boolean
+        if attr in parsed_props and type(parsed_props[attr]) == bool:
+            merged[attr] = f"{parsed_props[attr]}"
+            continue
         props_t = {key: value.strip() for key, value in props[attr].items(
         ) if value} if attr in props and props[attr] else {}
         parsed_props_t = {key: value.strip() for key, value in parsed_props[attr].items(
@@ -589,7 +600,7 @@ def is_jsx_element(string):
 def component(inst, html_tag="div", props={}):
     inst.in_html = True
     return tag(inst, [((inst.parse(i) if not is_prop(inst, i) else "")
-                       if not (as_s := inst.args[i][0].strip()) in inst.interpreter.states else
+                       if not (as_s := inst.args[i][0].strip()) in inst.interpreter.states and not as_s in inst.interpreter.methods else
                        ("{" + as_s + "}")) if not is_jsx_element(_v := inst.args[i][0].strip()) else
                       _v for i in range(len(inst.args))], html_tag, props=merge_props(props, inst))
 
