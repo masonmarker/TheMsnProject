@@ -23,7 +23,7 @@ import sys
 #
 # filename: the path to the .msn2 file to be executed
 # inputs: a list of values to be passed to the script
-def run(filename, inputs):
+def run(filename, inputs=None):
 
     # opens the file for reading
     f = open(filename, "r", encoding="utf-8")

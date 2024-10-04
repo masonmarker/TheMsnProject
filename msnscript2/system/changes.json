@@ -4,7 +4,7 @@
         "2": "Rewrote msn2 library to incorporate new, safer syntax, this includes many tests",
         "3": "Implemented 'argument picker' for def() defined functions, allowing for more flexible argument passing"
     },
-    "2.0.888": {
+    "2.0.388": {
         "1": "Added '!' specifier for object methods, this specifier forces the method to be destructive regardless of the prior value of the variable calling the method.",
         "2": "Added partial type enforcements, this has only been applied to the existing MSN2 package functions. User functions may come in the future.",
         "3": "Enabled the MSN2 interpreter to interpret multi-lined blocks of code for a few more cases (line ending with ',', etc...)",
@@ -14,5 +14,10 @@
         "7": "Improved performance in raising errors",
         "8": "Improved performance in general interpretation. This includes simplifying potentially tight loops and common method executions such as argument parsing.",
         "9": "Repaired function insert(iterable, index, object)"
+    },
+    "2.0.401": {
+        "1": "Added msn2cli.py for more control over executing .msn2 programs",
+        "2": "Added JavaScript generation support (see tests/next_2.0.400/)",
+        "3": "Added function: uuid4()"
     }
 }

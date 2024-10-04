@@ -12,6 +12,8 @@
     see the source code (msnint2.py) to find out what msn2 code
     imports what dependencies.
 
+for CLI:
+pip install click
 
 for HTML and web scraping:
 pip install bs4

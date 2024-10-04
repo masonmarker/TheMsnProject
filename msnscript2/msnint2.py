@@ -36,8 +36,8 @@
 #
 # TODO
 # implement linear interpretation in areas of heavy logic, this applies
-# easily non linear approaches in several blocks
-# such as <<>> or system calls such as script()
+# incredibly non linear approaches in several blocks
+# such as <<>> or functions such as script()
 #
 # TODO
 # implement an interpretation for block syntax
@@ -81,6 +81,7 @@
 # importing necessary dependencies
 # for all lines of execution
 import os
+import uuid
 import threading
 from instruction import Instruction
 
@@ -4221,6 +4222,10 @@ class Interpreter:
                         return range(start, end, step)
                     return range()
 
+                elif func == 'uuid4':
+                    import uuid
+                    return str(uuid.uuid4())
+                
                 # random capabilities
                 elif func == 'random':
                     import random
