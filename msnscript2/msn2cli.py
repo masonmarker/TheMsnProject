@@ -69,9 +69,23 @@ def main(action, file, args, snippet):
     # gets a mini, portable msn2 package
     elif action == "portable":
         run('portable/port.msn2')
+    # runs a quick msn2 test
+    elif action == "test":
+        run('tests/misc.msn2')
+    # runs the msn2 interpreter
+    elif action == "int":
+        run('system/int.msn2')
+    # runs the msn2 file browser
+    elif action == "file":
+        run('system/file.msn2')
+    # runs the msn2 console tutorial
+    elif action == "help":
+        run('TUTORIAL/driver.msn2')
+    # runs the msn2 gpt interaction
+    elif action == "gpt":
+        run('system/gpt.msn2')
     else:
         raise ValueError("Invalid action.")
-
 
 if __name__ == "__main__":
     main()

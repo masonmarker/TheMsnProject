@@ -19,5 +19,10 @@
         "1": "Added msn2cli.py for more control over executing .msn2 programs",
         "2": "Added JavaScript generation support (see tests/next_2.0.400/)",
         "3": "Added function: uuid4()"
+    },
+    "2.0.402": {
+        "1": "Converted main function interpretation to a dispatch table, this should significantly improve performance in the long run",
+        "2": "Fixed a bug involving MSN2 portable package generation",
+        "3": "Fixed a bug involving '{python_alias} msn2cli.py int' to start the MSN2 interpreter"
     }
 }
