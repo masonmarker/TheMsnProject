@@ -81,9 +81,9 @@ def main(action, file, args, snippet):
     # runs the msn2 console tutorial
     elif action == "help":
         run('TUTORIAL/driver.msn2')
-    # runs the msn2 gpt interaction
-    elif action == "gpt":
-        run('system/gpt.msn2')
+    # assists with element discovery during automation
+    elif action == "elements":
+        run('tests/2.0.3x/practical/auto/clicked.msn2')
     else:
         raise ValueError("Invalid action.")
 

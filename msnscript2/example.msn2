@@ -1,6 +1,6 @@
 # Example of an msn2 program.
 #
-# Run me with '{python_alias} msn2.py example'
+# Run me with '{python_alias} msn2cli.py -f example'
 #
 # author : Mason Marker
 # date : 8/17/2023

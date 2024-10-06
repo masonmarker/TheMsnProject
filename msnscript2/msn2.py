@@ -24,11 +24,7 @@ for i in range(1, len(sys.argv)):
         filename = 'tests/misc.msn2'
     # discovering UI elements
     elif filename == 'elements':
-        filename = 'tests/practical/auto/clicked.msn2'
-    # mounting MSN2 packages
-    elif filename == 'package':
-        filename = 'system/package_wizard.msn2'
-        breaking = True
+        filename = 'demos/practical/auto/clicked.msn2'
     # running the console tutorial
     elif filename == 'help':
         filename = 'TUTORIAL/driver.msn2'
@@ -41,9 +37,6 @@ for i in range(1, len(sys.argv)):
     # launches a file browser for running an msn2 script
     elif filename == 'file':
         filename = 'system/file.msn2'
-    # launches an interaction with ChatGPT in the console
-    elif filename == 'gpt':
-        filename = 'system/gpt.msn2'
         
     # if the file does not end in .msn2, add it
     if not filename.endswith('.msn2'):

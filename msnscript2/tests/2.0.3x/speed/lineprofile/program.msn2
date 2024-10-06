@@ -1,7 +1,0 @@
-# program to profile
-
-
-@ number = 5
-number.add(1)
-number.sub(1)
-number.print()

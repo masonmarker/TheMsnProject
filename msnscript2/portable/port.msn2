@@ -7,7 +7,7 @@
 #
 #     .msn2 programs can be run in any location, not just in the msnscript2 respository.
 #   
-#     Run "python msn2.py portable/port.msn2" to create a package named "msn2"
+#     Run "{python_alias} msn2cli.py portable" to create a package named "msn2"
 #     within the portable directory that can be copied to your project directories
 #     so you can run .msn2 code in your own environments.
 #
@@ -26,7 +26,7 @@
 # - have installed the dependencies listed in ../dependencies.txt
 # thats literally all
 # 
-# you should then be able to run "python msn2.py xxxx.msn2" in your own directories / project folders
+# you should then be able to run "python msn2cli.py -f xxxx.msn2" in your own directories / project folders
 # updated in 2.0.387
 
 # clear the console
@@ -129,33 +129,33 @@ print('[*] Creating README.txt...')
 #     ex: import ("lib/timer.msn2")\n\n
 
 #     Run .msn2 programs from this directory with the following syntax:\n
-#     "python msn2.py *****.msn2"\n\n
+#     "{python_alias} msn2cli.py -f *****.msn2"\n\n
     
 #     Good luck!'>>
 # ))
 
-file.write(readme, script(
-    # README.md markdown explanation of the portable MSN2 package
-    This directory ({=package_dir=}) can now be copied into <nl>
-    your project folders / directories. <nl><nl>
+file.write(readme, ls(
+    This directory {=package_dir=} can now be copied into<nl>
+    your project folders / directories.<nl><nl>
 
-    The destination folder environment of this package <nl>
-    should have access to the following: <nl>
-    - capability to execute .py programs <nl>
-    - installed the few dependencies in dependencies.txt <nl><nl>
+    The destination folder environment of this package<nl>
+    should have access to the following:<nl>
+    - capability to execute .py programs<nl>
+    - installed the few dependencies in dependencies.txt<nl><nl>
 
-    You should create your .msn2 program files within the same directory <nl>
-    as this README.txt ({=package_dir=}). <nl><nl>
+    You should create your .msn2 program files within the same directory<nl>
+    as this README.txt {=package_dir=}.<nl><nl>
 
-    This package has access to an MSN2 library, <nl>
-    therefore, your created .msn2 program files can import files <nl>
-    in the exact manner of those existing outside of this package. <nl><nl>
+    This package has access to an MSN2 library,<nl>
+    therefore, your created .msn2 program files can import files<nl>
+    in the exact manner of those existing outside of this package.<nl><nl>
 
-    ex: import ("lib/timer.msn2") <nl><nl>
+    ex: import <lp>"lib/timer.msn2"<rp><nl><nl>
 
-    Run .msn2 programs from this directory with the following syntax: <nl>
-    ```{python_alias} msn2.py *****.msn2``` <nl><nl>
-    
+    Run .msn2 programs from this directory with the following syntax:<nl>
+    "{python_alias} msn2cli.py -f *****.msn2"<nl><nl>
+
+    Good luck!
 ))
 
 

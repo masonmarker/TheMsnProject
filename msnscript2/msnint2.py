@@ -6,7 +6,7 @@
 # this is a work in progress.
 #
 # docs: masonmarker.com/#/msn2docs
-# run 'python msn2.py help' for help
+# run '{python_alias} msn2cli.py help' for help
 #
 # Author : Mason Marker
 # Start date : 09/15/2022

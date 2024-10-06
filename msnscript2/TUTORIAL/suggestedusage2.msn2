@@ -230,9 +230,12 @@ assert(exists("py_script2"))
 #
 # eventually, assignments will be made with some form
 # of quotes for string literals so the text colors
-# under 'coffeescript' will be more accurate,
+# under 'msn2' as a language mode will be more accurate,
 # this is hopefully a temporary solution
 # to interpreting strings as-is.
+#
+# install the msn2-syntax-highlighting package for 
+# better syntax highlighting
 #
 # unfortunately this syntax cannot be intertwined
 # with other msn2 code
