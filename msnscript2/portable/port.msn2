@@ -39,7 +39,7 @@ print('[*] Creating portable MSN2 package...')
 # new directories
 @ package_dir = 'portable/msn2'
 @ package_lib = +(package_dir, '/lib')
-@ readme = +(package_dir, '/README.txt')
+@ readme = +(package_dir, '/README.md')
 
 # remove the previous directory for replacement
 file.rmdir(package_dir)
@@ -68,8 +68,23 @@ file.copy('msn2.py', package_dir)
 
 print('[*] Copying list of dependencies...')
 
+# copy instruction definition
+print('[*] Copying instruction definition...')
+file.copy('instruction.py', package_dir)
+
+# js definitions
+print('[*] Copying js definitions...')
+file.copy('js.py', package_dir)
+
+# copy js tools
+print('[*] Copying js tools...')
+file.mkdir(@port:systemdir=+(package_dir, '/js_tools'))
+private(files:copydir('js_tools', port:systemdir))
+
+
 # copy dependencies
 file.copy('dependencies.txt', package_dir)
+file.copy('requirements.txt', package_dir)
 
 # copy system/ folder
 print('[*] Copying system folder...')
@@ -88,32 +103,61 @@ file.copy('msn2_settings.json', package_dir)
 print('[*] Copying dependency installer...')
 file.copy('install_deps.py', package_dir)
 
+# CLI
+print('[*] Copying CLI...')
+file.copy('msn2cli.py', package_dir)
+
 print('[*] Creating README.txt...')
 
 # write README
-file.write(readme , (
-    <<'This directory (|package_dir|) can now be copied into\n
-    your project folders / directories.\n\n
+# file.write(readme , (
+#     <<'This directory (|package_dir|) can now be copied into\n
+#     your project folders / directories.\n\n
 
-    The destination folder environment of this package\n
-    should have access to the following:\n
-    - capability to execute .py programs\n
-    - installed the few dependencies in dependencies.txt\n\n
+#     The destination folder environment of this package\n
+#     should have access to the following:\n
+#     - capability to execute .py programs\n
+#     - installed the few dependencies in dependencies.txt\n\n
 
-    You should create your .msn2 program files within the same directory\n
-    as this README.txt (|package_dir|).\n\n
+#     You should create your .msn2 program files within the same directory\n
+#     as this README.txt (|package_dir|).\n\n
 
-    This package has access to an MSN2 library,\n
-    therefore, your created .msn2 program files can import files\n
-    in the exact manner of those existing outside of this package.\n\n
+#     This package has access to an MSN2 library,\n
+#     therefore, your created .msn2 program files can import files\n
+#     in the exact manner of those existing outside of this package.\n\n
 
-    ex: import ("lib/timer.msn2")\n\n
+#     ex: import ("lib/timer.msn2")\n\n
 
-    Run .msn2 programs from this directory with the following syntax:\n
-    "python msn2.py *****.msn2"\n\n
+#     Run .msn2 programs from this directory with the following syntax:\n
+#     "python msn2.py *****.msn2"\n\n
     
-    Good luck!'>>
+#     Good luck!'>>
+# ))
+
+file.write(readme, script(
+    # README.md markdown explanation of the portable MSN2 package
+    This directory ({=package_dir=}) can now be copied into <nl>
+    your project folders / directories. <nl><nl>
+
+    The destination folder environment of this package <nl>
+    should have access to the following: <nl>
+    - capability to execute .py programs <nl>
+    - installed the few dependencies in dependencies.txt <nl><nl>
+
+    You should create your .msn2 program files within the same directory <nl>
+    as this README.txt ({=package_dir=}). <nl><nl>
+
+    This package has access to an MSN2 library, <nl>
+    therefore, your created .msn2 program files can import files <nl>
+    in the exact manner of those existing outside of this package. <nl><nl>
+
+    ex: import ("lib/timer.msn2") <nl><nl>
+
+    Run .msn2 programs from this directory with the following syntax: <nl>
+    ```{python_alias} msn2.py *****.msn2``` <nl><nl>
+    
 ))
+
 
 print('\n[+] Created MSN2 package!')
 print(+('\tsee ', readme, ' for help with the portable MSN2 package.'))

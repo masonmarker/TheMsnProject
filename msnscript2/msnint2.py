@@ -81,7 +81,6 @@
 # importing necessary dependencies
 # for all lines of execution
 import os
-import uuid
 import threading
 from instruction import Instruction
 
@@ -4225,7 +4224,7 @@ class Interpreter:
                 elif func == 'uuid4':
                     import uuid
                     return str(uuid.uuid4())
-                
+
                 # random capabilities
                 elif func == 'random':
                     import random
@@ -5279,7 +5278,7 @@ class Interpreter:
                     # two directories up from the next entry path
                     self.next_project_path = os.path.dirname(
                         os.path.dirname(self.next_entry_path))
-                    
+
                     return self.next_entry_path
                 # gets the next project path
                 elif func == 'next_project_path':
@@ -5500,9 +5499,16 @@ class Interpreter:
                     self.check_iterable(iterable, line)
                     return delimiter.join(iterable)
                 # returns the MSNScript2 passed as a string
-                elif func == 'async' or func == 'script' or func == 'HTML':
+                # elif func == 'async' or func == 'script' or func == 'HTML':
+                elif func in {"async", "script", "HTML"}:
                     # inserts key tokens
                     return self.msn2_replace(args[0][0])
+
+                # ls: long string
+                # assists with creating long strings
+                elif func in {"ls", "longstring"}:
+                    return self.ls(args)
+
                 # gets the current time
                 elif func == 'now':
                     import time
@@ -5510,7 +5516,8 @@ class Interpreter:
                 # creates a private execution enviroment
                 # private block will have read access to the enclosing Interpreter's
                 # variables and methods
-                elif func == 'private' or func == 'inherit:all':
+                # elif func == 'private' or func == 'inherit:all':
+                elif func in {"private", "inherit:all"}:
                     inter = self.new_int()
                     for vname, entry in self.vars.items():
                         try:
@@ -6750,6 +6757,10 @@ class Interpreter:
             f'Current {_and} environment locals:\n{self._locals}\nsize: {len(self._locals)}\nsee globals with "py.globals()"',
             line, lines_ran
         )
+
+    # ls: long string
+    def ls(self, args):
+        return self.msn2_replace(','.join([str(arg[0]) for arg in args]).strip())
 
     # replaces tokens in the string with certain
     # characters or values

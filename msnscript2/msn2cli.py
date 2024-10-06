@@ -66,6 +66,9 @@ def main(action, file, args, snippet):
     # questions the integrity of the msn2 interpreter
     elif action == "verify":
         run('tests/validator.msn2')
+    # gets a mini, portable msn2 package
+    elif action == "portable":
+        run('portable/port.msn2')
     else:
         raise ValueError("Invalid action.")
 
