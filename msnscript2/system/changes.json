@@ -28,6 +28,8 @@
         "5": "Fixed a bug involving the 'Getting Started' and 'Suggested Usage' help pages",
         "6": "Fixed a bug involving the CLI 'element' command",
         "7": "Removed CLI 'package' option",
-        "8": "Removed CLI 'gpt' option"
+        "8": "Removed CLI 'gpt' option",
+        "9": "Removed /speed profiling",
+        "10": "Migrated documentation to CLI / legacy execution method and hybrids"
     }
 }
