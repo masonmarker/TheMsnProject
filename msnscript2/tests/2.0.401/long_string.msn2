@@ -10,6 +10,9 @@
 #
 # This removes the requirement to escape commas in script() with (,)
 
+# start tests
+import ('tests/resources/start')
+
 # macro for testing long strings
 macro('TESTLS ', 'tests:long_string:line', (
     @tests:long_string:split = tests:long_string:line.split('|'),
@@ -114,3 +117,10 @@ assert:err(TESTLS ls(
     ipoanmerwvoijmnawoiefjoaiswefgjoiawefjwaefjiawef,,,,,,,gbaoiuwenfoaiwjnefoiaiwjnerfgoiajwef,,,,,
     apoiewgjbopaijwefpoajwefpoajwepfoijawpeo
 ) | "jaw9348fjw9q834jhgf03w9fk09k43oije!@&&&^*&^*&*&^*^%&^%&%()\n ifjoauinogbunawpoefmpoawefmgoawnjefoinwafeOPIMNFOPIWNMDCPQWINFVOIUWNEOINQWODIMOGINOWIEMNF,ipoanmerwvoijmnawoiefjoaiswefgjoiawefjwaefjiawef,,,,,,,gbaoiuwenfoaiwjnefoiaiwjnerfgoiajwef,,,,,apoiewgjbopaijwefpoajwefpoajwepfoijawpeo")
+
+
+# syntax highlighting testing
+ls(
+    Hello, this is a supermassive long string with all of the inserts and characters
+    that should be highlighted correctly, but we'll see...
+)

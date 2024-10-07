@@ -21,15 +21,17 @@
         "3": "Added function: uuid4()"
     },
     "2.0.402": {
-        "1": "Published VS Code extension 'msn2-syntax-highlighting' for .msn2 file extension syntax highlighting",
-        "2": "Converted main function interpretation to a dispatch table, this should significantly improve performance in the long run",
-        "3": "Fixed a bug involving MSN2 portable package generation",
-        "4": "Fixed a bug involving '{python_alias} msn2cli.py int' to start the MSN2 interpreter",
-        "5": "Fixed a bug involving the 'Getting Started' and 'Suggested Usage' help pages",
-        "6": "Fixed a bug involving the CLI 'element' command",
-        "7": "Removed CLI 'package' option",
-        "8": "Removed CLI 'gpt' option",
-        "9": "Removed /speed profiling",
-        "10": "Migrated documentation to CLI / legacy execution method and hybrids"
+        "1": "Created longstring() (ls() alias) for multi-line strings",
+        "2": "Published VS Code extension 'msn2-syntax-highlighting' for .msn2 file extension syntax highlighting",
+        "3": "Converted main function interpretation to a dispatch table, this should significantly improve performance in the long run",
+        "4": "Fixed a bug involving MSN2 portable package generation",
+        "5": "Fixed a bug involving '{python_alias} msn2cli.py int' to start the MSN2 interpreter",
+        "6": "Fixed a bug involving the 'Getting Started' and 'Suggested Usage' help pages",
+        "7": "Fixed a bug involving the CLI 'element' command",
+        "8": "Removed CLI 'package' option",
+        "9": "Removed CLI 'gpt' option",
+        "10": "Removed /speed profiling",
+        "11": "Migrated documentation to CLI / legacy execution method and hybrids",
+        "12": "Deprecated <msn2element> and <msn2> inserts, only {==} inserts are allowed within calls such as script() or longstring()"
     }
 }

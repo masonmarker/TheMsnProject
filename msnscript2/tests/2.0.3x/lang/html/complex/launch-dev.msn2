@@ -16,9 +16,9 @@ function('render', (file.write(html_path, HTML(
 
             # applying styles
             <style>
-                <msn2element>
+                {=
                     css
-                </msn2element>
+                =}
             </style>
         </head>
 
@@ -48,9 +48,9 @@ function('render', (file.write(html_path, HTML(
                 </button>           
             </div>
             <p class="answer">
-                <msn2element>
+                {=
                     render:gpt-answer
-                </msn2element>
+                =}
             </p>
         </body>
     </html>

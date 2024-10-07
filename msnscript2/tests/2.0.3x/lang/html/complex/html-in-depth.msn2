@@ -29,7 +29,7 @@ alias('py')
 #
 # because this is a new process scope,
 # it cannot access existing variables
-# and methods, so we use <msn2element>
+# and methods, so we use {==}
 # inserts to pass data to the endpoint
 proc('flask', ENDPOINT(
     '127.0.0.1',

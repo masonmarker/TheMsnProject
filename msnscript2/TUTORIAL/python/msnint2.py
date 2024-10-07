@@ -6776,31 +6776,9 @@ class Interpreter:
         script = script.replace('<or>', '||')
         script = script.replace('< >', ' ')
 
-        tag = '<msn2element>'
-        endtag = '</msn2element>'
-        # replaces whats in between the tags
-        # with the interpretation of whats between the tags
-        #
-        # interpretation  is with self.interpret(script)
-        #
-        # script(
-        #     <msn2element>'hello1'</msn2element>
-
-        #     <msn2element>
-        #         cat('hello',
-        #             <msn2element>'hi there'</msn2element>
-        #         )
-        #     </msn2element>
-        # )
-        #
-        # correct output of script() = hello1hellohi there
-
-        # interpret the tags similar to the way
-        # parantheticals are interpreted
-        # this is a recursive function
-        # open paren = tag
-        # close paren = endtag
-
+        tag = '{='
+        endtag = '=}'
+        
         def recurse_tags(scr, force_string=False):
             # get the first tag
             # if there is no tag, return the script
@@ -6828,19 +6806,7 @@ class Interpreter:
             new_scr = f'{scr[:first]}{interpreted_code}{scr[i+len(endtag):]}'
             # recursively continue replacing tags in the remaining script
             return recurse_tags(new_scr)
-        # applying <msn2element> tags
-        with_msn2elements = recurse_tags(script)
-        # switch tags
-        tag = '<msn2>'
-        endtag = '</msn2>'
-        # applying <msn2> tags
-        # for string based needs
-        with_msn2 = recurse_tags(with_msn2elements, force_string=True)
-        # applying '{=' '=}' tags
-        # does the same thing as <msn2element> tags
-        tag = '{='
-        endtag = '=}'
-        with_msn2 = recurse_tags(with_msn2)
+        with_msn2 = recurse_tags(script)
         return with_msn2
 
     # determines the number of arguments based on the args array

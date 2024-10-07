@@ -30,7 +30,7 @@
     console.log(JSON.stringify(reverse(
 
         # use msn2 for a language switch
-        <msn2element>
+        {=
             # retrieving STDOUT
             # from JAVA
             get(JAVA(
@@ -63,7 +63,7 @@
                         int[] numbers = 
 
                             # use msn2 for a language switch
-                            <msn2element>
+                            {=
                                 get(C(
 
                                     # stdio for printing
@@ -89,7 +89,7 @@
                                         int numbers[] = 
 
                                             # use msn2 for a language switch
-                                            <msn2element>(
+                                            {=(
                                                 # modify the array
                                                 v.map('e', e.add(2)),
                                                 # log length
@@ -98,19 +98,19 @@
                                                 @ v = v.str(),
                                                 v.replace('[', '{'),
                                                 v.replace(']', '}')
-                                            )</msn2element>
+                                            )=}
                                         ;
 
                                         # send result to JAVA
                                         printArray(numbers, 
-                                                <msn2element>
+                                                {=
                                                     length
-                                                </msn2element>
+                                                =}
                                         );
                                     }
 
                                 ), 'out')
-                            </msn2element>
+                            =}
                         ;
 
                         # rotate the array 2 positions
@@ -124,7 +124,7 @@
                 
                 # Java file name must match class name
             , 'ArrayRotation'), 'out')
-        </msn2element>
+        =}
     )));
 ), 'out')
 

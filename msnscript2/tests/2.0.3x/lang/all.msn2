@@ -28,7 +28,7 @@ timer:start()
 
 # running JavaScript via 'node __filepath__'
 # not using reduce() for demonstration purposes
-# <msn2> tags are replaced with the 
+# {==} tags are replaced with the 
 # interpretation of the internal code
 @ env = JS(
 
@@ -42,7 +42,7 @@ timer:start()
     
     var a = [];
     
-    for (let i = 0; i < <msn2element>len</msn2element>; i++) {
+    for (let i = 0; i < {=len=}; i++) {
         a.push(1);
     }
     console.log(sum(a));
@@ -65,7 +65,7 @@ timer:start()
 # compiling and running a C program
 # <tag> is replaced with a hashtag,
 # <nl> is replaced with a newline
-# <msn2> tags are replaced with the 
+# {==} tags are replaced with the 
 # interpretation of the internal code
 @ env = C(
     <tag>include <stdio.h><nl>
@@ -83,7 +83,7 @@ timer:start()
     }
 
     int main() {
-        int size = <msn2element>len</msn2element>;
+        int size = {=len=};
         int* arr = malloc(sizeof(int) * size);
         if (arr == NULL) {
             printf("Error allocating memory");
