@@ -78,7 +78,7 @@ TESTLS ls(
     # we insert a space with '< >'
     it has some commas without spaces after,< >
     and has some spaces at the beginning.
-    This is just a super long string,
+    This is just a super long string, 
     # we insert a space with '< >'
     it has some commas without spaces after,< >
     and has some spaces at the beginning.
@@ -120,7 +120,39 @@ assert:err(TESTLS ls(
 
 
 # syntax highlighting testing
-ls(
+print(ls(
     Hello, this is a supermassive long string with all of the inserts and characters
-    that should be highlighted correctly, but we'll see...
-)
+    that should be highlighted correctly, but we'll see...<nl><nl>
+
+    I'm doing quite well I think to be honest, but we'll see how the day goes.< >
+    Things are always going well at this side of town to be honest.<lb>silly<rb><nl>
+    This is a set: <lcb>1, 2, 3, 4, 5, 6, 7, 8, 9, 10<rcb><nl>
+    This is a list: <lp>1, 2, 3, 4, 5, 6, 7, 8, 9, 10<rp><nl>
+    This is testing with complex inserts:<nl>
+    {=ls(This ls should be allowed)=}<nl><nl>
+
+    {=+("other string insertion ", "<dnl>")=}<nl>
+    {=[1, 2, 3, 4, 5]=}<nl>
+    {={1, 2, 3, 4, 5}=}<nl>
+    {={"key": {"key": "value"}}=}<nl><nl>
+
+    {=(
+        (1, 2, 3, 4, 5)
+    )=}<nl><nl>
+
+    Deep newline tag: <dnl><nl><nl>
+
+    Deeper nesting of things
+    {=(
+        @v=(1, 2, 3, 4),
+        # using with script in it
+        script({="Hello!"=} {="Hello, again!"=} <html style="style1"></html>)
+
+    )=}
+
+    # this is supposed to be a comment
+    # this is also supposed to be a comment
+
+
+    This is still the string!
+))

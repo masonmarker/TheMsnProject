@@ -6766,21 +6766,28 @@ class Interpreter:
     # characters or values
     # TODO: implement linear interpretation
     def msn2_replace(self, script):
-        import re
         # Define the replacements
         replacements = {
             '<tag>': '#',
             '<nl>': '\n',
+            # deep newline
+            '<dnl>': '\\n',
             '<rp>': ')',
             '<lp>': '(',
+            '<rb>': ']',
+            '<lb>': '[',
+            '<rcb>': '}',
+            '<lcb>': '{',
             '(,)': ',',
             '<or>': '||',
-            '< >': ' '
+            '< >': ' ',
+            '<lt>': '<',
+            '<gt>': '>',
         }
 
         # do the above but faster and more efficient
-        pattern = re.compile('|'.join(re.escape(key) for key in replacements.keys()))
-        script = pattern.sub(lambda match: replacements[match.group(0)], script)
+        for key in replacements:
+            script = script.replace(key, replacements[key])
 
         # replaces whats in between the tags
         # with the interpretation of whats between the tags
