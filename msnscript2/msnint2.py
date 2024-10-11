@@ -7147,6 +7147,7 @@ class Interpreter:
             ])
             # add to log
             self.log += f"{words_printed}\n"
+
         raise self.MSN2Exception(
             'MSN2 Exception thrown, see above for details')
 
