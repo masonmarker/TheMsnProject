@@ -34,7 +34,7 @@ timer:start()
 @ env = JS(
     function sum(array) {
         var sum = 0;
-        for (var i = 0; i < {="hello!"=}; i++) {
+        for (var i = 0; i < {=len=}; i++) {
             sum += array[i];
         }
         return sum;

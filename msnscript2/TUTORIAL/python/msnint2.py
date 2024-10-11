@@ -5883,7 +5883,11 @@ class Interpreter:
                     except:
                         params = None
                     # return response
-                    return requests.get(url=url, params=params).json()
+                    try:
+                        r = requests.get(url=url, params=params)
+                        return r.json()
+                    except:
+                        return r
 
                 # requires thread-safe context, see /demos/protected.msn2
                 # simulates returning of the function currently running

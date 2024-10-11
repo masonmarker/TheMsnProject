@@ -84,7 +84,6 @@ import os
 import threading
 from instruction import Instruction
 
-
 # remove warnings for calling of integers: "10()"
 import warnings
 warnings.filterwarnings("ignore", category=SyntaxWarning)
@@ -3720,8 +3719,6 @@ class Interpreter:
                                 # raise error
                                 self.no_var_err(objfunc, 'local or global',
                                                 'local and global', self._globals, line)
-
-                # casting
                 try:
                     if func == 'int':
                         return int(self.parse(0, line, args)[2])
@@ -3760,6 +3757,7 @@ class Interpreter:
                         f'Could not cast arg to specified type\n{e}',
                         line, lines_ran
                     )
+                
                 # conditional logic
                 if func == 'if':
                     # false block is optional
@@ -5882,8 +5880,12 @@ class Interpreter:
                         params = self.parse(1, line, args)[2]
                     except:
                         params = None
+                    r = requests.get(url=url, params=params)
                     # return response
-                    return requests.get(url=url, params=params).json()
+                    try:
+                        return r.json()
+                    except:
+                        return r
 
                 # requires thread-safe context, see /demos/protected.msn2
                 # simulates returning of the function currently running
