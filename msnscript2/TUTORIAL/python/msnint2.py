@@ -82,8 +82,6 @@
 # for all lines of execution
 import os
 import threading
-from instruction import Instruction
-
 
 # remove warnings for calling of integers: "10()"
 import warnings
