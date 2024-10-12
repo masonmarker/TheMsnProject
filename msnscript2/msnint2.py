@@ -6363,9 +6363,9 @@ class Interpreter:
                         # get the output and error
                         out = compiled_code.stdout
                         err = compiled_code.stderr
-                        # if there is an error, print it
-                        if len(err) > 0:
-                            print(err)
+                        # # if there is an error, print it
+                        # if len(err) > 0:
+                        #     print(err)
                         # remove a succeeding newline
                         # if it exists
                         if len(out) > 0 and out[-1] == '\n':
@@ -6422,8 +6422,8 @@ class Interpreter:
                         out = compiled_code.stdout
                         err = compiled_code.stderr
                         # if there is an error, print it
-                        if len(err) > 0:
-                            print(err)
+                        # if len(err) > 0:
+                        #     print(err)
                         # remove a succeeding newline
                         # if it exists
                         if len(out) > 0 and out[-1] == '\n':
