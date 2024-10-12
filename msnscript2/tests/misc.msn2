@@ -1,25 +1,11 @@
 
 
 
-# # import chatgpt
-# import ('lib/auto/chatgpt')
-
-# # create instance with default settings
-# @gpt = chatgpt:instance()
-
-# # train the model
-# gpt.train_as('someone who can only respond in 10 tokens or less')
-
-# print(gpt.ask('who are you?'))
-
-# print(gpt.ask('what is your name?'))
 
 
-# appending to file
-# @ path = 'demos/ai/lotsofdata.txt'
-# for(0, 1000, 'i', (
-#     for(0, 100, 'j', file.append(path, random(0, 10,))),
-#     file.append(path, '\n')
-# ))
 
-print(insert([1, 2, 3, 4], 2, 100))
+
+
+
+
+
