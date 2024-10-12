@@ -4145,6 +4145,7 @@ class Interpreter:
                         line,
                         lines_ran,
                     )
+                
                 # conditional logic
                 if func == "if":
                     # false block is optional
@@ -6420,8 +6421,12 @@ class Interpreter:
                         params = self.parse(1, line, args)[2]
                     except:
                         params = None
+                    r = requests.get(url=url, params=params)
                     # return response
-                    return requests.get(url=url, params=params).json()
+                    try:
+                        return r.json()
+                    except:
+                        return r
 
                 # requires thread-safe context, see /demos/protected.msn2
                 # simulates returning of the function currently running
@@ -6928,9 +6933,9 @@ class Interpreter:
                         # get the output and error
                         out = compiled_code.stdout
                         err = compiled_code.stderr
-                        # if there is an error, print it
-                        if len(err) > 0:
-                            print(err)
+                        # # if there is an error, print it
+                        # if len(err) > 0:
+                        #     print(err)
                         # remove a succeeding newline
                         # if it exists
                         if len(out) > 0 and out[-1] == "\n":
@@ -6991,8 +6996,8 @@ class Interpreter:
                         out = compiled_code.stdout
                         err = compiled_code.stderr
                         # if there is an error, print it
-                        if len(err) > 0:
-                            print(err)
+                        # if len(err) > 0:
+                        #     print(err)
                         # remove a succeeding newline
                         # if it exists
                         if len(out) > 0 and out[-1] == "\n":

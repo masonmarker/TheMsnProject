@@ -119,8 +119,7 @@ assert:err(TESTLS ls(
 ) | "jaw9348fjw9q834jhgf03w9fk09k43oije!@&&&^*&^*&*&^*^%&^%&%()\n ifjoauinogbunawpoefmpoawefmgoawnjefoinwafeOPIMNFOPIWNMDCPQWINFVOIUWNEOINQWODIMOGINOWIEMNF,ipoanmerwvoijmnawoiefjoaiswefgjoiawefjwaefjiawef,,,,,,,gbaoiuwenfoaiwjnefoiaiwjnerfgoiajwef,,,,,apoiewgjbopaijwefpoajwefpoajwepfoijawpeo")
 
 
-# syntax highlighting testing
-print(ls(
+@ test_value = ls(
     Hello, this is a supermassive long string with all of the inserts and characters
     that should be highlighted correctly, but we'll see...<nl><nl>
 
@@ -131,7 +130,7 @@ print(ls(
     This is testing with complex inserts:<nl>
     {=ls(This ls should be allowed)=}<nl><nl>
 
-    {=+("other string insertion ", "<dnl>")=}<nl>
+    {=+("other string insertion ", "-")=}<nl>
     {=[1, 2, 3, 4, 5]=}<nl>
     {={1, 2, 3, 4, 5}=}<nl>
     {={"key": {"key": "value"}}=}<nl><nl>
@@ -142,17 +141,23 @@ print(ls(
 
     Deep newline tag: <dnl><nl><nl>
 
-    Deeper nesting of things
+    Deeper nesting of things<nl>
     {=(
         @v=(1, 2, 3, 4),
-        # using with script in it
-        script({="Hello!"=} {="Hello, again!"=} <html style="style1"></html>)
+        # using with script in it, these insertions are actually inserted from the ls() method,
+        # 'v' also doesn't exist yet, so it should be None
+        "Hello!"
+    )=}<nl> # this should NOT be highlighted as a comment
 
-    )=}
+    # all other escape sequences
+    < >|<nl>|<lp>|<rp>|<or>|<lb>|<rb>|<lcb>|<rcb>|<lt>|<gt>|<dnl>|<tag>
 
     # this is supposed to be a comment
     # this is also supposed to be a comment
-
-
     This is still the string!
-))
+)
+@correct_value = "Hello, this is a supermassive long string with all of the inserts and charactersthat should be highlighted correctly, but we'll see...\n\nI'm doing quite well I think to be honest, but we'll see how the day goes. Things are always going well at this side of town to be honest.[silly]\nThis is a set: {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}\nThis is a list: (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)\nThis is testing with complex inserts:\nThis ls should be allowed\n\nother string insertion -\n[1, 2, 3, 4, 5]\n{1, 2, 3, 4, 5}\n{'key': {'key': 'value'}}\n\n(1, 2, 3, 4, 5)\n\nDeep newline tag: \\n\n\nDeeper nesting of things\nHello!\n # this should NOT be highlighted as a comment |\n|(|)||||[|]|{|}|<|>|\\n|#This is still the string!"
+
+
+# syntax highlighting testing
+TESTLS test_value | correct_value

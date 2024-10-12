@@ -76,6 +76,6 @@ tests:cli:run_test(
 
 # test running a file and snippet
 tests:cli:run_test(
-    cat('-f ', tests:cli:test_file_1, script( -s "file.write('tests/2.0.401/cli_tests/test5.txt', 'Hello, World!')")),
-    arr(tests:cli:test_file_1, tests:cli:test_file_5)
+    cat('-f ', tests:cli:test_file_5, script( -s "file.write('tests/2.0.401/cli_tests/test5.txt', 'Hello, World!')")),
+    arr(tests:cli:test_file_5)
 )
