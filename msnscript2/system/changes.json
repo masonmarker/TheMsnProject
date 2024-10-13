@@ -28,11 +28,13 @@
         "5": "Fixed a bug involving '{python_alias} msn2cli.py int' to start the MSN2 interpreter",
         "6": "Fixed a bug involving the 'Getting Started' and 'Suggested Usage' help pages",
         "7": "Fixed a bug involving the CLI 'element' command",
-        "8": "Removed CLI 'package' option",
-        "9": "Removed CLI 'gpt' option",
-        "10": "Removed auto-printing errors with JS() and C()",
+        "8": "Fixed a bug with mod()",
+        "9": "Removed CLI 'package' option",
+        "10": "Removed CLI 'gpt' option",
         "11": "Removed /speed profiling",
-        "12": "Migrated documentation to CLI / legacy execution method and hybrids",
-        "13": "Deprecated <msn2element> and <msn2> inserts, only {==} inserts are allowed within calls such as script() or longstring()"
+        "12": "Removed auto-installing dependencies, but keeping the capability to auto install",
+        "13": "Removed auto printing errors with JS() and C()",
+        "14": "Migrated documentation to CLI / legacy execution method and hybrids",
+        "15": "Deprecated <msn2element> and <msn2> inserts, only {==} inserts are allowed within calls such as script() or longstring()"
     }
 }

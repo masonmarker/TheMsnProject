@@ -1,3 +1,6 @@
+"""Joint functions and dispatch table."""
+
+from msnint2 import Var
 
 
 # directory functions
@@ -736,3 +739,133 @@ def add_state(inst, name, default_value_or_new_value):
         return generate_set_function(name) + f"({name} => " + " {return " + str(default_value_or_new_value) + "})\n"
     # add state to list of states
     inst.interpreter.states[name] = Var(name, default_value_or_new_value)
+
+
+
+
+
+
+# general functions
+def f_redirect(inter, line: str, args, **kwargs):
+    inter.redirect_inside = []
+    # creates redirect for this interpreter
+    # check for type errors
+    linevar = inter.parse(0, line, args)[2]
+    inter.type_err([(linevar, (str,))], line, kwargs["lines_ran"])
+    inter.redirect = [linevar, args[1][0]]
+    inter.redirecting = True
+    return inter.redirect
+def f_stopredirect(inter, line: str, args, **kwargs):
+    inter.redirecting = False
+    return True
+def f_startredirect(inter, line: str, args, **kwargs):
+    ret = None
+    for _ins in inter.redirect_inside:
+        inter.vars[inter.redirect[0]] = Var(
+            inter.redirect[0], _ins[1])
+        ret = inter.interpret(_ins[0])
+    return ret
+def f_function(inter, line: str, args, **kwargs):
+        # obtain the name of the function
+    fname = inter.parse(0, line, args)[2]
+    # function name must be a string
+    inter.type_err([(fname, (str,))], line, kwargs["lines_ran"])
+    # function arguments
+    # create the new Method
+    new_method = inter.Method(fname, inter)
+    # add the body
+    new_method.add_body(args[1][0])
+    new_method.add_return(f"{fname}__return__")
+    # obtain the rest of the arguments as method args
+    for i in range(2, len(args)):
+        # adds variable name as an argument
+        # if any function specific argument is None, break
+        val = inter.parse(i, line, args)[2]
+        # val must be a string
+        inter.type_err([(val, (str,))], line, kwargs["lines_ran"])
+        if val == None:
+            break
+        new_method.add_arg(val)
+    inter.methods[fname] = new_method
+    return fname
+def f_def(inter, line: str, args, **kwargs):
+    return define(kwargs["inst"], kwargs["lines_ran"])
+def f_mod(inter, line: str, args, **kwargs):
+    arg1 = inter.parse(0, line, args)[2]
+    arg2 = inter.parse(1, line, args)[2]
+    _allowed = (int, float, complex, str)
+    # verify both arguments are either int or float or complex or str
+    inter.type_err(
+        [
+            (arg1, _allowed),
+            (arg2, _allowed),
+        ],
+        line,
+        kwargs["lines_ran"],
+    )
+    # both types must be int or float
+    return arg1 % arg2
+def f_ret(inter, line: str, args, **kwargs):
+    name = inter.parse(0, line, args)[2]
+    # name must be a string
+    inter.type_err([(name, (str,))], line, kwargs["lines_ran"])
+    # function to return to
+    vname = f"{name}__return__"
+    # value
+    value = inter.parse(1, line, args)[2]
+    # if the variable does not exist, we should create it
+    if vname not in inter.vars:
+        inter.vars[vname] = Var(vname, None)
+    inter.vars[vname].value = value
+    return value
+def f_arr(inter, line: str, args, **kwargs):
+    if args[0][0] == "":
+        return []
+    return [inter.parse(i, line, args)[2] for i in range(len(args))]
+def f_object(inter, line: str, args, **kwargs):
+    d = {}
+    if args[0][0] == "":
+        return d
+    # cannot have an odd number of arguments
+    if len(args) % 2 == 1:
+        inter.err(
+            "Odd number of arguments in creating object",
+            f"An even number of arguments required to have valid key-value pairs.\nYou said: {len(args)} arg(s)",
+            line,
+            kwargs["lines_ran"],
+        )
+    # step over arguments in steps of 2
+    for i in range(0, len(args), 2):
+        d[inter.parse(i, line, args)[2]] = inter.parse(i + 1, line, args)[2]
+    return d
+def f_split(inter, line: str, args, **kwargs):
+    first = inter.parse(0, line, args)[2]
+    second = inter.parse(1, line, args)[2]
+    # first and second must be str
+    inter.type_err([(first, (str,)), (second, (str,))], line, kwargs["lines_ran"])
+    return inter.parse(0, line, args)[2].split(
+        inter.parse(1, line, args)[2]
+    )
+def f_lines(inter, line: str, args, **kwargs):
+    return inter.parse(0, line, args)[2].split("\n")  
+def f_eval(inter, line: str, args, **kwargs):
+    arg = inter.parse(0, line, args)[2]
+    # arg must be a str
+    inter.type_err([(arg, (str,))], line, kwargs["lines_ran"])
+    return eval(arg)
+
+# function dispatch table
+FUNCTION_DISPATCH = {
+    "redirect": f_redirect,
+    "stopredirect": f_stopredirect,
+    "startredirect": f_startredirect,
+    "function": f_function,
+    "def": f_def,
+    "mod": f_mod,
+    "ret": f_ret,
+    "arr": f_arr, "from": f_arr,
+    "object": f_object, "dictfrom": f_object,
+    "split": f_split,
+    "lines": f_lines,
+    "eval": f_eval
+}
