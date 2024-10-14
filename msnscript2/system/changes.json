@@ -21,7 +21,7 @@
         "3": "Added function: uuid4()"
     },
     "2.0.402": {
-        "1": "Created function dispatch for the MSN2 interpreter, this should significantly improve performance in the long run",
+        "1": "Created function dispatch for the general MSN2 interpreter functions and objects, this should significantly improve performance in the long run. This is not yet done for pywinauto automation.",
         "2": "Created longstring() (ls() alias) for multi-line strings",
         "3": "Published VS Code extension 'msn2-syntax-highlighting' for .msn2 file extension syntax highlighting",
         "4": "Converted main function interpretation to a dispatch table, this should significantly improve performance in the long run",
