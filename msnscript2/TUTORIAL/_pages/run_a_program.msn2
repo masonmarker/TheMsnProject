@@ -83,7 +83,7 @@ page:run:getcwd \\
             'style', 'bold'
         ),
         object(
-            'text', '{python_alias} msn2.py <program> <args>',
+            'text', '{python_alias} msn2cli.py -f <filepath1> -a <args1> | {python_alias} msn2.py <filepath> <args>',
             'style', 'italic',
             'fore', 'green'
         ),
@@ -144,7 +144,7 @@ page:run:getcwd \\
             'style', 'bold'
         ),
         object(
-            'text', 'python msn2.py hello_world',
+            'text', '{python_alias} msn2cli.py -f hello_world',
             'style', 'italic',
             'fore', 'green'
         )

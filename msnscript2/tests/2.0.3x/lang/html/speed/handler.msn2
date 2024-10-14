@@ -36,7 +36,7 @@ function('handler:start', (
                 public class Main {
                     public static void main(String[] args) {
                         long start = System.nanoTime();
-                        int[] arr = new int[<msn2element>length</msn2element>];
+                        int[] arr = new int[{=length=}];
                         for (int i = 0; i < arr.length; i++) {
                             arr[i] = i;
                         }
@@ -51,7 +51,7 @@ function('handler:start', (
         # post the out of a node program
         local.POSTENTRY('javascript', get(JS(
             const start = performance.now();
-            const arr = new Array(<msn2element>length</msn2element>);
+            const arr = new Array({=length=});
             for (let i = 0; i < arr.length; i++) {
                 arr[i] = i;
             }
@@ -67,8 +67,8 @@ function('handler:start', (
                 <tag>include <time.h> <nl>
                 int main() {
                     clock_t start = clock();
-                    int *arr = malloc(<msn2element>length</msn2element> * sizeof(int));
-                    for (int i = 0; i < <msn2element>length</msn2element>; i++) {
+                    int *arr = malloc({=length=} * sizeof(int));
+                    for (int i = 0; i < {=length=}; i++) {
                         arr[i] = i;
                     }
                     printf("%f", (double)(clock() - start) / CLOCKS_PER_SEC);

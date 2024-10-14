@@ -7,7 +7,7 @@
 #
 #     .msn2 programs can be run in any location, not just in the msnscript2 respository.
 #   
-#     Run "python msn2.py portable/port.msn2" to create a package named "msn2"
+#     Run "{python_alias} msn2cli.py portable" to create a package named "msn2"
 #     within the portable directory that can be copied to your project directories
 #     so you can run .msn2 code in your own environments.
 #
@@ -24,22 +24,35 @@
 #
 # - be able to run .py programs
 # - have installed the dependencies listed in ../dependencies.txt
-# thats literally all
+# <thats literally all>
 # 
-# you should then be able to run "python msn2.py xxxx.msn2" in your own directories / project folders
-# updated in 2.0.387
+# you should then be able to run "python msn2cli.py -f xxxx.msn2" in your own directories / project folders
+#
+# updated in 2.0.402
 
-# clear the console
+import('lib/files')
+import ('lib/console')
 import ('lib/os')
+
+# clear
 os:clear()
 
+
 # start msg
-print('[*] Creating portable MSN2 package...')
+console:print(arr(
+    object(
+        "text", "[+] ",
+        "fore", "green"
+    ),
+    object(
+        "text", "Creating portable MSN2 package...",
+        "fore", "green"
+    )
+))
+print()
 
 # new directories
 @ package_dir = 'portable/msn2'
-@ package_lib = +(package_dir, '/lib')
-@ readme = +(package_dir, '/README.txt')
 
 # remove the previous directory for replacement
 file.rmdir(package_dir)
@@ -47,73 +60,100 @@ file.rmdir(package_dir)
 # create a new directory named "msn2" in the portable directory
 file.mkdir(package_dir)
 
-# copying
-print('[*] Copying library...')
-
-
-# copy the lib directory tree to the package location
-import('lib/files.msn2')
-file.mkdir(package_lib )
-private(files:copydir('lib', package_lib))
-
-print('[*] Copying MSN2 Interpreter...')
-
-# copying latest Interpreter
-file.copy('msnint2.py', package_dir)
-
-print('[*] Copying MSN2 driver...')
-
-# copying MSN2 driver
-file.copy('msn2.py', package_dir)
-
-print('[*] Copying list of dependencies...')
-
-# copy dependencies
-file.copy('dependencies.txt', package_dir)
-
-# copy system/ folder
-print('[*] Copying system folder...')
-file.mkdir(@port:systemdir=+(package_dir, '/system'))
-private(files:copydir('system', port:systemdir))
-
-print('[*] Copying msn2python script...')
-# copy msn2python script
-file.copy('msn2python.py', package_dir)
-
-# copy local storage directory
-print('[*] Copying settings...')
-file.copy('msn2_settings.json', package_dir)
-
-# copy dependency installer
-print('[*] Copying dependency installer...')
-file.copy('install_deps.py', package_dir)
-
-print('[*] Creating README.txt...')
-
-# write README
-file.write(readme , (
-    <<'This directory (|package_dir|) can now be copied into\n
-    your project folders / directories.\n\n
-
-    The destination folder environment of this package\n
-    should have access to the following:\n
-    - capability to execute .py programs\n
-    - installed the few dependencies in dependencies.txt\n\n
-
-    You should create your .msn2 program files within the same directory\n
-    as this README.txt (|package_dir|).\n\n
-
-    This package has access to an MSN2 library,\n
-    therefore, your created .msn2 program files can import files\n
-    in the exact manner of those existing outside of this package.\n\n
-
-    ex: import ("lib/timer.msn2")\n\n
-
-    Run .msn2 programs from this directory with the following syntax:\n
-    "python msn2.py *****.msn2"\n\n
-    
-    Good luck!'>>
+# copies resources from the repository to the new directory
+def ('port:include_resource', 'port:resource', 'port:message', (
+    # copying message
+    console:print(arr(object(
+        "text", port:message,
+        "fore", "blue"
+    ))),
+    if (file.isdir(port:resource), (
+        file.mkdir(+(@port:systemdir=+(package_dir, '/', port:resource))),
+        private(files:copydir(port:resource, port:systemdir))
+    ), (
+        file.copy(port:resource, package_dir)
+    ))
 ))
 
-print('\n[+] Created MSN2 package!')
-print(+('\tsee ', readme, ' for help with the portable MSN2 package.'))
+# copy resources to portable package location
+each([
+        ['lib', "[*] Copying library..."],
+        ['var.py', "[*] Copying variable definitions..."],
+        ['functions.py', "[*] Copying functions..."],
+        ['system', "[*] Copying system files..."],
+        ['js_tools', "[*] Copying js tools..."],
+        ['msnint2.py', "[*] Copying MSN2 Interpreter..."],
+        ['msn2.py', "[*] Copying MSN2 driver..."],
+        ['instruction.py', "[*] Copying instruction definition..."],
+        ['js.py', "[*] Copying js definitions..."],
+        ['dependencies.txt', "[*] Copying dependencies..."],
+        ['requirements.txt', "[*] Copying requirements..."],
+        ['msn2python.py', '[*] Copying msn2python script...'],
+        ['msn2_settings.json', '[*] Copying settings...'],
+        ['install_deps.py', '[*] Copying dependency installer...'],
+        ['msn2cli.py', '[*] Copying CLI...']
+    ], 'r', port:include_resource(r.get(0), r.get(1)))
+
+
+# readme message
+console:print(arr(
+    object(
+        "text", "[*] ",
+        "fore", "blue"
+    ),
+    object(
+        "text", "Creating README.txt...",
+        "fore", "blue"
+    )
+))
+# write readme.md for the portable package offerings and directions
+file.write(@readme=+(package_dir, '/README.md'), ls(
+    This directory {=package_dir=} can now be copied into<nl>
+    your project folders / directories.<nl><nl>
+
+    The destination folder environment of this package<nl>
+    should have access to the following:<nl>
+    - capability to execute .py programs<nl>
+    - installed the few dependencies in dependencies.txt<nl><nl>
+
+    You should create your .msn2 program files within the same directory<nl>
+    as this README.md {=package_dir=}.<nl><nl>
+
+    This package has access to an MSN2 library,<nl>
+    therefore, your created .msn2 program files can import files<nl>
+    in the exact manner of those existing outside of this package.<nl><nl>
+
+    ex: import <lp>"lib/timer.msn2"<rp><nl><nl>
+
+    Run .msn2 programs from this directory with the following syntax:<nl>
+    "{python_alias} msn2cli.py -f ____.msn2" <lp>extension is optional<rp><nl><nl>
+
+    Good luck!
+))
+
+print()
+console:print(arr(
+    object(
+        "text", "[+] ",
+        "fore", "green"
+    ),
+    object(
+        "text", "Created MSN2 package!",
+        "fore", "green"
+    )
+))
+print()
+console:print(arr(
+    object(
+        "text", "See ",
+        "fore", "green"
+    ),
+    object(
+        "text", readme,
+        "fore", "green"
+    ),
+    object(
+        "text", " for help with the portable MSN2 package.",
+        "fore", "green"
+    )
+))

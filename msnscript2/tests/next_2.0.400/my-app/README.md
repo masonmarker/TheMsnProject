@@ -15,7 +15,7 @@ npm run dev
 ```
 To update the NextJS application with the current MSN2 code while the dev server is running, run the following command from the root directory: msnscript2/   in a new terminal window: 
 ```bash
-{python-alias} msn2.py tests/next_2.0.400/my-app/msn2/update
+{python-alias} msn2cli.py -f tests/next_2.0.400/my-app/msn2/update
 ```
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).

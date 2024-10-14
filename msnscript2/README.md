@@ -1,11 +1,11 @@
 
 # PULLING FROM GITHUB
 
-when pulling from GitHub, you should thoroughly review the version changes in both the commit history,
-and ```/system/changes.json``` to ensure that your existing code is compatible with the latest version of the msn2 library.
-commits are made often, and this only emphasizes the importance of reviewing the changes made to the library.
+when pulling from GitHub, you should thoroughly review the version changes in both the commit history, and ```/system/changes.json``` to ensure that your existing code is compatible with the latest version of the msn2 library. commits are made often, and this only emphasizes the importance of reviewing the changes made to the library.
 
 ## setup
+
+*It's heavily suggested to install the msn2-syntax-highlighter package for your text editor to make coding in msn2 easier.*
 
 the insertion ```{python_alias}``` specified below is your machine's python alias.
 for most this is 'python', however it may be different for you.
@@ -21,9 +21,9 @@ you can install all of these dependencies at once via ```{python_alias} install_
 which parses ```dependencies.txt``` and installs all of the dependencies listed.
 
 these dependencies can also be re-installed via the msn2 help pages if necessary
-as of 2.0.385. find these pages and much more with ```{python_alias} msn2.py help```
+as of 2.0.385. find these pages and much more with ```{python_alias} msn2cli.py help```
 
-### starting a .msn2 script (latest)
+### starting a .msn2 script (latest version, recommended)
 
 1. ```cd msnscript2```
 2. ```{python_alias} msn2cli.py -f script1```
@@ -60,10 +60,6 @@ run ```{python_alias} msn2cli.py --help``` for more information on the msn2cli i
        the in() call retrieves arguments to the command line
        in the msn2 environment
 
-it is suggested that when editing a .msn2 file that you switch VS Code's Language Mode to CoffeeScript!!
-to do this, under VS Code's language mode tab, configure file association of .msn2 as CoffeeScript, at least
-this coloring is very versatile with VS Code theme "SynthWave '84'" and is very easy on the eyes.
-
     see the msn2 help pages via ```{python_alias} msn2.py help``` too see the most updated syntax and usage.
     see /TUTORIAL for the msn2 source code for this demonstration.
     other syntax likely exists outside of the suggested syntax, however outside syntax works in very
@@ -86,7 +82,7 @@ try reinstalling dependencies via ```{python_alias} install_deps.py```
 - see /problems for popular programming problems solved in msn2.
 - see /system for system related operations in msn2.
 
-- run ```{python_alias} msn2.py verify``` to run the validator for msn2 integrity.
+- run ```{python_alias} msn2cli.py verify``` to run the validator for msn2 integrity.
 
 - file-based code depends on the user's current directory after executing a .msn2 program (ex imports),
 - verify that file paths in written code are compatible with the directory at which the program is launched

@@ -7,7 +7,7 @@ PORTABLE MSN2:
 
     .msn2 programs can be run in any location, not just in the msnscript2 respository.
     
-    Run "python msn2.py portable/port.msn2" to create a package named "msn2"
+    Run "{python_alias} msn2cli.py portable" to create a package named "msn2"
     within the portable directory that can be copied to your project directories
     so you can run .msn2 code in your own environments.
 

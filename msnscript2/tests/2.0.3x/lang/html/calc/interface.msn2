@@ -18,9 +18,9 @@ function('interface:render', file.write(html_path, HTML(
 
         # apply imported style
         <style>
-            <msn2element>
+            {=
                 css
-            </msn2element>
+            =}
         </style>
 
         # JavaScript

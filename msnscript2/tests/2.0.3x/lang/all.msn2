@@ -3,6 +3,7 @@
 #
 # author : Mason Marker
 # date : 6/13/2023
+# updated : 10/09/2024
 
 # import language directory
 # for automatic cleanup
@@ -28,21 +29,18 @@ timer:start()
 
 # running JavaScript via 'node __filepath__'
 # not using reduce() for demonstration purposes
-# <msn2> tags are replaced with the 
+# {==} tags are replaced with the 
 # interpretation of the internal code
 @ env = JS(
-
     function sum(array) {
         var sum = 0;
-        for (var i = 0; i < array.length; i++) {
+        for (var i = 0; i < {=len=}; i++) {
             sum += array[i];
         }
         return sum;
     }
-    
     var a = [];
-    
-    for (let i = 0; i < <msn2element>len</msn2element>; i++) {
+    for (let i = 0; i < {=len=}; i++) {
         a.push(1);
     }
     console.log(sum(a));
@@ -56,8 +54,6 @@ rt()
 print('JavaScript:', env.out())
 # ------------------------------------------------------
 
-
-
 # -------------------- C --------------------
 # start timer again
 timer:start()
@@ -65,7 +61,7 @@ timer:start()
 # compiling and running a C program
 # <tag> is replaced with a hashtag,
 # <nl> is replaced with a newline
-# <msn2> tags are replaced with the 
+# {==} tags are replaced with the 
 # interpretation of the internal code
 @ env = C(
     <tag>include <stdio.h><nl>
@@ -81,9 +77,8 @@ timer:start()
         
         return sum;
     }
-
     int main() {
-        int size = <msn2element>len</msn2element>;
+        int size = {=len=};
         int* arr = malloc(sizeof(int) * size);
         if (arr == NULL) {
             printf("Error allocating memory");

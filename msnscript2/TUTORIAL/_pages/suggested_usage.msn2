@@ -10,7 +10,6 @@
     # read the current suggested usage .msn2 file
     @ page:suggested_usage:msn2 = file.read('TUTORIAL/suggestedusage2.msn2'),
 
-
     # if we're in a page
     @ page:suggested_usage:in_page = False,
 
@@ -66,7 +65,6 @@
 
     # for each line
     each(page:suggested_usage:msn2.split("\n"), 'page:suggested_usage:line', (
-
         # # if we're in a page and in page
         if (and(page:suggested_usage:in_page, page:suggested_usage:line.startswith('# ---')), (
             @ page:suggested_usage:in_page = False
@@ -107,8 +105,7 @@
             # get the line without the first two words
             # and without the last word
             @ page:suggested_usage:line = 
-                iterable:join(
-                    slice(page:suggested_usage:line.split(' '), 2, -1), ' '),
+                iterable:join(' ', slice(page:suggested_usage:line.split(' '), 2, -1)),
 
             console:print(arr(
                 object(

@@ -32,9 +32,9 @@ function('handler:start', thread(interval(0.08, (
             # return C's evaluation
             # of the expression
             printf("%lf", (double)
-                <msn2element>
+                {=
                     exp
-                </msn2element>
+                =}
             );
         }
     ), 'out')),

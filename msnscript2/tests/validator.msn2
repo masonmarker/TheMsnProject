@@ -1691,6 +1691,7 @@ def('test_try', (
 # in 2.0.388, there are new string functions
 # these functions are tested correctly in the below test function
 def('test_new_string_functions', (
+    print_test('try'),
     # resets the test string
     def('reset', @ a = "hello, how are you?"),
     reset(),
@@ -1715,6 +1716,46 @@ def('test_new_string_functions', (
     True
 ))
 
+# ------------------------------ TESTING LONG STRINGS ------------------------------
+# testing longstring() and ls()
+def ('test_long_strings', (
+    print_test('long strings'),
+
+    # testing an empty string
+    equals(ls(), "") ??,
+    equals(longstring(), "") ??,
+
+    # create a long string
+    @s = longstring(
+        This is a super long string, it can carry to 
+        multiple lines which is pretty nice, it effectively
+        concatenates all the lines together, which can be helpful.
+    ),
+    # test standard long strings
+    s.equals("This is a super long string, it can carry tomultiple lines which is pretty nice, it effectivelyconcatenates all the lines together, which can be helpful.") ??,
+
+    # more complex long string with one insert
+    @s2 = ls(
+        This is another super long string with one insert< >
+        in it, the insert puts a space at the end of the line< >
+        so that its there when the string is rendered
+    ),
+    s2.equals("This is another super long string with one insert in it, the insert puts a space at the end of the line so that its there when the string is rendered") ??,
+
+    # multiple inserts
+    @s3 = ls(
+        This is a more complex string with a bunch of< >
+        inserts, the first is a whitespace, the second< >
+        and third are newlines<nl><nl> and the fourth is< >
+        a hashtag<tag>
+    ),
+    s3.equals("This is a more complex string with a bunch of inserts, the first is a whitespace, the second and third are newlines\n\n and the fourth is a hashtag#") ??,
+
+    True
+))
+
+
+# ------------------------------------------------------------
 
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
 
@@ -1737,6 +1778,7 @@ def('run_tests', (
     TEST test_var(),
     TEST test_math(),
     TEST test_strings(),
+    TEST test_long_strings(),
     TEST test_arrays(),
     TEST test_msn2embed(),
     TEST test_classes(),

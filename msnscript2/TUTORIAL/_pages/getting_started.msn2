@@ -16,7 +16,7 @@
     ),
 
     # list the getting started text
-    each(split(file.read('README.txt'), "\n"), 'getting_started:line', (
+    each(split(file.read('README.md'), "\n"), 'getting_started:line', (
         if (getting_started:line.startswith(' '), (
             console:print(arr(
                 object(
@@ -52,7 +52,5 @@
             'fore', 'green'
         )
     )),
-    print(),
-
-
+    print()
 ))

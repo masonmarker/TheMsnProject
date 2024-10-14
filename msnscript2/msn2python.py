@@ -19,6 +19,9 @@ import os
 # prepare msn2 interpreter
 from msnint2 import Interpreter, Var
 
+# cmd argument support  
+import sys
+
 
 def run(filename, inputs=None):
     # if no inputs are provided, set to empty list

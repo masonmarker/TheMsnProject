@@ -16,7 +16,7 @@ file.write('tests/lang/site.html', HTML(
             <title>Calculator with C</title>
         </head>
         <style>
-            <msn2element>css<msn2element>
+            {=css=}
         </style>
         <body>
             <div id="pixiCanvas"></div>
