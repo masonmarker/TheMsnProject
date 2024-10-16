@@ -77,14 +77,11 @@ def ('port:include_resource', 'port:resource', 'port:message', (
 
 # copy resources to portable package location
 each([
+        ['core', "[*] Copying core files..."],
         ['lib', "[*] Copying library..."],
-        ['var.py', "[*] Copying variable definitions..."],
-        ['functions.py', "[*] Copying functions..."],
         ['system', "[*] Copying system files..."],
-        ['js_tools', "[*] Copying js tools..."],
         ['msnint2.py', "[*] Copying MSN2 Interpreter..."],
         ['msn2.py', "[*] Copying MSN2 driver..."],
-        ['instruction.py', "[*] Copying instruction definition..."],
         ['js.py', "[*] Copying js definitions..."],
         ['dependencies.txt', "[*] Copying dependencies..."],
         ['requirements.txt', "[*] Copying requirements..."],

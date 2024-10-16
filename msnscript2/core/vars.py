@@ -1,6 +1,6 @@
 """Variable based functions."""
 
-from var import Var
+from core.classes.var import Var
 
 
 

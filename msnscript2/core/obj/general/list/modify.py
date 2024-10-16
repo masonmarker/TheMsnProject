@@ -1,7 +1,7 @@
 
 
 from core.common import aliases
-from var import Var
+from core.classes.var import Var
 
 
 def f_obj_list_push(inter, line, args, **kwargs):

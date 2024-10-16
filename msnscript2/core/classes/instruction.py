@@ -5,7 +5,7 @@
 # version : 2.0.400
 
 # imports
-from js import convert_to_js
+from core.using_js.js import convert_to_js
 
 # standard MSN2 instruction
 

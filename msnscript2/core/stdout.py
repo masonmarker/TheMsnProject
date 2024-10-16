@@ -20,13 +20,14 @@ def f_print(inter, line, args, **kwargs):
             print(ret, flush=True)
     return ret
 def f_printbox(inter, line, args, **kwargs):
+    from msnint2 import Interpreter
     ret = None
     for i in range(len(args)):
         ret = inter.parse(i, line, args)[2]
         if i != len(args) - 1:
-            print(inter.bordered(str(ret)), end=" ", flush=True)
+            print(Interpreter.bordered(str(ret)), end=" ", flush=True)
         else:
-            print(inter.bordered(str(ret)), flush=True)
+            print(Interpreter.bordered(str(ret)), flush=True)
     return ret
 def f_printcolor(inter, line, args, **kwargs):
     print_args = [

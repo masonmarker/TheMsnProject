@@ -40,7 +40,7 @@ from core.obj.py.access import OBJ_PY_ACCESS_DISPATCH
 from core.obj.py.default import OBJ_PY_DEFAULT_DISPATCH
 from core.obj.py.run import OBJ_PY_RUN_DISPATCH
 from core.obj.trace.general import OBJ_TRACE_GENERAL_DISPATCH
-from var import Var
+from core.classes.var import Var
 
 # accumulating grouped default functions
 
@@ -279,7 +279,7 @@ def file_append(inst, lock, lines_ran):
 
 
 def user_function_exec(inst, lines_ran):
-    from msnint2 import Var
+    from core.classes.var import Var
     method = inst.interpreter.methods[inst.func]
     # create func args
     func_args = []
@@ -354,7 +354,7 @@ def comment(text):
 
 
 def callback(inst, is_async=False):
-    from js import parse
+    from core.using_js.js import parse
     # insert a mobile arrow function
     as_js = "(" + ("async " if is_async else "") + \
         "() => {" if inst.has_args() else ""
@@ -447,7 +447,7 @@ def unique_hash(inst):
 
 
 def parse_props(inst):
-    from js import html_attribute_defaults, parse, parse_string
+    from core.using_js.js import html_attribute_defaults, parse, parse_string
     props = {}
     # parse props from line
     # line is formatted: style=...
@@ -526,7 +526,7 @@ def tag(inst, children, html_tag="", props={}):
 
 
 def is_prop(inst, i):
-    from js import html_attributes
+    from core.using_js.js import html_attributes
     # determine if the argument stripped starts with
     # any html attributes in html_attributes tuple
     for attr in html_attributes:
@@ -560,7 +560,7 @@ def is_msn2_react_call(inst):
 
 
 def merge_props(props, inst):
-    from js import html_attributes, html_attribute_defaults, parse_string
+    from core.using_js.js import html_attributes, html_attribute_defaults, parse_string
     merged = props.copy()
     parsed_props = parse_props(inst)
 
@@ -641,7 +641,7 @@ def component(inst, html_tag="div", props={}):
 
 
 def use_effect(inst):
-    from js import parse
+    from core.using_js.js import parse
     # cannot be in html
     inst.in_html = False
     # determine if useEffect has been imported
@@ -731,7 +731,7 @@ def generate_set_function(name):
 
 
 def generate_safe_set_function(inst, state_name):
-    from js import parse
+    from core.using_js.js import parse
     set_function = generate_set_function(state_name)
     return f"{set_function}({state_name} => {{return {parse(inst, 0)}}})"
 
@@ -763,7 +763,7 @@ def generate_serialized_state():
 
 
 def add_state(inst, name, default_value_or_new_value):
-    from msnint2 import Var
+    from core.classes.var import Var
     # if this state is already defined
     if name in inst.interpreter.states:
         return generate_set_function(name) + f"({name} => " + " {return " + str(default_value_or_new_value) + "})\n"

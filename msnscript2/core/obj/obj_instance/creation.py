@@ -3,7 +3,7 @@
        
 # seperate set of functions for creating object instances
 def f_instance_new(inter, line, args, **kwargs):
-    from method import Method
+    from core.classes.method import Method
     classname = kwargs["func"]
     # template Var obj to create from
     var_obj = inter.vars[classname].value

@@ -1,7 +1,7 @@
 """General object functions."""
 
 
-from var import Var
+from core.classes.var import Var
 
 def f_copy(inter, line, args, **kwargs):
     try:

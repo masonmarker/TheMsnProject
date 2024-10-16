@@ -1,6 +1,6 @@
 
 
-from var import Var
+from core.classes.var import Var
 
 
 def f_obj_default_string_name(inter, line, args, **kwargs):

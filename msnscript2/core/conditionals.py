@@ -1,6 +1,6 @@
 
 
-from var import Var
+from core.classes.var import Var
 
 # conditional logic
 def f_if(inter, line: str, args, **kwargs):

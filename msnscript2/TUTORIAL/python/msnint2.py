@@ -3351,7 +3351,7 @@ class Interpreter:
                 # user functions take priority
                 # over general msn2 functions
                 if func in self.methods:
-                    from functions import user_function_exec
+                    from core.dispatch.functions import user_function_exec
                     return user_function_exec(inst, lines_ran)
 
                 # the below conditions interpret a line based on initial appearances
@@ -4656,7 +4656,7 @@ class Interpreter:
                         return contents
                     # writes to a file
                     if objfunc == 'write':
-                        from functions import file_write
+                        from core.dispatch.functions import file_write
                         return file_write(inst, lock, lines_ran)
                     # writes the argument as code
                     if objfunc == 'writemsn':
@@ -4682,7 +4682,7 @@ class Interpreter:
                         return True
                     # appends to a file
                     if objfunc == 'append':
-                        from functions import file_append
+                        from core.dispatch.functions import file_append
                         return file_append(inst, lock, lines_ran)
                     # deletes a file
                     if objfunc == 'delete':
@@ -5355,7 +5355,7 @@ class Interpreter:
                 # executes MSNScript2 from its string representation
                 try:
                     if func == '-':
-                        from functions import hyphen
+                        from core.dispatch.functions import hyphen
                         return hyphen(inst)
                     elif func == '+':
                         ret = self.parse(0, line, args)[2]

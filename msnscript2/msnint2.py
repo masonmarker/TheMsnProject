@@ -84,15 +84,15 @@ import os
 import threading
 
 # variables
-from var import Var
+from core.classes.var import Var
 
 # instructions
-from instruction import Instruction
+from core.classes.instruction import Instruction
 # methods
-from method import Method
+from core.classes.method import Method
 
 # function dispatch table
-from functions import FUNCTION_DISPATCH
+from core.dispatch.functions import FUNCTION_DISPATCH
 
 # remove warnings for calling of integers: "10()"
 import warnings
@@ -3022,7 +3022,7 @@ class Interpreter:
                 # user functions take priority
                 # over general msn2 functions
                 if func in self.methods:
-                    from functions import user_function_exec
+                    from core.dispatch.functions import user_function_exec
                     return user_function_exec(inst, lines_ran)
 
                 # the  belowconditions interpret a line based on initial appearances

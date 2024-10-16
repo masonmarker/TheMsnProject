@@ -1,6 +1,6 @@
 
 
-from var import Var
+from core.classes.var import Var
 
 def f_do(inter, line: str, args, **kwargs):
     ret = inter.parse(0, line, args)[2]

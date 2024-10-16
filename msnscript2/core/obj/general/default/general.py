@@ -3,7 +3,7 @@
 
 
 
-from var import Var
+from core.classes.var import Var
 
 
 def f_obj_default_copy(inter, line, args, **kwargs):

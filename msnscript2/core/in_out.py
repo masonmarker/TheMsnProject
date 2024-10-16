@@ -1,6 +1,6 @@
 # intaking system arguments / sending resources out
 
-from var import Var
+from core.classes.var import Var
 
 def f_in(inter, line, args, **kwargs):
     reserved_name = "_msn2_reserved_in__"

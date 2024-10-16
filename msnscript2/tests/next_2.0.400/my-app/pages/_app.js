@@ -1,4 +1,4 @@
-// Generated at 1720204289.0082545
+// Generated at 1729099784.547664
 // appwide styles
 import '../styles/app.css'
 

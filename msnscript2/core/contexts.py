@@ -1,5 +1,5 @@
 
-from var import Var
+from core.classes.var import Var
 
 from core.common import aliases
 

@@ -1,5 +1,5 @@
 
-from var import Var
+from core.classes.var import Var
 
 
 def f_obj_dict_set(inter, line, args, **kwargs):

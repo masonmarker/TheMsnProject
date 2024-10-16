@@ -1,6 +1,6 @@
 
 # common
-from var import Var
+from core.classes.var import Var
 from core.common import aliases
 
 def f_sum(inter, line: str, args, **kwargs):
@@ -171,7 +171,7 @@ def f_minimum(inter, line, args, **kwargs):
         return inter.err("Error finding minimum value", e, line, kwargs["lines_ran"])
     return minval
 def f_op_getarrow(inter, line, args, **kwargs):
-    from method import Method
+    from core.classes.method import Method
     indexable = inter.parse(0, line, args)[2]
     # must be indexable
     if not isinstance(indexable, (list, str, dict, tuple)):

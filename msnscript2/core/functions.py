@@ -1,10 +1,10 @@
 """Function-based dispatch functions."""
 
 
-from var import Var
+from core.classes.var import Var
 
 def f_function(inter, line: str, args, **kwargs):
-    from method import Method
+    from core.classes.method import Method
     # obtain the name of the function
     fname = inter.parse(0, line, args)[2]
     # function name must be a string
@@ -29,7 +29,7 @@ def f_function(inter, line: str, args, **kwargs):
     return fname
 
 def define(inst, lines_ran):
-    from method import Method
+    from core.classes.method import Method
     # get the name of the new function
     name = inst.parse(0)
     # function name must be a string
@@ -61,7 +61,7 @@ def define(inst, lines_ran):
     r_name = f"{name}__return__"
     # if the return buffer doesn't exist, create it
     if r_name not in inst.interpreter.vars:
-        from msnint2 import Var
+        from core.classes.var import Var
         # create the return variable
         inst.interpreter.vars[r_name] = Var(r_name, None)
     # add the return variable

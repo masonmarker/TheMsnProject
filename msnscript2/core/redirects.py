@@ -2,7 +2,7 @@
 Redirection functions.
 """
 
-from var import Var
+from core.classes.var import Var
 
 # general functions
 def f_redirect(inter, line: str, args, **kwargs):

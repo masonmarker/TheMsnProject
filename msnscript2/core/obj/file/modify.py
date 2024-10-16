@@ -11,7 +11,7 @@ def f_file_create(inter, line, args, **kwargs):
 
 
 def f_file_write(inter, line, args, **kwargs):
-    from functions import file_write
+    from core.dispatch.functions import file_write
     return file_write(kwargs["inst"], kwargs["lock"], kwargs["lines_ran"])
 
 
@@ -41,7 +41,7 @@ def f_file_clear(inter, line, args, **kwargs):
 
 
 def f_file_append(inter, line, args, **kwargs):
-    from functions import file_append
+    from core.dispatch.functions import file_append
     return file_append(kwargs["inst"], kwargs["lock"], kwargs["lines_ran"])
 
 
