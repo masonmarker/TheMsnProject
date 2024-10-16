@@ -5,6 +5,25 @@
 from core.common import aliases
 
 # common
+from core.obj.function.access import OBJ_FUNCTION_ACCESS_DISPATCH
+from core.obj.function.default import OBJ_FUNCTION_DEFAULT_DISPATCH
+from core.obj.function.modify import OBJ_FUNCTION_MODIFY_DISPATCH
+from core.obj.function.run import OBJ_FUNCTION_RUN_DISPATCH
+from core.obj.general.default.cast import OBJ_GENERAL_DEFAULT_CAST_DISPATCH
+from core.obj.general.default.chained import OBJ_GENERAL_DEFAULT_CHAINED_DISPATCH
+from core.obj.general.default.general import OBJ_GENERAL_DEFAULT_GENERAL_DISPATCH
+from core.obj.general.default.ops import OBJ_GENERAL_DEFAULT_OPS_DISPATCH
+from core.obj.general.default.properties import OBJ_GENERAL_DEFAULT_PROPERTIES_DISPATCH
+from core.obj.general.default.strings import OBJ_GENERAL_DEFAULT_STRINGS_DISPATCH
+from core.obj.html.basic import OBJ_HTML_BASIC_DISPATCH
+from core.obj.html.default import OBJ_HTML_DEFAULT_DISPATCH
+from core.obj.obj_instance.creation import OBJ_INSTANCE_CREATION_DISPATCH
+from core.obj.op.basic import OBJ_OP_BASIC_DISPATCH
+from core.obj.op.default import OBJ_OP_DEFAULT_DISPATCH
+from core.obj.py.access import OBJ_PY_ACCESS_DISPATCH
+from core.obj.py.default import OBJ_PY_DEFAULT_DISPATCH
+from core.obj.py.run import OBJ_PY_RUN_DISPATCH
+from core.obj.trace.general import OBJ_TRACE_GENERAL_DISPATCH
 from var import Var
 
 # accumulating grouped default functions
@@ -45,6 +64,14 @@ from core.obj.general.number.comparisons import OBJ_GENERAL_NUMBER_COMPARISONS_D
 from core.obj.general.number.ops import OBJ_GENERAL_NUMBER_OPS_DISPATCH
 from core.obj.general.number.ops_ip import OBJ_GENERAL_NUMBER_OPS_IP_DISPATCH
 from core.obj.general.set.basic import OBJ_GENERAL_SET_BASIC_DISPATCH
+from core.obj.general.list.access import OBJ_GENERAL_LIST_ACCESS_DISPATCH
+from core.obj.general.list.modify import OBJ_GENERAL_LIST_MODIFY_DISPATCH
+from core.obj.general.str.access import OBJ_GENERAL_STR_ACCESS_DISPATCH
+from core.obj.general.str.modify import OBJ_GENERAL_STR_MODIFY_DISPATCH
+from core.obj.general.dict.access import OBJ_GENERAL_DICT_ACCESS_DISPATCH
+from core.obj.general.dict.modify import OBJ_GENERAL_DICT_MODIFY_DISPATCH
+from core.obj.general.class_based.requests_html_HTML import OBJ_GENERAL_CLASS_BASED_REQUESTS_HTML_HTML_DISPATCH
+from core.obj.general.class_based.requests_html_HTMLSession import OBJ_GENERAL_CLASS_BASED_REQUESTS_HTML_HTMLSession_DISPATCH
 
 # special functions
 from core.special.loops import SPECIAL_LOOPS_DISPATCH
@@ -221,7 +248,6 @@ def file_append(inst, lock, lines_ran):
     return towrite
 
 # interprets the first argument
-
 
 
 # defines a function
@@ -729,307 +755,17 @@ def add_state(inst, name, default_value_or_new_value):
     inst.interpreter.states[name] = Var(name, default_value_or_new_value)
 
 
-
-
-
-
-
-def f_trace_this(inter, line: str, args, **kwargs):
-    return kwargs["lines_ran"][-1]
-
-
-def f_trace_before(inter, line: str, args, **kwargs):
-    if args[0][0] == "":
-        # return all
-        return kwargs["lines_ran"]
-    numlines = inter.parse(0, line, args)[2]
-    # numlines must be int
-    inter.type_err([(numlines, (int,))], line, kwargs["lines_ran"])
-    return kwargs["lines_ran"][len(kwargs["lines_ran"]) - numlines:]
-
-
-def f_trace_len(inter, line: str, args, **kwargs):
-    return kwargs["total_ints"]
-
-
-def f_settings(inter, line: str, args, **kwargs):
-    return inter.settings
-
-
-def f_py_get(inter, line: str, args, **kwargs):
-    vn = ""
-    name = inter.parse(0, line, args)[2]
-    # name must be str
-    inter.type_err([(name, (str,))], line, kwargs["lines_ran"])
-    try:
-        return inter._locals[name]
-    except KeyError:
-        inter.no_var_err(vn, "local", "local", inter._locals, line)
-
-
-def f_py_set(inter, line: str, args, **kwargs):
-    # name
-    vn = inter.parse(0, line, args)[2]
-    # vn must be str
-    inter.type_err([(vn, (str,))], line, kwargs["lines_ran"])
-    value = inter.parse(1, line, args)[2]
-    inter._locals[vn] = value
-    return value
-
-
-def f_py_locals(inter, line: str, args, **kwargs):
-    return inter._locals
-
-
-def f_py_local(inter, line: str, args, **kwargs):
-    vn = inter.parse(0, line, args)[2]
-    # vn must be str
-    inter.type_err([(vn, (str,))], line, kwargs["lines_ran"])
-    try:
-        return inter._locals[vn]
-    except KeyError:
-        inter.no_var_err(vn, "local", "local", inter._locals, line)
-
-
-def f_py_globals(inter, line: str, args, **kwargs):
-    return inter._globals
-
-
-def f_py_global(inter, line: str, args, **kwargs):
-    vn = inter.parse(0, line, args)[2]
-    # vn must be str
-    inter.type_err([(vn, (str,))], line, kwargs["lines_ran"])
-    try:
-        return inter._globals[vn]
-    except:
-        inter.no_var_err(vn, "global", "global", inter._globals, line)
-
-
-def f_py_run(inter, line: str, args, **kwargs):
-    # get the script
-    scr = inter.parse(0, line, args)[2]
-    # remove all lines starting with '#'
-    scr = "\n".join(
-        [i for i in scr.split("\n") if not i.startswith("#")]
-    )
-    # scr must be str
-    inter.type_err([(scr, (str,))], line, kwargs["lines_ran"])
-    # execute the python and return
-    # the snippet with arguments inserted
-    return inter.exec_python(scr)
-
-
-def f_py_else(inter, line: str, args, **kwargs):
-    try:
-        # check in locals
-        return inter._locals[kwargs["objfunc"]]
-    except KeyError:
-        try:
-            # check in globals
-            return inter._globals[kwargs["objfunc"]]
-        except Exception as e:
-            print(e)
-            # raise error
-            inter.no_var_err(
-                kwargs["objfunc"],
-                "local or global",
-                "local and global",
-                inter._globals,
-                line,
-            )
-
-
-
-
-
-
-def _try_op(inter, func, line, lines_ran):
-    try:
-        return func()
-    except Exception as e:
-        inter.err(
-            "Error in op() class",
-            f"Could not perform operation on arguments\n{e}",
-            line,
-            lines_ran,
-        )
-
-
-def f_op_append(inter, line, args, **kwargs):
-    return _try_op(inter, lambda: _f_op_append(inter, line, args), line, kwargs["lines_ran"])
-
-def _f_op_append(inter, line, args):
-    arg1 = inter.parse(0, line, args)[2]
-    if isinstance(arg1, list):
-        for i in range(1, len(args)):
-            arg1.append(inter.parse(i, line, args)[2])
-        return arg1
-    else:
-        for i in range(1, len(args)):
-            arg1 += inter.parse(i, line, args)[2]
-        return arg1
-def f_op_sub(inter, line, args, **kwargs):
-    return _try_op(inter, lambda: _f_op_sub(inter, line, args), line, kwargs["lines_ran"])
-
-def _f_op_sub(inter, line, args):
-    arg1 = inter.parse(0, line, args)[2]
-    for i in range(1, len(args)):
-        arg1 -= inter.parse(i, line, args)[2]
-    return arg1
-def f_op_mul(inter, line, args, **kwargs):
-    return _try_op(inter, lambda: _f_op_mul(inter, line, args), line, kwargs["lines_ran"])
-
-def _f_op_mul(inter, line, args):
-    arg1 = inter.parse(0, line, args)[2]
-    for i in range(1, len(args)):
-        arg1 *= inter.parse(i, line, args)[2]
-    return arg1
-def f_op_div(inter, line, args, **kwargs):
-    return _try_op(inter, lambda: _f_op_div(inter, line, args), line, kwargs["lines_ran"])
-
-def _f_op_div(inter, line, args):
-    arg1 = inter.parse(0, line, args)[2]
-    for i in range(1, len(args)):
-        arg1 /= inter.parse(i, line, args)[2]
-    return arg1
-def f_op_idiv(inter, line, args, **kwargs):
-    return _try_op(inter, lambda: _f_op_idiv(inter, line, args), line, kwargs["lines_ran"])
-
-def _f_op_idiv(inter, line, args):
-    arg1 = inter.parse(0, line, args)[2]
-    for i in range(1, len(args)):
-        arg1 //= inter.parse(i, line, args)[2]
-    return arg1
-def f_op_mod(inter, line, args, **kwargs):
-    return _try_op(inter, lambda: _f_op_mod(inter, line, args), line, kwargs["lines_ran"])
-
-def _f_op_mod(inter, line, args):
-    arg1 = inter.parse(0, line, args)[2]
-    for i in range(1, len(args)):
-        arg1 %= inter.parse(i, line, args)[2]
-    return arg1
-def f_op_pow(inter, line, args, **kwargs):
-    return _try_op(inter, lambda: _f_op_pow(inter, line, args), line, kwargs["lines_ran"])
-
-def _f_op_pow(inter, line, args):
-    arg1 = inter.parse(0, line, args)[2]
-    for i in range(1, len(args)):
-        arg1 **= inter.parse(i, line, args)[2]
-    return arg1
-def f_op_root(inter, line, args, **kwargs):
-    return _try_op(inter, lambda: _f_op_root(inter, line, args), line, kwargs["lines_ran"])
-
-def _f_op_root(inter, line, args):
-    arg1 = inter.parse(0, line, args)[2]
-    for i in range(1, len(args)):
-        arg1 **= 1 / inter.parse(i, line, args)[2]
-    return arg1
-def f_op_else():
-    return "<msnint2 class>"
-
-
-def f_function_addbody(inter, line, args, **kwargs):
-    fname = inter.parse(0, line, args)[2]
-    # fname must be a string
-    inter.type_err([(fname, (str,))], line, kwargs["lines_ran"])
-    inter.methods[fname].add_body(inter.parse(1, line, args)[2])
-    return fname
-def f_function_addarg(inter, line, args, **kwargs):
-    fname = inter.parse(0, line, args)[2]
-    # fname must be a string
-    inter.type_err([(fname, (str,))], line, kwargs["lines_ran"])
-    arg = inter.parse(1, line, args)[2]
-    # arg must be a string
-    inter.type_err([(arg, (str,))], line, kwargs["lines_ran"])
-    inter.methods[fname].add_arg(arg)
-    return fname
-def f_function_addreturn(inter, line, args, **kwargs):
-    fname = inter.parse(0, line, args)[2]
-    # fname must be a string
-    inter.type_err([(fname, (str,))], line, kwargs["lines_ran"])
-    ret = inter.parse(1, line, args)[2]
-    # ret must be a string
-    inter.type_err([(ret, (str,))], line, kwargs["lines_ran"])
-    inter.methods[fname].add_return(ret)
-    return fname
-def f_function_getbody(inter, line, args, **kwargs):
-    fname = inter.parse(0, line, args)[2]
-    # fname must be a string
-    inter.type_err([(fname, (str,))], line, kwargs["lines_ran"])
-    return inter.methods[fname].body
-def f_function_getargs(inter, line, args, **kwargs):
-    fname = inter.parse(0, line, args)[2]
-    # fname must be a string
-    inter.type_err([(fname, (str,))], line, kwargs["lines_ran"])
-    return inter.methods[fname].args
-def f_function_getreturn(inter, line, args, **kwargs):
-    fname = inter.parse(0, line, args)[2]
-    # fname must be a string
-    inter.type_err([(fname, (str,))], line, kwargs["lines_ran"])
-    return inter.methods[fname].returns[0]
-def f_function_destroy(inter, line, args, **kwargs):
-    fname = inter.parse(0, line, args)[2]
-    # fname must be a string
-    inter.type_err([(fname, (str,))], line, kwargs["lines_ran"])
-    inter.methods.pop(fname)
-    return fname
-def f_function_run(inter, line, args, **kwargs):
-    fname = inter.parse(0, line, args)[2]
-    # fname must be a string
-    inter.type_err([(fname, (str,))], line, kwargs["lines_ran"])
-    # form a string that is msn2 of the user defined function
-    args_str = ""
-    for i in range(1, len(args)):
-        arg = inter.parse(i, line, args)[2]
-        if i != len(args) - 1:
-            args_str += f"{arg},"
-        else:
-            args_str += str(arg)
-    inst = f"{fname}({args_str})"
-    return inter.interpret(inst)
-def f_function_else():
-    return "<msnint2 class>"
-
-
 def f_op_else():
     return "<msnint2 class>"
 
 
 
-def f_html_soup(inter, line, args, **kwargs):
-    from bs4 import BeautifulSoup
-    import requests
-    url = inter.parse(0, line, args)[2]
-    # url must be str
-    inter.type_err([(url, (str,))], line, kwargs["lines_ran"])
-    response = requests.get(url)
-    return BeautifulSoup(response.content, "html5lib")
-def f_html_from(inter, line, args, **kwargs):
-    from bs4 import BeautifulSoup
-    url = inter.parse(0, line, args)[2]
-    # url must be str
-    inter.type_err([(url, (str,))], line, kwargs["lines_ran"])
-    obj_to_add = []
-    all_elem = inter.html_all_elements(url)
-    for elem in all_elem:
-        obj_to_add.append(
-            {
-                "tag": elem.name,
-                "attrs": elem.attrs,
-                "text": elem.text,
-            }
-        )
-    return obj_to_add
-def f_html_session(inter, line, args, **kwargs):
-    from requests_html import HTMLSession
-    return HTMLSession()
-def f_html_else():
-    return "<msnint2 class>"
 
 def f_ai_ai(inter, line, args, **kwargs):
+    import os
     import openai
     import tiktoken
-    
+
     global models
     # verify existence of openai api key
     if not openai.api_key:
@@ -1051,7 +787,7 @@ def f_ai_ai(inter, line, args, **kwargs):
                 model.startswith("text")
                 or model == "gpt-3.5-turbo-instruct"
             )
-            
+
         # determines if arguments for 'model' are str and in models
         def check_model(model):
             # model must be str
@@ -1065,7 +801,7 @@ def f_ai_ai(inter, line, args, **kwargs):
                     kwargs["lines_ran"],
                 )
         # gets responses from the models
-        
+
         def response(model, prompt):
             # enforce model as str and prompt as str
             inter.type_err(
@@ -1117,8 +853,12 @@ def f_ai_ai(inter, line, args, **kwargs):
         }
 
     return "<msnint2 class>"
+
+
 def f_ai_models(inter, line, args, **kwargs):
     return f_ai_ai(inter, line, args, **kwargs)
+
+
 def f_ai_max_tokens(inter, line, args, **kwargs):
     # prepare
     f_ai_ai(inter, line, args, **kwargs)
@@ -1128,6 +868,8 @@ def f_ai_max_tokens(inter, line, args, **kwargs):
     models["check_model"](model)
     # return max tokens
     return models[model]["max_tokens"]
+
+
 def f_ai_price_per_token(inter, line, args, **kwargs):
     # prepare
     f_ai_ai(inter, line, args, **kwargs)
@@ -1137,17 +879,23 @@ def f_ai_price_per_token(inter, line, args, **kwargs):
     models["check_model"](model)
     # return price per token
     return models[model]["price_per_token"]
+
+
 def f_ai_basic(inter, line, args, **kwargs):
     # generates an ai response with the basic model
     return models["response"](
         inter.parse(0, line, args)[2],
         inter.parse(1, line, args)[2],
     )
+
+
 def f_ai_advanced(inter, line, args, **kwargs):
     models = f_ai_ai(inter, line, args, **kwargs)
     return models["response"](
         "gpt-3.5-turbo-16k", inter.parse(0, line, args)[2]
     )
+
+
 def f_ai_query(inter, line, args, **kwargs):
     import openai
     # model to use
@@ -1172,11 +920,13 @@ def f_ai_query(inter, line, args, **kwargs):
     # frequency_penalty
     frequency_penalty = inter.parse(5, line, args)[2]
     # frequency_penalty must be int or float
-    inter.type_err([(frequency_penalty, (int, float))], line, kwargs["lines_ran"])
+    inter.type_err([(frequency_penalty, (int, float))],
+                   line, kwargs["lines_ran"])
     # presence_penalty
     presence_penalty = inter.parse(6, line, args)[2]
     # presence_penalty must be int or float
-    inter.type_err([(presence_penalty, (int, float))], line, kwargs["lines_ran"])
+    inter.type_err([(presence_penalty, (int, float))],
+                   line, kwargs["lines_ran"])
     # stop
     stop = inter.parse(7, line, args)[2]
     # stop must be str
@@ -1207,6 +957,8 @@ def f_ai_query(inter, line, args, **kwargs):
             presence_penalty=presence_penalty,
             stop=stop,
         )
+
+
 def f_ai_tokens(inter, line, args, **kwargs):
     import tiktoken
     # string to check
@@ -1221,6 +973,8 @@ def f_ai_tokens(inter, line, args, **kwargs):
     return len(
         tiktoken.encoding_for_model(model_name).encode(prompt)
     )
+
+
 def f_ai_split_string(inter, line, args, **kwargs):
     # need langchain
     from langchain.text_splitter import TokenTextSplitter
@@ -1244,6 +998,8 @@ def f_ai_split_string(inter, line, args, **kwargs):
     )
     # split the string
     return splitter.split_text(string)
+
+
 def f_ai_else():
     return "<msnint2 class>"
 
@@ -1254,6 +1010,8 @@ def f_var_equals(inter, line, args, **kwargs):
         firstvar == inter.parse(i, line, args)[2]
         for i in range(1, len(args))
     )
+
+
 def f_var_else(inter, line, args, **kwargs):
     return "<msnint2 class>"
 
@@ -1266,6 +1024,8 @@ def f_file_create(inter, line, args, **kwargs):
     open(path, "w").close()
     kwargs["lock"].release()
     return True
+
+
 def f_file_read(inter, line, args, **kwargs):
     kwargs["lock"].acquire()
     path = inter.parse(0, line, args)[2]
@@ -1276,9 +1036,13 @@ def f_file_read(inter, line, args, **kwargs):
     file.close()
     kwargs["lock"].release()
     return contents
+
+
 def f_file_write(inter, line, args, **kwargs):
     from functions import file_write
     return file_write(kwargs["inst"], kwargs["lock"], kwargs["lines_ran"])
+
+
 def f_file_writemsn(inter, line, args, **kwargs):
     kwargs["lock"].acquire()
     path = inter.parse(0, line, args)[2]
@@ -1290,6 +1054,8 @@ def f_file_writemsn(inter, line, args, **kwargs):
     file.close()
     kwargs["lock"].release()
     return towrite
+
+
 def f_file_clear(inter, line, args, **kwargs):
     kwargs["lock"].acquire()
     path = inter.parse(0, line, args)[2]
@@ -1300,9 +1066,13 @@ def f_file_clear(inter, line, args, **kwargs):
     file.close()
     kwargs["lock"].release()
     return True
+
+
 def f_file_append(inter, line, args, **kwargs):
     from functions import file_append
     return file_append(kwargs["inst"], kwargs["lock"], kwargs["lines_ran"])
+
+
 def f_file_delete(inter, line, args, **kwargs):
     import os
     kwargs["lock"].acquire()
@@ -1315,6 +1085,8 @@ def f_file_delete(inter, line, args, **kwargs):
         None
     kwargs["lock"].release()
     return deleting
+
+
 def f_file_rename(inter, line, args, **kwargs):
     import os
     kwargs["lock"].acquire()
@@ -1327,6 +1099,8 @@ def f_file_rename(inter, line, args, **kwargs):
     os.rename(old, new)
     kwargs["lock"].release()
     return new
+
+
 def f_file_copy(inter, line, args, **kwargs):
     import shutil
     kwargs["lock"].acquire()
@@ -1339,6 +1113,8 @@ def f_file_copy(inter, line, args, **kwargs):
     shutil.copy2(old, new)
     kwargs["lock"].release()
     return new
+
+
 def f_file_copy2(inter, line, args, **kwargs):
     import shutil
     kwargs["lock"].acquire()
@@ -1351,6 +1127,8 @@ def f_file_copy2(inter, line, args, **kwargs):
     shutil.copy2(old, new)
     kwargs["lock"].release()
     return new
+
+
 def f_file_copyfile(inter, line, args, **kwargs):
     import shutil
     kwargs["lock"].acquire()
@@ -1363,6 +1141,8 @@ def f_file_copyfile(inter, line, args, **kwargs):
     shutil.copyfile(old, new)
     kwargs["lock"].release()
     return new
+
+
 def f_file_fullpath(inter, line, args, **kwargs):
     import os
     kwargs["lock"].acquire()
@@ -1372,6 +1152,8 @@ def f_file_fullpath(inter, line, args, **kwargs):
     fullpath = os.path.abspath(path)
     kwargs["lock"].release()
     return fullpath
+
+
 def f_file_move(inter, line, args, **kwargs):
     import shutil
     kwargs["lock"].acquire()
@@ -1384,6 +1166,8 @@ def f_file_move(inter, line, args, **kwargs):
     shutil.move(old, new)
     kwargs["lock"].release()
     return new
+
+
 def f_file_exists(inter, line, args, **kwargs):
     import os
     kwargs["lock"].acquire()
@@ -1393,6 +1177,8 @@ def f_file_exists(inter, line, args, **kwargs):
     exists = os.path.exists(path)
     kwargs["lock"].release()
     return exists
+
+
 def f_file_isdir(inter, line, args, **kwargs):
     import os
     kwargs["lock"].acquire()
@@ -1402,6 +1188,8 @@ def f_file_isdir(inter, line, args, **kwargs):
     isdir = os.path.isdir(path)
     kwargs["lock"].release()
     return isdir
+
+
 def f_file_isfile(inter, line, args, **kwargs):
     import os
     kwargs["lock"].acquire()
@@ -1411,6 +1199,8 @@ def f_file_isfile(inter, line, args, **kwargs):
     isfile = os.path.isfile(path)
     kwargs["lock"].release()
     return isfile
+
+
 def f_file_listdir(inter, line, args, **kwargs):
     import os
     kwargs["lock"].acquire()
@@ -1425,6 +1215,8 @@ def f_file_listdir(inter, line, args, **kwargs):
         # directory doesn't exist
         kwargs["lock"].release()
         return None
+
+
 def f_file_mkdir(inter, line, args, **kwargs):
     import os
     kwargs["lock"].acquire()
@@ -1438,6 +1230,8 @@ def f_file_mkdir(inter, line, args, **kwargs):
     except FileExistsError:
         kwargs["lock"].release()
         return False
+
+
 def f_file_rmdir(inter, line, args, **kwargs):
     import os
     kwargs["lock"].acquire()
@@ -1451,12 +1245,16 @@ def f_file_rmdir(inter, line, args, **kwargs):
     except OSError:
         kwargs["lock"].release()
         return None
+
+
 def f_file_getcwd(inter, line, args, **kwargs):
     import os
     kwargs["lock"].acquire()
     cwd = os.getcwd()
     kwargs["lock"].release()
     return cwd
+
+
 def f_file_getsize(inter, line, args, **kwargs):
     import os
     kwargs["lock"].acquire()
@@ -1467,6 +1265,8 @@ def f_file_getsize(inter, line, args, **kwargs):
     size = os.path.getsize(path)
     kwargs["lock"].release()
     return size
+
+
 def f_file_emptydir(inter, line, args, **kwargs):
     import os
     import shutil
@@ -1489,6 +1289,8 @@ def f_file_emptydir(inter, line, args, **kwargs):
         # directory doesn't exist
         kwargs["lock"].release()
         return None
+
+
 def f_auto_largest(inter, line, args, **kwargs):
     elements = inter.parse(0, line, args)[2]
     # elements must be iterable
@@ -1508,20 +1310,26 @@ def f_auto_largest(inter, line, args, **kwargs):
             # element does not have width and height
             return element
     return largest
+
+
 def f_auto_file(inter, line, args, **kwargs):
     # imports
     import os
     from tkinter import Tk
     from tkinter.filedialog import askopenfilename
-    
+
     Tk().withdraw()
     # you can only run .msn2 scripts
     return askopenfilename(
         initialdir=os.getcwd(),
         filetypes=[("MSN2 Script", "*.msn2")],
     )
+
+
 def f_auto_else():
     return "<msnint2 class>"
+
+
 def _try_math(inter, func, line, **kwargs):
     try:
         return func()
@@ -1532,13 +1340,17 @@ def _try_math(inter, func, line, **kwargs):
             line,
             kwargs["lines_ran"],
         )
+
+
 def f_math_add(inter, line, args, **kwargs):
-    return _try_math(   
+    return _try_math(
         inter,
         lambda: inter.parse(0, line, args)[2] + inter.parse(1, line, args)[2],
         line,
         **kwargs,
     )
+
+
 def f_math_subtract(inter, line, args, **kwargs):
     return _try_math(
         inter,
@@ -1546,6 +1358,8 @@ def f_math_subtract(inter, line, args, **kwargs):
         line,
         **kwargs,
     )
+
+
 def f_math_multiply(inter, line, args, **kwargs):
     return _try_math(
         inter,
@@ -1553,6 +1367,8 @@ def f_math_multiply(inter, line, args, **kwargs):
         line,
         **kwargs,
     )
+
+
 def f_math_divide(inter, line, args, **kwargs):
     return _try_math(
         inter,
@@ -1560,6 +1376,8 @@ def f_math_divide(inter, line, args, **kwargs):
         line,
         **kwargs,
     )
+
+
 def f_math_power(inter, line, args, **kwargs):
     return _try_math(
         inter,
@@ -1567,6 +1385,8 @@ def f_math_power(inter, line, args, **kwargs):
         line,
         **kwargs,
     )
+
+
 def f_math_root(inter, line, args, **kwargs):
     return _try_math(
         inter,
@@ -1575,6 +1395,8 @@ def f_math_root(inter, line, args, **kwargs):
         line,
         **kwargs,
     )
+
+
 def f_math_sqrt(inter, line, args, **kwargs):
     return _try_math(
         inter,
@@ -1582,6 +1404,8 @@ def f_math_sqrt(inter, line, args, **kwargs):
         line,
         **kwargs,
     )
+
+
 def f_math_mod(inter, line, args, **kwargs):
     return _try_math(
         inter,
@@ -1589,6 +1413,8 @@ def f_math_mod(inter, line, args, **kwargs):
         line,
         **kwargs,
     )
+
+
 def f_math_floor(inter, line, args, **kwargs):
     import math
     return _try_math(
@@ -1597,6 +1423,8 @@ def f_math_floor(inter, line, args, **kwargs):
         line,
         **kwargs,
     )
+
+
 def f_math_ceil(inter, line, args, **kwargs):
     import math
     return _try_math(
@@ -1605,6 +1433,8 @@ def f_math_ceil(inter, line, args, **kwargs):
         line,
         **kwargs,
     )
+
+
 def f_math_round(inter, line, args, **kwargs):
     return _try_math(
         inter,
@@ -1612,6 +1442,8 @@ def f_math_round(inter, line, args, **kwargs):
         line,
         **kwargs,
     )
+
+
 def f_math_abs(inter, line, args, **kwargs):
     return _try_math(
         inter,
@@ -1619,6 +1451,8 @@ def f_math_abs(inter, line, args, **kwargs):
         line,
         **kwargs,
     )
+
+
 def f_math_sin(inter, line, args, **kwargs):
     import math
     return _try_math(
@@ -1627,6 +1461,8 @@ def f_math_sin(inter, line, args, **kwargs):
         line,
         **kwargs,
     )
+
+
 def f_math_cos(inter, line, args, **kwargs):
     import math
     return _try_math(
@@ -1635,6 +1471,8 @@ def f_math_cos(inter, line, args, **kwargs):
         line,
         **kwargs,
     )
+
+
 def f_math_tan(inter, line, args, **kwargs):
     import math
     return _try_math(
@@ -1643,6 +1481,8 @@ def f_math_tan(inter, line, args, **kwargs):
         line,
         **kwargs,
     )
+
+
 def f_math_asin(inter, line, args, **kwargs):
     import math
     return _try_math(
@@ -1651,51 +1491,11 @@ def f_math_asin(inter, line, args, **kwargs):
         line,
         **kwargs,
     )
+
+
 def f_math_else():
     return "<msnint2 class>"
 
-
-
-
-
-
-        
-# seperate set of functions for creating object instances
-def f_instance_new(inter, line, args, **kwargs):
-    from method import Method
-    classname = kwargs["func"]
-    # template Var obj to create from
-    var_obj = inter.vars[classname].value
-    instance = {}
-    curr_arg_num = 0
-    # attributes to apply
-    for name in var_obj:
-        # if attribute is a method
-        if isinstance(var_obj[name].value, Method):
-            # add the method to the instance
-            instance[name] = var_obj[name].value
-            # if the method's name is 'const'
-            if var_obj[name].value.name == "const":
-                # run the function with the argument being
-                # this instance
-                var_obj[name].value.run(
-                    [instance], inter, actual_args=args[1:]
-                )
-            continue
-        # if attribute is a variable
-        # value can be None
-        try:
-            instance[name] = inter.parse(curr_arg_num, line, args)[2]
-            if instance[name] == None:
-                instance[name] = var_obj[name].value
-        # if not specified, field is default value
-        except:
-            try:
-                instance[name] = var_obj.value[name].copy()
-            except:
-                instance[name] = var_obj[name].value
-        curr_arg_num += 1
-    return instance
 
 def f_quickcond(inter, line, args, **kwargs):
     kwargs["func"] = kwargs["func"][1:]
@@ -1711,6 +1511,8 @@ def f_quickcond(inter, line, args, **kwargs):
     return ret
 
 # if the function is an integer
+
+
 def f_int_loop(inter, line, args, **kwargs):
     ret = None
     for _ in range(kwargs["_i"]):
@@ -1718,6 +1520,8 @@ def f_int_loop(inter, line, args, **kwargs):
     return ret
 
 # if the function is a variable name, this is for variable name based loops
+
+
 def f_varname_loop(inter, line, args, **kwargs):
     # value
     val = inter.vars[kwargs["func"]].value
@@ -1733,12 +1537,11 @@ def f_varname_loop(inter, line, args, **kwargs):
     return val
 
 
-    
-    
-    
 def f_pointer_getpos(inter, line, args, **kwargs):
     import win32api
     return win32api.GetCursorPos()
+
+
 def f_pointer_move(inter, line, args, **kwargs):
     from pywinauto import mouse
     return mouse.move(
@@ -1747,6 +1550,8 @@ def f_pointer_move(inter, line, args, **kwargs):
             inter.parse(1, line, args)[2],
         )
     )
+
+
 def f_pointer_click(inter, line, args, **kwargs):
     from pywinauto import mouse
     if len(args) == 2:
@@ -1759,6 +1564,8 @@ def f_pointer_click(inter, line, args, **kwargs):
     else:
         import win32api
         return mouse.click(coords=win32api.GetCursorPos())
+
+
 def f_pointer_right_click(inter, line, args, **kwargs):
     # if args are provided
     if len(args) == 2:
@@ -1774,6 +1581,8 @@ def f_pointer_right_click(inter, line, args, **kwargs):
     else:
         import win32api
         return mouse.right_click(coords=win32api.GetCursorPos())
+
+
 def f_pointer_double_click(inter, line, args, **kwargs):
     # if args are provided
     if len(args) == 2:
@@ -1789,18 +1598,24 @@ def f_pointer_double_click(inter, line, args, **kwargs):
     else:
         import win32api
         return mouse.double_click(coords=win32api.GetCursorPos())
+
+
 def f_pointer_scroll_bottom(inter, line, args, **kwargs):
     import win32api
     from pywinauto import mouse
     return mouse.scroll(
         wheel_dist=9999999, coords=win32api.GetCursorPos()
     )
+
+
 def f_pointer_scroll_top(inter, line, args, **kwargs):
     import win32api
     from pywinauto import mouse
     return mouse.scroll(
         wheel_dist=-9999999, coords=win32api.GetCursorPos()
     )
+
+
 def f_pointer_scroll(inter, line, args, **kwargs):
     import win32api
     from pywinauto import mouse
@@ -1810,24 +1625,34 @@ def f_pointer_scroll(inter, line, args, **kwargs):
     return mouse.scroll(
         wheel_dist=dist, coords=win32api.GetCursorPos()
     )
+
+
 def f_pointer_left_down(inter, line, args, **kwargs):
     import win32api
     return win32api.GetKeyState(0x01) < 0
+
+
 def f_pointer_right_down(inter, line, args, **kwargs):
     import win32api
     return win32api.GetKeyState(0x02) < 0
+
+
 def f_pointer_wait_left(inter, line, args, **kwargs):
     import win32api
     while True:
         if win32api.GetKeyState(0x01) < 0:
             break
     return True
+
+
 def f_pointer_wait_right(inter, line, args, **kwargs):
     import win32api
     while True:
         if win32api.GetKeyState(0x02) < 0:
             break
     return True
+
+
 def f_pointer_wait_left_click(inter, line, args, **kwargs):
     import win32api
     while True:
@@ -1837,6 +1662,8 @@ def f_pointer_wait_left_click(inter, line, args, **kwargs):
         if win32api.GetKeyState(0x01) >= 0:
             break
     return True
+
+
 def f_pointer_wait_right_click(inter, line, args, **kwargs):
     import win32api
     while True:
@@ -1846,6 +1673,8 @@ def f_pointer_wait_right_click(inter, line, args, **kwargs):
         if win32api.GetKeyState(0x02) >= 0:
             break
     return True
+
+
 def f_pointer_down(inter, line, args, **kwargs):
     import win32api
     from pywinauto import mouse
@@ -1854,6 +1683,8 @@ def f_pointer_down(inter, line, args, **kwargs):
     # moving must be int
     inter.type_err([(moving, (int,))], line, kwargs["lines_ran"])
     return mouse.move(coords=(curr_x, curr_y + moving))
+
+
 def f_pointer_up(inter, line, args, **kwargs):
     import win32api
     from pywinauto import mouse
@@ -1862,6 +1693,8 @@ def f_pointer_up(inter, line, args, **kwargs):
     # moving must be int
     inter.type_err([(moving, (int,))], line, kwargs["lines_ran"])
     return mouse.move(coords=(curr_x, curr_y - moving))
+
+
 def f_pointer_left(inter, line, args, **kwargs):
     import win32api
     from pywinauto import mouse
@@ -1870,6 +1703,8 @@ def f_pointer_left(inter, line, args, **kwargs):
     # moving must be int
     inter.type_err([(moving, (int,))], line, kwargs["lines_ran"])
     return mouse.move(coords=(curr_x - moving, curr_y))
+
+
 def f_pointer_right(inter, line, args, **kwargs):
     import win32api
     from pywinauto import mouse
@@ -1878,6 +1713,8 @@ def f_pointer_right(inter, line, args, **kwargs):
     # moving must be int
     inter.type_err([(moving, (int,))], line, kwargs["lines_ran"])
     return mouse.move(coords=(curr_x + moving, curr_y))
+
+
 def f_pointer_drag(inter, line, args, **kwargs):
     import time
     from pywinauto import mouse
@@ -1923,743 +1760,7 @@ def f_pointer_drag(inter, line, args, **kwargs):
         time.sleep(0.001)
     # releases the mouse at the end coordinates
     mouse.release(coords=end)
-    return True    
-
-
-
-def f_obj_default_copy(inter, line, args, **kwargs):
-    if kwargs["objfunc"] == "copy":
-        try:
-            return kwargs["object"].copy()
-        except:
-            # no attribute copy
-            inter.err(
-                "Error copying object.",
-                f'Object "{kwargs["obj"]}" does not have attribute "copy".',
-                line,
-                kwargs["lines_ran"],
-            )
-def f_obj_default_print(inter, line, args, **kwargs):
-    # if no arguments
-    if args[0][0] == "":
-        print(kwargs["object"])
-        return kwargs["object"]
-    # if one argument
-    elif len(args) == 1:
-        # what to print
-        to_print = f"{inter.parse(0, line, args)[2]}{kwargs['object']}"
-        # print the object
-        print(to_print)
-        return to_print
-    # if two arguments
-    elif len(args) == 2:
-        # what to print
-        to_print = f"{inter.parse(0, line, args)[2]}{kwargs['object']}{inter.parse(1, line, args)[2]}"
-        # print the object
-        print(to_print)
-        # return the printed object
-        return to_print
-    return kwargs["object"]
-def f_obj_default_val(inter, line, args, **kwargs):
-    return kwargs["object"]
-
-def _try_obj_default_cast(inter, func, object, line, lines_ran):
-    try:
-        return func()
-    except:
-        # no attribute func
-        inter.err(
-            "Casting error",
-            f"Could not cast object of type {type(object)} to the type specified.",
-            line,
-            lines_ran,
-        )
-def f_obj_default_type(inter, line, args, **kwargs):
-    return _try_obj_default_cast(
-        inter,
-        lambda: type(kwargs["object"]),
-        kwargs["object"],
-        line,
-        kwargs["lines_ran"],
-    )
-def f_obj_default_len(inter, line, args, **kwargs):
-    return _try_obj_default_cast(
-        inter,
-        lambda: len(kwargs["object"]),
-        kwargs["object"],
-        line,
-        kwargs["lines_ran"],
-    )
-def f_obj_default_str(inter, line, args, **kwargs):
-    return _try_obj_default_cast(
-        inter,
-        lambda: str(kwargs["object"]),
-        kwargs["object"],
-        line,
-        kwargs["lines_ran"],
-    )
-def f_obj_default_int(inter, line, args, **kwargs):
-    return _try_obj_default_cast(
-        inter,
-        lambda: int(kwargs["object"]),
-        kwargs["object"],
-        line,
-        kwargs["lines_ran"],
-    )
-def f_obj_default_float(inter, line, args, **kwargs):
-    return _try_obj_default_cast(
-        inter,
-        lambda: float(kwargs["object"]),
-        kwargs["object"],
-        line,
-        kwargs["lines_ran"],
-    )
-def f_obj_default_complex(inter, line, args, **kwargs):
-    return _try_obj_default_cast(
-        inter,
-        lambda: complex(kwargs["object"]),
-        kwargs["object"],
-        line,
-        kwargs["lines_ran"],
-    )
-def f_obj_default_bool(inter, line, args, **kwargs):
-    return _try_obj_default_cast(
-        inter,
-        lambda: bool(kwargs["object"]),
-        kwargs["object"],
-        line,
-        kwargs["lines_ran"],
-    )
-def f_obj_default_dict(inter, line, args, **kwargs):
-    return _try_obj_default_cast(
-        inter,
-        lambda: dict(kwargs["object"]),
-        kwargs["object"],
-        line,
-        kwargs["lines_ran"],
-    )
-def f_obj_default_switch(inter, line, args, **kwargs):
-    # other variable name
-    other_varname = inter.parse(0, line, args)[2]
-    # check variable name
-    inter.check_varname(other_varname, line)
-    # other_varname must exist in self.vars
-    if other_varname not in inter.vars:
-        inter.err(
-            "Error switching variables.",
-            f'Variable name "{other_varname}" does not exist in this context.',
-            line,
-            kwargs["lines_ran"],
-        )
-    # switch the variables
-    inter.vars[kwargs["vname"]].value, inter.vars[other_varname].value = (
-        inter.vars[other_varname].value,
-        inter.vars[kwargs["vname"]].value,
-    )
-    # return the variable
-    return inter.vars[kwargs["vname"]].value
-
-def f_obj_default_rename(inter, line, args, **kwargs):
-    # get the variable name
-    varname = inter.parse(0, line, args)[2]
-    # variable name must be a string
-    inter.check_varname(varname, line)
-    # rename the variable
-    inter.vars[varname] = Var(varname, kwargs["object"])
-    # delete the old entry
-    del inter.vars[kwargs["vname"]]
-    # return the variable
-    return inter.vars[varname]
-def f_obj_default_if(inter, line, args, **kwargs):
-    # variable name
-    varname = inter.parse(0, line, args)[2]
-    # check varname
-    inter.check_varname(varname, line)
-    new_list = []
-    # perform logic
-    for el in kwargs["object"]:
-        inter.vars[varname] = Var(varname, el)
-        if inter.interpret(args[1][0]):
-            new_list.append(el)
-    return new_list
-def f_obj_default_is(inter, line, args, **kwargs):
-    return kwargs["object"] is inter.parse(0, line, args)[2]
-def f_obj_default_equals(inter, line, args, **kwargs):
-    for i in range(len(args)):
-        if kwargs["object"] != inter.parse(i, line, args)[2]:
-            return False
     return True
-def f_obj_default_slice(inter, line, args, **kwargs):
-    first = inter.parse(0, line, args)[2]
-    second = inter.parse(1, line, args)[2]
-    # ensure both arguments are integers or None
-    inter.type_err(
-        [(first, (int, type(None))), (second, (int, type(None)))],
-        line,
-        kwargs["lines_ran"],
-    )
-    return kwargs["object"][first:second]
-def f_obj_default_index(inter, line, args, **kwargs):
-    return kwargs["object"].index(inter.parse(0, line, args)[2])
-def f_obj_default_export(inter, line, args, **kwargs):
-    # if an argument is provided
-    # export as name
-    if args[0][0] != "":
-        vname = inter.parse(0, line, args)[2]
-        # check vname
-        inter.check_varname(vname, line)
-        # vname must exist in current context as a variable
-        inter.export_err(vname, line)
-    inter.parent.vars[vname] = Var(vname, kwargs["object"])
-    return kwargs["object"]
-def f_obj_default_noobjfunc(inter, line, args, **kwargs):
-    ret = inter.vars[kwargs["vname"]].value
-    # for each block
-    for arg in args:
-        ret = inter.interpret(f"{kwargs['vname']}.{arg[0]}")
-    return ret
-def f_obj_default_string_name(inter, line, args, **kwargs):
-    return kwargs["vname"]
-def f_obj_default_each(inter, line, args, **kwargs):
-    # get the variable name
-    varname = inter.parse(0, line, args)[2]
-    # check varname
-    inter.check_varname(varname, line)
-    # try an indexable
-    try:
-        for i in range(len(kwargs["object"])):
-            inter.vars[varname] = Var(varname, kwargs["object"][i])
-            inter.interpret(args[1][0])
-    except:
-        # try a set
-        for i in kwargs["object"]:
-            inter.vars[varname] = Var(varname, i)
-            inter.interpret(args[1][0])
-    return kwargs["object"]
-def f_obj_default_rfind(inter, line, args, **kwargs):
-    return kwargs["object"].rfind(inter.parse(0, line, args)[2])
-def f_obj_default_lfind(inter, line, args, **kwargs):
-    return kwargs["object"].find(inter.parse(0, line, args)[2])
-def f_obj_default_find(inter, line, args, **kwargs):
-    return kwargs["object"].find(inter.parse(0, line, args)[2])
-def f_obj_default_filter(inter, line, args, **kwargs):
-    # get the variable name
-    varname = inter.parse(0, line, args)[2]
-    # check variable name
-    inter.check_varname(varname, line)
-    # filtered
-    filtered = []
-    # filter the iterable
-    for el in kwargs["object"]:
-        inter.vars[varname] = Var(varname, el)
-        if inter.interpret(args[1][0]):
-            filtered.append(el)
-    # set the variable to the filtered list
-    inter.vars[kwargs["vname"]].value = filtered
-    # return the filtered list
-    return inter.vars[kwargs["vname"]].value
-
-def _try_obj_default_math(inter, func, line, **kwargs):
-    try:
-        return func()
-    except:
-        inter.raise_operation_err(kwargs["vname"], kwargs["objfunc"], kwargs["lines_ran"])
-
-
-def _f_obj_default_add(inter, line, args, **kwargs):
-    # basic arithmetic, non-destructive
-    # takes any amount of arguments
-    ret = kwargs["object"]
-    for i in range(len(args)):
-        ret += inter.parse(i, line, args)[2]
-    return ret
-def f_obj_default_add(inter, line, args, **kwargs):
-    return _try_obj_default_math(
-        inter,
-        lambda: _f_obj_default_add(inter, line, args, **kwargs),
-        line,
-        **kwargs,
-    )
-def _f_obj_default_sub(inter, line, args, **kwargs):
-    ret = kwargs["object"]
-    for i in range(len(args)):
-        ret -= inter.parse(i, line, args)[2]
-    return ret
-def f_obj_default_sub(inter, line, args, **kwargs):
-    return _try_obj_default_math(
-        inter,
-        lambda: _f_obj_default_sub(inter, line, args, **kwargs),
-        line,
-        **kwargs,
-    )
-def _f_obj_default_mul(inter, line, args, **kwargs):
-    ret = kwargs["object"]
-    for i in range(len(args)):
-        ret *= inter.parse(i, line, args)[2]
-    return ret
-def f_obj_default_mul(inter, line, args, **kwargs):
-    return _try_obj_default_math(
-        inter,
-        lambda: _f_obj_default_mul(inter, line, args, **kwargs),
-        line,
-        **kwargs,
-    )
-def _f_obj_default_div(inter, line, args, **kwargs):
-    ret = kwargs["object"]
-    for i in range(len(args)):
-        ret /= inter.parse(i, line, args)[2]
-    return ret
-def f_obj_default_div(inter, line, args, **kwargs):
-    return _try_obj_default_math(
-        inter,
-        lambda: _f_obj_default_div(inter, line, args, **kwargs),
-        line,
-        **kwargs,
-    )
-def _f_obj_default_mod(inter, line, args, **kwargs):
-    ret = kwargs["object"]
-    for i in range(len(args)):
-        ret %= inter.parse(i, line, args)[2]
-    return ret
-def f_obj_default_mod(inter, line, args, **kwargs):
-    return _try_obj_default_math(
-        inter,
-        lambda: _f_obj_default_mod(inter, line, args, **kwargs),
-        line,
-        **kwargs,
-    )
-def _f_obj_default_pow(inter, line, args, **kwargs):
-    ret = kwargs["object"]
-    for i in range(len(args)):
-        ret **= inter.parse(i, line, args)[2]
-    return ret
-def f_obj_default_pow(inter, line, args, **kwargs):
-    return _try_obj_default_math(
-        inter,
-        lambda: _f_obj_default_pow(inter, line, args, **kwargs),
-        line,
-        **kwargs,
-    )
-def _f_obj_default_idiv(inter, line, args, **kwargs):
-    ret = kwargs["object"]
-    for i in range(len(args)):
-        ret //= inter.parse(i, line, args)[2]
-    return ret
-def f_obj_default_idiv(inter, line, args, **kwargs):
-    return _try_obj_default_math(
-        inter,
-        lambda: _f_obj_default_idiv(inter, line, args, **kwargs),
-        line,
-        **kwargs,
-    )
-def f_obj_default_func(inter, line, args, **kwargs):
-    ret = kwargs["object"]
-    # apply the function to the object
-    for arg in args:
-        ret = inter.interpret(f"{arg[0]}({ret})")
-    return ret
-def f_obj_default_reverse(inter, line, args, **kwargs):
-    # only types that can be reversed:
-    # list, tuple, string
-    # check types
-    inter.type_err(
-        [(kwargs["object"], (list, tuple, str))], line, kwargs["lines_ran"]
-    )
-    inter.vars[kwargs["vname"]].value = kwargs["object"][::-1]
-    return inter.vars[kwargs["vname"]].value
-def f_obj_default_in(inter, line, args, **kwargs):
-    in_var = inter.parse(0, line, args)[2]
-    # in_var must be of type iterable
-    inter.check_iterable(in_var, line)
-    # if object is of type string
-    if isinstance(kwargs["object"], str):
-        # in_var must be a string also
-        inter.type_err([(in_var, (str,))], line, kwargs["lines_ran"])
-        return kwargs["object"] in in_var
-    else:
-        # otherwise, in_var cannot be a string
-        if isinstance(in_var, str):
-            inter.err(
-                "Type error",
-                f'Cannot search for type {type(kwargs["object"])} in type {type(in_var)}\nConsider casting variable "{kwargs["vname"]}" to {str}, \nor change in() argument to a different iterable',
-                line,
-                kwargs["lines_ran"],
-            )
-    return kwargs["object"] in in_var
-
-
-
-def f_obj_list_push(inter, line, args, **kwargs):
-    for i in range(len(args)):
-        inter.vars[kwargs["vname"]].value.append(inter.parse(i, line, args)[2])
-    return inter.vars[kwargs["vname"]].value
-def f_obj_list_pop(inter, line, args, **kwargs):
-    return inter.vars[kwargs["vname"]].value.pop()
-def f_obj_list_get(inter, line, args, **kwargs):
-    # index to get at
-    ind = inter.parse(0, line, args)[2]
-    # index must be an int
-    inter.type_err([(ind, (int,))], line, kwargs["lines_ran"])
-    # get the index
-    return inter.vars[kwargs["vname"]].value[ind]
-def f_obj_list_set(inter, line, args, **kwargs):
-    ind = inter.parse(0, line, args)[2]
-    # index must be an int
-    inter.type_err([(ind, (int,))], line, kwargs["lines_ran"])
-    inter.vars[kwargs["vname"]].value[ind] = inter.parse(1, line, args)[2]
-    return inter.vars[kwargs["vname"]].value
-def f_obj_list_avg(inter, line, args, **kwargs):
-    try:
-        return sum(inter.vars[kwargs["vname"]].value) / len(
-            inter.vars[kwargs["vname"]].value
-        )
-    except:
-        if not inter.vars[kwargs["vname"]].value:
-            inter.raise_empty_array(line)
-        else:
-            inter.raise_avg(line)
-def f_obj_list_insert(inter, line, args, **kwargs):
-    for i in range(len(args)):
-        ind = inter.parse(i, line, args)[2]
-        # index must be an int
-        inter.type_err([(ind, (int,))], line, kwargs["lines_ran"])
-        val = inter.parse(i, line, args)[2]
-        inter.vars[kwargs["vname"]].value.insert(ind, val)
-    return inter.vars[kwargs["vname"]].value
-def f_obj_list_removen(inter, line, args, **kwargs):
-    count = inter.parse(0, line, args)[2]
-    # count must be an int
-    inter.type_err([(count, (int,))], line, kwargs["lines_ran"])
-    for i in range(1, len(args)):
-        for j in range(count):
-            val = inter.parse(i, line, args)[2]
-            try:
-                del inter.vars[kwargs["vname"]].value[
-                    (
-                        _v := inter.vars[kwargs["vname"]].value.index(val)
-                    )
-                ]
-            except ValueError:
-                inter.raise_value(val, line)
-    return inter.vars[kwargs["vname"]].value
-def f_obj_list_remove(inter, line, args, **kwargs):
-    for i in range(len(args)):
-        while inter.parse(i, line, args)[2] in inter.vars[kwargs["vname"]].value:
-            try:
-                del inter.vars[kwargs["vname"]].value[
-                    (
-                        _v := inter.vars[kwargs["vname"]].value.index(
-                            inter.parse(i, line, args)[2]
-                        )
-                    )
-                ]
-            except ValueError:
-                inter.raise_value(_v, line)
-    return inter.vars[kwargs["vname"]].value
-def f_obj_list_sorted(inter, line, args, **kwargs):
-    return sorted(inter.vars[kwargs["vname"]].value)
-def f_obj_list_sort(inter, line, args, **kwargs):
-    inter.vars[kwargs["vname"]].value.sort()
-    return inter.vars[kwargs["vname"]].value
-def f_obj_list_len(inter, line, args, **kwargs):
-    return len(inter.vars[kwargs["vname"]].value)
-def f_obj_list_empty(inter, line, args, **kwargs):
-    return len(inter.vars[kwargs["vname"]].value) == 0
-def f_obj_list_contains(inter, line, args, **kwargs):
-    return inter.parse(0, line, args)[2] in inter.vars[kwargs["vname"]].value
-def f_obj_list_find(inter, line, args, **kwargs):
-    return inter.vars[kwargs["vname"]].value.find(inter.parse(0, line, args)[2])
-def f_obj_list_shuffle(inter, line, args, **kwargs):
-    import random
-    
-    random.shuffle(inter.vars[kwargs["vname"]].value)
-    return inter.vars[kwargs["vname"]].value
-def f_obj_list_map(inter, line, args, **kwargs):
-    # get the variable name
-    varname = inter.parse(0, line, args)[2]
-    # check varname
-    inter.check_varname(varname, line)
-    for i in range(len(inter.vars[kwargs["vname"]].value)):
-        inter.vars[varname] = Var(varname, inter.vars[kwargs["vname"]].value[i])
-        inter.vars[kwargs["vname"]].value[i] = inter.interpret(args[1][0])
-    del inter.vars[varname]
-    return inter.vars[kwargs["vname"]].value
-def f_obj_list_join(inter, line, args, **kwargs):
-    delimiter = inter.parse(0, line, args)[2]
-    # delimiter must be a string
-    inter.type_err([(delimiter, (str,))], line, kwargs["lines_ran"])
-    return delimiter.join(map(str, inter.vars[kwargs["vname"]].value))
-def f_obj_list_toset(inter, line, args, **kwargs):
-    return set(inter.vars[kwargs["vname"]].value)
-
-def f_obj_str_add(inter, line, args, **kwargs):
-    for i in range(len(args)):
-        adding = inter.parse(i, line, args)[2]
-        # adding must be a string
-        inter.type_err([(adding, (str,))], line, kwargs["lines_ran"])
-        inter.vars[kwargs["vname"]].value += adding
-    return inter.vars[kwargs["vname"]].value
-def f_obj_str_split(inter, line, args, **kwargs):
-    splitting_by = inter.parse(0, line, args)[2]
-    # splitting_by must be a string
-    inter.type_err([(splitting_by, (str,))], line, kwargs["lines_ran"])
-    return inter.vars[kwargs["vname"]].value.split(splitting_by)
-def f_obj_str_lines(inter, line, args, **kwargs):
-    return inter.vars[kwargs["vname"]].value.split("\n")
-def f_obj_str_words(inter, line, args, **kwargs):
-    return inter.vars[kwargs["vname"]].value.split(" ")
-def f_obj_str_lwordremove(inter, line, args, **kwargs):
-    # number of words to remove
-    num = inter.parse(0, line, args)[2]
-    # num must be an int
-    inter.type_err([(num, (int,))], line, kwargs["lines_ran"])
-    # number cannot be negative
-    if num < 0:
-        inter.err(
-            "Value error",
-            "Number of words to remove cannot be negative.",
-            line,
-            kwargs["lines_ran"],
-        )
-    # remove the words
-    inter.vars[kwargs["vname"]].value = " ".join(
-        inter.vars[kwargs["vname"]].value.split(" ")[num:]
-    )
-    return inter.vars[kwargs["vname"]].value
-def f_obj_str_rwordremove(inter, line, args, **kwargs):
-    # number of words to remove
-    num = inter.parse(0, line, args)[2]
-    # num must be an int
-    inter.type_err([(num, (int,))], line, kwargs["lines_ran"])
-    # number cannot be negative
-    if num < 0:
-        inter.err(
-            "Value error",
-            "Number of words to remove cannot be negative.",
-            line,
-            kwargs["lines_ran"],
-        )
-    # remove the words
-    inter.vars[kwargs["vname"]].value = " ".join(
-        inter.vars[kwargs["vname"]].value.split(" ")[:-num]
-    )
-    return inter.vars[kwargs["vname"]].value
-def f_obj_str_chars(inter, line, args, **kwargs):
-    return list(inter.vars[kwargs["vname"]].value)
-def f_obj_str_isdigit(inter, line, args, **kwargs):
-    return inter.vars[kwargs["vname"]].value.isdigit()
-def f_obj_str_isalpha(inter, line, args, **kwargs):
-    return inter.vars[kwargs["vname"]].value.isalpha()
-def f_obj_str_replace(inter, line, args, **kwargs):
-    # what to replace
-    replacing = inter.parse(0, line, args)[2]
-    wth = inter.parse(1, line, args)[2]
-    # both must be strings
-    inter.type_err(
-        [(replacing, (str,)), (wth, (str,))], line, kwargs["lines_ran"]
-    )
-    # replacing with
-    if len(args) == 2:
-        # replaces all instances of replacing with wth
-        inter.vars[kwargs["vname"]].value = inter.vars[kwargs["vname"]].value.replace(
-            replacing, wth
-        )
-    elif len(args) == 3:
-        third = inter.parse(2, line, args)[2]
-        # third must be a string
-        inter.type_err([(third, (str,))], line, kwargs["lines_ran"])
-        inter.vars[kwargs["vname"]].value = inter.vars[kwargs["vname"]].value.replace(
-            replacing, wth, third
-        )
-    # returns the new string
-    return inter.vars[kwargs["vname"]].value
-def f_obj_str_strip(inter, line, args, **kwargs):
-    inter.vars[kwargs["vname"]].value = inter.vars[kwargs["vname"]].value.strip()
-    return inter.vars[kwargs["vname"]].value
-def f_obj_str_stripped(inter, line, args, **kwargs):
-    return inter.vars[kwargs["vname"]].value.strip()
-def f_obj_str_self(inter, line, args, **kwargs):
-    try:
-        return inter.vars[kwargs["vname"]].value
-    except:
-        return inter.vars[kwargs["vname"]]
-def f_obj_str_set(inter, line, args, **kwargs):
-    # index to set
-    index = inter.parse(0, line, args)[2]
-    # index must be an int
-    inter.type_err([(index, (int,))], line, kwargs["lines_ran"])
-    # create a new string with the new character
-    inter.vars[kwargs["vname"]].value = (
-        f"{inter.vars[kwargs['vname']].value[:index]}{inter.parse(1, line, args)[2]}{inter.vars[kwargs['vname']].value[index + 1:]}"
-    )
-    # returns the new string
-    return inter.vars[kwargs["vname"]].value
-def f_obj_str_get(inter, line, args, **kwargs):
-    ind = inter.parse(0, line, args)[2]
-    return inter.vars[kwargs["vname"]].value[ind]
-def f_obj_str_upper(inter, line, args, **kwargs):
-    inter.vars[kwargs["vname"]].value = inter.vars[kwargs["vname"]].value.upper()
-    return inter.vars[kwargs["vname"]].value
-def f_obj_str_lower(inter, line, args, **kwargs):
-    inter.vars[kwargs["vname"]].value = inter.vars[kwargs["vname"]].value.lower()
-def f_obj_str_cut(inter, line, args, **kwargs):
-    start = inter.parse(0, line, args)[2]
-    end = inter.parse(1, line, args)[2]
-    # both start and end must be ints
-    inter.type_err(
-        [(start, (int,)), (end, (int,))], line, kwargs["lines_ran"]
-    )
-    inter.vars[kwargs["vname"]].value = inter.vars[kwargs["vname"]].value[start:end]
-    return inter.vars[kwargs["vname"]].value
-def f_obj_str_shove(inter, line, args, **kwargs):
-    inserting = inter.parse(0, line, args)[2]
-    index = inter.parse(1, line, args)[2]
-    # index must be an int
-    inter.type_err([(index, (int,))], line, kwargs["lines_ran"])
-    inter.vars[kwargs["vname"]].value = (
-        f"{inter.vars[kwargs['vname']].value[:index]}{inserting}{inter.vars[kwargs['vname']].value[index:]}"
-    )
-    return inter.vars[kwargs["vname"]].value
-def f_obj_str_around(inter, line, args, **kwargs):
-    # keyword to search for
-    keyword = inter.parse(0, line, args)[2]
-    # keyword must be a string
-    inter.type_err([(keyword, (str,))], line, kwargs["lines_ran"])
-    # get the index of the keyword
-    index = inter.vars[kwargs["vname"]].value.find(keyword)
-    # if not found
-    if index == -1:
-        # f"around(): Keyword '{keyword}' not found in string"
-        # raise an msn2 error
-        inter.err(
-            f"around(): Keyword '{keyword}' not found in string",
-            line,
-            kwargs["lines_ran"],
-            kwargs["f"],
-        )
-    # get the string
-    return kwargs["object"][
-        index
-        - inter.parse(1, line, args)[2] : index
-        + len(keyword)
-        + inter.parse(2, line, args)[2]
-    ]
-def f_obj_str_startswith(inter, line, args, **kwargs):
-    st = inter.parse(0, line, args)[2]
-    # st must be a string
-    inter.type_err([(st, (str,))], line, kwargs["lines_ran"])
-    return inter.vars[kwargs["vname"]].value.startswith(st)
-def f_obj_str_endswith(inter, line, args, **kwargs):
-    st = inter.parse(0, line, args)[2]
-    # st must be a string
-    inter.type_err([(st, (str,))], line, kwargs["lines_ran"])
-    return inter.vars[kwargs["vname"]].value.endswith(st)
-
-def f_obj_html_all(inter, line, args, **kwargs):
-    # gets information from a website
-    return kwargs["object"].get(inter.parse(0, line, args)[2]).html
-def f_obj_html_render(inter, line, args, **kwargs):
-    # renders the html session
-    return kwargs["object"].render(retries=3)
-def f_obj_html_else(inter, line, args, **kwargs):
-    return kwargs["object"]   
-
-def f_obj_justhtml_gather(inter, line, args, **kwargs):
-    # finds elements in the HTML
-    if args[0][0] == "":
-        return kwargs["object"].find()
-    else:
-        return kwargs["object"].find(inter.parse(0, line, args)[2])
-def f_obj_justhtml_else(inter, line, args, **kwargs):
-    return getattr(kwargs["object"], kwargs["objfunc"])
-
-def f_obj_dict_set(inter, line, args, **kwargs):
-    inter.vars[kwargs["vname"]].value[inter.parse(0, line, args)[2]] = inter.parse(1, line, args)[2]
-    return inter.vars[kwargs["vname"]].value
-def f_obj_dict_setn(inter, line, args, **kwargs):
-    # what to set
-    to_set = inter.parse(0, line, args)[2]
-    # the rest of the arguments are the indices
-    # example: dict.setn('im being set', 'index1', 'index2', 'index3', ...)
-    # should equal: dict['index1']['index2']['index3'] = 'im being set'
-    # the object to set
-    obj = inter.vars[kwargs["vname"]].value
-    # iterates through the indices
-    for i in range(1, len(args)):
-        # if the index is the last one
-        if i == len(args) - 1:
-            # sets the index to to_set
-            obj[inter.parse(i, line, args)[2]] = to_set
-        # if the index is not the last one
-        else:
-            # sets the object to the index
-            obj = obj[inter.parse(i, line, args)[2]]
-    # returns the object
-    return inter.vars[kwargs["vname"]].value
-def f_obj_dict_get(inter, line, args, **kwargs):
-    # the object to get from
-    obj = inter.vars[kwargs["vname"]].value
-    # iterates through the indices
-    for i in range(len(args)):
-        ind = inter.parse(i, line, args)[2]
-        try:
-            # sets the object to the index
-            obj = obj[ind]
-        except KeyError:
-            inter.raise_key(ind, line)
-    # returns the object
-    return obj
-def f_obj_dict_keys(inter, line, args, **kwargs):
-    return inter.vars[kwargs["vname"]].value.keys()
-def f_obj_dict_values(inter, line, args, **kwargs):
-    return inter.vars[kwargs["vname"]].value.values()
-def f_obj_dict_items(inter, line, args, **kwargs):
-    return inter.vars[kwargs["vname"]].value.items()
-def f_obj_dict_foreach(inter, line, args, **kwargs):
-    # variable name of the key
-    keyname = inter.parse(0, line, args)[2]
-    # variable name of the value
-    valuename = inter.parse(1, line, args)[2]
-    # check both keyname and valuename as varnames
-    inter.check_varname(keyname, line)
-    inter.check_varname(valuename, line)
-    # function to execute
-    function = args[2][0]
-    # loop through the dictionary
-    for key, value in inter.vars[kwargs["vname"]].value.items():
-        # set the key and value variables
-        inter.vars[keyname] = Var(keyname, key)
-        inter.vars[valuename] = Var(valuename, value)
-        # execute the function
-        inter.interpret(function)
-    # return the dictionary
-    return inter.vars[kwargs["vname"]].value
-def f_obj_dict_map(inter, line, args, **kwargs):
-    # map arguments
-    keyvarname = inter.parse(0, line, args)[2]
-    valuevarname = inter.parse(1, line, args)[2]
-    # check both for varnames
-    inter.check_varname(keyvarname, line)
-    inter.check_varname(valuevarname, line)
-    function = args[2][0]
-    new_dict = {}
-    # loop through the objects items, assigning the key to the key and
-    # value to the value
-    for key, value in inter.vars[kwargs["vname"]].value.items():
-        # log old key
-        old_key = key
-        # execute the function
-        inter.vars[keyvarname] = Var(keyvarname, key)
-        inter.vars[valuevarname] = Var(valuevarname, value)
-        # run the function
-        ret = inter.interpret(function)
-        if inter.vars[keyvarname].value == old_key:
-            new_dict[old_key] = inter.vars[valuevarname].value
-        else:
-            new_dict[inter.vars[keyvarname].value] = inter.vars[valuevarname].value
-    inter.vars[kwargs["vname"]].value = new_dict
-    return inter.vars[kwargs["vname"]].value
-
 
 
 # function dispatch
@@ -2669,12 +1770,12 @@ FUNCTION_DISPATCH = {
     **FUNCTION_BASED_DISPATCH,
     **VARS_DISPATCH,
     **MATH_DISPATCH,
-    **STRINGS_DISPATCH,  
+    **STRINGS_DISPATCH,
     **NUMBERS_DISPATCH,
     **TYPE_TESTING_DISPATCH,
     **ITERABLES_DISPATCH,
     **ASSERTIONS_DISPATCH,
-    **SYSTEM_DISPATCH,        
+    **SYSTEM_DISPATCH,
     **OBJECT_GENERAL_DISPATCH,
     **SYNTAX_DISPATCH,
     **LOGICAL_DISPATCH,
@@ -2683,28 +1784,28 @@ FUNCTION_DISPATCH = {
     **STDOUT_DISPATCH,
     **JS_DISPATCH,
     **TIME_DISPATCH,
-    **CONTEXTS_DISPATCH,    
+    **CONTEXTS_DISPATCH,
     **MULTIPROGRAMMING_DISPATCH,
     **POINTER_DISPATCH,
     **API_DISPATCH,
     **MISC_DISPATCH,
-    **INSERTIONS_DISPATCH,    
+    **INSERTIONS_DISPATCH,
     **LANG_DISPATCH,
     **WIN_AUTO_DISPATCH,
     **EXCEL_DISPATCH,
     **CAST_DISPATCH,
     **CONDITIONALS_DISPATCH,
-    
+
     # special calls
     "special": {
         **SPECIAL_LOOPS_DISPATCH,
     },
 
     # msn2 classes
-    "obj": {        
+    "obj": {
         "general": {
             **OBJ_GENERAL_DESTRUCTIVE_DISPATCH,
-            
+
             # integers, floats, and complex numbers
             "number": {
                 **OBJ_GENERAL_NUMBER_COMPARISONS_DISPATCH,
@@ -2715,168 +1816,57 @@ FUNCTION_DISPATCH = {
                 **OBJ_GENERAL_SET_BASIC_DISPATCH,
             },
             "list": {
-                "pop": f_obj_list_pop, 
-                "get": f_obj_list_get,
-                "set": f_obj_list_set,
-                "insert": f_obj_list_insert,
-                "removen": f_obj_list_removen,
-                "remove": f_obj_list_remove,
-                "sorted": f_obj_list_sorted,
-                "sort": f_obj_list_sort,
-                "len": f_obj_list_len,
-                "empty": f_obj_list_empty,  
-                "find": f_obj_list_find,
-                "shuffle": f_obj_list_shuffle,
-                "map": f_obj_list_map,
-                "toset": f_obj_list_toset,
-                **aliases(f_obj_list_push, ("push", "append", "add")),
-                **aliases(f_obj_list_avg, ("avg", "average")),
-                **aliases(f_obj_list_contains, ("contains", "has", "includes")),
-                **aliases(f_obj_list_join, ("join", "delimit")),
+                **OBJ_GENERAL_LIST_ACCESS_DISPATCH,
+                **OBJ_GENERAL_LIST_MODIFY_DISPATCH,
             },
             "str": {
-                "add": f_obj_str_add,
-                "split": f_obj_str_split,
-                "lines": f_obj_str_lines,
-                "words": f_obj_str_words,
-                "lwordremove": f_obj_str_lwordremove,
-                "rwordremove": f_obj_str_rwordremove,
-                "chars": f_obj_str_chars,
-                "isdigit": f_obj_str_isdigit,
-                "isalpha": f_obj_str_isalpha,
-                "replace": f_obj_str_replace,
-                "stripped": f_obj_str_stripped,
-                "self": f_obj_str_self,
-                "set": f_obj_str_set,
-                "get": f_obj_str_get,
-                "upper": f_obj_str_upper,
-                "lower": f_obj_str_lower,
-                "cut": f_obj_str_cut,
-                "shove": f_obj_str_shove,
-                "around": f_obj_str_around,
-                "startswith": f_obj_str_startswith,
-                "endswith": f_obj_str_endswith,
-                **aliases(f_obj_str_strip, ("strip", "trim")),
+                **OBJ_GENERAL_STR_ACCESS_DISPATCH,
+                **OBJ_GENERAL_STR_MODIFY_DISPATCH,
             },
             "dict": {
-                "set": f_obj_dict_set,
-                "setn": f_obj_dict_setn,
-                "get": f_obj_dict_get,
-                "keys": f_obj_dict_keys,
-                "values": f_obj_dict_values,
-                "items": f_obj_dict_items,
-                "foreach": f_obj_dict_foreach,
-                "map": f_obj_dict_map,   
+                **OBJ_GENERAL_DICT_ACCESS_DISPATCH,
+                **OBJ_GENERAL_DICT_MODIFY_DISPATCH,
             },
-            
+
             "class_based": {
-                "<class 'requests_html.HTMLSession'>": {
-                    "all": f_obj_html_all,
-                    "render": f_obj_html_render,    
-                    "else": f_obj_html_else,
-                },
-                "<class 'requests_html.HTML'>": {
-                    "gather": f_obj_justhtml_gather,
-                    "else": f_obj_justhtml_else,
-                }
+                **OBJ_GENERAL_CLASS_BASED_REQUESTS_HTML_HTMLSession_DISPATCH,
+                **OBJ_GENERAL_CLASS_BASED_REQUESTS_HTML_HTML_DISPATCH,
             },
-            
-            
+
+
             "default": {
-                # chained
-                "": f_obj_default_noobjfunc,
-                
-                # basic operations
-                "+": f_obj_default_add,
-                "-": f_obj_default_sub,
-                "/": f_obj_default_div,
-                "%": f_obj_default_mod,
-                "**": f_obj_default_pow,
-                "//": f_obj_default_idiv,
-                **aliases(f_obj_default_mul, ("*", "x")),
-                
-                # string operations
-                "string_name": f_obj_default_string_name,
-                "each": f_obj_default_each,
-                "rfind": f_obj_default_rfind,
-                "lfind": f_obj_default_lfind,
-                "find": f_obj_default_find,
-                "filter": f_obj_default_filter,
-                "func": f_obj_default_func,
-                "reverse": f_obj_default_reverse,
-                "in": f_obj_default_in,
-                
-                # misc operations
-                "copy": f_obj_default_copy,
-                "print": f_obj_default_print,
-                "switch": f_obj_default_switch,
-                "rename": f_obj_default_rename,
-                "if": f_obj_default_if,
-                "is": f_obj_default_is,
-                "equals": f_obj_default_equals,
-                "slice": f_obj_default_slice,
-                "index": f_obj_default_index,
-                "export": f_obj_default_export,
-                
-                # properties
-                "val": f_obj_default_val,
-                "type": f_obj_default_type,
-                "len": f_obj_default_len,
-                
-                # casting
-                "str": f_obj_default_str,
-                "int": f_obj_default_int,
-                "float": f_obj_default_float,
-                "complex": f_obj_default_complex,
-                "bool": f_obj_default_bool,
-                "dict": f_obj_default_dict,
+                **OBJ_GENERAL_DEFAULT_CHAINED_DISPATCH,
+                **OBJ_GENERAL_DEFAULT_OPS_DISPATCH,
+                **OBJ_GENERAL_DEFAULT_STRINGS_DISPATCH,
+                **OBJ_GENERAL_DEFAULT_GENERAL_DISPATCH,
+                **OBJ_GENERAL_DEFAULT_PROPERTIES_DISPATCH,
+                **OBJ_GENERAL_DEFAULT_CAST_DISPATCH,
             }
         },
         "instance": {
-            "new": f_instance_new,
+            **OBJ_INSTANCE_CREATION_DISPATCH,
         },
         "trace": {
-            "this": f_trace_this,
-            "before": f_trace_before,
-            "len": f_trace_len,
+            **OBJ_TRACE_GENERAL_DISPATCH,
         },
         "py": {
-            "get": f_py_get,
-            "set": f_py_set,
-            "locals": f_py_locals,
-            "local": f_py_local,
-            "globals": f_py_globals,
-            "global": f_py_global,
-            "run": f_py_run,
-            "else": f_py_else,
+            **OBJ_PY_ACCESS_DISPATCH,
+            **OBJ_PY_RUN_DISPATCH,
+            **OBJ_PY_DEFAULT_DISPATCH,
         },
         "op": {
-            **aliases(f_op_append, ("append", "push", "add", "plus", "+", "concat", "concatenate", "join", "merge", "sum")),
-            **aliases(f_op_sub, ("sub", "minus", "subtract", "-")),
-            **aliases(f_op_mul, ("mul", "times", "x", "*", "multiply")),
-            **aliases(f_op_div, ("div", "divide", "over", "/")),
-            **aliases(f_op_idiv, ("idiv", "intdiv", "intdivide", "intover", "//", "÷÷")),
-            **aliases(f_op_mod, ("mod", "modulo", "modulus", "%", "remainder")),
-            **aliases(f_op_pow, ("pow", "power", "exponent", "**")),
-            **aliases(f_op_root, ("root", "nthroot", "nthrt")),
-            "else": f_op_else,
+            **OBJ_OP_BASIC_DISPATCH,
+            **OBJ_OP_DEFAULT_DISPATCH
         },
         "function": {
-            "addbody": f_function_addbody,
-            "addarg": f_function_addarg,
-            "addreturn": f_function_addreturn,
-            "getbody": f_function_getbody,
-            "getargs": f_function_getargs,
-            "getreturn": f_function_getreturn,
-            "destroy": f_function_destroy,
-            "run": f_function_run,
-            "else": f_function_else,
+            **OBJ_FUNCTION_ACCESS_DISPATCH,
+            **OBJ_FUNCTION_MODIFY_DISPATCH,
+            **OBJ_FUNCTION_RUN_DISPATCH,
+            **OBJ_FUNCTION_DEFAULT_DISPATCH,
         },
         "html": {
-            "soup": f_html_soup,
-            "from": f_html_from,
-            "session": f_html_session,
-            "else": f_html_else,
+            **OBJ_HTML_BASIC_DISPATCH,
+            **OBJ_HTML_DEFAULT_DISPATCH,
         },
         "ai": {
             "models": f_ai_models,

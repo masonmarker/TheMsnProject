@@ -1,3 +1,3 @@
 
 
-print(env())
+env(1)
