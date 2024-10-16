@@ -41,6 +41,7 @@
         "18": "Changed alias() with no arguments to return the current python_alias"
     },
     "2.0.403": {
-        "1": "Restructured core functionality layout in core/ for readability, scalability, and maintainability"
+        "1": "Restructured core functionality layout in core/ for readability, scalability, and maintainability",
+        "2": "Moved javascript generation functions and files to core/using_js/"
     }
 }

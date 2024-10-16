@@ -4656,7 +4656,7 @@ class Interpreter:
                         return contents
                     # writes to a file
                     if objfunc == 'write':
-                        from core.dispatch.functions import file_write
+                        from core.common import file_write
                         return file_write(inst, lock, lines_ran)
                     # writes the argument as code
                     if objfunc == 'writemsn':
@@ -4682,7 +4682,7 @@ class Interpreter:
                         return True
                     # appends to a file
                     if objfunc == 'append':
-                        from core.dispatch.functions import file_append
+                        from core.common import file_append
                         return file_append(inst, lock, lines_ran)
                     # deletes a file
                     if objfunc == 'delete':

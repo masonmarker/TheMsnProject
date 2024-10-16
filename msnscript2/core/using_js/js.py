@@ -48,7 +48,7 @@ def convert_to_js(inst, lock, lines_ran):
         return as_js + ")"
     # if in inst.interpreter.routes
     elif inst.func in inst.interpreter.routes:
-        from core.dispatch.functions import insert_line_at_marker
+        from core.using_js.js_tools.functions import insert_line_at_marker
         # import this route
         raise NotImplementedError
     # if in inst.interpreter.states
@@ -57,7 +57,7 @@ def convert_to_js(inst, lock, lines_ran):
         # get the state value
         state_value = inst.interpreter.states[state_name].value
         if inst.objfunc == 'set':
-            from core.dispatch.functions import generate_safe_set_function
+            from core.using_js.js_tools.functions import generate_safe_set_function
             return generate_safe_set_function(inst, state_name)
         # otherwise, return the state
         return state_name
@@ -93,7 +93,7 @@ def convert_to_js(inst, lock, lines_ran):
     elif inst.func == "css":
         # get root dir
         import os
-        from core.dispatch.functions import get_root_dir, try_add_web_import
+        from core.using_js.js_tools.functions import get_root_dir, try_add_web_import
         root_dir = get_root_dir(inst)
         # create a styles folder if it doesn't exist
         if not os.path.exists(f"{root_dir}styles"):
@@ -128,7 +128,7 @@ def convert_to_js(inst, lock, lines_ran):
             initial_app_js = open(app_path, 'r').read()
             # if chakra has not been imported
             if "ChakraProvider" not in initial_app_js:
-                from core.dispatch.functions import insert_line_at_marker
+                from core.using_js.js_tools.functions import insert_line_at_marker
                 # im using python to generate a nextjs _app.js, and i need a python function that can append a parent to the returning component, like be able to read from the _app.js file path as an argument, and look at that current javascript and its imports and returning component and stuff, but just rewrite to that file the same code with a new parent element, the HTML tag also being an argument to that function
                 # insert the import
                 insert_line_at_marker(inst, app_path, "imports",
@@ -144,7 +144,7 @@ def convert_to_js(inst, lock, lines_ran):
     # creating a const
     elif inst.func == "const":
         from core.classes.var import Var
-        from core.dispatch.functions import is_react_code
+        from core.using_js.js_tools.functions import is_react_code
         name = inst.parse(0)
         value = parse(inst, 1)
         # if value is react code
@@ -155,7 +155,7 @@ def convert_to_js(inst, lock, lines_ran):
     # let
     elif inst.func == "let":
         from core.classes.var import Var
-        from core.dispatch.functions import is_react_code
+        from core.using_js.js_tools.functions import is_react_code
         name = inst.parse(0)
         value = parse(inst, 1)
         # if value is react code
@@ -166,7 +166,7 @@ def convert_to_js(inst, lock, lines_ran):
     # var
     elif inst.func == "var":
         from core.classes.var import Var
-        from core.dispatch.functions import is_react_code
+        from core.using_js.js_tools.functions import is_react_code
         name = inst.parse(0)
         value = parse(inst, 1)
         # if value is react code
@@ -177,7 +177,7 @@ def convert_to_js(inst, lock, lines_ran):
     # creates a state
     elif inst.func == "state":
         from core.classes.var import Var
-        from core.dispatch.functions import generate_set_function, try_add_web_import, add_state
+        from core.using_js.js_tools.functions import generate_set_function, try_add_web_import, add_state
 
         # # determine if useState has been imported
         # if (imp := ('useState', 'react')) not in inst.interpreter.web_imports:
@@ -204,13 +204,13 @@ def convert_to_js(inst, lock, lines_ran):
         return f"const [{name}, {set_function}] = useState({default_value_or_new_value})\nuseEffect(() => {{\n// {name} useEffect ::\n}}, [{name}])\n"
     # inserts a useEffect hook
     elif inst.func == "effect":
-        from core.dispatch.functions import use_effect
+        from core.using_js.js_tools.functions import use_effect
         return use_effect(inst)
     # states a piece of code as effectful code
     elif inst.func == "effectful":
         # creates a useEffect and a state for this effectful code
         # try to add web import useEffect
-        from core.dispatch.functions import try_add_web_import, generate_serialized_state, generate_set_function, add_state
+        from core.using_js.js_tools.functions import try_add_web_import, generate_serialized_state, generate_set_function, add_state
         try_add_web_import(
             inst, [(False, 'useEffect', 'react'), (False, 'useState', 'react')])
         # get the name of the state
@@ -271,7 +271,7 @@ def convert_to_js(inst, lock, lines_ran):
     # creates a /pages/api/*route*.js file for api interaction
     # also (creates and) appends to /api/functions.js file for api functions
     elif inst.func == "apiroute":
-        from core.dispatch.functions import generate_api_scripts_and_add
+        from core.using_js.js_tools.functions import generate_api_scripts_and_add
         # take input
         route_name = inst.parse(0)
         # route request variable name
@@ -297,7 +297,7 @@ def convert_to_js(inst, lock, lines_ran):
         return ""
     # simpler apiroute
     elif inst.func == "defineapi":
-        from core.dispatch.functions import generate_api_scripts_and_add, generate_fetch
+        from core.using_js.js_tools.functions import generate_api_scripts_and_add, generate_fetch
         # take route_name
         route_name = inst.parse(0)
         # take request variable name
@@ -313,7 +313,7 @@ def convert_to_js(inst, lock, lines_ran):
         return ""
     # defines an entire api script at next_project_root/pages/api/*route*.js
     elif inst.func == "defineapiscript":
-        from core.dispatch.functions import generate_api_scripts_and_add, generate_fetch, get_pages_path
+        from core.using_js.js_tools.functions import generate_api_scripts_and_add, generate_fetch, get_pages_path
         # take route_name
         route_name = inst.parse(0)
         # take initial script
@@ -341,19 +341,19 @@ def convert_to_js(inst, lock, lines_ran):
         return ""
     # gets from api:route
     elif inst.func == "apiget":
-        from core.dispatch.functions import generate_fetch
+        from core.using_js.js_tools.functions import generate_fetch
         # path to get from
         path = inst.parse(0)
         # request body
         return generate_fetch(inst.parse(0))
     # creates a component route
     elif inst.func == "route":
-        from core.dispatch.functions import add_route
+        from core.using_js.js_tools.functions import add_route
         return add_route(inst, inst.parse(0), inst.parse(1))
     # link to a different page
     elif inst.func == "linkto":
         # import nextlink and useRouter
-        from core.dispatch.functions import try_add_web_import
+        from core.using_js.js_tools.functions import try_add_web_import
         # get the page to navigate to
         page = inst.parse(0)
         # remove the first 2 args in inst.args
@@ -362,7 +362,7 @@ def convert_to_js(inst, lock, lines_ran):
         # add the imports
         try_add_web_import(inst, [(False, 'useRouter', 'next/router'),
                                   (True, 'Link', 'next/link')])
-        from core.dispatch.functions import component
+        from core.using_js.js_tools.functions import component
         # return the link
         return component(inst, "Link", {'href': page})
     # grid
@@ -375,7 +375,7 @@ def convert_to_js(inst, lock, lines_ran):
         # to prepare component
         inst.args = inst.args[2:]
         # return component
-        from core.dispatch.functions import component
+        from core.using_js.js_tools.functions import component
         return component(inst, "div", {'style': {
             'display': 'grid',
             'gridTemplateRows': f"repeat({rows}, 1fr)",
@@ -384,22 +384,22 @@ def convert_to_js(inst, lock, lines_ran):
     # creates a page route to a script
     # HTML elements
     elif inst.func in html_elements:
-        from core.dispatch.functions import component
+        from core.using_js.js_tools.functions import component
         return component(inst, inst.func)
     # general text
     elif inst.func == "text":
-        from core.dispatch.functions import component
+        from core.using_js.js_tools.functions import component
         return component(inst, "span")
     # fits the element to its parent
     elif inst.func == "fitscreen":
-        from core.dispatch.functions import component
+        from core.using_js.js_tools.functions import component
         return component(inst, "div", {'style': {
             'height': '100svh',
             'width': '100svw'
         }})
     # vcenter: centers an element vertically
     elif inst.func in ("vcenter", "vcentered"):
-        from core.dispatch.functions import component
+        from core.using_js.js_tools.functions import component
         return component(inst, "div", {'style': {
             'display': 'flex',
             'alignItems': 'center',
@@ -407,7 +407,7 @@ def convert_to_js(inst, lock, lines_ran):
         }})
     # hcenter: centers an element horizontally
     elif inst.func in ("hcenter", "hcentered"):
-        from core.dispatch.functions import component
+        from core.using_js.js_tools.functions import component
         return component(inst, "div", {'style': {
             'display': 'flex',
             'justifyContent': 'center',
@@ -415,7 +415,7 @@ def convert_to_js(inst, lock, lines_ran):
         }})
     # centers children both horizontally and vertically
     elif inst.func in ("center", "centered"):
-        from core.dispatch.functions import component
+        from core.using_js.js_tools.functions import component
         return component(inst, "div", {'style': {
             'height': 'inherit',
             'width': 'inherit',
@@ -426,14 +426,14 @@ def convert_to_js(inst, lock, lines_ran):
         }})
     # vertical stack of components
     elif inst.func == "vstack":
-        from core.dispatch.functions import component
+        from core.using_js.js_tools.functions import component
         return component(inst, "div", {'style': {
             'display': 'flex',
             'flexDirection': 'column',
         }})
     # horizontal stack of components
     elif inst.func == "hstack":
-        from core.dispatch.functions import component
+        from core.using_js.js_tools.functions import component
         return component(inst, "div", {'style': {
             'display': 'flex',
             'flexDirection': 'row',
@@ -441,21 +441,21 @@ def convert_to_js(inst, lock, lines_ran):
     # REQUIRES REACT 17
     # React.Fragment
     elif inst.func == "fragment":
-        from core.dispatch.functions import component
+        from core.using_js.js_tools.functions import component
         return component(inst, "React.Fragment")
 
     # checking objfunc
     elif inst.obj == "file":
         if inst.objfunc == "write":
-            from core.dispatch.functions import file_write
+            from core.common import file_write
             return file_write(inst, lock, lines_ran)
         elif inst.objfunc == "append":
-            from core.dispatch.functions import file_append
+            from core.common import file_append
             return file_append(inst, lock, lines_ran)
     # imports from an msn2 file
     elif inst.func == "import":
         from core.using_js.js import parse_string
-        from core.dispatch.functions import get_root_dir
+        from core.using_js.js_tools.functions import get_root_dir
         import os
         # get the path of the file
         path = inst.parse(0)
@@ -482,7 +482,7 @@ def convert_to_js(inst, lock, lines_ran):
     # general print, JavaScript equivalent
     # is the notorious 'console.log'
     elif inst.func in ("prnt", "print"):
-        from core.dispatch.functions import stringify
+        from core.using_js.js_tools.functions import stringify
         as_js = "console.log("
         for i in range(len(inst.args)):
             curr = parse(inst, i)
@@ -529,11 +529,11 @@ def convert_to_js(inst, lock, lines_ran):
         return as_js
     # creates and executes a function in one call
     elif inst.func == "=>" or (inst.func == '' and inst.objfunc == ''):
-        from core.dispatch.functions import callback
+        from core.using_js.js_tools.functions import callback
         return callback(inst)
     # async function
     elif inst.func == "async":
-        from core.dispatch.functions import callback
+        from core.using_js.js_tools.functions import callback
         # does the same as the above condition
         # but with async
         return callback(inst, is_async=True)
@@ -547,14 +547,14 @@ def convert_to_js(inst, lock, lines_ran):
 
     # generates a unique hash based on the current instruction tree
     elif inst.func == "uniquehash":
-        from core.dispatch.functions import unique_hash
+        from core.using_js.js_tools.functions import unique_hash
         return f"""{unique_hash(inst)}"""
 
     # REQUIRES REACT 17
     # React.Fragment
     elif inst.func == "unique":
         global inst_tree
-        from core.dispatch.functions import component, unique_hash, try_add_web_import
+        from core.using_js.js_tools.functions import component, unique_hash, try_add_web_import
         # add React import
         try_add_web_import(inst, [(True, 'React', 'react')])
         # return a div with a unique hash
@@ -573,7 +573,7 @@ def convert_to_js(inst, lock, lines_ran):
     # #
     elif inst.func == "render":
         from core.classes.var import Var
-        from core.dispatch.functions import component, unique_hash_counter
+        from core.using_js.js_tools.functions import component, unique_hash_counter
         # get the iterable
         iterable = inst.parse(0)
         # get the variable name
@@ -592,15 +592,15 @@ def convert_to_js(inst, lock, lines_ran):
         return f"{{[{js_instruction}]}}"
     # if the function is in the css colors, return a span with the color
     elif inst.func in css_colors:
-        from core.dispatch.functions import component
+        from core.using_js.js_tools.functions import component
         return component(inst, "div", {'style': {'color': inst.func}})
     # poppins font
     elif inst.func == "poppins":
-        from core.dispatch.functions import component
+        from core.using_js.js_tools.functions import component
         # using chakra icons
         return component(inst, "div", {'style': {'fontFamily': 'Poppins'}})
     elif inst.func.startswith("chakra:icon:"):
-        from core.dispatch.functions import component, try_add_web_import
+        from core.using_js.js_tools.functions import component, try_add_web_import
         # add non default import for @chakra-ui/icons
         name = inst.func.split(":")[2]
         try_add_web_import(inst, [(False, name, '@chakra-ui/icons')])
@@ -608,7 +608,7 @@ def convert_to_js(inst, lock, lines_ran):
     # Chakra elements
     # if the function starts with 'chakra:'
     elif inst.func.startswith("chakra:"):
-        from core.dispatch.functions import component, try_add_web_import
+        from core.using_js.js_tools.functions import component, try_add_web_import
         # get the element name
         element_name = inst.func.split(":")[1]
         try_add_web_import(inst, [(False, element_name, '@chakra-ui/react')])
