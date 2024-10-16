@@ -23,7 +23,7 @@ def hyphen(inst):
         try:
             ret = ret.copy()
         except AttributeError:
-            None
+            pass
         for i in range(1, len(inst.args)):
             ret -= inst.parse(i)
         return ret

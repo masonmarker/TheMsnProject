@@ -1,3 +1,4 @@
 
+pointer.wait_left()
 
-env(1)
+print(pointer.position())
