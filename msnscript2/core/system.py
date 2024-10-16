@@ -18,11 +18,7 @@ def f_boot(inter, line, args, **kwargs):
 def f_me(inter, line, args, **kwargs):
     return inter.me()
 def f_env(inter, line, args, **kwargs):
-    should_print = False
-    if args[0][0] != "":
-        should_print = True
-    # first argument should be either string or integer
-    first = inter.parse(0, line, args)[2]
+    # Build the environment string
     strenv = "--------- environment ---------"
     strenv += f"\nout:\n{inter.out}"
     strenv += "\nvariables:\n"
@@ -32,7 +28,6 @@ def f_env(inter, line, args, **kwargs):
         except:
             None
     strenv += "\nmethods:\n"
-    # printing methods
     for methodname, Method in inter.methods.items():
         strenv += f"\t{methodname}("
         for i in range(len(Method.args)):
@@ -42,33 +37,104 @@ def f_env(inter, line, args, **kwargs):
             else:
                 strenv += str(arg)
         strenv += f") : {len(Method.body)} inst\n"
-    # printing macros
+    
     strenv += "\nmacros:\n\t"
-    # adding regular macros
     if len(kwargs["macros"]) > 0:
         strenv += "premacros:\n\t\t"
-        for macro in kwargs["macros"]:
-            # strenv += macro + "\n\t\t"
-            strenv += f"{macro}\n\t\t"
+        for i, macro in enumerate(kwargs["macros"]):
+            if i != len(kwargs["macros"]) - 1:
+                strenv += f"{macro}\n\t\t"
+            else:
+                strenv += f"{macro}"
+                
     if len(kwargs["postmacros"]) > 0:
         strenv += "\n\tpostmacros:\n\t\t"
-        for macro in kwargs["postmacros"]:
-            # strenv += macro + "\n\t\t"
-            strenv += f"{macro}\n\t\t"
+        for i, macro in enumerate(kwargs["postmacros"]):
+            if i != len(kwargs["postmacros"]) - 1:
+                strenv += f"{macro}\n\t\t"
+            else:
+                strenv += f"{macro}"
     if len(kwargs["syntax"]) > 0:
         strenv += "\n\tsyntax:\n\t\t"
-        for macro in kwargs["syntax"]:
-            strenv += f"{macro}\n\t\t"
+        for i, macro in enumerate(kwargs["syntax"]):
+            if i != len(kwargs["syntax"]) - 1:
+                strenv += f"{macro}\n\t\t"
+            else:
+                strenv += f"{macro}"
     if len(kwargs["enclosed"]) > 0:
         strenv += "\n\tenclosedsyntax:\n\t\t"
-        for macro in kwargs["enclosed"]:
-            strenv += f"{macro}\n\t\t"
+        for i, macro in enumerate(kwargs["enclosed"]):
+            if i != len(kwargs["enclosed"]) - 1:
+                strenv += f"{macro}\n\t\t"
+            else:
+                strenv += f"{macro}"
     strenv += f"\nlog:\n{inter.log}\n-------------------------------"
-    if should_print:
-        inter.styled_print(
-            [{"text": strenv, "style": "bold", "fore": "blue"}]
-        )
+    
+    # If an argument is provided, use styled_print to print with color
+    if args[0][0] != "":
+        inter.styled_print([
+            {"text": "--------- environment ---------", "style": "bold", "fore": "black"},
+            {"text": f"\nout:\n{inter.out}", "style": "italic", "fore": "blue"},
+            {"text": "\nvariables:", "style": "underline", "fore": "green"},
+        ])
+        # Print the variables with specific styling (name = value)
+        for varname, v in inter.vars.items():
+            try:
+                inter.styled_print([
+                    {"text": f"\t{varname}", "fore": "magenta"},
+                    {"text": " = ", "fore": "black"},
+                    {"text": f"{inter.shortened(v.value)}", "fore": "yellow"}
+                ])
+            except:
+                None
+        # Continue printing other sections with specific styling
+        inter.styled_print([
+            {"text": "\nmethods:", "style": "underline", "fore": "yellow"}
+        ])
+        for methodname, Method in inter.methods.items():
+            method_pieces = [{"text": f"\t{methodname}(", "fore": "yellow"}]
+            for i in range(len(Method.args)):
+                arg = Method.args[i]
+                method_pieces.append({"text": f"{arg}", "fore": "magenta"})
+                if i != len(Method.args) - 1:
+                    method_pieces.append({"text": ", ", "fore": "black"})
+            method_pieces.append({"text": ")", "fore": "yellow"})
+            method_pieces.append({"text": " : ", "fore": "black"})
+            method_pieces.append({"text": f"{len(Method.body)} inst", "fore": "black"})
+            inter.styled_print(method_pieces)
+        
+        inter.styled_print([
+            {"text": "\nmacros:", "style": "underline", "fore": "red"}
+        ])
+        if len(kwargs["macros"]) > 0:
+            inter.styled_print([{"text": "\tpremacros:", "fore": "red"}])
+            for macro in kwargs["macros"]:
+                inter.styled_print([{"text": f"\t\t{macro}", "fore": "yellow"}])
+        if len(kwargs["postmacros"]) > 0:
+            inter.styled_print([{"text": "\tpostmacros:", "fore": "red"}])
+            for macro in kwargs["postmacros"]:
+                inter.styled_print([{"text": f"\t\t{macro}", "fore": "yellow"}])
+        if len(kwargs["syntax"]) > 0:
+            inter.styled_print([{"text": "\tsyntax:", "fore": "red"}])
+            for macro in kwargs["syntax"]:
+                inter.styled_print([{"text": f"\t\t{macro}", "fore": "yellow"}])
+        if len(kwargs["enclosed"]) > 0:
+            inter.styled_print([{"text": "\tenclosedsyntax:", "fore": "red"}])
+            for macro in kwargs["enclosed"]:
+                inter.styled_print([{"text": f"\t\t{macro}", "fore": "yellow"}])
+        
+        inter.styled_print([
+            {"text": f"\nlog:\n{inter.log}", "style": "bold", "fore": "black"},
+            {"text": "\n-------------------------------", "style": "bold", "fore": "black"}
+        ])
+    
+    # Always return the raw string regardless of printing
     return strenv
+
+
+
+
+
 def f_envmaxchars(inter, line, args, **kwargs):
     # if no arguments, return the current maxchars
     if args[0][0] == "":

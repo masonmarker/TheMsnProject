@@ -1,4 +1,32 @@
 
-pointer.wait_left()
 
-print(pointer.position())
+import ('lib/user')
+
+# create some random stuff
+@variable = [1, 2, 3, 4, 5]
+
+def ('func', 'arg1', 'arg2', print('hi!'))
+def ('func2', 'arg1', 'arg2', print('hi!'))
+# syntax
+syntax('||', '__line', print(__line))
+syntax('::::', '__file', print(__file))
+# macros 
+macro('TEST ', '__line', print(__line))
+macro('TEST2 ', '__file', print(__file))
+# postmacros
+postmacro('POSTTEST ', '__line', print(__line))
+postmacro('POSTTEST2 ', '__file', print(__file))
+# enclosed syntax
+enclosedsyntax('||', '||','__line', print(__line))
+enclosedsyntax('::::', '::::', '__file', print(__file))
+
+
+
+
+
+# add to the out
+prnt('this is some out text')
+
+
+
+env(1)
