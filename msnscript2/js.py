@@ -65,7 +65,7 @@ def convert_to_js(inst, lock, lines_ran):
     elif inst.func == "+":
         return f"({parse(inst, 0)} + {parse(inst, 1)})"
     elif inst.func == "-":
-        from functions import hyphen
+        from core.common import hyphen
         return hyphen(inst)
     # default export code manipulation
     # prettifying code
@@ -513,7 +513,7 @@ def convert_to_js(inst, lock, lines_ran):
         return f"await {parse(inst, 0)}"
     # detailed named function with arguments
     elif inst.func == 'def':
-        from functions import define
+        from core.functions import define
         # define the function so it may be recognized as a method
         # in future interpretation
         define(inst, lines_ran)

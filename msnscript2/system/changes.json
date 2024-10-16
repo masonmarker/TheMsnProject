@@ -39,5 +39,8 @@
         "16": "Deprecated <msn2element> and <msn2> inserts, only {==} inserts are allowed within calls such as script() or longstring()",
         "17": "trace.before() with no arguments now returns the total number of interpretations",
         "18": "Changed alias() with no arguments to return the current python_alias"
+    },
+    "2.0.403": {
+        "1": ""
     }
 }

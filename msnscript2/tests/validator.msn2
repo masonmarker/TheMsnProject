@@ -1691,7 +1691,7 @@ def('test_try', (
 # in 2.0.388, there are new string functions
 # these functions are tested correctly in the below test function
 def('test_new_string_functions', (
-    print_test('try'),
+    print_test('new string functions'),
     # resets the test string
     def('reset', @ a = "hello, how are you?"),
     reset(),

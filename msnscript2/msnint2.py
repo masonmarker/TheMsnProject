@@ -691,6 +691,7 @@ class Interpreter:
                         object = self.vars[obj].value
                     except:
                         object = self.vars[obj]
+                    _type_object = type(object)
                     try:
                         # if the object is a class
                         if objfunc in object:
@@ -789,7 +790,7 @@ class Interpreter:
                         if objfunc in FUNCTION_DISPATCH["obj"]["general"]["set"]:
                             return FUNCTION_DISPATCH["obj"]["general"]["set"][objfunc](
                                 self, line, args, vname=vname, objfunc=objfunc,
-                                object=object, obj=obj, lines_ran=lines_ran
+                                object=object, obj=obj, lines_ran=lines_ran, f=f
                             )
 
                     # array based functions
@@ -797,7 +798,7 @@ class Interpreter:
                         if objfunc in FUNCTION_DISPATCH["obj"]["general"]["list"]:
                             return FUNCTION_DISPATCH["obj"]["general"]["list"][objfunc](
                                 self, line, args, vname=vname, objfunc=objfunc,
-                                object=object, obj=obj, lines_ran=lines_ran
+                                object=object, obj=obj, lines_ran=lines_ran, f=f
                             )
                     # if the object is a string
                     elif isinstance(object, str):

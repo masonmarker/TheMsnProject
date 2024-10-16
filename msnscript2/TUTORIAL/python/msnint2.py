@@ -3406,7 +3406,7 @@ class Interpreter:
                     return fname
                 # simpler way to create a function
                 elif func == 'def':
-                    from functions import define
+                    from core.functions import define
                     return define(inst, lines_ran)
                 # performs modular arithmetic on the two arguments given
                 elif func == 'mod':
@@ -6434,7 +6434,7 @@ class Interpreter:
                 # inline function, takes any amount of instructions
                 # returns the result of the last instruction
                 elif func == "=>" or (func == '' and objfunc == ''):
-                    from functions import multi_lined
+                    from core.common import multi_lined
                     return multi_lined(inst)
                 # if the function, when parsed, is an integer,
                 # then it is a loop that runs func times

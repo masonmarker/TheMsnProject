@@ -1,7 +1,56 @@
 """Joint functions and dispatch table."""
 
-from msnint2 import Var
 
+# utilties
+from core.common import aliases
+
+# common
+from var import Var
+
+# accumulating grouped default functions
+
+# basic
+from core.system import SYSTEM_DISPATCH
+from core.functions import FUNCTION_BASED_DISPATCH
+from core.vars import VARS_DISPATCH
+from core.math import MATH_DISPATCH
+from core.strings import STRINGS_DISPATCH
+from core.numbers import NUMBERS_DISPATCH
+from core.type_testing import TYPE_TESTING_DISPATCH
+from core.iterables import ITERABLES_DISPATCH
+from core.assertions import ASSERTIONS_DISPATCH
+from core.object_general import OBJECT_GENERAL_DISPATCH
+from core.syntax import SYNTAX_DISPATCH
+from core.logical import LOGICAL_DISPATCH
+from core.domains import DOMAINS_DISPATCH
+from core.in_out import IN_OUT_DISPATCH
+from core.stdout import STDOUT_DISPATCH
+from core.js import JS_DISPATCH
+from core.time import TIME_DISPATCH
+from core.contexts import CONTEXTS_DISPATCH
+from core.multiprogramming import MULTIPROGRAMMING_DISPATCH
+from core.pointer import POINTER_DISPATCH
+from core.api import API_DISPATCH
+from core.insertions import INSERTIONS_DISPATCH
+from core.lang import LANG_DISPATCH
+from core.win_auto import WIN_AUTO_DISPATCH
+from core.excel import EXCEL_DISPATCH
+from core.cast import CAST_DISPATCH
+from core.conditionals import CONDITIONALS_DISPATCH
+from core.redirects import REDIRECTS_DISPATCH
+
+# object based
+from core.obj.general.destructive import OBJ_GENERAL_DESTRUCTIVE_DISPATCH
+from core.obj.general.number.comparisons import OBJ_GENERAL_NUMBER_COMPARISONS_DISPATCH
+from core.obj.general.number.ops import OBJ_GENERAL_NUMBER_OPS_DISPATCH
+from core.obj.general.number.ops_ip import OBJ_GENERAL_NUMBER_OPS_IP_DISPATCH
+from core.obj.general.set.basic import OBJ_GENERAL_SET_BASIC_DISPATCH
+
+# special functions
+from core.special.loops import SPECIAL_LOOPS_DISPATCH
+
+# misc
+from core.misc import MISC_DISPATCH
 
 # directory functions
 
@@ -174,77 +223,15 @@ def file_append(inst, lock, lines_ran):
 # interprets the first argument
 
 
-def hyphen(inst):
-    if len(inst.args) == 1:
-        return inst.interpreter.interpret(inst.parse(0))
-    # subtracts all arguments from the first argument
-    else:
-        ret = inst.parse(0)
-        try:
-            ret = ret.copy()
-        except AttributeError:
-            None
-        for i in range(1, len(inst.args)):
-            ret -= inst.parse(i)
-        return ret
 
 # defines a function
 
-
-def define(inst, lines_ran):
-    from method import Method
-    # get the name of the new function
-    name = inst.parse(0)
-    # function name must be a string
-    inst.type_err([(name, (str,))], lines_ran)
-    # create the new function
-    new_func = Method(name, inst.interpreter)
-    func_args = []
-    # __temp = self.Method('', self)
-    __temp = Method('', inst.interpreter)
-    # get the args for this function between the name and the body
-    # parse all args between the name and the body
-    for i in range(1, len(inst.args) - 1):
-        # get the stripped string rep of this arg
-        as_s = inst.args[i][0].strip()
-        if as_s[0] == '&':
-            func_args, meth_argname, _, ind = inst.interpreter.split_named_arg(
-                as_s, __temp, func_args)
-            # add argument with default value
-            new_func.add_arg([meth_argname, func_args[ind]])
-        else:
-            # add this argument to the method
-            new_func.add_arg(inst.parse(i))
-            new_arg = inst.parse(i)
-            # self.type_err([(new_arg, (str,))], line, lines_ran)
-            inst.type_err([(new_arg, (str,))], lines_ran)
-    # add the body
-    new_func.add_body(f"ret('{name}',{inst.args[-1][0]})")
-    # return buffer variable name
-    r_name = f"{name}__return__"
-    # if the return buffer doesn't exist, create it
-    if r_name not in inst.interpreter.vars:
-        from msnint2 import Var
-        # create the return variable
-        inst.interpreter.vars[r_name] = Var(r_name, None)
-    # add the return variable
-    new_func.add_return(r_name)
-    # add the function to the methods
-    inst.interpreter.methods[name] = new_func
-    # return the name of the function
-    return name
 
 # runs a user function
 
 
 # interprets a multi-lined function call
 
-
-def multi_lined(inst):
-    ret = None
-    for i in range(len(inst.args)):
-        ret = inst.parse(i)
-    return ret
 
 # executes a user function
 
@@ -742,324 +729,9 @@ def add_state(inst, name, default_value_or_new_value):
     inst.interpreter.states[name] = Var(name, default_value_or_new_value)
 
 
-# general functions
-def f_redirect(inter, line: str, args, **kwargs):
-    inter.redirect_inside = []
-    # creates redirect for this interpreter
-    # check for type errors
-    linevar = inter.parse(0, line, args)[2]
-    inter.type_err([(linevar, (str,))], line, kwargs["lines_ran"])
-    inter.redirect = [linevar, args[1][0]]
-    inter.redirecting = True
-    return inter.redirect
 
 
-def f_stopredirect(inter, line: str, args, **kwargs):
-    inter.redirecting = False
-    return True
 
-
-def f_startredirect(inter, line: str, args, **kwargs):
-    ret = None
-    for _ins in inter.redirect_inside:
-        inter.vars[inter.redirect[0]] = Var(
-            inter.redirect[0], _ins[1])
-        ret = inter.interpret(_ins[0])
-    return ret
-
-
-def f_function(inter, line: str, args, **kwargs):
-    from method import Method
-    # obtain the name of the function
-    fname = inter.parse(0, line, args)[2]
-    # function name must be a string
-    inter.type_err([(fname, (str,))], line, kwargs["lines_ran"])
-    # function arguments
-    # create the new Method
-    new_method = Method(fname, inter)
-    # add the body
-    new_method.add_body(args[1][0])
-    new_method.add_return(f"{fname}__return__")
-    # obtain the rest of the arguments as method args
-    for i in range(2, len(args)):
-        # adds variable name as an argument
-        # if any function specific argument is None, break
-        val = inter.parse(i, line, args)[2]
-        # val must be a string
-        inter.type_err([(val, (str,))], line, kwargs["lines_ran"])
-        if val == None:
-            break
-        new_method.add_arg(val)
-    inter.methods[fname] = new_method
-    return fname
-
-
-def f_def(inter, line: str, args, **kwargs):
-    return define(kwargs["inst"], kwargs["lines_ran"])
-
-
-def f_mod(inter, line: str, args, **kwargs):
-    arg1 = inter.parse(0, line, args)[2]
-    arg2 = inter.parse(1, line, args)[2]
-    _allowed = (int, float, complex, str)
-    # verify both arguments are either int or float or complex or str
-    inter.type_err(
-        [
-            (arg1, _allowed),
-            (arg2, _allowed),
-        ],
-        line,
-        kwargs["lines_ran"],
-    )
-    # both types must be int or float
-    return arg1 % arg2
-
-
-def f_ret(inter, line: str, args, **kwargs):
-    name = inter.parse(0, line, args)[2]
-    # name must be a string
-    inter.type_err([(name, (str,))], line, kwargs["lines_ran"])
-    # function to return to
-    vname = f"{name}__return__"
-    # value
-    value = inter.parse(1, line, args)[2]
-    # if the variable does not exist, we should create it
-    if vname not in inter.vars:
-        inter.vars[vname] = Var(vname, None)
-    inter.vars[vname].value = value
-    return value
-
-
-def f_arr(inter, line: str, args, **kwargs):
-    if args[0][0] == "":
-        return []
-    return [inter.parse(i, line, args)[2] for i in range(len(args))]
-
-
-def f_object(inter, line: str, args, **kwargs):
-    d = {}
-    if args[0][0] == "":
-        return d
-    # cannot have an odd number of arguments
-    if len(args) % 2 == 1:
-        inter.err(
-            "Odd number of arguments in creating object",
-            f"An even number of arguments required to have valid key-value pairs.\nYou said: {len(args)} arg(s)",
-            line,
-            kwargs["lines_ran"],
-        )
-    # step over arguments in steps of 2
-    for i in range(0, len(args), 2):
-        d[inter.parse(i, line, args)[2]] = inter.parse(i + 1, line, args)[2]
-    return d
-
-
-def f_split(inter, line: str, args, **kwargs):
-    first = inter.parse(0, line, args)[2]
-    second = inter.parse(1, line, args)[2]
-    # first and second must be str
-    inter.type_err([(first, (str,)), (second, (str,))],
-                   line, kwargs["lines_ran"])
-    return inter.parse(0, line, args)[2].split(
-        inter.parse(1, line, args)[2]
-    )
-
-
-def f_lines(inter, line: str, args, **kwargs):
-    return inter.parse(0, line, args)[2].split("\n")
-
-
-def f_eval(inter, line: str, args, **kwargs):
-    arg = inter.parse(0, line, args)[2]
-    # arg must be a str
-    inter.type_err([(arg, (str,))], line, kwargs["lines_ran"])
-    return eval(arg)
-
-
-def f_between(inter, line: str, args, **kwargs):
-    # surrounding token
-    surrounding = inter.parse(0, line, args)[2]
-    # surrounding must be str
-    inter.type_err([(surrounding, (str,))], line, kwargs["lines_ran"])
-    # string to analyze
-    string = inter.parse(1, line, args)[2]
-    # string must be str
-    inter.type_err([(string, (str,))], line, kwargs["lines_ran"])
-    funccalls = []
-    try:
-        while string.count(surrounding) > 1:
-            string = string[
-                string.index(surrounding) + len(surrounding):
-            ]
-            funccalls.append(string[: string.index(surrounding)])
-            string = string[
-                string.index(surrounding) + len(surrounding):
-            ]
-    except:
-        None
-    return funccalls
-
-
-def f_isstr(inter, line: str, args, **kwargs):
-    return isinstance(inter.parse(0, line, args)[2], str)
-
-
-def f_islist(inter, line: str, args, **kwargs):
-    return isinstance(inter.parse(0, line, args)[2], list)
-
-
-def f_isfloat(inter, line: str, args, **kwargs):
-    return isinstance(inter.parse(0, line, args)[2], float)
-
-
-def f_isint(inter, line: str, args, **kwargs):
-    return isinstance(inter.parse(0, line, args)[2], int)
-
-
-def f_isdict(inter, line: str, args, **kwargs):
-    return isinstance(inter.parse(0, line, args)[2], dict)
-
-
-def f_isinstance(inter, line: str, args, **kwargs):
-    return isinstance(
-        inter.parse(0, line, args)[2], inter.parse(1, line, args)[2]
-    )
-
-
-def f_sum(inter, line: str, args, **kwargs):
-    total = 0
-    for i in range(len(args)):
-        try:
-            total += sum(inter.parse(i, line, args)[2])
-        except:
-            try:
-                total += inter.parse(i, line, args)[2]
-            except Exception as e:
-                inter.err("Error computing sum", e, line, kwargs["lines_ran"])
-    return total
-
-
-def f_var(inter, line: str, args, **kwargs):
-    # extract varname
-    varname = inter.parse(0, line, args)[2]
-    # must be varname
-    inter.check_varname(varname, line)
-    # extract value
-    value = inter.parse(1, line, args)[2]
-    # add / set variable
-    inter.vars[varname] = Var(varname, value)
-    return value
-
-
-def f_list(inter, line: str, args, **kwargs):
-    try:
-        return list(inter.parse(0, line, args)[2])
-    except:
-        return inter.err(
-            "Casting error",
-            "Could not cast arg to a list",
-            line,
-            kwargs["lines_ran"],
-        )
-
-
-def f_abs(inter, line: str, args, **kwargs):
-    try:
-        return abs(inter.parse(0, line, args)[2])
-    except:
-        return inter.err(
-            "Error computing absolute value",
-            f"Could not compute absolute value of arg\nConsider changing arg to a number",
-            line,
-            kwargs["lines_ran"],
-        )
-
-
-def f_zip(inter, line: str, args, **kwargs):
-    first = inter.parse(0, line, args)[2]
-    second = inter.parse(1, line, args)[2]
-    # verify both are iterable
-    inter.check_iterable(first, line)
-    inter.check_iterable(second, line)
-    return zip(first, second)
-
-
-def f_next(inter, line: str, args, **kwargs):
-    arg = inter.parse(0, line, args)[2]
-    # arg must be iterable
-    inter.check_iterable(arg, line)
-    return next(arg)
-
-
-def f_iter(inter, line: str, args, **kwargs):
-    arg = inter.parse(0, line, args)[2]
-    # arg must be iterable
-    inter.check_iterable(arg, line)
-    return iter(arg)
-
-
-def f_exists(inter, line: str, args, **kwargs):
-    arg = inter.parse(0, line, args)[2]
-    # arg must be str
-    inter.type_err([(arg, (str,))], line, kwargs["lines_ran"])
-    return arg in inter.vars
-
-
-def f_exists_function(inter, line: str, args, **kwargs):
-    arg = inter.parse(0, line, args)[2]
-    # arg must be str
-    inter.type_err([(arg, (str,))], line, kwargs["lines_ran"])
-    return arg in inter.methods
-
-
-def f_len(inter, line: str, args, **kwargs):
-    # get the first argument
-    arg = inter.parse(0, line, args)[2]
-    # arg must be iterable
-    inter.check_iterable(arg, line)
-    return len(arg)
-
-
-def f_assert(inter, line: str, args, **kwargs):
-    for i in range(len(args)):
-        assertion = inter.parse(i, line, args)[2]
-        if not assertion:
-            failed = ""
-            for arg in args:
-                failed += f"{assertion} "
-            inter.err(
-                f"Assertion error in '{line}'",
-                assertion,
-                failed,
-                kwargs["lines_ran"],
-            )
-    return True
-
-
-def f_assert_err(inter, line: str, args, **kwargs):
-    for i in range(len(args)):
-        thrown = True
-        try:
-            # set inter.trying to True
-            inter.trying = True
-            # execute the line
-            ret = inter.parse(i, line, args)[2]
-            thrown = False
-            inter.trying = False
-        except:
-            thrown = True
-        if not thrown:
-            inter.err(
-                f"Assertion error, expected error",
-                "No error thrown where one was expected",
-                line,
-                kwargs["lines_ran"],
-            )
-    return True
-
-
-def f_settings(inter, line: str, args, **kwargs):
-    return inter.settings
 
 
 def f_trace_this(inter, line: str, args, **kwargs):
@@ -1167,250 +839,8 @@ def f_py_else(inter, line: str, args, **kwargs):
             )
 
 
-def _try_cast(inter, func, line: str, **kwargs):
-    try:
-        return func()
-    except Exception as e:
-        inter.err(
-            "Casting error",
-            f"Could not cast arg to specified type\n{e}",
-            line,
-            kwargs["lines_ran"],
-        )
-# casting functions
 
 
-def f_int(inter, line: str, args, **kwargs):
-    return _try_cast(inter, lambda: int(inter.parse(0, line, args)[2]), line, **kwargs)
-
-
-def f_float(inter, line: str, args, **kwargs):
-    return _try_cast(inter, lambda: float(inter.parse(0, line, args)[2]), line, **kwargs)
-
-
-def f_str(inter, line: str, args, **kwargs):
-    return _try_cast(inter, lambda: str(inter.parse(0, line, args)[2]), line, **kwargs)
-
-
-def f_bool(inter, line: str, args, **kwargs):
-    return _try_cast(inter, lambda: bool(inter.parse(0, line, args)[2]), line, **kwargs)
-
-
-def f_complex(inter, line: str, args, **kwargs):
-    return _try_cast(inter, lambda: complex(inter.parse(0, line, args)[2]), line, **kwargs)
-
-
-def f_type(inter, line: str, args, **kwargs):
-    return _try_cast(inter, lambda: type(inter.parse(0, line, args)[2]), line, **kwargs)
-
-
-def f_dir(inter, line: str, args, **kwargs):
-    return _try_cast(inter, lambda: dir(inter.parse(0, line, args)[2]), line, **kwargs)
-
-
-def f_set(inter, line: str, args, **kwargs):
-    if args[0][0] == "":
-        return set()
-    s = set()
-    for i in range(len(args)):
-        s.add(inter.parse(i, line, args)[2])
-    return s
-
-
-def f_dict(inter, line: str, args, **kwargs):
-    return _try_cast(inter, lambda: dict(inter.parse(0, line, args)[2]), line, **kwargs)
-
-
-def f_tuple(inter, line: str, args, **kwargs):
-    return _try_cast(inter, lambda: tuple(inter.parse(0, line, args)[2]), line, **kwargs)
-
-
-# conditional logic
-def f_if(inter, line: str, args, **kwargs):
-    # false block is optional
-    try:
-        false_block_s = args[2][0]
-    except:
-        false_block_s = None
-    ifcond = inter.parse(0, line, args)[2]
-    # if condition is true
-    if ifcond:
-        return inter.parse(1, line, args)[2]
-    # otherwise false block is executed
-    if false_block_s:
-        return inter.parse(2, line, args)[2]
-    return False
-
-
-def f_while(inter, line: str, args, **kwargs):
-    while inter.interpret(args[0][0]):
-        inter.interpret(args[1][0])
-    return True
-
-
-def f_for(inter, line: str, args, **kwargs):
-    # times to loop
-    start = inter.parse(0, line, args)[2]
-    end = inter.parse(1, line, args)[2]
-    loopvar = inter.parse(2, line, args)[2]
-    # start must be int
-    # end must be int
-    # loopvar must be str
-    inter.type_err(
-        [(start, (int,)), (end, (int,)), (loopvar, (str,))],
-        line,
-        kwargs["lines_ran"],
-    )
-    inter.vars[loopvar] = Var(loopvar, start)
-    # regular iteration
-    if start < end:
-        for i in range(start, end):
-            if loopvar in inter.vars and inter.vars[loopvar].value >= end:
-                break
-            inter.vars[loopvar] = Var(loopvar, i)
-            inter.interpret(args[3][0])
-    # reversed if requested
-    elif start > end:
-        for i in reversed(range(end, start)):
-            if loopvar in inter.vars and inter.vars[loopvar].value < end:
-                break
-            inter.vars[loopvar] = Var(loopvar, i)
-            inter.interpret(args[3][0])
-    return inter.vars[loopvar].value
-
-
-def f_each(inter, line: str, args, **kwargs):
-    # get array argument
-    array = inter.parse(0, line, args)[2]
-    # get element variable name
-    element_name = inter.parse(1, line, args)[2]
-    # prepare each element
-    inter.vars[element_name] = Var(element_name, 0)
-    # execute block for each element
-    for i in range(len(array)):
-        inter.vars[element_name].value = array[i]
-        inter.interpret(args[2][0])
-    return array
-
-
-def f_sortby(inter, line: str, args, **kwargs):
-    # iterable to sort
-    iterable = inter.parse(0, line, args)[2]
-    # iterable must be an iterable
-    inter.check_iterable(iterable, line)
-    # variable name
-    varname = inter.parse(1, line, args)[2]
-    # check variable name
-    inter.check_varname(varname, line)
-    # pairing elements to their interpretations
-    pairing = []
-    for i in range(len(iterable)):
-        inter.vars[varname] = Var(varname, iterable[i])
-        pairing.append((inter.interpret(args[2][0]), iterable[i]))
-    # sort the pairing based on the first element of each pair
-    pairing.sort(key=lambda x: x[0])
-    # return the sorted array containing the second element
-    # of each pair
-    return [pair[1] for pair in pairing]
-
-
-def f_comp(inter, line: str, args, **kwargs):
-    lst = []
-    # array to comprehend
-    arr = inter.parse(0, line, args)[2]
-    # should be an iterable
-    inter.check_iterable(arr, line)
-    # varname for the element
-    varname = inter.parse(1, line, args)[2]
-    # should be a varname
-    inter.check_varname(varname, line)
-    # block to perform
-    block = args[2][0]
-    # performs the list comprehension
-    for v in arr:
-        inter.vars[varname] = Var(varname, v)
-        r = inter.interpret(block)
-        if r != kwargs["msn2_none"]:
-            lst.append(r)
-    return lst
-
-
-def f_do(inter, line: str, args, **kwargs):
-    ret = inter.parse(0, line, args)[2]
-    inter.interpret(args[1][0])
-    return ret
-
-
-def f_None(inter, line: str, args, **kwargs):
-    return kwargs["msn2_none"]
-
-
-def f_filter(inter, line: str, args, **kwargs):
-    # iterable to filter
-    iterable = inter.parse(0, line, args)[2]
-    # check if iterable
-    inter.check_iterable(iterable, line)
-    # variable name
-    varname = inter.parse(1, line, args)[2]
-    # check variable name
-    inter.check_varname(varname, line)
-    # new array
-    filtered = []
-    # iterate through each element
-    for v in iterable:
-        # set the variable to the element
-        inter.vars[varname] = Var(varname, v)
-        # if the block returns true, add the element to the new array
-        if inter.interpret(args[2][0]):
-            filtered.append(v)
-    return filtered
-
-
-def f_unpack(inter, line: str, args, **kwargs):
-    # iterable to unpack
-    iterable = inter.parse(0, line, args)[2]
-    # check if iterable
-    inter.check_iterable(iterable, line)
-    # variable names to unpack into
-    for i in range(1, len(args)):
-        varname = inter.parse(i, line, args)[2]
-        inter.vars[varname] = Var(varname, iterable[i - 1])
-    return iterable
-
-
-def f_has(inter, line: str, args, **kwargs):
-    iterable = inter.parse(0, line, args)[2]
-    # iterable must be iterable
-    inter.check_iterable(iterable, line)
-    # optimized code:
-    try:
-        return all(
-            inter.parse(i + 1, line, args)[2] in iterable
-            for i in range(len(args) - 1)
-        )
-    except Exception as e:
-        return inter.err("Error in has()", e, line, kwargs["lines_ran"])
-
-
-def f_first(inter, line: str, args, **kwargs):
-    try:
-        return inter.parse(0, line, args)[2][0]
-    except:
-        return
-
-
-def f_add(inter, line: str, args, **kwargs):
-    first = inter.parse(0, line, args)[2]
-    second = inter.parse(1, line, args)[2]
-    # first must be a varname
-    inter.check_varname(first, line)
-    # case array
-    if isinstance(inter.vars[first].value, list):
-        inter.vars[first].value.append(second)
-    # case string or number
-    else:
-        inter.vars[first].value += second
-    return
 
 
 def _try_op(inter, func, line, lines_ran):
@@ -1496,59 +926,7 @@ def _f_op_root(inter, line, args):
     return arg1
 def f_op_else():
     return "<msnint2 class>"
-def f_USD(inter, line, args, **kwargs):
-    num = inter.parse(0, line, args)[2]
-    # number must be int or float
-    inter.type_err([(num, (int, float))], line, kwargs["lines_ran"])
-    return f"${num:,.2f}"
-def f_format(inter, line, args, **kwargs):
-    num = inter.parse(0, line, args)[2]
-    # number must be int or float
-    inter.type_err([(num, (int, float))], line, kwargs["lines_ran"])
-    places = inter.parse(1, line, args)[2]
-    # places must be int
-    inter.type_err([(places, (int,))], line, kwargs["lines_ran"])
-    return f"{num:.{places}f}"
-def f_round(inter, line, args, **kwargs):
-    num = inter.parse(0, line, args)[2]
-    # number must be int or float
-    inter.type_err([(num, (int, float))], line, kwargs["lines_ran"])
-    digits = inter.parse(1, line, args)[2]
-    # digits must be int
-    inter.type_err([(digits, (int,))], line, kwargs["lines_ran"])
-    return round(num, digits)
-def f_maximum(inter, line, args, **kwargs):
-    try:
-        maxval = (
-            max(_f)
-            if isinstance((_f := inter.parse(0, line, args)[2]), list)
-            else _f
-        )
-        for i in range(1, len(args)):
-            val = inter.parse(i, line, args)[2]
-            if isinstance(val, list):
-                maxval = max(maxval, max(val))
-            else:
-                maxval = max(maxval, val)
-    except Exception as e:
-        return inter.err("Error finding maximum value", e, line, kwargs["lines_ran"])
-    return maxval
-def f_minimum(inter, line, args, **kwargs):
-    try:
-        minval = (
-            min(_f)
-            if isinstance((_f := inter.parse(0, line, args)[2]), list)
-            else _f
-        )
-        for i in range(1, len(args)):
-            val = inter.parse(i, line, args)[2]
-            if isinstance(val, list):
-                minval = min(minval, min(val))
-            else:
-                minval = min(minval, val)
-    except Exception as e:
-        return inter.err("Error finding minimum value", e, line, kwargs["lines_ran"])
-    return minval
+
 
 def f_function_addbody(inter, line, args, **kwargs):
     fname = inter.parse(0, line, args)[2]
@@ -1612,135 +990,11 @@ def f_function_run(inter, line, args, **kwargs):
 def f_function_else():
     return "<msnint2 class>"
 
-def f_sub(inter, line, args, **kwargs):
-    vn = inter.parse(0, line, args)[2]
-    # vn must be a variable name
-    inter.check_varname(vn, line)
-    # gets the substring
-    other = inter.parse(1, line, args)[2]
-    inter.vars[vn].value -= other
-    return inter.vars[vn].value
-def f_mul(inter, line, args, **kwargs):
-    vn = inter.parse(0, line, args)[2]
-    # vn must be a variable name
-    inter.check_varname(vn, line)
-    # gets the substring
-    other = inter.parse(1, line, args)[2]
-    inter.vars[vn].value *= other
-    return inter.vars[vn].value
-def f_div(inter, line, args, **kwargs):
-    vn = inter.parse(0, line, args)[2]
-    # vn must be a variable name
-    inter.check_varname(vn, line)
-    # gets the substring
-    other = inter.parse(1, line, args)[2]
-    inter.vars[vn].value /= other
-    return inter.vars[vn].value
-def f_append(inter, line, args, **kwargs):
-    # variable name
-    vn = inter.parse(0, line, args)[2]
-    # vn must be a variable name
-    inter.check_varname(vn, line)
-    other = inter.parse(1, line, args)[2]
-    # appends to the array
-    inter.vars[vn].value.append(other)
-    return inter.vars[vn].value
-def f_op_getarrow(inter, line, args, **kwargs):
-    from method import Method
-    indexable = inter.parse(0, line, args)[2]
-    # must be indexable
-    if not isinstance(indexable, (list, str, dict, tuple)):
-        inter.err(
-            "Error indexing with ->()",
-            "First argument not indexable, indexable types are lists, strings, dicts, and tuples",
-            line,
-            kwargs["lines_ran"],
-        )
-    try:
-        return indexable[inter.parse(1, line, args)[2]]
-    except IndexError:
-        return inter.raise_index_out_of_bounds(
-            line, kwargs["lines_ran"], Method("->", inter)
-        )
+
 def f_op_else():
     return "<msnint2 class>"
 
-def f_version(inter, line, args, **kwargs):
-    return inter.version
-def f_destroy(inter, line, args, **kwargs):
-    for i in range(len(args)):
-        varname = inter.parse(i, line, args)[2]
-        # varname must be varname
-        inter.check_varname(varname, line)
-        # must be a varname
-        # deletes all variables or methods that start with '__'
-        if varname == "__":
-            for key in list(inter.vars):
-                if key.startswith("__"):
-                    del inter.vars[key]
-            return True
-        if varname in inter.vars:
-            del inter.vars[varname]
-        elif varname in inter.methods:
-            del inter.methods[varname]
-    return True
-def f_destroy_function(inter, line, args, **kwargs):
-    fname = None
-    for i in range(len(args)):
-        fname = inter.parse(i, line, args)[2]
-        # must be a varname
-        inter.check_varname(fname, line)
-        inter.methods.pop(fname)
-    return fname
-def f_range(inter, line, args, **kwargs):
-    start = inter.parse(0, line, args)[2]
-    # start must be int
-    inter.type_err([(start, (int,))], line, kwargs["lines_ran"])
-    # if one argument
-    if len(args) == 1:
-        return range(start)
-    # get the end of the range
-    end = inter.parse(1, line, args)[2]
-    # end must be int
-    inter.type_err([(end, (int,))], line, kwargs["lines_ran"])
-    # if two arguments
-    if len(args) == 2:
-        return range(start, end)
-    if len(args) == 3:
-        step = inter.parse(2, line, args)[2]
-        # step must be int
-        inter.type_err([(step, (int,))], line, kwargs["lines_ran"])
-        return range(start, end, step)
-    return range()
-def f_uuid4(inter, line, args, **kwargs):
-    import uuid
-    return str(uuid.uuid4())
-def f_random(inter, line, args, **kwargs):
-    import random
-    # gets a random number between 0 and 1
-    if len(args) == 1:
-        return random.random()
-    # random number in range
-    elif len(args) == 2:
-        arg = inter.parse(0, line, args)[2]
-        # arg must be int
-        inter.type_err([(arg, (int,))], line, kwargs["lines_ran"])
-        arg2 = inter.parse(1, line, args)[2]
-        # arg2 must be int
-        inter.type_err([(arg2, (int,))], line, kwargs["lines_ran"])
-        return (random.random() * (arg2 - arg)) + arg
-    # random int in range
-    elif len(args) == 3:
-        # using math
-        import math
-        arg = inter.parse(0, line, args)[2]
-        # arg must be int
-        inter.type_err([(arg, (int,))], line, kwargs["lines_ran"])
-        arg2 = inter.parse(1, line, args)[2]
-        # arg must be int
-        inter.type_err([(arg2, (int,))], line, kwargs["lines_ran"])
-        return math.floor((random.random() * (arg2 - arg)) + arg)
-    return "<msnint2 class>"
+
 
 def f_html_soup(inter, line, args, **kwargs):
     from bs4 import BeautifulSoup
@@ -1993,96 +1247,7 @@ def f_ai_split_string(inter, line, args, **kwargs):
 def f_ai_else():
     return "<msnint2 class>"
 
-def f_merge(inter, line, args, **kwargs):
-    # gets the first argument
-    arg1 = inter.parse(0, line, args)[2]
-    # arg must exist
-    if arg1 is None:
-        inter.err(
-            "Error in merge()",
-            "First argument must exist",
-            line,
-            kwargs["lines_ran"],
-        )
-    # gets the rest of the arguments
-    for i in range(1, len(args)):
-        _arg = inter.parse(i, line, args)[2]
-        # arg must exist
-        if _arg is None:
-            inter.err(
-                "Error in merge()",
-                "Merging arguments must exist",
-                line,
-                kwargs["lines_ran"],
-            )
-        arg1 |= inter.parse(i, line, args)[2]
-    return arg1
-def f_exception(inter, line, args, **kwargs):
-    # get the error
-    error = inter.parse(0, line, args)[2]
-    # error must be str
-    inter.type_err([(error, (str,))], line, kwargs["lines_ran"])
-    # get the message
-    message = inter.parse(1, line, args)[2]
-    # message must be str
-    inter.type_err([(message, (str,))], line, kwargs["lines_ran"])
-    # get the line
-    l = inter.parse(2, line, args)[2]
-    # line must be str
-    inter.type_err([(l, (str,))], line, kwargs["lines_ran"])
-    # set trying to False
-    return inter.err(error, message, l, kwargs["lines_ran"])
-def f_syntax(inter, line, args, **kwargs):
-    synt = inter.parse(0, line, args)[2]
-    # synt must be str
-    inter.type_err([(synt, (str,))], line, kwargs["lines_ran"])
-    # add the between
-    between = inter.parse(1, line, args)[2]
-    # between must be a varname
-    inter.check_varname(between, line)
-    return inter.add_syntax(synt, between, args[2][0])
-def f_enclosed_syntax(inter, line, args, **kwargs):
-    start = inter.parse(0, line, args)[2]
-    # start must be str
-    inter.type_err([(start, (str,))], line, kwargs["lines_ran"])
-    end = inter.parse(1, line, args)[2]
-    # end must be str
-    inter.type_err([(end, (str,))], line, kwargs["lines_ran"])
-    varname = inter.parse(2, line, args)[2]
-    # varname must be a varname
-    inter.check_varname(varname, line)
-    index = f"{start}msnint2_reserved{end}"
-    kwargs["enclosed"][index] = [start, end, varname, args[3][0]]
-    if len(args) == 5:
-        kwargs["enclosed"][index].append(inter.parse(4, line, args)[2])
-    return kwargs["enclosed"][index]
-def f_macro(inter, line, args, **kwargs):
-    token = inter.parse(0, line, args)[2]
-    # token must be str
-    inter.type_err([(token, (str,))], line, kwargs["lines_ran"])
-    # get the symbol
-    symbol = inter.parse(1, line, args)[2]
-    # symbol must be str
-    inter.type_err([(symbol, (str,))], line, kwargs["lines_ran"])
-    kwargs["macros"][token] = [token, symbol, args[2][0]]
-    # 4th argument offered as a return value from that macro
-    # as opposed to a block of code
-    if len(args) == 4:
-        kwargs["macros"][token].append(inter.parse(3, line, args)[2])
-    return kwargs["macros"][token]
-def f_postmacro(inter, line, args, **kwargs):
-    token = inter.parse(0, line, args)[2]
-    # token must be str
-    inter.type_err([(token, (str,))], line, kwargs["lines_ran"])
-    # get the symbol
-    symbol = inter.parse(1, line, args)[2]
-    # symbol must be str
-    inter.type_err([(symbol, (str,))], line, kwargs["lines_ran"])
-    kwargs["postmacros"][token] = [token, symbol, args[2][0]]
-    # same as macro
-    if len(args) == 4:
-        kwargs["postmacros"][token].append(inter.parse(3, line, args)[2])
-    return kwargs["postmacros"][token]
+
 def f_var_equals(inter, line, args, **kwargs):
     firstvar = inter.parse(0, line, args)[2]
     return all(
@@ -2092,24 +1257,7 @@ def f_var_equals(inter, line, args, **kwargs):
 def f_var_else(inter, line, args, **kwargs):
     return "<msnint2 class>"
 
-def f_val(inter, line, args, **kwargs):
-    varname = inter.parse(0, line, args)[2]
-    # varname must be a varname
-    inter.check_varname(varname, line)
-    try:
-        return inter.vars[varname].value
-    except:
-        return inter.vars[varname]
-def f_sorted(inter, line, args, **kwargs):
-    iterable = inter.parse(0, line, args)[2]
-    # iterable must be iterable
-    inter.check_iterable(iterable, line)
-    return sorted(iterable)
-def f_copy(inter, line, args, **kwargs):
-    try:
-        return inter.parse(0, line, args)[2].copy()
-    except Exception as e:
-        return inter.err("Error copying object", e, line, kwargs["lines_ran"])
+
 def f_file_create(inter, line, args, **kwargs):
     kwargs["lock"].acquire()
     path = inter.parse(0, line, args)[2]
@@ -2341,12 +1489,6 @@ def f_file_emptydir(inter, line, args, **kwargs):
         # directory doesn't exist
         kwargs["lock"].release()
         return None
-def f_fileacquire(inter, line, args, **kwargs):
-    kwargs["lock"].acquire()
-    return True
-def f_filerelease(inter, line, args, **kwargs):
-    kwargs["lock"].release()
-    return True
 def f_auto_largest(inter, line, args, **kwargs):
     elements = inter.parse(0, line, args)[2]
     # elements must be iterable
@@ -2512,1148 +1654,11 @@ def f_math_asin(inter, line, args, **kwargs):
 def f_math_else():
     return "<msnint2 class>"
 
-def f_map(inter, line, args, **kwargs):
-    # iterable
-    iterable = inter.parse(0, line, args)[2]
-    # iterable must be iterable
-    inter.check_iterable(iterable, line)
-    # varname
-    varname = inter.parse(1, line, args)[2]
-    # varname must be a varname
-    inter.check_varname(varname, line)
-    # map the function to each element in the iterable
-    for i, el in enumerate(iterable):
-        inter.vars[varname] = Var(varname, el)
-        iterable[i] = inter.interpret(args[2][0])
-    return iterable
-def f_insert(inter, line, args, **kwargs):
-    # iterable
-    iterable = inter.parse(0, line, args)[2]
-    # iterable must be iterable
-    inter.check_iterable(iterable, line)
-    # index
-    index = inter.parse(1, line, args)[2]
-    # index must be int
-    inter.type_err([(index, (int,))], line, kwargs["lines_ran"])
-    # value
-    value = inter.parse(2, line, args)[2]
-    # insert the value into the iterable
-    iterable.insert(index, value)
-    return iterable
-def f_type(inter, line, args, **kwargs):
-    return type(inter.parse(0, line, args)[2])
-def f_parent(inter, line, args, **kwargs):
-    return inter.parent
-def f_boot(inter, line, args, **kwargs):
-    while inter.parent != None:
-        inter = inter.parent
-    return inter
-def f_del(inter, line, args, **kwargs):
-    for i in range(len(args)):
-        first = inter.parse(i, line, args)[2]
-        # first must be a varname
-        inter.check_varname(first, line)
-        del inter.vars[first]
-    return True
-def f_cat(inter, line, args, **kwargs):
-    cat = str(inter.parse(0, line, args)[2])
-    # concatinate rest of arguments
-    for i in range(1, len(args)):
-        cat += str(inter.parse(i, line, args)[2])
-    return cat
-def f_equals(inter, line, args, **kwargs):
-    arg1 = inter.parse(0, line, args)[2]
-    return all(
-        inter.parse(i, line, args)[-1] == arg1
-        for i in range(1, len(args))
-    )
-def f_not(inter, line, args, **kwargs):
-    return not inter.parse(0, line, args)[2]
-def f_and(inter, line, args, **kwargs):
-    return all(inter.parse(i, line, args)[2] for i in range(len(args)))
-def f_or(inter, line, args, **kwargs):
-    return inter.parse(0, line, args)[2] or inter.parse(1, line, args)[2]
 
-def _try_compare(inter, func, line, **kwargs):
-    try:
-        return func()
-    except Exception as e:
-        return inter.err(
-            "Comparison error",
-            f"Unable to compare values\n{e}",
-            line,
-            kwargs["lines_ran"],
-        )
-def f_greater(inter, line, args, **kwargs):
-    return _try_compare(
-        inter,
-        lambda: inter.parse(0, line, args)[2] > inter.parse(1, line, args)[2],
-        line,
-        **kwargs,
-    )
-def f_less(inter, line, args, **kwargs):
-    return _try_compare(
-        inter,
-        lambda: inter.parse(0, line, args)[2] < inter.parse(1, line, args)[2],
-        line,
-        **kwargs,
-    )
-def f_greaterequal(inter, line, args, **kwargs):
-    return _try_compare(
-        inter,
-        lambda: inter.parse(0, line, args)[2] >= inter.parse(1, line, args)[2],
-        line,
-        **kwargs,
-    )
-def f_lessequal(inter, line, args, **kwargs):
-    return _try_compare(
-        inter,
-        lambda: inter.parse(0, line, args)[2] <= inter.parse(1, line, args)[2],
-        line,
-        **kwargs,
-    )
-def f_class(inter, line, args, **kwargs):
-    # new interpreter
-    new_int = inter.new_int()
-    # extract class name
-    name = inter.parse(0, line, args)[2]
-    # name must be a varname
-    inter.check_varname(name, line)
-    # execute the block in the private environment
-    new_int.execute(args[1][0])
-    # creates a variable out of the new interpreters resources
-    obj_to_add = {}
-    for varname in new_int.vars:
-        val = new_int.vars[varname].value
-        obj_to_add[varname] = Var(varname, val)
-    for methodname in new_int.methods:
-        obj_to_add[methodname] = Var(
-            f"{methodname}#method", new_int.methods[methodname]
-        )
-    inter.vars[name] = Var(name, obj_to_add)
-    return obj_to_add
 
-def f_get(inter, line, args, **kwargs):
-    iterable = inter.parse(0, line, args)[2]
-    # iterable must be iterable
-    inter.check_iterable(iterable, line)
-    index = inter.parse(1, line, args)[2]
-    # index must be int or str
-    inter.type_err([(index, (int, str))], line, kwargs["lines_ran"])
-    try:
-        return iterable[index]
-    except IndexError:
-        inter.err(
-            "Index Error",
-            f"Index out of bounds: {index} (you) > {str(len(iterable))} (max)",
-            line,
-            kwargs["lines_ran"],
-        )
-def f_getn(inter, line, args, **kwargs):
-    # get iterable
-    iterable = inter.parse(0, line, args)[2]
-    # iterable must be iterable
-    inter.check_iterable(iterable, line)
-    try:
-        # must have at least one index
-        ind1 = inter.parse(1, line, args)[2]
-        # get at the index
-        obj = iterable[ind1]
-        # get the rest of the indices
-        for i in range(2, len(args)):
-            # get the index
-            ind = inter.parse(i, line, args)[2]
-            # get at the index
-            obj = obj[ind]
-        return obj
-    except:
-        inter.err(
-            "Error in getn()",
-            "Could not index the iterable",
-            line,
-            kwargs["lines_ran"],
-        )
-def f_keys(inter, line, args, **kwargs):
-    arg = None
-    try:
-        return (arg := inter.parse(0, line, args)[2]).keys()
-    except:
-        inter.err(
-            "Error getting keys",
-            f"Argument must be a dictionary\nYou said: {arg}",
-            line,
-            kwargs["lines_ran"],
-        )
-def f_import(inter, line, args, **kwargs):
-    # for each import
-    for i in range(len(args)):
-        if script := inter.imp(i, line, args, inter.imports):
-            inter.execute(script)
-    return
-def f_domain(inter, line, args, **kwargs):
-    # get the name of the domain to create
-    domain_name = inter.parse(0, line, args)[2]
-    # domain_name must be a varname
-    inter.check_varname(domain_name, line)
-    # domains cannot coexist
-    if domain_name in inter.domains:
-        inter.err(
-            "Domain Error",
-            f'Domain "{domain_name}" already exists',
-            line,
-            kwargs["lines_ran"],
-        )
-    # add the domain_name to the set
-    inter.domains.add(domain_name)
-    # interpret the block in a new interpreter
-    # with the domain_name as the parent
-    new_int = inter.new_int()
-    new_int.execute(args[1][0])
-    # throws a domain error
 
-    def domain_err(name, object):
-        inter.err(
-            "Domain Error",
-            f'Domain object name already claimed: "{name}", consider renaming the object',
-            line,
-            kwargs["lines_ran"],
-        )
-        
-    # for each variable in the interpreter
-    for varname in new_int.vars:
-        name = f"{domain_name}:{varname}"
-        # name cannot already exist
-        if name in inter.vars:
-            domain_err(name, inter.vars)
-        inter.vars[name] = new_int.vars[varname]
-    # do the same for methods
-    for methodname in new_int.methods:
-        name = f"{domain_name}:{methodname}"
-        if name in inter.methods:
-            domain_err(name, inter.methods)
-        inter.methods[name] = new_int.methods[methodname]
-    return domain_name
-def d_domainfind(inter, line, args, **kwargs):
-    # get the domain directory
-    domain_dir = inter.parse(0, line, args)[2]
-    # domain_dir must be a varname
-    inter.check_varname(domain_dir, line)
-    # get all variables in the domain
-    # with the domain_dir chopped off
-    domain_vars = {}
-    # for each variable in the domain
-    for varname in inter.vars:
-        # if the variable is in the domain
-        if varname.startswith(domain_dir):
-            # get the variable name without the domain
-            varname = varname[len(domain_dir):]
-            # add the variable to the domain_vars
-            domain_vars[varname] = inter.vars[varname]
-    # return the domain_vars
-    return domain_vars
-def f_in(inter, line, args, **kwargs):
-    reserved_name = "_msn2_reserved_in__"
-    if reserved_name not in inter.vars:
-        return None
-    inval = inter.vars[reserved_name].value
-    # if no arguments, return the value
-    if args[0][0] == "":
-        return inval
-    # if 1 argument, get index of value from input
-    elif len(args) == 1:
-        ind = inter.parse(0, line, args)[2]
-        # ind must be int
-        inter.type_err([(ind, (int,))], line, kwargs["lines_ran"])
-        return inval[ind]
-    # if 2 arguments, get slice of input
-    elif len(args) == 2:
-        start = inter.parse(0, line, args)[2]
-        # start must be int
-        inter.type_err([(start, (int,))], line, kwargs["lines_ran"])
-        end = inter.parse(1, line, args)[2]
-        # end must be int
-        inter.type_err([(end, (int,))], line, kwargs["lines_ran"])
-        return inval[start:end]
-    return inval
-def f_out(inter, line, args, **kwargs):
-    outting = [inter.parse(i, line, args)[2] for i in range(len(args))]
-    reserved_name = "_msn2_reserved_out__"
-    inter.vars[reserved_name] = Var(reserved_name, outting)
-    return outting
-def f_prnt(inter, line, args, **kwargs):
-    srep = ""
-    for i in range(len(args)):
-        srep = str(inter.parse(i, line, args)[2])
-        if i != len(args) - 1:
-            inter.out += srep + " "
-        else:
-            inter.out += srep + "\n"
-    return srep
-def f_print(inter, line, args, **kwargs):
-    ret = None
-    for i in range(len(args)):
-        ret = inter.parse(i, line, args)[2]
-        if i != len(args) - 1:
-            print(ret, end=" ", flush=True)
-        else:
-            print(ret, flush=True)
-    return ret
-def f_printbox(inter, line, args, **kwargs):
-    ret = None
-    for i in range(len(args)):
-        ret = inter.parse(i, line, args)[2]
-        if i != len(args) - 1:
-            print(inter.bordered(str(ret)), end=" ", flush=True)
-        else:
-            print(inter.bordered(str(ret)), flush=True)
-    return ret
-def f_printcolor(inter, line, args, **kwargs):
-    print_args = [
-        inter.parse(i, line, args)[2] for i in range(len(args))
-    ]
-    return inter.styled_print(print_args)
-def f_sleep(inter, line, args, **kwargs):
-    import time
 
-    delay = inter.parse(0, line, args)[2]
-    # delay must be int or float
-    inter.type_err([(delay, (int, float))], line, kwargs["lines_ran"])
-    return time.sleep(delay)
-def f_me(inter, line, args, **kwargs):
-    return inter.me()
-def f_next_entry_path(inter, line, args, **kwargs):
-    import os
-    # if no args
-    if args[0][0] == "":
-        return inter.next_entry_path
-    # otherwise, we're setting it
-    inter.next_entry_path = inter.parse(0, line, args)[2]
-    # compute and set the next project path, it should be
-    # two directories up from the next entry path
-    inter.next_project_path = os.path.dirname(
-        os.path.dirname(inter.next_entry_path)
-    )
-    return inter.next_entry_path
-def f_next_project_path(inter, line, args, **kwargs):
-    return inter.next_project_path
-def f_env(inter, line, args, **kwargs):
-    should_print = False
-    if args[0][0] != "":
-        should_print = True
-    # first argument should be either string or integer
-    first = inter.parse(0, line, args)[2]
-    strenv = "--------- environment ---------"
-    strenv += f"\nout:\n{inter.out}"
-    strenv += "\nvariables:\n"
-    for varname, v in inter.vars.items():
-        try:
-            strenv += f"\t{varname} = {inter.shortened(v.value)}\n"
-        except:
-            None
-    strenv += "\nmethods:\n"
-    # printing methods
-    for methodname, Method in inter.methods.items():
-        strenv += f"\t{methodname}("
-        for i in range(len(Method.args)):
-            arg = Method.args[i]
-            if i != len(Method.args) - 1:
-                strenv += f"{arg}, "
-            else:
-                strenv += str(arg)
-        strenv += f") : {len(Method.body)} inst\n"
-    # printing macros
-    strenv += "\nmacros:\n\t"
-    # adding regular macros
-    if len(inter.macros) > 0:
-        strenv += "premacros:\n\t\t"
-        for macro in inter.macros:
-            # strenv += macro + "\n\t\t"
-            strenv += f"{macro}\n\t\t"
-    if len(inter.postmacros) > 0:
-        strenv += "\n\tpostmacros:\n\t\t"
-        for macro in inter.postmacros:
-            # strenv += macro + "\n\t\t"
-            strenv += f"{macro}\n\t\t"
-    if len(inter.syntax) > 0:
-        strenv += "\n\tsyntax:\n\t\t"
-        for macro in inter.syntax:
-            strenv += f"{macro}\n\t\t"
-    if len(inter.enclosed) > 0:
-        strenv += "\n\tenclosedsyntax:\n\t\t"
-        for macro in inter.enclosed:
-            strenv += f"{macro}\n\t\t"
-    strenv += f"\nlog:\n{inter.log}\n-------------------------------"
-    if should_print:
-        inter.styled_print(
-            [{"text": strenv, "style": "bold", "fore": "blue"}]
-        )
-    return strenv
-def f_envmaxchars(inter, line, args, **kwargs):
-    # if no arguments, return the current maxchars
-    if args[0][0] == "":
-        return inter.env_max_chars
-    # otherwise, a single variable was provided
-    # this will change the max chars
-    new_maxchars = inter.parse(0, line, args)[2]
-    # check for type errors
-    inter.type_err([(new_maxchars, (int,))], line, kwargs["lines_ran"])
-    # alter the max chars
-    inter.env_max_chars = new_maxchars
-    return new_maxchars
 
-def _try_func_math(inter, func, line, **kwargs):
-    try:
-        return func()
-    except Exception as e:
-        return inter.err(
-            "Error", e, line, kwargs["lines_ran"]
-        )
-def f_symbolminus(inter, line, args, **kwargs):
-    return _try_func_math(
-        inter,
-        lambda: hyphen(kwargs["inst"]),
-        line,
-        **kwargs,
-    )
-def _f_plussymbol(inter, line, args, **kwargs):
-    ret = inter.parse(0, line, args)[2]
-    try:
-        ret = ret.copy()
-    except AttributeError:
-        None
-    for i in range(1, len(args)):
-        ret += inter.parse(i, line, args)[2]
-    return ret
-def f_symbolplus(inter, line, args, **kwargs):
-    return _try_func_math(
-        inter,
-        lambda: _f_plussymbol(inter, line, args, **kwargs),
-        line,
-        **kwargs,
-    )
-def _f_symbolx(inter, line, args, **kwargs):
-    ret = inter.parse(0, line, args)[2]
-    try:
-        ret = ret.copy()
-    except AttributeError:
-        None
-    for i in range(1, len(args)):
-        ret *= inter.parse(i, line, args)[2]
-    return ret
-def f_symbolx(inter, line, args, **kwargs):
-    return _try_func_math(
-        inter,
-        lambda: _f_symbolx(inter, line, args, **kwargs),
-        line,
-        **kwargs,
-    )
-def _f_symboldiv(inter, line, args, **kwargs):
-    ret = inter.parse(0, line, args)[2]
-    try:
-        ret = ret.copy()
-    except AttributeError:
-        None
-    for i in range(1, len(args)):
-        ret /= inter.parse(i, line, args)[2]
-    return ret
-def f_symboldiv(inter, line, args, **kwargs):
-    return _try_func_math(
-        inter,
-        lambda: _f_symboldiv(inter, line, args, **kwargs),
-        line,
-        **kwargs,
-    )
-def _f_symboldivdiv(inter, line, args, **kwargs):
-    ret = inter.parse(0, line, args)[2]
-    try:
-        ret = ret.copy()
-    except AttributeError:
-        None
-    for i in range(1, len(args)):
-        ret //= inter.parse(i, line, args)[2]
-    return ret
-def f_symboldivdiv(inter, line, args, **kwargs):
-    return _try_func_math(
-        inter,
-        lambda: _f_symboldivdiv(inter, line, args, **kwargs),
-        line,
-        **kwargs,
-    )
-def _f_symbolmod(inter, line, args, **kwargs):
-    ret = inter.parse(0, line, args)[2]
-    try:
-        ret = ret.copy()
-    except AttributeError:
-        None
-    for i in range(1, len(args)):
-        ret %= inter.parse(i, line, args)[2]
-    return ret
-def f_symbolmod(inter, line, args, **kwargs):
-    return _try_func_math(
-        inter,
-        lambda: _f_symbolmod(inter, line, args, **kwargs),
-        line,
-        **kwargs,
-    )
-def _f_symbolpow(inter, line, args, **kwargs):
-    ret = inter.parse(0, line, args)[2]
-    try:
-        ret = ret.copy()
-    except AttributeError:
-        None
-    for i in range(1, len(args)):
-        ret **= inter.parse(i, line, args)[2]
-    return ret
-def f_symbolpow(inter, line, args, **kwargs):
-    return _try_func_math(
-        inter,
-        lambda: _f_symbolpow(inter, line, args, **kwargs),
-        line,
-        **kwargs,
-    )
-def f_isdigit(inter, line, args, **kwargs):
-    return inter.parse(0, line, args)[2].isdigit()
-def f_isalpha(inter, line, args, **kwargs):
-    return inter.parse(0, line, args)[2].isalpha()
-def f_as(inter, line, args, **kwargs):
-    # temporary variable name
-    varname = inter.parse(0, line, args)[2]
-    # varname must be a varname
-    inter.check_varname(varname, line)
-    # block to execute
-    block = args[2][0]
-    # set the variable
-    inter.vars[varname] = Var(varname, inter.parse(1, line, args)[2])
-    # execute the block
-    ret = inter.interpret(block)
-    # delete the variable
-    del inter.vars[varname]
-    return ret
-def f_startswith(inter, line, args, **kwargs):
-    # arg
-    arg = inter.parse(0, line, args)[2]
-    # arg must be str
-    inter.type_err([(arg, (str,))], line, kwargs["lines_ran"])
-    # prefix
-    prefix = inter.parse(1, line, args)[2]
-    # prefix must be str
-    inter.type_err([(prefix, (str,))], line, kwargs["lines_ran"])
-    return arg.startswith(prefix)
-def f_endswith(inter, line, args, **kwargs):
-    # arg
-    arg = inter.parse(0, line, args)[2]
-    # arg must be str
-    inter.type_err([(arg, (str,))], line, kwargs["lines_ran"])
-    # suffix
-    suffix = inter.parse(1, line, args)[2]
-    # suffix must be str
-    inter.type_err([(suffix, (str,))], line, kwargs["lines_ran"])
-    return arg.endswith(suffix)
-def f_strip(inter, line, args, **kwargs):
-    try:
-        return inter.parse(0, line, args)[2].strip()
-    except Exception as e:
-        return inter.err(
-            "Error in strip()", e, line, kwargs["lines_ran"]
-        )
-def f_slice(inter, line, args, **kwargs):
-    # first
-    first = inter.parse(0, line, args)[2]
-    # first must be slicable
-    inter.check_iterable(first, line)
-    # second
-    second = inter.parse(1, line, args)[2]
-    # second must be int
-    inter.type_err([(second, (int,))], line, kwargs["lines_ran"])
-    # third
-    third = inter.parse(2, line, args)[2]
-    # third must be int
-    inter.type_err([(third, (int,))], line, kwargs["lines_ran"])
-    return first[second:third]
-def f_iterablejoin(inter, line, args, **kwargs):
-    delimiter = inter.parse(0, line, args)[2]
-    # delimiter must be str
-    inter.type_err([(delimiter, (str,))], line, kwargs["lines_ran"])
-    # iterable
-    iterable = inter.parse(1, line, args)[2]
-    # iterable must be iterable
-    inter.check_iterable(iterable, line)
-    return delimiter.join(iterable)
-def f_script(inter, line, args, **kwargs):
-    # inserts key tokens
-    return inter.msn2_replace(args[0][0])
-def f_ls(inter, line, args, **kwargs):
-    return inter.ls(args)
-def f_now(inter, line, args, **kwargs):
-    import time
-    return time.time()
-def f_private(inter, line, args, **kwargs):
-    new_int = inter.new_int()
-    for vname, entry in inter.vars.items():
-        try:
-            new_int.vars[vname] = Var(vname, entry.value)
-        except:
-            new_int.vars[vname] = Var(vname, entry)
-    for mname, entry in inter.methods.items():
-        new_int.methods[mname] = entry
-    ret = new_int.interpret(args[0][0])
-    return ret
-def f_break(inter, line, args, **kwargs):
-    inter.breaking = True
-    return
-def f_reverse(inter, line, args, **kwargs):
-    # arg
-    arg = inter.parse(0, line, args)[2]
-    # arg must be iterable
-    inter.check_iterable(arg, line)
-    return arg[::-1]
-def f_upper(inter, line, args, **kwargs):
-    arg = inter.parse(0, line, args)[2]
-    # arg must be str
-    inter.type_err([(arg, (str,))], line, kwargs["lines_ran"])
-    return arg.upper()
-def f_lower(inter, line, args, **kwargs):
-    arg = inter.parse(0, line, args)[2]
-    # arg must be str
-    inter.type_err([(arg, (str,))], line, kwargs["lines_ran"])
-    return arg.lower()
-def f_title(inter, line, args, **kwargs):
-    arg = inter.parse(0, line, args)[2]
-    # arg must be str
-    inter.type_err([(arg, (str,))], line, kwargs["lines_ran"])
-    # return title
-    return arg.title()
-def f_inheritmethods(inter, line, args, **kwargs):
-    for methodname in inter.parent.methods:
-        inter.methods[methodname] = inter.parent.methods[methodname]
-    return True
-def f_inheritvars(inter, line, args, **kwargs):
-    for varname in inter.parent.vars:
-        inter.vars[varname] = inter.parent.vars[varname]
-    return True
-def f_inheritsingle(inter, line, args, **kwargs):
-    name = inter.parse(0, line, args)[2]
-    # name must be a varname
-    inter.check_varname(name, line)
-    if name in inter.parent.vars:
-        inter.vars[name] = inter.parent.vars[name]
-    elif name in inter.parent.methods:
-        inter.methods[name] = inter.parent.methods[name]
-    return True
-def f_new(inter, line, args, **kwargs):
-    new_int = inter.new_int()
-    return new_int.interpret(args[0][0])
-def f_alias(inter, line, args, **kwargs):
-    global python_alias
-    if args[0][0] == "":
-        return python_alias
-    new_al = inter.parse(0, line, args)[2]
-    # new_al must be str
-    inter.type_err([(new_al, (str,))], line, kwargs["lines_ran"])
-    python_alias = new_al
-    return python_alias
-def f_process(inter, line, args, **kwargs):
-    import os
-    # path to the process to run
-    path = inter.parse(0, line, args)[2]
-    # path must be str
-    inter.type_err([(path, (str,))], line, kwargs["lines_ran"])
-    # if windows:
-    if os.name == "nt":
-        import subprocess
-        # runs the process
-        sub = subprocess.run(
-            args=[kwargs["python_alias"], "msn2.py", path], shell=True
-        )
-        inter.processes[path] = sub
-        return sub
-    # if linux
-    elif os.name == "posix":
-        inter.err("POSIX not yet implemented", "", line, kwargs["lines_ran"])
-        return None
-    return None
-def f_proc(inter, line, args, **kwargs):
-    # import lib processes module if not imported
-    if "lib/processes.msn2" not in inter.imports:
-        inter.interpret('import("lib/processes")')
-    # import the processes library and
-    # create a new process
-    name = inter.parse(0, line, args)[2]
-    return inter.interpret(
-        f"processes:fork('{name}',private(async({args[1][0]})))"
-    )
-def f_pid(inter, line, args, **kwargs):
-    import os
-    return os.getpid()
-def f_thread(inter, line, args, **kwargs):
-    import threading
-    # name not provided
-    if len(args) == 1:
-        global thread_serial
-        name = f"__msn2_thread_id_{thread_serial}"
-        block = args[0][0]
-    # name provided (2 arguments provided)
-    else:
-        name = str(inter.parse(0, line, args)[2])
-        # name must be a varname
-        inter.check_varname(name, line)
-        block = args[1][0]
-    thread = threading.Thread(target=inter.interpret, args=(block,))
-    thread.name = name
-    inter.threads[name] = [thread, inter]
-    thread.start()
-    return True
-def f_threadpool(inter, line, args, **kwargs):
-    import concurrent.futures
-    
-    # get the amount of threads to create
-    max_workers = inter.parse(0, line, args)[2]
-    # max_workers must be int
-    inter.type_err([(max_workers, (int,))], line, kwargs["lines_ran"])
-    # create the thread pool
-    # submit the block to the pool
-    concurrent.futures.ThreadPoolExecutor(max_workers).submit(
-        inter.interpret, args[1][0]
-    )
-    return True
-def f_tvar(inter, line, args, **kwargs):
-    # thread name
-    name = str(inter.parse(0, line, args)[2])
-    # variable name
-    varname = str(inter.parse(1, line, args)[2])
-    # variable value
-    val = inter.parse(2, line, args)[2]
-    # thread var name
-    tvarname = f"_msn2_tvar_{name}_{varname}"
-    # sets a thread specific variable
-    inter.vars[tvarname] = Var(varname, val)
-    return val
-def f_gettvar(inter, line, args, **kwargs):
-    # gets the variable
-    return inter.vars[
-        f"_msn2_tvar_{inter.parse(0, line, args)[2]}_{inter.parse(1, line, args)[2]}"
-    ].value
-def f_tvarstr(inter, line, args, **kwargs):
-    # returns the string
-    return f"_msn2_tvar_{inter.parse(0, line, args)[2]}_{inter.parse(1, line, args)[2]}"
-def f_varmethod(inter, line, args, **kwargs):
-    # variable name
-    return inter.interpret(
-        f"{inter.parse(0, line, args)[2]}.{args[1][0]}"
-    )
-def f_acquire(inter, line, args, **kwargs):
-    return kwargs["auxlock"].acquire()
-def f_release(inter, line, args, **kwargs):
-    return kwargs["auxlock"].release()
-def f_acquirepointer(inter, line, args, **kwargs):
-    return kwargs["pointer_lock"].acquire()
-def f_releasepointer(inter, line, args, **kwargs):
-    return kwargs["pointer_lock"].release()
-def f_join(inter, line, args, **kwargs):
-    for i in range(len(args)):
-        name = inter.parse(i, line, args)[2]
-        thread = inter.thread_by_name(name)
-        while thread == None:
-            thread = inter.thread_by_name(name)
-        thread.join()
-    return True
-def f_stop(inter, line, args, **kwargs):
-    import os
-    return os._exit(0)
-def f_try(inter, line, args, **kwargs):
-    ret = None
-    inter.trying = True
-    try:
-        ret = inter.interpret(args[0][0])
-    except:
-        inter.trying = False
-        if len(args) == 2:
-            ret = inter.interpret(args[1][0])
-    inter.trying = False
-    return ret
-def f_wait(inter, line, args, **kwargs):
-    ret = None
-    if len(args) == 1:
-        while not (ret := inter.interpret(args[0][0])):
-            None
-    elif len(args) == 2:
-        while not (ret := inter.interpret(args[0][0])):
-            inter.interpret(args[1][0])
-    elif len(args) == 3:
-        import time
-        
-        s = inter.parse(2, line, args)[2]
-        inter.type_err([(s, (int, float))], line, kwargs["lines_ran"])
-        while not (ret := inter.interpret(args[0][0])):
-            inter.interpret(args[1][0])
-            time.sleep(s)
-    return ret
-def f_interval(inter, line, args, **kwargs):
-    import time
-    
-    # amount of seconds
-    seconds = inter.parse(0, line, args)[2]
-    # seconds must be int or float
-    inter.type_err([(seconds, (int, float))], line, kwargs["lines_ran"])
-    # if the interval should last for a certain amount of seconds
-    # should account for the first argument to correctly wait
-    if len(args) == 3:
-        extra = inter.parse(2, line, args)[2]
-        # extra must be int or float
-        inter.type_err([(extra, (int, float))], line, kwargs["lines_ran"])
-        # if time is negative, we set it to infinity
-        if extra == -1:
-            extra = float("inf")
-        end = time.time() + extra
-        while time.time() < end:
-            time.sleep(seconds)
-            inter.interpret(args[1][0])
-    else:
-        while True:
-            time.sleep(seconds)
-            inter.interpret(args[1][0])
-    return True
-def f_export(inter, line, args, **kwargs):
-    # if last argument is True,
-    # we add the variables to the parent context's variable
-    last_arg = inter.parse(len(args) - 1, line, args)[2]
-    for i in range(len(args)):
-        varname = inter.parse(i, line, args)[2]
-        # varname must be a varname
-        inter.check_varname(varname, line)
-        if varname in inter.vars:
-            if isinstance(last_arg, bool):
-                # if inter.vars[varname].value is any type of number
-                if isinstance(
-                    inter.vars[varname].value, (int, float, complex)
-                ):
-                    inter.parent.vars[varname].value += inter.vars[
-                        varname
-                    ].value
-                # otherwise add every element to the parent context's variable
-                elif isinstance(inter.vars[varname].value, list):
-                    for element in inter.vars[varname].value:
-                        inter.parent.vars[varname].value.append(element)
-            else:
-                inter.parent.vars[varname] = inter.vars[varname]
-        elif varname in inter.methods:
-            inter.parent.methods[varname] = inter.methods[varname]
-    return True
-def f_exportas(inter, line, args, **kwargs):
-    # variable name
-    varname = inter.parse(0, line, args)[2]
-    # varname must be a varname
-    inter.check_varname(varname, line)
-    # value
-    val = inter.parse(1, line, args)[2]
-    # export to parent context
-    inter.parent.vars[varname] = Var(varname, val)
-    return val
-def f_exportall(inter, line, args, **kwargs):
-    for varname in inter.vars:
-        inter.parent.vars[varname] = inter.vars[varname]
-    for methodname in inter.methods:
-        inter.parent.methods[methodname] = inter.methods[methodname]
-    return True
-def f_exportthread(inter, line, args, **kwargs):
-    # thread name
-    tname = inter.parse(0, line, args)[2]
-    # thread must exist
-    if not (thread := inter.thread_by_name(tname)):
-        inter.err(
-            "Thread does not exist",
-            f'Thread name "{tname}" does not exist in this context',
-            line,
-            kwargs["lines_ran"],
-        )
-    # export the thread to the parent context
-    inter.parent.threads[tname] = inter.threads[tname]
-    return tname
-def f_clearthreads(inter, line, args, **kwargs):
-    inter.threads = {}
-    return True
-def f_console(inter, line, args, **kwargs):
-    import os
-    ret = None
-    for i in range(len(args)):
-        command = inter.parse(i, line, args)[2]
-        # command must be str
-        inter.type_err([(command, (str,))], line, kwargs["lines_ran"])
-        ret = os.system(command)
-    return ret
-def f_consoleread(inter, line, args, **kwargs):
-    import subprocess
-
-    # returns the console output
-    # of the last argument
-    command = inter.parse(0, line, args)[2]
-    # command must be str
-    inter.type_err([(command, (str,))], line, kwargs["lines_ran"])
-    process = subprocess.run(
-        command, shell=True, capture_output=True, text=True
-    )
-    if process.returncode == 0:
-        return process.stdout
-    else:
-        return process.stderr
-def f_request(inter, line, args, **kwargs):
-    import requests
-
-    # get URL to request from
-    url = inter.parse(0, line, args)[2]
-    # url must be str
-    inter.type_err([(url, (str,))], line, kwargs["lines_ran"])
-    try:
-        # get parameters
-        params = inter.parse(1, line, args)[2]
-    except:
-        params = None
-    r = requests.get(url=url, params=params)
-    # return response
-    try:
-        return r.json()
-    except:
-        return r
-def f_return(inter, line, args, **kwargs):
-    method = inter.methods[inter.loggedmethod[-1]]
-    # evaluate returning literal
-    ret = inter.parse(0, line, args)[2]
-    # set return variable
-    ret_name = method.returns[0]
-    # if not a variable
-    if ret_name not in inter.vars:
-        inter.vars[ret_name] = Var(ret_name, None)
-    inter.vars[ret_name].value = ret
-    return ret
-def f_pubip(inter, line, args, **kwargs):
-    import requests
-    
-    # asks an api server for this address
-    return requests.get("https://api.ipify.org").text
-def f_privip(inter, line, args, **kwargs):
-    import socket
-    
-    # gets the private ips of this machine
-    return socket.gethostbyname_ex(socket.gethostname())[2]
-def f_endpoint(inter, line, args, **kwargs):
-    # imports
-    from flask import Flask
-    from flask_restful import Api, Resource
-    import logging
-    
-    # initial API endpoint data
-    path = None
-    init_data = {}
-    port = 5000
-    host = "127.0.0.1"
-    last_arg = None
-    # 1 argument, defaults to 127.0.0.1:5000/path = {}
-    if len(args) == 1:
-        # path to endpoint
-        path = inter.parse(0, line, args)[2]
-        # path should be str
-        inter.type_err([(path, (str,))], line, kwargs["lines_ran"])
-        last_arg = path
-    # 2 arguments, defaults to 127.0.0.1:5000/path = init_data
-    if len(args) == 2:
-        # path to endpoint
-        path = inter.parse(0, line, args)[2]
-        # path should be str
-        inter.type_err([(path, (str,))], line, kwargs["lines_ran"])
-        # json to initialize at the endpoint
-        init_data = inter.parse(1, line, args)[2]
-        # init_data should be dict
-        inter.type_err([(init_data, (dict,))], line, kwargs["lines_ran"])
-        last_arg = init_data
-    # 3 arguments, defaults to host:port/path = init_data
-    else:
-        # host to endpoint as first argument
-        host = inter.parse(0, line, args)[2]
-        # host should be str
-        inter.type_err([(host, (str,))], line, kwargs["lines_ran"])
-        # port to endpoint as second argument
-        port = inter.parse(1, line, args)[2]
-        # port should be int
-        inter.type_err([(port, (int,))], line, kwargs["lines_ran"])
-        # path to endpoint
-        path = inter.parse(2, line, args)[2]
-        # path should be str
-        inter.type_err([(path, (str,))], line, kwargs["lines_ran"])
-        # json to initialize at the endpoint
-        init_data = inter.parse(3, line, args)[2]
-        # init_data should be dict
-        inter.type_err([(init_data, (dict,))], line, kwargs["lines_ran"])
-        last_arg = init_data
-        if len(args) == 5:
-            last_arg = inter.parse(4, line, args)[2]
-    # prepare endpoint
-    print("serving on http://" + host + ":" + str(port) + path)
-    app = Flask(__name__)
-    cors = False
-    # if the last argument is a string with 'CORS' in it
-    # then enable CORS
-    if isinstance(last_arg, str) and "CORS" in last_arg:
-        from flask_cors import CORS
-
-        # enable CORS
-        print("starting with cors")
-        cors = True
-        CORS(app)
-    # disable flask messages that aren't error-related
-    log = logging.getLogger("werkzeug")
-    log.disabled = True
-    app.logger.disabled = True
-    # gets Flask Api
-    api = Api(app)
-    # api endpoint class
-    
-    class EndPoint(Resource):
-        @classmethod
-        def make_api(cls, response):
-            cls.response = response
-            return cls
-        
-        # GET
-        def get(self):
-            return self.response
-        
-        # POST
-        def post(self):
-            from flask import request
-            
-            # obtains current endpoint data
-            current_data = self.response
-            # updates current data with data to post
-            current_data.update(request.get_json())
-            # updates next response
-            self.make_api(current_data)
-            return current_data
-        
-        # DELETE
-        def delete(self):
-            self.make_api({})
-            return self.response
-        
-    curr_endpoint = EndPoint.make_api(init_data)
-    # logs newly created endpoint
-    inter.endpoints[path] = api
-    # adds class EndPoint as a Resource to the Api with the specific path
-    # passes arg2 alongside
-    api.add_resource(curr_endpoint, path)
-    
-    # starting flask server
-    try:
-        # if internal
-        app.run(host=host, port=port, debug=False)
-    except:
-        # if external
-        try:
-            app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
-        except:
-            None
-    return api
-def f_post(inter, line, args, **kwargs):
-    import requests
-    
-    # url to post to, defaults to localhost
-    host = inter.parse(0, line, args)[2]
-    # host must be str
-    inter.type_err([(host, (str,))], line, kwargs["lines_ran"])
-    # port to post to
-    port = inter.parse(1, line, args)[2]
-    # port must be int
-    inter.type_err([(port, (int,))], line, kwargs["lines_ran"])
-    # path after url
-    path = inter.parse(2, line, args)[2]
-    # path must be str
-    inter.type_err([(path, (str,))], line, kwargs["lines_ran"])
-    # data to post
-    data = inter.parse(3, line, args)[2]
-    # data must be dict
-    inter.type_err([(data, (dict,))], line, kwargs["lines_ran"])
-    # if local network
-    if host == "0.0.0.0":
-        response = requests.post(
-            url=("http://127.0.0.1:" + str(port) + path), json=data
-        )
-    # if localhost
-    else:
-        # post to endpoint
-        response = requests.post(
-            url=("http://" + host + ":" + str(port) + path), json=data
-        )
-    # get response
-    return response.json()
-def f_get_api(inter, line, args, **kwargs):
-    import requests
-    
-    # url to get from, defaults to localhost
-    host = inter.parse(0, line, args)[2]
-    # host must be str
-    inter.type_err([(host, (str,))], line, kwargs["lines_ran"])
-    # port to get from
-    port = inter.parse(1, line, args)[2]
-    # port must be int
-    inter.type_err([(port, (int,))], line, kwargs["lines_ran"])
-    # path after url
-    path = inter.parse(2, line, args)[2]
-    # path must be str
-    inter.type_err([(path, (str,))], line, kwargs["lines_ran"])
-    # if local network
-    if host == "0.0.0.0":
-        return requests.get(
-            url=("http://127.0.0.1:" + str(port) + path)
-        ).json()
-    # if localhost
-    else:
-        return requests.get(
-            url=("http://" + host + ":" + str(port) + path)
-        ).json()
-def f_delete(inter, line, args, **kwargs):
-    import requests
-    
-    # url to delete from, defaults to localhost
-    host = inter.parse(0, line, args)[2]
-    # host must be str
-    inter.type_err([(host, (str,))], line, kwargs["lines_ran"])
-    # port to delete from
-    port = inter.parse(1, line, args)[2]
-    # port must be int
-    inter.type_err([(port, (int,))], line, kwargs["lines_ran"])
-    # path after url
-    path = inter.parse(2, line, args)[2]
-    # path must be str
-    inter.type_err([(path, (str,))], line, kwargs["lines_ran"])
-    if host == "0.0.0.0":
-        response = requests.delete(
-            url=("http://127.0.0.1:" + str(port) + path)
-        )
-    else:
-        # delete from endpoint
-        response = requests.delete(
-            url=("http://" + host + ":" + str(port) + path)
-        )
-    return response.json()
-def f_windows(inter, line, args, **kwargs):
-    import os
-    return os.name == "nt"
-def f_linux(inter, line, args, **kwargs):
-    import os
-    return os.name == "posix"
-def f_mac(inter, line, args, **kwargs):
-    import sys
-    
-    return sys.platform == "darwin"
-def f_end(inter, line, args, **kwargs):
-    method = inter.methods[inter.loggedmethod[-1]]
-    inter.loggedmethod.pop()
-    method.ended = True
-    return True
-def f_static(inter, line, args, **kwargs):
-    try:
-        return inter.parse(0, line, args)[2].value
-    except Exception as e:
-        inter.err("Error in static()", e, line, kwargs["lines_ran"])
         
 # seperate set of functions for creating object instances
 def f_instance_new(inter, line, args, **kwargs):
@@ -3691,56 +1696,7 @@ def f_instance_new(inter, line, args, **kwargs):
                 instance[name] = var_obj[name].value
         curr_arg_num += 1
     return instance
-def f_app(inter, line, args, **kwargs):
-    import os
-    global timings_set
-    # set timings if not already set
-    if not timings_set:
-        from pywinauto import timings
 
-        # pywinauto defaults
-        timings.Timings.after_clickinput_wait = 0.001
-        timings.Timings.after_setcursorpos_wait = 0.001
-        timings.Timings.after_sendkeys_key_wait = 0.001
-        timings.Timings.after_menu_wait = 0.001
-    # get the path to the application
-    path = inter.parse(0, line, args)[2]
-    # path must be str
-    inter.type_err([(path, (str,))], line, kwargs["lines_ran"])
-    # if there is not second argument, we do not kill any
-    # existing instances of the application
-    name = None
-    extension = None
-    if len(args) == 1:
-        # get the name and extension of the application
-        _sp = path.split("\\")
-        name = _sp[-1].split(".")[0]
-        extension = _sp[-1].split(".")[1]
-        # use taskkill to kill the application
-        # taskkill should end the program by name, and should kill
-        # all child processes forcefully, it should also not print
-        # anything to the console
-        os.system(f"taskkill /f /im {name}.{extension} >nul 2>&1")
-    # creates an App variable
-    return inter.App(path=path, name=name, extension=extension)
-def f_connect(inter, line, args, **kwargs):
-    from pywinauto.application import Application
-
-    appl = inter.parse(0, line, args)[2]
-    a = Application(backend="uia").connect(
-        process=appl.application.process
-    )
-    # connect to the application
-    return inter.App(path=appl.path)
-def f_excel(inter, line, args, **kwargs):
-    # automating Excel
-    import openpyxl
-    
-    path = inter.parse(0, line, args)[2]
-    # path must be str
-    inter.type_err([(path, (str,))], line, kwargs["lines_ran"])
-    # creates and returns a Workbook
-    return inter.Workbook(openpyxl.load_workbook(path), path)
 def f_quickcond(inter, line, args, **kwargs):
     kwargs["func"] = kwargs["func"][1:]
     ret = None
@@ -3753,193 +1709,6 @@ def f_quickcond(inter, line, args, **kwargs):
         except:
             None
     return ret
-def f_getattr(inter, line, args, **kwargs):
-    vn = inter.parse(0, line, args)[2]
-    # vn must be a varname
-    inter.check_varname(vn, line)
-    # get the attribute
-    return inter.vars[vn].value[inter.parse(1, line, args)[2]]
-def f_setattr(inter, line, args, **kwargs):
-    # current working object
-    o = inter.vars[inter.parse(0, line, args)[2]].value
-    # name of attribute to set
-    attr = inter.parse(1, line, args)[2]
-    # attr must be a string
-    inter.type_err([(attr, (str,))], line, kwargs["lines_ran"])
-    # value to set
-    val = inter.parse(2, line, args)[2]
-    # set the value
-    o[attr] = val
-    return val
-
-# language functions
-def f_C(inter, line, args, **kwargs):
-    import os
-    # get the C code
-    c_code = inter.msn2_replace(args[0][0])
-    # create a directory for the C code
-    # if it does not exist
-    exec_folder_path = "_exec"
-    # if the folder does not exist, create it
-    if not os.path.exists(exec_folder_path):
-        os.mkdir(exec_folder_path)
-    # create a file for the C code
-    # and write the C code to it
-    # get the amount of files in the directory
-    # and use that as the file name
-    file_num = len(os.listdir(exec_folder_path))
-    file_name = f"{exec_folder_path}/c{file_num}.c"
-    with open(file_name, "w") as f:
-        f.write(c_code)
-    # creates a new process
-    
-    def retrieve_c_environment(c_code):
-        import subprocess
-
-        # executable
-        executable = f"{exec_folder_path}/c{file_num}.exe"
-        # create a new process
-        # and execute the C code
-        compiled_code = subprocess.run(
-            ["gcc", file_name, "-o", executable],
-            # capture the output
-            capture_output=True,
-            text=True,
-        )
-        # if there's an error, print it
-        if len(compiled_code.stderr) > 0:
-            return {"out": "", "err": compiled_code.stderr}
-        # run the executable
-        compiled_code = subprocess.run(
-            [executable],
-            # capture the output
-            capture_output=True,
-            text=True,
-        )
-        # get the output and error
-        out = compiled_code.stdout
-        err = compiled_code.stderr
-        # get the environment
-        # env = out.split('\n')[-2]
-        # env = env.replace('\'', '"')
-        # env = json.loads(env)
-        return {"out": out, "err": err}
-    
-    # execute the C code
-    return retrieve_c_environment(c_code)
-def f_JS(inter, line, args, **kwargs):
-    import os
-    # get the JavaScript code
-    js_code = inter.msn2_replace(args[0][0])
-    # create a directory for the JavaScript code
-    # if it does not exist
-    exec_folder_path = "_exec"
-    # if the folder does not exist, create it
-    if not os.path.exists(exec_folder_path):
-        os.mkdir(exec_folder_path)
-    # create a file for the JavaScript code
-    # and write the JavaScript code to it
-    # get the amount of files in the directory
-    # and use that as the file name
-    file_num = len(os.listdir(exec_folder_path))
-    file_name = f"{exec_folder_path}/js{file_num}.js"
-    # if JS() has two arguments, the second is the name of
-    # the file, excluding .js
-    if len(args) == 2:
-        file_name = (
-            f"{exec_folder_path}/{inter.parse(1, line, args)[2]}.js"
-        )
-    with open(file_name, "w") as f:
-        f.write(js_code)
-    # creates a new process
-    # and executes the JavaScript code
-    # returns the environment
-    # including the out and variables
-    
-    def retrieve_js_environment(js_code):
-        import subprocess
-
-        # executable
-        executable = file_name
-        # create a new process
-        # and execute the JavaScript code
-        compiled_code = subprocess.run(
-            ["node", file_name],
-            # capture the output
-            capture_output=True,
-            text=True,
-        )
-        # get the output and error
-        out = compiled_code.stdout
-        err = compiled_code.stderr
-        # # if there is an error, print it
-        # if len(err) > 0:
-        #     print(err)
-        # remove a succeeding newline
-        # if it exists
-        if len(out) > 0 and out[-1] == "\n":
-            out = out[:-1]
-        return {"out": out, "err": err}
-    
-    # execute the JavaScript code
-    return retrieve_js_environment(js_code)
-def f_JAVA(inter, line, args, **kwargs):
-    import os
-    # get the Java code
-    java_code = inter.msn2_replace(args[0][0])
-    # create a directory for the Java code
-    # if it does not exist
-    exec_folder_path = "_exec"
-    # if the folder does not exist, create it
-    if not os.path.exists(exec_folder_path):
-        os.mkdir(exec_folder_path)
-    # create a file for the Java code
-    # and write the Java code to it
-    # get the amount of files in the directory
-    # and use that as the file name
-    file_num = len(os.listdir(exec_folder_path))
-    file_name = f"{exec_folder_path}/java{file_num}.java"
-    with open(file_name, "w") as f:
-        f.write(java_code)
-    # creates a new process
-    # and executes the Java code
-    # returns the environment
-    # including the out and variables
-    
-    def retrieve_java_environment(java_code):
-        import subprocess
-
-        # executable
-        executable = f"{exec_folder_path}/java{file_num}.class"
-        # create a new process
-        # and execute the Java code
-        compiled_code = subprocess.run(
-            ["javac", file_name],
-            # capture the output
-            capture_output=True,
-            text=True,
-        )
-        # if there's an error, print it
-        if len(compiled_code.stderr) > 0:
-            return {"out": "", "err": compiled_code.stderr}
-        # run the executable
-        compiled_code = subprocess.run(
-            ["java", executable],
-            # capture the output
-            capture_output=True,
-            text=True,
-        )
-        # get the output and error
-        out = compiled_code.stdout
-        err = compiled_code.stderr
-        return {"out": out, "err": err}
-    
-    # execute the Java code
-    return retrieve_java_environment(java_code)
-
-# multi-instruction function trigger
-def f_multi_function(inter, line, args, **kwargs):
-    return multi_lined(kwargs["inst"])
 
 # if the function is an integer
 def f_int_loop(inter, line, args, **kwargs):
@@ -4155,26 +1924,7 @@ def f_pointer_drag(inter, line, args, **kwargs):
     # releases the mouse at the end coordinates
     mouse.release(coords=end)
     return True    
-        
-def f_clipboard(inter, line, args, **kwargs):
-    import pyperclip
-    # if no arguments
-    if args[0][0] == "":
-        return pyperclip.paste()
-    # if one argument
-    else:
-        copying = str(inter.parse(0, line, args)[2])
-        pyperclip.copy(copying)
-        return copying
-    
 
-
-def f_obj_general_destructive(inter, line, args, **kwargs):
-    # recreate the line to interpret without the '!'
-    inter.vars[kwargs["vname"]].value = inter.interpret(
-        f"{kwargs['vname']}.{kwargs['objfunc'][:-1]}({kwargs['mergedargs']})"
-    )
-    return inter.vars[kwargs["vname"]].value
 
 
 def f_obj_default_copy(inter, line, args, **kwargs):
@@ -4537,175 +2287,7 @@ def f_obj_default_in(inter, line, args, **kwargs):
             )
     return kwargs["object"] in in_var
 
-def f_obj_number_inc(inter, line, args, **kwargs):
-    inter.vars[kwargs["vname"]].value += 1
-    return inter.vars[kwargs["vname"]].value
-def f_obj_number_dec(inter, line, args, **kwargs):
-    inter.vars[kwargs["vname"]].value -= 1
-    return inter.vars[kwargs["vname"]].value
-def f_obj_number_even(inter, line, args, **kwargs):
-    return inter.vars[kwargs["vname"]].value % 2 == 0
-def f_obj_number_odd(inter, line, args, **kwargs):
-    return inter.vars[kwargs["vname"]].value % 2 != 0
 
-def _try_obj_number_math(inter, func, line, args, **kwargs):
-    try:
-        return func()
-    except:
-        inter.raise_operation_err(kwargs["vname"], kwargs["objfunc"], line)
-def _f_obj_number_add(inter, line, args, **kwargs):
-    for i in range(len(args)):
-        inter.vars[kwargs["vname"]].value += inter.parse(i, line, args)[2]
-    return inter.vars[kwargs["vname"]].value
-def f_obj_number_add(inter, line, args, **kwargs):
-    return _try_obj_number_math(
-        inter,
-        lambda: _f_obj_number_add(inter, line, args, **kwargs),
-        line,
-        args,
-        **kwargs,
-    )
-def _f_obj_number_sub(inter, line, args, **kwargs):
-    for i in range(len(args)):
-        inter.vars[kwargs["vname"]].value -= inter.parse(i, line, args)[2]
-    return inter.vars[kwargs["vname"]].value
-def f_obj_number_sub(inter, line, args, **kwargs):
-    return _try_obj_number_math(
-        inter,
-        lambda: _f_obj_number_sub(inter, line, args, **kwargs),
-        line,
-        args,
-        **kwargs,
-    )
-def _f_obj_number_mul(inter, line, args, **kwargs):
-    for i in range(len(args)):
-        inter.vars[kwargs["vname"]].value *= inter.parse(i, line, args)[2]
-    return inter.vars[kwargs["vname"]].value
-def f_obj_number_mul(inter, line, args, **kwargs):
-    return _try_obj_number_math(
-        inter,
-        lambda: _f_obj_number_mul(inter, line, args, **kwargs),
-        line,
-        args,
-        **kwargs,
-    )
-def _f_obj_number_div(inter, line, args, **kwargs):
-    for i in range(len(args)):
-        inter.vars[kwargs["vname"]].value /= inter.parse(i, line, args)[2]
-    return inter.vars[kwargs["vname"]].value
-def f_obj_number_div(inter, line, args, **kwargs):
-    return _try_obj_number_math(
-        inter,
-        lambda: _f_obj_number_div(inter, line, args, **kwargs),
-        line,
-        args,
-        **kwargs,
-    )
-        
-def f_obj_number_abs(inter, line, args, **kwargs):
-    # can only be performed on numbers
-    inter.vars[kwargs["vname"]].value = abs(inter.vars[kwargs["vname"]].value)
-    return inter.vars[kwargs["vname"]].value
-def f_obj_number_round(inter, line, args, **kwargs):
-    # round to the nearest decimal place
-    if args[0][0] != "":
-        # decimal place to round to
-        place = inter.parse(0, line, args)[2]
-        # place type must be int
-        inter.type_err([(place, (int,))], line, kwargs["lines_ran"])
-        inter.vars[kwargs["vname"]].value = round(
-            inter.vars[kwargs["vname"]].value, place
-        )
-    else:
-        inter.vars[kwargs["vname"]].value = round(inter.vars[kwargs["vname"]].value)
-    return inter.vars[kwargs["vname"]].value
-def f_obj_number_floor(inter, line, args, **kwargs):
-    # using math
-    import math
-    
-    inter.vars[kwargs["vname"]].value = math.floor(inter.vars[kwargs["vname"]].value)
-    return inter.vars[kwargs["vname"]].value
-def f_obj_number_ceil(inter, line, args, **kwargs):
-    # using math
-    import math
-    
-    inter.vars[kwargs["vname"]].value = math.ceil(inter.vars[kwargs["vname"]].value)
-    return inter.vars[kwargs["vname"]].value
-def f_obj_number_neg(inter, line, args, **kwargs):
-    inter.vars[kwargs["vname"]].value = -inter.vars[kwargs["vname"]].value
-    return inter.vars[kwargs["vname"]].value
-def _try_obj_number_compare(inter, func, line, args, **kwargs):
-    try:
-        return func()
-    except:
-        inter.raise_comp(kwargs["objfunc"], kwargs["vname"], line)
-def f_obj_number_greater(inter, line, args, **kwargs):
-    return _try_obj_number_compare(
-        inter,
-        lambda: all(
-            inter.vars[kwargs["vname"]].value > inter.parse(i, line, args)[2]
-            for i in range(len(args))
-        ),
-        line,
-        args,
-        **kwargs,
-    )
-def f_obj_number_less(inter, line, args, **kwargs):
-    return _try_obj_number_compare(
-        inter,
-        lambda: all(
-            inter.vars[kwargs["vname"]].value < inter.parse(i, line, args)[2]
-            for i in range(len(args))
-        ),
-        line,
-        args,
-        **kwargs,
-    )
-def f_obj_number_greaterequal(inter, line, args, **kwargs):
-    return _try_obj_number_compare(
-        inter,
-        lambda: all(
-            inter.vars[kwargs["vname"]].value >= inter.parse(i, line, args)[2]
-            for i in range(len(args))
-        ),
-        line,
-        args,
-        **kwargs,
-    )
-def f_obj_number_lessequal(inter, line, args, **kwargs):
-    return _try_obj_number_compare(
-        inter,
-        lambda: all(
-            inter.vars[kwargs["vname"]].value <= inter.parse(i, line, args)[2]
-            for i in range(len(args))
-        ),
-        line,
-        args,
-        **kwargs,
-    )
-
-def f_obj_set_add(inter, line, args, **kwargs):
-    for i in range(len(args)):
-        inter.vars[kwargs["vname"]].value.add(inter.parse(i, line, args)[2])
-    return inter.vars[kwargs["vname"]].value
-def f_obj_set_pop(inter, line, args, **kwargs):
-    return inter.vars[kwargs["vname"]].value.pop()
-def f_obj_set_remove(inter, line, args, **kwargs):
-    for i in range(len(args)):
-        inter.vars[kwargs["vname"]].value.remove(inter.parse(i, line, args)[2])
-    return inter.vars[kwargs["vname"]].value
-def f_obj_set_list(inter, line, args, **kwargs):
-    return list(inter.vars[kwargs["vname"]].value)
-def f_obj_set_get(inter, line, args, **kwargs):
-    # index to get at
-    ind = inter.parse(0, line, args)[2]
-    # index must be an int
-    inter.type_err([(ind, (int,))], line, kwargs["lines_ran"])
-    # get the index
-    for i in inter.vars[kwargs["vname"]].value:
-        if ind == 0:
-            return i
-        ind -= 1
 
 def f_obj_list_push(inter, line, args, **kwargs):
     for i in range(len(args)):
@@ -5080,364 +2662,62 @@ def f_obj_dict_map(inter, line, args, **kwargs):
 
 
 
-#  # allows for repetitive setting on a multiple indexed dictionary
-#                         if objfunc == "set":
-#                             self.vars[vname].value[self.parse(0, line, args)[2]] = (
-#                                 self.parse(1, line, args)[2]
-#                             )
-#                             return self.vars[vname].value
-#                         # first argument is what to set, should be called to_set
-#                         # rest of the arguments are the indices at which to index the object and set to_set
-#                         if objfunc == "setn":
-#                             # what to set
-#                             to_set = self.parse(0, line, args)[2]
-#                             # the rest of the arguments are the indices
-#                             # example: dict.setn('im being set', 'index1', 'index2', 'index3', ...)
-#                             # should equal: dict['index1']['index2']['index3'] = 'im being set'
-#                             # the object to set
-#                             obj = self.vars[vname].value
-#                             # iterates through the indices
-#                             for i in range(1, len(args)):
-#                                 # if the index is the last one
-#                                 if i == len(args) - 1:
-#                                     # sets the index to to_set
-#                                     obj[self.parse(i, line, args)[2]] = to_set
-#                                 # if the index is not the last one
-#                                 else:
-#                                     # sets the object to the index
-#                                     obj = obj[self.parse(i, line, args)[2]]
-#                             # returns the object
-#                             return self.vars[vname].value
-#                         # recursively gets a value in a dictionary
-#                         if objfunc == "get":
-#                             # the object to get from
-#                             obj = self.vars[vname].value
-#                             # iterates through the indices
-#                             for i in range(len(args)):
-#                                 ind = self.parse(i, line, args)[2]
-#                                 try:
-#                                     # sets the object to the index
-#                                     obj = obj[ind]
-#                                 except KeyError:
-#                                     self.raise_key(ind, line)
-#                             # returns the object
-#                             return obj
-#                         # gets the keys of this dictionary
-#                         if objfunc == "keys":
-#                             return self.vars[vname].value.keys()
-#                         # gets the values of this dictionary
-#                         if objfunc == "values":
-#                             return self.vars[vname].value.values()
-#                         # gets the items of this dictionary
-#                         if objfunc == "items":
-#                             return self.vars[vname].value.items()
-#                         # executes a function for each key-value pair
-#                         if objfunc == "foreach":
-#                             # variable name of the key
-#                             keyname = self.parse(0, line, args)[2]
-#                             # variable name of the value
-#                             valuename = self.parse(1, line, args)[2]
-#                             # check both keyname and valuename as varnames
-#                             self.check_varname(keyname, line)
-#                             self.check_varname(valuename, line)
-#                             # function to execute
-#                             function = args[2][0]
-#                             # loop through the dictionary
-#                             for key, value in self.vars[vname].value.items():
-#                                 # set the key and value variables
-#                                 self.vars[keyname] = Var(keyname, key)
-#                                 self.vars[valuename] = Var(valuename, value)
-#                                 # execute the function
-#                                 self.interpret(function)
-#                             # return the dictionary
-#                             return self.vars[vname].value
-#                         # maps each value in the dictionary to the output of the function
-#                         if objfunc == "map":
-#                             # map arguments
-#                             keyvarname = self.parse(0, line, args)[2]
-#                             valuevarname = self.parse(1, line, args)[2]
-#                             # check both for varnames
-#                             self.check_varname(keyvarname, line)
-#                             self.check_varname(valuevarname, line)
-#                             function = args[2][0]
-#                             new_dict = {}
-#                             # loop through the objects items, assigning the key to the key and
-#                             # value to the value
-#                             for key, value in self.vars[vname].value.items():
-#                                 # log old key
-#                                 old_key = key
-#                                 # execute the function
-#                                 self.vars[keyvarname] = Var(keyvarname, key)
-#                                 self.vars[valuevarname] = Var(valuevarname, value)
-#                                 # run the function
-#                                 ret = self.interpret(function)
-#                                 if self.vars[keyvarname].value == old_key:
-#                                     new_dict[old_key] = self.vars[valuevarname].value
-#                                 else:
-#                                     new_dict[self.vars[keyvarname].value] = self.vars[
-#                                         valuevarname
-#                                     ].value
-#                             self.vars[vname].value = new_dict
-#                             return self.vars[vname].value
-
-
+# function dispatch
 # function dispatch
 FUNCTION_DISPATCH = {
-    "redirect": f_redirect,
-    "stopredirect": f_stopredirect,
-    "startredirect": f_startredirect,
-    "function": f_function,
-    "def": f_def,
-    "mod": f_mod,
-    "ret": f_ret,
-    "arr": f_arr, "from": f_arr,
-    "object": f_object, "dictfrom": f_object,
-    "split": f_split,
-    "lines": f_lines,
-    "eval": f_eval,
-    "between": f_between,
-    "isstr": f_isstr,
-    "islist": f_islist,
-    "isfloat": f_isfloat,
-    "isint": f_isint,
-    "isdict": f_isdict,
-    "isinstance": f_isinstance,
-    "sum": f_sum,
-    "var": f_var,
-    "list": f_list,
-    "abs": f_abs,
-    "zip": f_zip,
-    "next": f_next,
-    "iter": f_iter,
-    "exists": f_exists,
-    "exists:function": f_exists_function,
-    "len": f_len,
-    "assert": f_assert,
-    "assert:err": f_assert_err,
-    "settings": f_settings,
-    "sortby": f_sortby,
-    "comp": f_comp,
-    "do": f_do,
-    "None": f_None,
-    "filter": f_filter,
-    "unpack": f_unpack,
-    "has": f_has,
-    "first": f_first, "head": f_first,
-    "add": f_add,
-    "USD": f_USD,
-    "format": f_format,
-    "round": f_round,
-    "maximum": f_maximum,
-    "minimum": f_minimum,
-    "sub": f_sub,
-    "mul": f_mul,
-    "div": f_div,
-    "append": f_append,
-    "->": f_op_getarrow,
-    "version": f_version,
-    "destroy": f_destroy,
-    "destroy:function": f_destroy_function,
-    "range": f_range,
-    "uuid4": f_uuid4,
-    "random": f_random,
-    "merge": f_merge,
-    "exception": f_exception,
-    "syntax": f_syntax,
-    "enclosedsyntax": f_enclosed_syntax,
-    "macro": f_macro,
-    "postmacro": f_postmacro,
-    "val": f_val,
-    "sorted": f_sorted,
-    "copy": f_copy,
-    "fileacquire": f_fileacquire,
-    "filerelease": f_filerelease,
-    "map": f_map,
-    "insert": f_insert,
-    "type": f_type,
-    "parent": f_parent,
-    "boot": f_boot,
-    "del": f_del,
-    "cat": f_cat,
-    "equals": f_equals,
-    "not": f_not,
-    "and": f_and,
-    "or": f_or,
-    "greater": f_greater,
-    "less": f_less,
-    "greaterequal": f_greaterequal,
-    "lessequal": f_lessequal,
-    "class": f_class,
-    "get": f_get,
-    "getn": f_getn,
-    "keys": f_keys,
-    "import": f_import, "launch": f_import, "include": f_import, "using": f_import,
-    "domain": f_domain,
-    "domain:find": d_domainfind,
-    "in": f_in,
-    "out": f_out,
-    "prnt": f_prnt,
-    "print": f_print,
-    "print:box": f_printbox,
-    "print:color": f_printcolor,
-    "sleep": f_sleep,
-    "me": f_me,
-    "next_entry_path": f_next_entry_path,
-    "next_project_path": f_next_project_path,
-    "env": f_env,
-    "env:maxchars": f_envmaxchars,
-    "-": f_symbolminus,
-    "+": f_symbolplus,
-    "x": f_symbolx,
-    "*": f_symbolx,
-    "/": f_symboldiv,
-    "//": f_symboldivdiv,
-    "%": f_symbolmod,
-    "^": f_symbolpow,
-    "isdigit": f_isdigit,
-    "isalpha": f_isalpha,
-    "as": f_as,
-    "startswith": f_startswith,
-    "endswith": f_endswith,
-    "strip": f_strip,
-    "slice": f_slice,
-    "iterable:join": f_iterablejoin,
-    "script": f_script, "async": f_script, "HTML": f_script,
-    "ls": f_ls, "longstring": f_ls,
-    "now": f_now,
-    "private": f_private, "inherit:all": f_private,
-    "break": f_break,
-    "reverse": f_reverse,
-    "upper": f_upper,
-    "lower": f_lower,
-    "title": f_title,
-    "inherit:methods": f_inheritmethods,
-    "inherit:vars": f_inheritvars,
-    "inherit:single": f_inheritsingle,
-    "new": f_new,
-    "alias": f_alias,
-    "process": f_process,
-    "proc": f_proc,
-    "pid": f_pid,
-    "thread": f_thread,
-    "threadpool": f_threadpool,
-    "tvar": f_tvar,
-    "gettvar": f_gettvar,
-    "tvarstr": f_tvarstr,
-    "varmethod": f_varmethod,
-    "acquire": f_acquire,
-    "release": f_release,
-    "acquire:pointer": f_acquirepointer,
-    "release:pointer": f_releasepointer,
-    "join": f_join,
-    "stop": f_stop,
-    "try": f_try,
-    "wait": f_wait,
-    "interval": f_interval,
-    "export": f_export,
-    "exportas": f_exportas, "export:as": f_exportas,
-    "exportall": f_exportall, "export:all": f_exportall,
-    "exportthread": f_exportthread, "export:thread": f_exportthread,
-    "clearthreads": f_clearthreads,
-    "console": f_console,
-    "consoleread": f_consoleread,
-    "request": f_request,
-    "return": f_return,
-    "pubip": f_pubip,
-    "privip": f_privip,
-    "ENDPOINT": f_endpoint,
-    "POST": f_post,
-    "DELETE": f_delete,
-    "GET": f_get_api,
-    "windows": f_windows,
-    "linux": f_linux,
-    "mac": f_mac,
-    "end": f_end,
-    "static": f_static,
-    "getattr": f_getattr,
-    "setattr": f_setattr,
-    "=>": f_multi_function,
-    "clipboard": f_clipboard,
+    **REDIRECTS_DISPATCH,
+    **FUNCTION_BASED_DISPATCH,
+    **VARS_DISPATCH,
+    **MATH_DISPATCH,
+    **STRINGS_DISPATCH,  
+    **NUMBERS_DISPATCH,
+    **TYPE_TESTING_DISPATCH,
+    **ITERABLES_DISPATCH,
+    **ASSERTIONS_DISPATCH,
+    **SYSTEM_DISPATCH,        
+    **OBJECT_GENERAL_DISPATCH,
+    **SYNTAX_DISPATCH,
+    **LOGICAL_DISPATCH,
+    **DOMAINS_DISPATCH,
+    **IN_OUT_DISPATCH,
+    **STDOUT_DISPATCH,
+    **JS_DISPATCH,
+    **TIME_DISPATCH,
+    **CONTEXTS_DISPATCH,    
+    **MULTIPROGRAMMING_DISPATCH,
+    **POINTER_DISPATCH,
+    **API_DISPATCH,
+    **MISC_DISPATCH,
+    **INSERTIONS_DISPATCH,    
+    **LANG_DISPATCH,
+    **WIN_AUTO_DISPATCH,
+    **EXCEL_DISPATCH,
+    **CAST_DISPATCH,
+    **CONDITIONALS_DISPATCH,
     
-    # language functions
-    "C": f_C,
-    "JS": f_JS,
-    "JAVA": f_JAVA,
-    
-    # different
-    "app": f_app,
-    "connect": f_connect,
-    "excel": f_excel,
-
-
-    # casting functions
-    "int": f_int,
-    "float": f_float,
-    "str": f_str,
-    "bool": f_bool,
-    "complex": f_complex,
-    "type": f_type,
-    "dir": f_dir,
-    "set": f_set,
-    "dict": f_dict,
-    "tuple": f_tuple,
-
-    # conditional logic
-    "if": f_if,
-    "while": f_while,
-    "for": f_for,
-    "each": f_each,
-
     # special calls
     "special": {
-        "?": f_quickcond,
-        "varloop": f_varname_loop,
-        "intloop": f_int_loop,
+        **SPECIAL_LOOPS_DISPATCH,
     },
 
     # msn2 classes
     "obj": {        
         "general": {
-            "!": f_obj_general_destructive,
+            **OBJ_GENERAL_DESTRUCTIVE_DISPATCH,
             
             # integers, floats, and complex numbers
             "number": {
-                
-                # comparisons
-                "greater": f_obj_number_greater, "greaterthan": f_obj_number_greater, "g": f_obj_number_greater,
-                "less": f_obj_number_less, "lessthan": f_obj_number_less, "l": f_obj_number_less,
-                "greaterequal": f_obj_number_greaterequal, "ge": f_obj_number_greaterequal,
-                "lessequal": f_obj_number_lessequal, "le": f_obj_number_lessequal,
-                
-                # operations (not inplace)
-                "++": f_obj_number_inc, "inc": f_obj_number_inc,
-                "--": f_obj_number_dec, "dec": f_obj_number_dec,
-                "even": f_obj_number_even,
-                "odd": f_obj_number_odd,
-                
-                # inplace
-                "add": f_obj_number_add,
-                "sub": f_obj_number_sub,
-                "mul": f_obj_number_mul,
-                "div": f_obj_number_div,
-                "abs": f_obj_number_abs,
-                "round": f_obj_number_round,
-                "floor": f_obj_number_floor,
-                "ceil": f_obj_number_ceil,
-                "neg": f_obj_number_neg,
+                **OBJ_GENERAL_NUMBER_COMPARISONS_DISPATCH,
+                **OBJ_GENERAL_NUMBER_OPS_DISPATCH,
+                **OBJ_GENERAL_NUMBER_OPS_IP_DISPATCH,
             },
             "set": {
-                "add": f_obj_set_add, "put": f_obj_set_add,
-                "pop": f_obj_set_pop,
-                "remove": f_obj_set_remove,
-                "list": f_obj_set_list,
-                "get": f_obj_set_get,
+                **OBJ_GENERAL_SET_BASIC_DISPATCH,
             },
             "list": {
-                "push": f_obj_list_push, "append": f_obj_list_push, "add": f_obj_list_push,
                 "pop": f_obj_list_pop, 
                 "get": f_obj_list_get,
                 "set": f_obj_list_set,
-                "avg": f_obj_list_avg, "average": f_obj_list_avg,
                 "insert": f_obj_list_insert,
                 "removen": f_obj_list_removen,
                 "remove": f_obj_list_remove,
@@ -5445,12 +2725,14 @@ FUNCTION_DISPATCH = {
                 "sort": f_obj_list_sort,
                 "len": f_obj_list_len,
                 "empty": f_obj_list_empty,  
-                "contains": f_obj_list_contains, "has": f_obj_list_contains, "includes": f_obj_list_contains,
                 "find": f_obj_list_find,
                 "shuffle": f_obj_list_shuffle,
                 "map": f_obj_list_map,
-                "join": f_obj_list_join, "delimit": f_obj_list_join,
                 "toset": f_obj_list_toset,
+                **aliases(f_obj_list_push, ("push", "append", "add")),
+                **aliases(f_obj_list_avg, ("avg", "average")),
+                **aliases(f_obj_list_contains, ("contains", "has", "includes")),
+                **aliases(f_obj_list_join, ("join", "delimit")),
             },
             "str": {
                 "add": f_obj_str_add,
@@ -5463,7 +2745,6 @@ FUNCTION_DISPATCH = {
                 "isdigit": f_obj_str_isdigit,
                 "isalpha": f_obj_str_isalpha,
                 "replace": f_obj_str_replace,
-                "strip": f_obj_str_strip, "trim": f_obj_str_strip,
                 "stripped": f_obj_str_stripped,
                 "self": f_obj_str_self,
                 "set": f_obj_str_set,
@@ -5475,6 +2756,7 @@ FUNCTION_DISPATCH = {
                 "around": f_obj_str_around,
                 "startswith": f_obj_str_startswith,
                 "endswith": f_obj_str_endswith,
+                **aliases(f_obj_str_strip, ("strip", "trim")),
             },
             "dict": {
                 "set": f_obj_dict_set,
@@ -5507,13 +2789,13 @@ FUNCTION_DISPATCH = {
                 # basic operations
                 "+": f_obj_default_add,
                 "-": f_obj_default_sub,
-                "*": f_obj_default_mul, "x": f_obj_default_mul,
                 "/": f_obj_default_div,
                 "%": f_obj_default_mod,
                 "**": f_obj_default_pow,
                 "//": f_obj_default_idiv,
+                **aliases(f_obj_default_mul, ("*", "x")),
                 
-
+                # string operations
                 "string_name": f_obj_default_string_name,
                 "each": f_obj_default_each,
                 "rfind": f_obj_default_rfind,
@@ -5524,6 +2806,7 @@ FUNCTION_DISPATCH = {
                 "reverse": f_obj_default_reverse,
                 "in": f_obj_default_in,
                 
+                # misc operations
                 "copy": f_obj_default_copy,
                 "print": f_obj_default_print,
                 "switch": f_obj_default_switch,
@@ -5568,14 +2851,14 @@ FUNCTION_DISPATCH = {
             "else": f_py_else,
         },
         "op": {
-            "append": f_op_append, "push": f_op_append, "add": f_op_append, "plus": f_op_append, "+": f_op_append, "concat": f_op_append, "concatenate": f_op_append, "join": f_op_append, "merge": f_op_append, "sum": f_op_append,
-            "sub": f_op_sub, "minus": f_op_sub, "subtract": f_op_sub, "-": f_op_sub,
-            "mul": f_op_mul, "times": f_op_mul, "x": f_op_mul, "*": f_op_mul, "multiply": f_op_mul,
-            "div": f_op_div, "divide": f_op_div, "over": f_op_div, "/": f_op_div,
-            "idiv": f_op_idiv, "intdiv": f_op_idiv, "intdivide": f_op_idiv, "intover": f_op_idiv, "//": f_op_idiv, "÷÷": f_op_idiv,
-            "mod": f_op_mod, "modulo": f_op_mod, "modulus": f_op_mod, "%": f_op_mod, "remainder": f_op_mod,
-            "pow": f_op_pow, "power": f_op_pow, "exponent": f_op_pow, "**": f_op_pow,
-            "root": f_op_root, "nthroot": f_op_root, "nthrt": f_op_root,
+            **aliases(f_op_append, ("append", "push", "add", "plus", "+", "concat", "concatenate", "join", "merge", "sum")),
+            **aliases(f_op_sub, ("sub", "minus", "subtract", "-")),
+            **aliases(f_op_mul, ("mul", "times", "x", "*", "multiply")),
+            **aliases(f_op_div, ("div", "divide", "over", "/")),
+            **aliases(f_op_idiv, ("idiv", "intdiv", "intdivide", "intover", "//", "÷÷")),
+            **aliases(f_op_mod, ("mod", "modulo", "modulus", "%", "remainder")),
+            **aliases(f_op_pow, ("pow", "power", "exponent", "**")),
+            **aliases(f_op_root, ("root", "nthroot", "nthrt")),
             "else": f_op_else,
         },
         "function": {
@@ -5659,9 +2942,6 @@ FUNCTION_DISPATCH = {
             "else": f_math_else,
         },
         "pointer": {
-            "getpos": f_pointer_getpos, "pos": f_pointer_getpos, "position": f_pointer_getpos,
-            "move": f_pointer_move, "hover": f_pointer_move,
-            "click": f_pointer_click, "left_click": f_pointer_click,
             "right_click": f_pointer_right_click,
             "double_click": f_pointer_double_click,
             "scroll_bottom": f_pointer_scroll_bottom,
@@ -5678,6 +2958,9 @@ FUNCTION_DISPATCH = {
             "left": f_pointer_left,
             "right": f_pointer_right,
             "drag": f_pointer_drag,
+            **aliases(f_pointer_getpos, ("getpos", "pos", "position")),
+            **aliases(f_pointer_move, ("move", "hover")),
+            **aliases(f_pointer_click, ("click", "left_click")),
         }
     }
 }
