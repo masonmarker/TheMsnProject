@@ -1,32 +1,23 @@
 
 
-import ('lib/user')
+@ book = excel('C:\\Users\\mason\\OneDrive\\Desktop\\msn\\book.xlsx')
 
-# create some random stuff
-@variable = [1, 2, 3, 4, 5]
+@ sheet = book.sheet('sheet1')
 
-def ('func', 'arg1', 'arg2', print('hi!'))
-def ('func2', 'arg1', 'arg2', print('hi!'))
-# syntax
-syntax('||', '__line', print(__line))
-syntax('::::', '__file', print(__file))
-# macros 
-macro('TEST ', '__line', print(__line))
-macro('TEST2 ', '__file', print(__file))
-# postmacros
-postmacro('POSTTEST ', '__line', print(__line))
-postmacro('POSTTEST2 ', '__file', print(__file))
-# enclosed syntax
-enclosedsyntax('||', '||','__line', print(__line))
-enclosedsyntax('::::', '::::', '__file', print(__file))
+# clear from last run
+sheet.clear()
 
-
-
-
-
-# add to the out
-prnt('this is some out text')
-
-
-
-env(1)
+# creating a 2D array of cell
+# numbers
+@ cells = (
+    [
+        [0, 0], 
+        [0, 1], 
+        [0, 2], 
+        [0, 3], 
+        [0, 4],
+        [1, 0], 
+        [2, 0], 
+        [3, 0],
+        [4, 0]
+    ])

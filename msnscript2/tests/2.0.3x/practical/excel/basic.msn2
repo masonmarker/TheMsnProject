@@ -108,6 +108,7 @@ sheet.clear()
 # sets the column
 sheet.set_column(1, ['hello', 'world', 'goodbye'])
 
+
 # gets a column by title
 assert(equals(
     sheet.column('hello'), 
@@ -163,6 +164,10 @@ assert(equals(
 # creating new sheets
 @ sheet2 = book.sheet('sheet2')
 @ sheet3 = book.sheet('sheet3')
+
+# clear from last run
+sheet2.clear()
+sheet3.clear()
 
 # assert the sheets are empty
 assert(equals(sheet2.column(0), []))

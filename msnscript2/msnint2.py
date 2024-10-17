@@ -12,32 +12,20 @@
 # Start date : 09/15/2022
 
 
-# TODO
-# speed up function interpretation
-# by determining obj and func by argument count first
-# as opposed to iterating through all functions.
-# do this and/or determine closest function after each character
-# consumption.
-# this also entails testing and reordering function priority to
-# maximize speed.
-#
+# _TODO updated 10/16/2024
 # TODO
 # implement string parsing of the same character at which
 # it was defined. ex: "hello \"world\"" -> hello "world"
 # currently, this is not possible
 #
-# TODO (less important)
-# split interpreter up into multiple files
-# for better readability
-#
-# TODO
-# implement warnings and warning handling, as this
-# language was designed to be safe yet flexible
-#
 # TODO
 # implement linear interpretation in areas of heavy logic, this applies
 # incredibly non linear approaches in several blocks
 # such as <<>> or functions such as script()
+#
+# TODO
+# implement warnings and warning handling, as this
+# language was designed to be safe yet flexible
 #
 # TODO
 # implement an interpretation for block syntax
@@ -48,26 +36,11 @@
 # ensure no code repetition
 # (it definitely exists)
 
-# TODO
-# 2.0.400
-#
-# * MSN2 code conversion to JavaScript
-# - be able to generate JavaScript code
-#   from MSN2 code
-#
-#  ----- Less Important -----
-# * CHROME BROWSER
-# - finish lib/auto/chrome class extension
-#
-# * PRIVATE FUNCTIONS
-# - complete all of their work similarly to a function in any other language,
-#   where the function can access external variables, and variables local
-#   to the function will never be accessable to any external context unless specified.
 
 # the current logical implementation is conceptual,
 # deoptimized, and exists to prove functionality as speed can
 # be enhanced later, however, opportunities for speed enhancement
-# are still implemented if less major.
+# are still being implemented.
 
 # NOTE
 # Python runner's alias are determined by
@@ -83,12 +56,10 @@
 import os
 import threading
 
-# variables
+# classes
+from core.classes.excel.sheet import Sheet, Workbook
 from core.classes.var import Var
-
-# instructions
 from core.classes.instruction import Instruction
-# methods
 from core.classes.method import Method
 
 # function dispatch table
@@ -96,10 +67,7 @@ from core.dispatch.functions import FUNCTION_DISPATCH
 
 # remove warnings for calling of integers: "10()"
 import warnings
-
 warnings.filterwarnings("ignore", category=SyntaxWarning)
-
-# variables
 
 
 # path to the common settings file
@@ -169,7 +137,7 @@ total_ints = 0
 # automation
 apps = {}
 # colors for colored printing,
-# defaults to nothing until assigned
+# defaults to "" until lazily loaded
 colors = ""
 
 
@@ -604,7 +572,7 @@ class Interpreter:
                 if not isinstance(_ret, type) and not isinstance(_ret, type(eval)):
                     return _ret
         except:
-            None
+            pass
 
         func = ""
         objfunc = ""
@@ -769,382 +737,27 @@ class Interpreter:
 
                     # variable type specific methods
                     
-                    # number specific functions
-                    if (
-                        isinstance(object, int)
-                        or isinstance(object, float)
-                        or isinstance(object, complex)
-                    ):
-                        
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["number"]:
-                            return FUNCTION_DISPATCH["obj"]["general"]["number"][objfunc](
+                    # do the above but without code repetition
+                    # check for general functions
+                    if _type_object in FUNCTION_DISPATCH["obj"]["general"]:
+                        if objfunc in FUNCTION_DISPATCH["obj"]["general"][_type_object]:
+                            return FUNCTION_DISPATCH["obj"]["general"][_type_object][objfunc](
                                 self, line, args, vname=vname, objfunc=objfunc,
                                 object=object, obj=obj, lines_ran=lines_ran
                             )
-                            
-                        # more basic functions
-                        return self.vars[vname].value
 
-                    # set based functions
-                    elif isinstance(object, set):
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["set"]:
-                            return FUNCTION_DISPATCH["obj"]["general"]["set"][objfunc](
-                                self, line, args, vname=vname, objfunc=objfunc,
-                                object=object, obj=obj, lines_ran=lines_ran, f=f
-                            )
-
-                    # array based functions
-                    elif isinstance(object, list):
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["list"]:
-                            return FUNCTION_DISPATCH["obj"]["general"]["list"][objfunc](
-                                self, line, args, vname=vname, objfunc=objfunc,
-                                object=object, obj=obj, lines_ran=lines_ran, f=f
-                            )
-                    # if the object is a string
-                    elif isinstance(object, str):
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["str"]:
-                            return FUNCTION_DISPATCH["obj"]["general"]["str"][objfunc](
-                                self, line, args, vname=vname, objfunc=objfunc,
-                                object=object, obj=obj, lines_ran=lines_ran, f=f
-                            )
-
-                    elif (_type_o := str(type(object))) in FUNCTION_DISPATCH["obj"]["general"]["class_based"]:
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_o]:
-                            return FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_o][objfunc](
-                                self, line, args, object=object, 
-                            )
-                        else:
-                            return FUNCTION_DISPATCH["obj"]["general"]["class_based"]["else"](
-                                self, line, args, object=object, 
-                            )
                     # check for requests_html.HTML
-                    elif _type_o in FUNCTION_DISPATCH["obj"]["general"]["class_based"]:
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_o]:
-                            return FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_o][objfunc](
+                    elif str(_type_object) in FUNCTION_DISPATCH["obj"]["general"]["class_based"]:
+                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_object]:
+                            return FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_object][objfunc](
                                 self, line, args, object=object, objfunc=objfunc,
                             )
                         else:
-                            return FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_o]["else"](
+                            return FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_object]["else"](
                                 self, line, args, object=object, objfunc=objfunc
                             )                    
-                    
-                    
-                    # working with Excel sheets
-                    elif isinstance(object, self.Sheet):
-                        # active elements
-                        title = object.title
-                        workbook = object.workbook
-                        path = object.path
-                        sheet = object.sheet
-                        # gets the value of a cell
-                        if objfunc == "get":
-                            # column of the cell
-                            column = self.parse(0, line, args)[2]
-                            # row of the cell
-                            row = self.parse(1, line, args)[2]
-                            # returns the value of the cell
-                            return sheet.cell(row + 1, column + 1).value
-                        # sets the value of a cell
-                        if objfunc == "set":
-                            # column of the cell
-                            column = self.parse(0, line, args)[2]
-                            # row of the cell
-                            row = self.parse(1, line, args)[2]
-                            # row and column must be int
-                            self.type_err(
-                                [(column, (int,)), (row, (int,))], line, lines_ran
-                            )
-                            # value to set the cell to
-                            value = self.parse(2, line, args)[2]
-                            # sets the value of the cell
-                            sheet.cell(row + 1, column + 1, value)
-                            # returns the sheet
-                            return value
-                        # clears the sheet
-                        if objfunc == "clear":
-                            # clears the sheet
-                            for row in sheet.iter_rows():
-                                for cell in row:
-                                    cell.value = None
-                            # returns the sheet
-                            return object
-                        # gets the populated cell values of a column
-                        # if the argument is a number, it gets the value of that column
-                        # if the argument is a string, it gets the value of the column with that title
-                        if objfunc == "column":
-                            # column, either an integer or string
-                            col = self.parse(0, line, args)[2]
-                            # col must be int or str
-                            self.type_err([(col, (int, str))], line, lines_ran)
-                            column_values = []
-                            # if number
-                            if isinstance(col, int):
-                                col += 1
-                                column_values = [
-                                    row.value
-                                    for row in sheet.iter_cols(min_col=col, max_col=col)
-                                    for row in cell
-                                    if row.value != None
-                                ]
-                            # otherwise, get column by title
-                            elif isinstance(col, str):
-                                # for each column
-                                column_values = [
-                                    row.value
-                                    for row in sheet.iter_cols()
-                                    if row[0].value == col
-                                    for row in cell
-                                    if row.value != None
-                                ]
-                            return column_values
-                        # gets the populated cell values of a row
-                        # if the argument is a number, it gets the value of that column
-                        # if the argument is a string, it gets the value of the column with that title
-                        if objfunc == "row":
-                            # row, either an integer or string
-                            r = self.parse(0, line, args)[2]
-                            # r must be int or str
-                            self.type_err([(r, (int, str))], line, lines_ran)
-                            row_values = []
-                            # if number
-                            if isinstance(r, int):
-                                r += 1
-                                row_values = [
-                                    row.value
-                                    for row in sheet.iter_rows(min_row=r, max_row=r)
-                                    for row in cell
-                                    if row.value != None
-                                ]
-                            # otherwise, get row by title
-                            elif isinstance(r, str):
-                                # for each row
-                                row_values = [
-                                    row.value
-                                    for row in sheet.iter_rows()
-                                    if row[0].value == r
-                                    for row in cell
-                                    if row.value != None
-                                ]
-                            return row_values
 
-                        # gets the index of a column with a given title
-                        def get_column_index(title):
-                            for cell in sheet.iter_cols():
-                                if cell[0].value == title:
-                                    return cell[0].column
-                            return None
-
-                        def get_row_index(title):
-                            for cell in sheet.iter_rows():
-                                if cell[0].value == title:
-                                    return cell[0].row
-                            return None
-
-                        # rewrite the above method, but with
-                        # if the argument is a number, it gets the value of that column
-                        # if the argument is a string, it gets the value of the column with that title
-                        if objfunc == "set_column":
-                            # column, either an integer or string
-                            col = self.parse(0, line, args)[2]
-                            # col must be int or str
-                            self.type_err([(col, (int, str))], line, lines_ran)
-                            # iterable of values
-                            values = self.parse(1, line, args)[2]
-                            # check that values is an iterable
-                            self.check_iterable(values, line)
-                            # if number
-                            if isinstance(col, int):
-                                col += 1
-                                for i in range(len(values)):
-                                    sheet.cell(i + 1, col, values[i])
-                            # otherwise, get column by title
-                            elif isinstance(col, str):
-                                # for each column
-                                for cell in sheet.iter_cols():
-                                    # if the title matches
-                                    if cell[0].value == col:
-                                        # get the column values
-                                        for i in range(len(values)):
-                                            sheet.cell(
-                                                i + 1, get_column_index(col), values[i]
-                                            )
-                            return values
-                        # sets a row to an array of values
-                        # if the argument is a number, it gets the value of that column
-                        # if the argument is a string, it gets the value of the column with that title
-                        elif objfunc == "set_row":
-                            # row, either an integer or string
-                            r = self.parse(0, line, args)[2]
-                            # must be int or str
-                            self.type_err([(r, (int, str))], line, lines_ran)
-                            # array of values
-                            values = self.parse(1, line, args)[2]
-                            # check that values is an iterable
-                            self.check_iterable(values, line)
-                            # if number
-                            if isinstance(r, int):
-                                r += 1
-                                for i in range(len(values)):
-                                    sheet.cell(r, i + 1, values[i])
-                            # otherwise, get row by title
-                            elif isinstance(r, str):
-                                # for each row
-                                for cell in sheet.iter_rows():
-                                    # if the title matches
-                                    if cell[0].value == r:
-                                        # get the row values
-                                        for i in range(len(values)):
-                                            sheet.cell(
-                                                get_row_index(r), i + 1, values[i]
-                                            )
-                            return values
-                        # reqrite the above method, but with
-                        # if the argument is a number, it gets the value of that column
-                        # if the argument is a string, it gets the value of the column with that title
-                        elif objfunc == "add_to_column":
-                            # column
-                            column = self.parse(0, line, args)[2]
-                            # column should be an int or str
-                            self.type_err([(column, (int, str))], line, lines_ran)
-                            # value to add
-                            value = self.parse(1, line, args)[2]
-                            # if number
-                            if isinstance(column, int):
-                                column += 1
-                                # find the first empty cell in the column
-                                for i in range(sheet.max_row + 1):
-                                    if sheet.cell(i + 1, column).value == None:
-                                        sheet.cell(i + 1, column, value)
-                                        return value
-                                return value
-                            # otherwise, get column by title
-                            elif isinstance(column, str):
-                                column_index = get_column_index(column)
-                                # find the first empty cell in the column
-                                for i in range(sheet.max_row + 1):
-                                    if sheet.cell(i + 1, column_index).value == None:
-                                        sheet.cell(i + 1, column_index, value)
-                                        return value
-                            return value
-                        # adds a value to a row
-                        # if the argument is a number, it gets the value of that column
-                        # if the argument is a string, it gets the value of the column with that title
-                        elif objfunc == "add_to_row":
-                            # row
-                            row = self.parse(0, line, args)[2]
-                            # row should be an int or str
-                            self.type_err([(row, (int, str))], line, lines_ran)
-                            # value to add
-                            value = self.parse(1, line, args)[2]
-                            # if number
-                            if isinstance(row, int):
-                                row += 1
-                                # find the first empty cell in the row
-                                for i in range(sheet.max_column):
-                                    if sheet.cell(row, i + 1).value == None:
-                                        sheet.cell(row, i + 1, value)
-                                        return value
-                                return value
-                            # otherwise, get row by title
-                            elif isinstance(row, str):
-                                row_index = get_row_index(row)
-                                # find the first empty cell in the row
-                                for i in range(sheet.max_column):
-                                    if sheet.cell(row_index, i + 1).value == None:
-                                        sheet.cell(row_index, i + 1, value)
-                                        return value
-                            return value
-                        # performs code for each row
-                        # takes 2 arguments, a string for the row variable
-                        # and a function to perform on each row
-                        elif objfunc == "each_row":
-                            # variable
-                            row_var = self.parse(0, line, args)[2]
-                            # check varname
-                            self.check_varname(row_var, line)
-                            ret = None
-                            # for each cell
-                            for cell in sheet.iter_rows():
-                                # set the variable to the row
-                                self.vars[row_var] = Var(
-                                    row_var, [cell[i].value for i in range(len(cell))]
-                                )
-                                # execute the function
-                                ret = self.interpret(args[1][0])
-                            return ret
-                        # writes a matrix (2D array) to this Excel Worksheet
-                        # with the offsets given by the second and third arguments,
-                        # if no second or third arguments, then the matrix is written
-                        # starting at the first cell
-                        elif objfunc == "import_matrix":
-                            # get the 2D list
-                            matrix = self.parse(0, line, args)[2]
-                            # matrix must be a list
-                            self.type_err([(matrix, (list,))], line, lines_ran)
-                            # default offset
-                            offsetx = 0
-                            offsety = 0
-                            # if there is a second argument
-                            if len(args) == 2:
-                                offsetx = self.parse(1, line, args)[2]
-                            if len(args) == 3:
-                                offsetx = self.parse(1, line, args)[2]
-                                offsety = self.parse(2, line, args)[2]
-                            # for each row
-                            for i in range(len(matrix)):
-                                # for each column
-                                for j in range(len(matrix[i])):
-                                    w = matrix[i][j]
-                                    # if w is an AppElement, write its name
-                                    if "name" in dir(w):
-                                        w = w.name
-                                    sheet.cell(i + offsety + 1, j + offsetx + 1, w)
-                            return matrix
-                        # if nothing else, return the object
-                        return object
-                    # working with Excel
-                    elif isinstance(object, self.Workbook):
-                        # active workbook
-                        workbook = object.workbook
-                        path = object.path
-                        # gets or creates a sheet in the workbook
-                        if objfunc == "sheet":
-                            # title of the new sheet
-                            title = self.parse(0, line, args)[2]
-                            # title should be a string or int
-                            self.type_err([(title, (str, int))], line, lines_ran)
-                            # if title is a string
-                            if isinstance(title, str):
-                                # if the sheet has already been created,
-                                # return the created sheet
-                                for name in workbook.sheetnames:
-                                    if name.lower() == title.lower():
-                                        return self.Sheet(
-                                            workbook[name], name, workbook, path
-                                        )
-                                # creates the sheet
-                                sheet = workbook.create_sheet(title)
-                                # returns the sheet
-                                return self.Sheet(sheet, title, workbook, path)
-                            # title is integer,
-                            # return the sheet at that index
-                            else:
-                                for i, sheet in enumerate(workbook.sheetnames):
-                                    if i == title:
-                                        return self.Sheet(
-                                            workbook[sheet], sheet, workbook, path
-                                        )
-                            return None
-                        # saves the workbook
-                        if objfunc == "save":
-                            workbook.save(path)
-                            return object
-                        # closes the workbook
-                        if objfunc == "close" or objfunc == "stop" or objfunc == "kill":
-                            workbook.close()
-                            return object
-                        # otherwise return the object
-                        return object
+                  
                     # GENERAL METHODS
                     # gets the immediate children of the parent window
 
@@ -3011,18 +2624,13 @@ class Interpreter:
                         if p_thread:
                             auto_lock.release()
                         return ret
-                    # if the object is a dictionary
-                    elif isinstance(object, dict):
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["dict"]:
-                            return FUNCTION_DISPATCH["obj"]["general"]["dict"][objfunc](
-                                self, line, args, object=object, vname=vname
-                            )
+
 
                 # user function execution requested
                 # user functions take priority
                 # over general msn2 functions
                 if func in self.methods:
-                    from core.dispatch.functions import user_function_exec
+                    from core.functions import user_function_exec
                     return user_function_exec(inst, lines_ran)
 
                 # the  belowconditions interpret a line based on initial appearances
@@ -3081,24 +2689,6 @@ class Interpreter:
                     )
                 
                 
-                # mouse pointer operations
-                elif obj.startswith("pointer"):
-                    # thread based action?
-                    p_thread = False
-                    # return
-                    ret = "<msnint2 class>"
-                    # determine if thread based pointer action has been requested
-                    if obj.endswith(":lock"):
-                        p_thread = True
-                        pointer_lock.acquire()
-                    # run the function
-                    ret = FUNCTION_DISPATCH["obj"]["pointer"][objfunc](
-                        self, line, args,
-                    )
-                    if p_thread:
-                        pointer_lock.release()
-                    return ret
-
                 # functional syntax for easier to write loops
                 # cannot receive non literal or variable arguments, or any expression containing a '|'
                 # syntax:     3|5|i (prnt(i))
@@ -3232,12 +2822,12 @@ class Interpreter:
             stack = []
             i = first + len(tag)
             while i < len(scr):
-                if scr[i : i + len(endtag)] == endtag:
+                if scr[i:i + len(endtag)] == endtag:
                     if len(stack) == 0:
                         break
                     stack.pop()
                     i += len(endtag)
-                elif scr[i : i + len(tag)] == tag:
+                elif scr[i:i + len(tag)] == tag:
                     stack.append(tag)
                     i += len(tag)
                 else:
@@ -3848,15 +3438,6 @@ class Interpreter:
             elif insingle and c == "'":
                 s2 -= 1
                 insingle = False
-            # print(line)
-            # print (f"""
-            # c: {c}
-            # p: {p}
-            # a: {a}
-            # s: {s}
-            # s2: {s2}
-
-            # """)
             if c == "," and s == 0 and s2 == 0 and p == 0 and a == 0 and b == 0:
                 args.append([arg, start, start + len(arg)])
                 start = i + 1
@@ -4132,17 +3713,3 @@ class Interpreter:
             super().__init__(window, name)
 
     # ------------------------------------
-    # working with Excel
-
-    class Workbook:
-        # constructor
-        def __init__(self, workbook, path) -> None:
-            self.workbook = workbook
-            self.path = path
-
-    # sheet class
-    class Sheet(Workbook):
-        def __init__(self, sheet, title, workbook, path) -> None:
-            super().__init__(workbook, path)
-            self.sheet = sheet
-            self.title = title

@@ -42,6 +42,8 @@
     },
     "2.0.403": {
         "1": "Restructured core functionality layout in core/ for readability, scalability, and maintainability",
-        "2": "Moved javascript generation functions and files to core/using_js/"
+        "2": "Moved javascript generation functions and files to core/using_js/",
+        "3": "Updated env() and env(arg)",
+        "4": "Fixed bugs with excel() and corresponding classes/functions"
     }
 }

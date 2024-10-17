@@ -1,8 +1,11 @@
 """Joint functions and dispatch table."""
 
-
 # utilties
 from core.common import aliases
+
+# classes
+from core.classes.excel.sheet import Sheet
+from core.classes.excel.workbook import Workbook
 
 # common
 from core.obj.ai.default import OBJ_AI_DEFAULT_DISPATCH
@@ -22,6 +25,8 @@ from core.obj.general.default.general import OBJ_GENERAL_DEFAULT_GENERAL_DISPATC
 from core.obj.general.default.ops import OBJ_GENERAL_DEFAULT_OPS_DISPATCH
 from core.obj.general.default.properties import OBJ_GENERAL_DEFAULT_PROPERTIES_DISPATCH
 from core.obj.general.default.strings import OBJ_GENERAL_DEFAULT_STRINGS_DISPATCH
+from core.obj.general.workbook.default import OBJ_GENERAL_WORKBOOK_DEFAULT_DISPATCH
+from core.obj.general.workbook.general import OBJ_GENERAL_WORKBOOK_GENERAL_DISPATCH
 from core.obj.html.basic import OBJ_HTML_BASIC_DISPATCH
 from core.obj.html.default import OBJ_HTML_DEFAULT_DISPATCH
 from core.obj.int_var.basic import OBJ_INT_VAR_BASIC_DISPATCH
@@ -40,7 +45,6 @@ from core.obj.py.access import OBJ_PY_ACCESS_DISPATCH
 from core.obj.py.default import OBJ_PY_DEFAULT_DISPATCH
 from core.obj.py.run import OBJ_PY_RUN_DISPATCH
 from core.obj.trace.general import OBJ_TRACE_GENERAL_DISPATCH
-from core.classes.var import Var
 
 # accumulating grouped default functions
 
@@ -86,72 +90,18 @@ from core.obj.general.str.access import OBJ_GENERAL_STR_ACCESS_DISPATCH
 from core.obj.general.str.modify import OBJ_GENERAL_STR_MODIFY_DISPATCH
 from core.obj.general.dict.access import OBJ_GENERAL_DICT_ACCESS_DISPATCH
 from core.obj.general.dict.modify import OBJ_GENERAL_DICT_MODIFY_DISPATCH
+
+# external api classes
 from core.obj.general.class_based.requests_html_HTML import OBJ_GENERAL_CLASS_BASED_REQUESTS_HTML_HTML_DISPATCH
 from core.obj.general.class_based.requests_html_HTMLSession import OBJ_GENERAL_CLASS_BASED_REQUESTS_HTML_HTMLSession_DISPATCH
+from core.obj.general.sheet.access import OBJ_GENERAL_SHEET_ACCESS_DISPATCH
+from core.obj.general.sheet.modify import OBJ_GENERAL_SHEET_MODIFY_DISPATCH
 
 # special functions
 from core.special.loops import SPECIAL_LOOPS_DISPATCH
 
 # misc
 from core.misc import MISC_DISPATCH
-
-
-def user_function_exec(inst, lines_ran):
-    from core.classes.var import Var
-    method = inst.interpreter.methods[inst.func]
-    # create func args
-    func_args = []
-    # if arguments supplied
-    if not inst.args[0][0] == '':
-        for i in range(len(inst.args)):
-            # check if we're setting a certain argument
-            as_s = inst.args[i][0].strip()
-            meth_argname = None
-            if as_s[0] == '&':
-                func_args, meth_argname, arg, ind = inst.interpreter.split_named_arg(
-                    as_s, method, func_args, user_func=True)
-            # else, just append the argument
-            else:
-                arg = inst.parse(i)
-                func_args.append(arg)
-            try:
-                meth_argname = method.args[i]
-            # incorrect amount of function arguments supplied
-            except IndexError:
-                inst.interpreter.raise_incorrect_args(str(len(method.args)), str(
-                    inst.interpreter.arg_count(inst.args)), inst.line, inst.lines_ran, method)
-            try:
-                inst.interpreter.vars[meth_argname] = Var(
-                    meth_argname, arg)
-            # unhashable type:list, this means a named argument
-            # is being requested to be set
-            except TypeError:
-                inst.interpreter.vars[meth_argname[0]] = Var(
-                    meth_argname[0], arg)
-    # create return variable
-    ret_name = method.returns[0]
-    # add the return variable if not exists
-    if ret_name not in inst.interpreter.vars:
-        inst.interpreter.vars[ret_name] = Var(ret_name, None)
-    # execute method
-    try:
-        method.run(func_args, inst.interpreter, inst.args)
-    # index out of bounds error in method run
-    except IndexError:
-        # raise msn2 error
-        inst.interpreter.raise_index_out_of_bounds(
-            inst.line, lines_ran, method)
-    # if its a variable
-    if ret_name in inst.interpreter.vars:
-        return inst.interpreter.vars[ret_name].value
-    try:
-        return eval(str(inst.interpreter.vars[ret_name].value), {}, {})
-    except:
-        pass
-    try:
-        return str(inst.interpreter.vars[ret_name].value)
-    except:
-        return str(inst.interpreter.vars[ret_name])
 
 
 # function dispatch
@@ -197,26 +147,36 @@ FUNCTION_DISPATCH = {
         "general": {
             **OBJ_GENERAL_DESTRUCTIVE_DISPATCH,
 
-            # integers, floats, and complex numbers
-            "number": {
+            **aliases({
                 **OBJ_GENERAL_NUMBER_COMPARISONS_DISPATCH,
                 **OBJ_GENERAL_NUMBER_OPS_DISPATCH,
-                **OBJ_GENERAL_NUMBER_OPS_IP_DISPATCH,
-            },
-            "set": {
+                **OBJ_GENERAL_NUMBER_OPS_IP_DISPATCH
+            }, (int, float, complex)),
+
+            set: {
                 **OBJ_GENERAL_SET_BASIC_DISPATCH,
             },
-            "list": {
+            list: {
                 **OBJ_GENERAL_LIST_ACCESS_DISPATCH,
                 **OBJ_GENERAL_LIST_MODIFY_DISPATCH,
             },
-            "str": {
+            str: {
                 **OBJ_GENERAL_STR_ACCESS_DISPATCH,
                 **OBJ_GENERAL_STR_MODIFY_DISPATCH,
             },
-            "dict": {
+            dict: {
                 **OBJ_GENERAL_DICT_ACCESS_DISPATCH,
                 **OBJ_GENERAL_DICT_MODIFY_DISPATCH,
+            },
+
+            Sheet: {
+                **OBJ_GENERAL_SHEET_ACCESS_DISPATCH,
+                **OBJ_GENERAL_SHEET_MODIFY_DISPATCH,
+            },
+
+            Workbook: {
+                **OBJ_GENERAL_WORKBOOK_GENERAL_DISPATCH,
+                **OBJ_GENERAL_WORKBOOK_DEFAULT_DISPATCH,
             },
 
             "class_based": {

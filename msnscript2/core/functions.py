@@ -27,6 +27,64 @@ def f_function(inter, line: str, args, **kwargs):
         new_method.add_arg(val)
     inter.methods[fname] = new_method
     return fname
+def user_function_exec(inst, lines_ran):
+    from core.classes.var import Var
+    method = inst.interpreter.methods[inst.func]
+    # create func args
+    func_args = []
+    # if arguments supplied
+    if not inst.args[0][0] == '':
+        for i in range(len(inst.args)):
+            # check if we're setting a certain argument
+            as_s = inst.args[i][0].strip()
+            meth_argname = None
+            if as_s[0] == '&':
+                func_args, meth_argname, arg, ind = inst.interpreter.split_named_arg(
+                    as_s, method, func_args, user_func=True)
+            # else, just append the argument
+            else:
+                arg = inst.parse(i)
+                func_args.append(arg)
+            try:
+                meth_argname = method.args[i]
+            # incorrect amount of function arguments supplied
+            except IndexError:
+                inst.interpreter.raise_incorrect_args(str(len(method.args)), str(
+                    inst.interpreter.arg_count(inst.args)), inst.line, inst.lines_ran, method)
+            try:
+                inst.interpreter.vars[meth_argname] = Var(
+                    meth_argname, arg)
+            # unhashable type:list, this means a named argument
+            # is being requested to be set
+            except TypeError:
+                inst.interpreter.vars[meth_argname[0]] = Var(
+                    meth_argname[0], arg)
+    # create return variable
+    ret_name = method.returns[0]
+    # add the return variable if not exists
+    if ret_name not in inst.interpreter.vars:
+        inst.interpreter.vars[ret_name] = Var(ret_name, None)
+    # execute method
+    try:
+        method.run(func_args, inst.interpreter, inst.args)
+    # index out of bounds error in method run
+    except IndexError:
+        # raise msn2 error
+        inst.interpreter.raise_index_out_of_bounds(
+            inst.line, lines_ran, method)
+    # if its a variable
+    if ret_name in inst.interpreter.vars:
+        return inst.interpreter.vars[ret_name].value
+    try:
+        return eval(str(inst.interpreter.vars[ret_name].value), {}, {})
+    except:
+        pass
+    try:
+        return str(inst.interpreter.vars[ret_name].value)
+    except:
+        return str(inst.interpreter.vars[ret_name])
+
+
 
 def define(inst, lines_ran):
     from core.classes.method import Method
