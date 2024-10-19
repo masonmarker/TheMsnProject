@@ -4,8 +4,17 @@
 from core.common import aliases
 
 # classes
+# excel
 from core.classes.excel.sheet import Sheet
 from core.classes.excel.workbook import Workbook
+# automation
+from core.classes.auto.app import App
+from core.classes.auto.appelement import AppElement
+from core.classes.auto.button import Button
+from core.classes.auto.link import Link
+from core.classes.auto.table import Table
+from core.classes.auto.toolbar import ToolBar
+from core.classes.auto.scrollbar import ScrollBar
 
 # common
 from core.obj.ai.default import OBJ_AI_DEFAULT_DISPATCH
@@ -92,10 +101,20 @@ from core.obj.general.dict.access import OBJ_GENERAL_DICT_ACCESS_DISPATCH
 from core.obj.general.dict.modify import OBJ_GENERAL_DICT_MODIFY_DISPATCH
 
 # external api classes
+# html
 from core.obj.general.class_based.requests_html_HTML import OBJ_GENERAL_CLASS_BASED_REQUESTS_HTML_HTML_DISPATCH
 from core.obj.general.class_based.requests_html_HTMLSession import OBJ_GENERAL_CLASS_BASED_REQUESTS_HTML_HTMLSession_DISPATCH
+# excel
 from core.obj.general.sheet.access import OBJ_GENERAL_SHEET_ACCESS_DISPATCH
 from core.obj.general.sheet.modify import OBJ_GENERAL_SHEET_MODIFY_DISPATCH
+# automation
+from core.auto.app.general import OBJ_GENERAL_APP_DISPATCH
+from core.auto.appelement.general import OBJ_GENERAL_APPELEMENT_GENERAL_DISPATCH
+from core.auto.button.general import OBJ_GENERAL_BUTTON_GENERAL_DISPATCH
+from core.auto.link.general import OBJ_GENERAL_LINK_GENERAL_DISPATCH
+from core.auto.scrollbar.general import OBJ_GENERAL_SCROLLBAR_GENERAL_DISPATCH
+from core.auto.table.general import OBJ_GENERAL_TABLE_GENERAL_DISPATCH
+from core.auto.toolbar.general import OBJ_GENERAL_TOOLBAR_GENERAL_DISPATCH
 
 # special functions
 from core.special.loops import SPECIAL_LOOPS_DISPATCH
@@ -177,6 +196,35 @@ FUNCTION_DISPATCH = {
             Workbook: {
                 **OBJ_GENERAL_WORKBOOK_GENERAL_DISPATCH,
                 **OBJ_GENERAL_WORKBOOK_DEFAULT_DISPATCH,
+            },
+
+            App: {
+                **OBJ_GENERAL_APP_DISPATCH,
+            },
+
+            AppElement: {
+                **OBJ_GENERAL_APPELEMENT_GENERAL_DISPATCH,
+            },
+
+            Button: {
+                **OBJ_GENERAL_APPELEMENT_GENERAL_DISPATCH,
+                **OBJ_GENERAL_BUTTON_GENERAL_DISPATCH,
+            },
+            Link: {
+                **OBJ_GENERAL_APPELEMENT_GENERAL_DISPATCH,
+                **OBJ_GENERAL_LINK_GENERAL_DISPATCH,
+            },
+            Table: {
+                **OBJ_GENERAL_APPELEMENT_GENERAL_DISPATCH,
+                **OBJ_GENERAL_TABLE_GENERAL_DISPATCH,
+            },
+            ToolBar: {
+                **OBJ_GENERAL_APPELEMENT_GENERAL_DISPATCH,
+                **OBJ_GENERAL_TOOLBAR_GENERAL_DISPATCH,
+            },
+            ScrollBar: {
+                **OBJ_GENERAL_APPELEMENT_GENERAL_DISPATCH,
+                **OBJ_GENERAL_SCROLLBAR_GENERAL_DISPATCH,
             },
 
             "class_based": {

@@ -3,11 +3,13 @@
 
 
 
+from core.classes.auto.app import App
+
+
 def f_app(inter, line, args, **kwargs):
     import os
-    global timings_set
     # set timings if not already set
-    if not timings_set:
+    if not kwargs["timings_set"]:
         from pywinauto import timings
 
         # pywinauto defaults
@@ -34,7 +36,7 @@ def f_app(inter, line, args, **kwargs):
         # anything to the console
         os.system(f"taskkill /f /im {name}.{extension} >nul 2>&1")
     # creates an App variable
-    return inter.App(path=path, name=name, extension=extension)
+    return App(path=path, name=name, extension=extension)
 def f_connect(inter, line, args, **kwargs):
     from pywinauto.application import Application
 
@@ -43,7 +45,7 @@ def f_connect(inter, line, args, **kwargs):
         process=appl.application.process
     )
     # connect to the application
-    return inter.App(path=appl.path)
+    return App(path=appl.path)
 
 
 

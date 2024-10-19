@@ -7,7 +7,7 @@
 # helper for copydir()
 function('files:recurse', (
         # if file is directory, create directory in new location
-    if (file.isdir(recurse:old), (
+    if (and(file.isdir(recurse:old), not(recurse:old.equals("__pycache__"))), (
 
         # make new directory
         file.mkdir(recurse:newpath),
