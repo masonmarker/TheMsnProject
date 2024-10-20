@@ -45,7 +45,8 @@
         "2": "Moved javascript generation functions and files to core/using_js/",
         "3": "Updated env() and env(arg)",
         "4": "Fixed bugs with excel() and corresponding classes/functions",
-        "5": "Changed '{python_alias} msn2cli.py portable' functionality to exclude __pycache__ folders",
-        "6": "Removed 'install_deps.py' script and associated documentation throughout the codebase"
+        "5": "Fixed python -> msn2 -> python tutorial in TUTORIAL/python/",
+        "6": "Changed '{python_alias} msn2cli.py portable' functionality to exclude __pycache__ folders",
+        "7": "Removed 'install_deps.py' script and associated documentation throughout the codebase"
     }
 }

@@ -43,10 +43,10 @@ def f_pid(inter, line, args, **kwargs):
     return os.getpid()
 def f_thread(inter, line, args, **kwargs):
     import threading
+    global thread_serial
     # name not provided
     if len(args) == 1:
-        global thread_serial
-        name = f"__msn2_thread_id_{thread_serial}"
+        name = f"__msn2_thread_id_{kwargs['thread_serial']}"
         block = args[0][0]
     # name provided (2 arguments provided)
     else:
@@ -57,6 +57,7 @@ def f_thread(inter, line, args, **kwargs):
     thread = threading.Thread(target=inter.interpret, args=(block,))
     thread.name = name
     inter.threads[name] = [thread, inter]
+    thread_serial = kwargs["thread_serial"] + 1
     thread.start()
     return True
 def f_threadpool(inter, line, args, **kwargs):

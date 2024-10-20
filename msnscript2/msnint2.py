@@ -769,7 +769,7 @@ class Interpreter:
                         self, line, args,
                         inst=inst, lines_ran=lines_ran, total_ints=total_ints, msn2_none=msn2_none,
                         macros=macros, postmacros=postmacros, enclosed=enclosed, syntax=syntax, python_alias=python_alias,
-                        auxlock=auxlock, pointer_lock=pointer_lock, timings_set=timings_set
+                        auxlock=auxlock, pointer_lock=pointer_lock, timings_set=timings_set, thread_serial=thread_serial
                     )
 
                 # for objects
