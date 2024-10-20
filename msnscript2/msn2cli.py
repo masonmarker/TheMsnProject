@@ -55,7 +55,7 @@ def main(action, file, args, snippet):
             _run_snippets(Interpreter())
         def __time():
             import time
-                
+
             _require_file_or_snippet()
             i = Interpreter()
             def _timed_function(func, f):

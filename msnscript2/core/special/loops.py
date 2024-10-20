@@ -1,5 +1,21 @@
 
 
+def bar_loop(inter, line, args, **kwargs):
+    from core.classes.var import Var
+    start = inter.interpret(kwargs["_func_split"][0])
+    end = inter.interpret(kwargs["_func_split"][1])
+    loopvar = kwargs["_func_split"][2]
+
+    inter.vars[loopvar] = Var(loopvar, start)
+
+    step = 1 if start < end else -1
+
+    for i in range(start, end, step):
+        inter.vars[loopvar].value = i
+        inter.interpret(args[0][0])
+    return
+
+
 def f_quickcond(inter, line, args, **kwargs):
     kwargs["func"] = kwargs["func"][1:]
     ret = None

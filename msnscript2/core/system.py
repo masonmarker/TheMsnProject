@@ -205,6 +205,24 @@ def f_import(inter, line, args, **kwargs):
             inter.execute(script)
     return
 
+def import_msn2(inter, i, line, args, can_exit, lines_ran):
+    path = inter.parse(i, line, args)[2]
+    # path must be a string
+    inter.type_err([(path, (str,))], line, lines_ran)
+    if not path.endswith(".msn2"):
+        path += ".msn2"
+    if path in can_exit:
+        return False
+    can_exit.add(path)
+    contents = ""
+    with open(path) as f:
+        contents = f.readlines()
+        script = ""
+        for line in contents:
+            script += line
+    inter.logg("importing library", path)
+    return script
+
 
 SYSTEM_DISPATCH = {
     "settings": f_settings,

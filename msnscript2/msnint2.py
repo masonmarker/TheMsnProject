@@ -55,18 +55,30 @@
 # for all lines of execution
 import os
 import json
+import warnings
 import threading
 
 # classes
 from core.classes.var import Var
-from core.classes.instruction import Instruction
 from core.classes.method import Method
+from core.classes.exceptions.msn2exception import MSN2Exception
 
-# function dispatch table
+# parsing
+from core.parsing.args import consume
+from core.parsing.legacy.functions import legacy_parse_func_body_decl, legacy_parse_py_fallback
+from core.parsing.msn2_fallback import macro_msn2_fallback
+
+# functions
 from core.dispatch.functions import FUNCTION_DISPATCH
+from core.functions import user_function_exec
+
+# loops
+from core.special.loops import bar_loop
+
 
 # remove warnings for calling of integers: "10()"
-import warnings
+
+
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 
@@ -138,8 +150,6 @@ total_ints = 0
 # colors for colored printing,
 # defaults to "" until lazily loaded
 colors = ""
-# replacements for Interpreter.msn2_replace()
-replacements = None
 
 
 class Interpreter:
@@ -409,10 +419,9 @@ class Interpreter:
         if self.breaking:
             return self.breaking_return
         # strip line for interpretation
-        try:
-            if not keep_space:
-                line = line.strip()
-        except:
+        if not keep_space and hasattr(line, 'strip'):
+            line = line.strip()
+        else:
             return
         l = len(line)
         # whether the line should immediately continue or not
@@ -425,85 +434,30 @@ class Interpreter:
 
         # method-specific line reached
         if line.startswith("--"):
-            line = line[2:]
-            try:
-                if not self.methods[self.loggedmethod[-1]].ended:
-                    self.methods[self.loggedmethod[-1]].add_body(line)
-            except:
-                None
-            return
+            legacy_parse_func_body_decl(self, line)
         # new variable setting and modification syntax as of 12/20/2022
         # iterates to the first '=' sign, capturing the variable name in the
         # process (as it should)
         # msn1 fallback
         if line[0] == "@":
             return self.interpret_msnscript_1(line[1:])
-            # determine if we're using JS
+
+        # determine if we're using JS
         if line.startswith("JS:"):
             self.using_js = True
             return self.using_js
         if line.endswith(":JS"):
             self.using_js = False
             return self.using_js
+
         # python fallback mode specification,
         # both <<>> and
         if line.startswith("<<"):
-            # parse all text in the line for text surrounded by |
-            funccalls = []
-            infunc = False
-            func = ""
-            for i in range(line.rindex(">>")):
-                if line[i] == "|" and not infunc:
-                    infunc = True
-                elif line[i] == "|" and infunc:
-                    infunc = False
-                    funccalls.append(func)
-                    func = ""
-                elif infunc:
-                    func += line[i]
-            for function in funccalls:
-                ret = self.interpret(function)
-                if isinstance(ret, str):
-                    line = line.replace(f"|{function}|", f'"{str(ret)}"')
-                else:
-                    line = line.replace(f"|{function}|", str(ret))
-            line = line[2:-2]
-            try:
-                return eval(line)
-            except:
-                return line
+            return legacy_parse_py_fallback(self, line)
 
         # embedded MSN2 interpretation macro
         if line.startswith("<2>"):
-            # parse all text in the line for text surrounded by %
-            funccalls = []
-            infunc = False
-            func = ""
-            for i in range(3, line.rindex("<2>")):
-                if line[i] == "%" and not infunc:
-                    infunc = True
-                elif line[i] == "%" and infunc:
-                    infunc = False
-                    funccalls.append(func)
-                    func = ""
-                elif infunc:
-                    func += line[i]
-
-            # for each msn2 evaluation
-            for function in funccalls:
-                ret = self.interpret(function)
-                if isinstance(ret, str):
-                    line = line.replace(f"%{function}%", f'"{str(ret)}"')
-                else:
-                    line = line.replace(f"%{function}%", str(ret))
-            line = line[3:-3]
-            try:
-                return self.interpret(line)
-            except:
-                try:
-                    return eval(line, {}, {})
-                except:
-                    return line
+            return macro_msn2_fallback(self, line)
 
         # user defined syntax
         for key in syntax:
@@ -619,26 +573,10 @@ class Interpreter:
 
             # interpreting a function
             elif c == "(":
-                mergedargs = ""
-                p = 1
-                for j in range(i + 1, l - 1):
-                    c2 = line[j]
-                    if p == 0:
-                        break
-                    if c2 == "(":
-                        p += 1
-                    if c2 == ")":
-                        p -= 1
-                    mergedargs += c2
-                args = self.get_args(mergedargs)
-                f = len(func)
-                # clean function for handling
-                func = func.strip()
-                objfunc = objfunc.strip()
-                # create an instruction from parsed data
-                inst = Instruction(line, func, obj, objfunc,
-                                   args, inst_tree, self)
-                # retrieving arguments
+                # consuming
+                mergedargs, args, func, objfunc, inst = consume(
+                    self, line, i, l, obj, inst_tree, func, objfunc)
+
                 # if using_js
                 if self.using_js:
                     return inst.convert_to_js(lock, lines_ran)
@@ -646,20 +584,15 @@ class Interpreter:
                 # class attribute / method access
                 if obj in self.vars:
                     vname = obj
-                    try:
-                        var = self.get_var(vname)
-                    except:
-                        var = self.vars[vname]
-                    try:
-                        object = self.vars[obj].value
-                    except:
-                        object = self.vars[obj]
+                    object = getattr(self.vars.get(
+                        obj), 'value', self.vars.get(obj))
+
                     _type_object = type(object)
                     try:
                         # if the object is a class
                         if objfunc in object:
                             # if the object is a Method
-                            if type(object[objfunc]) == Method:
+                            if isinstance(object[objfunc], Method):
                                 # get the Method object
                                 method = object[objfunc]
                                 # get the number of arguments to the method
@@ -712,7 +645,7 @@ class Interpreter:
                             param = self.parse(0, line, args)[2]
                             self.vars[obj].value[objfunc] = param
                             return param
-                    except self.MSN2Exception as e:
+                    except MSN2Exception as e:
                         raise e
                     except:
                         None
@@ -758,7 +691,6 @@ class Interpreter:
                 # user functions take priority
                 # over general msn2 functions
                 if func in self.methods:
-                    from core.functions import user_function_exec
                     return user_function_exec(inst, lines_ran)
 
                 # the  belowconditions interpret a line based on initial appearances
@@ -823,18 +755,7 @@ class Interpreter:
                 # Functional syntax for loops like 3|5|i (prnt(i))
                 # elif func.count("|") == 2:
                 elif (_func_split := func.split("|")) and len(_func_split) == 3:
-                    start = self.interpret(_func_split[0])
-                    end = self.interpret(_func_split[1])
-                    loopvar = _func_split[2]
-
-                    self.vars[loopvar] = Var(loopvar, start)
-
-                    step = 1 if start < end else -1
-
-                    for i in range(start, end, step):
-                        self.vars[loopvar].value = i
-                        self.interpret(args[0][0])
-                    return
+                    return bar_loop(self, line, args, _func_split=_func_split)
                 # fallback
                 else:
                     try:
@@ -902,80 +823,8 @@ class Interpreter:
     # characters or values
     # TODO: implement linear interpretation
     def msn2_replace(self, script):
-        global replacements
-        # Define the replacements
-        replacements = {
-            "<tag>": "#",
-            "<nl>": "\n",
-            # deep newline
-            "<dnl>": "\\n",
-            "<rp>": ")",
-            "<lp>": "(",
-            "<rb>": "]",
-            "<lb>": "[",
-            "<rcb>": "}",
-            "<lcb>": "{",
-            "(,)": ",",
-            "<or>": "||",
-            "< >": " ",
-            "<lt>": "<",
-            "<gt>": ">",
-        } if replacements is None else replacements
-
-        # do the above but faster and more efficient
-        for key in replacements:
-            script = script.replace(key, replacements[key])
-
-        # replaces whats in between the tags
-        # with the interpretation of whats between the tags
-        #
-        # interpretation  is with self.interpret(script)
-        #
-        # script(
-        #     {='hello1'=}
-
-        #     {=
-        #         cat('hello',
-        #             {='hi there'=}
-        #         )
-        #     =}
-        # )
-        #
-        def recurse_tags(scr, force_string=False):
-            # get the first tag
-            # if there is no tag, return the script
-            if (first := scr.find(tag)) == -1:
-                return scr
-            # find the matching end tag
-            stack = []
-            i = first + len(tag)
-            while i < len(scr):
-                if scr[i:i + len(endtag)] == endtag:
-                    if len(stack) == 0:
-                        break
-                    stack.pop()
-                    i += len(endtag)
-                elif scr[i:i + len(tag)] == tag:
-                    stack.append(tag)
-                    i += len(tag)
-                else:
-                    i += 1
-            # recursively interpret the code between the tags
-            interpreted_code = self.interpret(
-                recurse_tags(scr[first + len(tag): i]))
-            if force_string:
-                interpreted_code = f'"{interpreted_code}"'
-            new_scr = f"{scr[:first]}{interpreted_code}{scr[i+len(endtag):]}"
-            # recursively continue replacing tags in the remaining script
-            return recurse_tags(new_scr)
-
-        # applying '{=' '=}' tags
-        tag = "{="
-        endtag = "=}"
-        with_msn2 = recurse_tags(script)
-        return with_msn2
-
-    #
+        from core.insertions import inter_msn2_replace
+        return inter_msn2_replace(self, script)
 
     # determines the number of arguments based on the args array
     def arg_count(self, args):
@@ -987,22 +836,8 @@ class Interpreter:
 
     # returns True if should go to the next file to import
     def imp(self, i, line, args, can_exit):
-        path = self.parse(i, line, args)[2]
-        # path must be a string
-        self.type_err([(path, (str,))], line, lines_ran)
-        if not path.endswith(".msn2"):
-            path += ".msn2"
-        if path in can_exit:
-            return False
-        can_exit.add(path)
-        contents = ""
-        with open(path) as f:
-            contents = f.readlines()
-            script = ""
-            for line in contents:
-                script += line
-        self.logg("importing library", path)
-        return script
+        from core.system import import_msn2
+        return import_msn2(self, i, line, args, can_exit, lines_ran)
 
     # creates a child interpreter
     def new_int(self):
@@ -1015,11 +850,8 @@ class Interpreter:
         # get everything between after syntax and before next index of syntax
         # or end of line
         inside = line[len(key): line.rindex(key)]
-        # variable name
         invarname = syntax[key][0]
-        # function to be run
         function = syntax[key][1]
-        # store the in between for the user function
         self.vars[invarname] = Var(invarname, inside)
         return self.interpret(function)
 
@@ -1195,157 +1027,8 @@ class Interpreter:
 
     # general error printing
     def err(self, err, msg, line, lines_ran):
-        # if we're not trying something, and there's an error,
-        # print the error
-        if not self.trying:
-            # the total words printed for this error
-            words_printed = ""
-            # prints the error
-
-            def print_err(array):
-                # print the error
-                self.styled_print(array)
-                # add to words printed
-                nonlocal words_printed
-                words_printed += str(array)
-
-            # printing the traceback
-            print_err(
-                [
-                    {"text": "MSN2 Traceback:\n", "style": "bold", "fore": "green"},
-                    {"text": (divider := "-" * 15),
-                     "style": "bold", "fore": "green"},
-                ]
-            )
-            _branches = []
-            root_nums = {root_num for _, (root_num, _) in inst_tree.items()}
-            # for k, (root_num, code_line) in inst_tree.items():
-            #     root_nums.add(root_num)
-            # #root_nums = list(set(root_nums))
-            # #root_nums.sort()
-            for root_num in sorted(root_nums):
-                branches = []
-                for k, (root_num2, code_line2) in inst_tree.items():
-                    if root_num2 == root_num:
-                        branches.append(code_line2)
-                _branches.append(branches)
-            # print the traceback
-            # only the last 7 branches
-            for i, _branch in enumerate((new_branches := _branches[-7:])):
-                # color of the text
-                _branch_color = "black"
-                # if this is the last branch
-                if is_caller := i == len(new_branches) - 1:
-                    _branch_color = "red"
-                else:
-                    _branch_color = "white"
-                # print the caller
-                if (_b := _branch[0].strip()) != "":
-                    print_err(
-                        [
-                            {"text": ">> ", "style": "bold", "fore": "black"},
-                            {
-                                "text": self.shortened(_b),
-                                "style": "bold",
-                                "fore": _branch_color,
-                            },
-                            {
-                                "text": " <<< " if is_caller else "",
-                                "style": "bold",
-                                "fore": "yellow",
-                            },
-                            {
-                                "text": "SOURCE" if is_caller else "",
-                                "style": "bold",
-                                "fore": "yellow",
-                            },
-                        ]
-                    )
-                # if branches more than 3
-                if len(_branch) > 4 and not is_caller:
-                    # print the lines branching off
-                    print_err(
-                        [
-                            {"text": "    at   ", "style": "bold", "fore": "black"},
-                            {
-                                "text": self.shortened(_branch[0].strip()),
-                                "style": "bold",
-                                "fore": _branch_color,
-                            },
-                        ]
-                    )
-                    # print ...
-                    print_err(
-                        [
-                            {"text": "    at   ", "style": "bold", "fore": "black"},
-                            {
-                                "text": f"... ({len(_branch) - 4} more)",
-                                "style": "bold",
-                                "fore": "black",
-                            },
-                        ]
-                    )
-                # if branches less than 3
-                else:
-                    if len(_branch) > 7:
-                        # print the before elipses
-                        print_err(
-                            [
-                                {"text": "    at   ",
-                                    "style": "bold", "fore": "black"},
-                                {
-                                    "text": f"... ({len(_branch) - 7} more)",
-                                    "style": "bold",
-                                    "fore": "black",
-                                },
-                            ]
-                        )
-                        for i, _branch2 in enumerate(_branch[len(_branch) - 7:]):
-                            print_err(
-                                [
-                                    {
-                                        "text": "    at   ",
-                                        "style": "bold",
-                                        "fore": "black",
-                                    },
-                                    {
-                                        "text": self.shortened(_branch2.strip()),
-                                        "style": "bold",
-                                        "fore": _branch_color,
-                                    },
-                                ]
-                            )
-                    else:
-                        for _branch2 in _branch[1:]:
-                            print_err(
-                                [
-                                    {
-                                        "text": "    at   ",
-                                        "style": "bold",
-                                        "fore": "black",
-                                    },
-                                    {
-                                        "text": self.shortened(_branch2.strip()),
-                                        "style": "bold",
-                                        "fore": _branch_color,
-                                    },
-                                ]
-                            )
-            # print the finishing divider
-            print_err([{"text": divider, "style": "bold", "fore": "green"}])
-            # print this error with print_err()
-            print_err(
-                [
-                    {"text": "[-] ", "style": "bold", "fore": "red"},
-                    {"text": err, "style": "bold", "fore": "red"},
-                    {"text": "\n"},
-                    {"text": msg, "style": "bold", "fore": "red"},
-                ]
-            )
-            # add to log
-            self.log += f"{words_printed}\n"
-        raise self.MSN2Exception(
-            "MSN2 Exception thrown, see above for details")
+        from core.errors import inter_raise_err
+        return inter_raise_err(self, err, msg, inst_tree)
 
     # throws a keyerror
     def raise_key(self, key, line):
@@ -1526,59 +1209,6 @@ class Interpreter:
     def get_var(self, name):
         return self.vars[name].value
 
-    # extracts the argument lines from the merged arguments passed
-    def get_args(self, line):
-        args = []
-        l = len(line)
-        arg = ""
-        start = 0
-        p = 0
-        a = 0
-        s = 0
-        indouble = False
-        s2 = 0
-        insingle = False
-        b = 0
-        for i in range(l + 1):
-            c = ""
-            try:
-                c = line[i]
-            except:
-                None
-            if c == "[" and not s2 > 0 and not s > 0:
-                a += 1
-            if c == "]" and not s2 > 0 and not s > 0:
-                a -= 1
-            if c == "(" and not s2 > 0 and not s > 0:
-                p += 1
-            if c == ")" and not s2 > 0 and not s > 0:
-                p -= 1
-            if not self.in_string(s, s2):
-                if c == "{":
-                    b += 1
-                if c == "}":
-                    b -= 1
-            if not indouble and not s2 > 0 and c == '"':
-                s += 1
-                indouble = True
-            elif indouble and c == '"':
-                s -= 1
-                indouble = False
-            if not insingle and not s > 0 and c == "'":
-                s2 += 1
-                insingle = True
-            elif insingle and c == "'":
-                s2 -= 1
-                insingle = False
-            if c == "," and s == 0 and s2 == 0 and p == 0 and a == 0 and b == 0:
-                args.append([arg, start, start + len(arg)])
-                start = i + 1
-                arg = ""
-                continue
-            elif i == l:
-                args.append([arg, start, start + len(arg)])
-            arg += c
-        return args
 
     def in_string(self, s, s2):
         return s > 0 or s2 > 0
@@ -1677,7 +1307,3 @@ class Interpreter:
             res.append("│" + (s + " " * width)[:width] + "│")
         res.append("└" + "─" * width + "┘")
         return "\n".join(res)
-
-    # exception
-    class MSN2Exception(Exception):
-        pass

@@ -47,6 +47,7 @@
         "4": "Fixed bugs with excel() and corresponding classes/functions",
         "5": "Fixed python -> msn2 -> python tutorial in TUTORIAL/python/",
         "6": "Changed '{python_alias} msn2cli.py portable' functionality to exclude __pycache__ folders",
-        "7": "Removed 'install_deps.py' script and associated documentation throughout the codebase"
+        "7": "Removed 'install_deps.py' script and associated documentation throughout the codebase",
+        "8": "Added CLI command 'install' to globally install dependencies"
     }
 }

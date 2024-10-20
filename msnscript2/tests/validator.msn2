@@ -1753,8 +1753,39 @@ def ('test_long_strings', (
 
     True
 ))
+# ------------------------------------------------------------
 
 
+# ------------------------------ TESTING LEGACY FUNCTIONS ------------------------------
+def('test_legacy_function_declaration', (
+    print_test('legacy function declarations'),
+
+    # creating a function with the old syntax
+    ~ f(arg1, arg2) -> f_return,
+        # body of the function with '--'
+        -- @f_return = arg1 + arg2,
+
+    # running the function is the same
+    equals(f(3, 4), 7) ??,
+    equals(f(0, 0), 0) ??,
+
+    # nested functions
+    ~ f2(arg1, arg2) -> f2_return,
+        -- @_f2_var = 5,
+
+        # creating a nested function
+        ~ _f2(arg3, arg4) -> _f2_return,
+            -- @ _f2_return = arg3 + arg4,
+            # end body with end()
+            end(),
+        -- @_f2_var += 4,
+        -- @f2_return = _f2(arg1, arg2.+(_f2_var)),
+
+    equals(f2(3, 4), 16) ??,
+    equals(f2(0, 0), 9) ??,
+
+    True
+))
 # ------------------------------------------------------------
 
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
@@ -1806,10 +1837,11 @@ def('run_tests', (
     TEST test_python_snippets(),
     TEST test_try(),
     TEST test_new_string_functions(),
+    TEST test_legacy_function_declaration(),
+
     # testing macros
-    TEST (
-        assert(test_macros())
-    ),
+    TEST test_macros(),
+    
     TEST base_syntax_updates(),
     # test is not run on another thread to avoid file reading conflicts
     private(assert(test_user_syntax())),

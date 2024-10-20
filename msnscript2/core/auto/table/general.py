@@ -61,7 +61,7 @@ def f_auto_table_get(inter, line, args, **kwargs):
     row = inter.parse(1, line, args)[2]
     # column and row should be int
     inter.type_err(
-        [(col, (int,)), (row, (int,))], line, inter.lines_ran
+        [(col, (int,)), (row, (int,))], line, kwargs["lines_ran"]
     )
     wrapper = table.cell(row=row, column=col)
     # gets the cell
@@ -106,7 +106,7 @@ def f_auto_table_row(inter, line, args, **kwargs):
     # main logic
     ind = inter.parse(0, line, args)[2]
     # ind should be int
-    inter.type_err([(ind, (int,))], line, inter.lines_ran)
+    inter.type_err([(ind, (int,))], line, kwargs["lines_ran"])
     ret = row(ind, table)
 
     # unlock threads
@@ -123,7 +123,7 @@ def f_auto_table_column(inter, line, args, **kwargs):
     # main logic
     ind = inter.parse(0, line, args)[2]
     # ind should be int
-    inter.type_err([(ind, (int,))], line, inter.lines_ran)
+    inter.type_err([(ind, (int,))], line, kwargs["lines_ran"])
     ret = col(ind, table)
 
     # unlock threads

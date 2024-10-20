@@ -38,47 +38,34 @@ var('serial', 0)
 var('serial2', 0)
 
 # methods for overseer
-# ~ post5000() -> response
-# -- var('response', api:post(?ep1?, {?serial?: ?serial?}))
-# -- add('serial', 1)
-# updated in 2.0.387
 def('post5000', (
     serial.add(1),
     api:post(ep1, object(serial, serial))
 ))
 
-# ~ post5001() -> response
-# -- var('response', api:post(?ep2?, {?serial2?: ?serial2?}))
-# -- add('serial2', 1)
 # updated in 2.0.387
 def('post5001', (
     serial2.add(1),
     api:post(ep2, object(serial2, serial2))
 ))
 
-# ~ get5000() -> response
-# -- var('response', api:get(?ep1?))
+
 # updated in 2.0.387
 def('get5000', (
     api:get(ep1)
 ))
 
-# ~ get5001() -> response
-# -- var('response', api:get(?ep2?))
 # updated in 2.0.387
 def('get5001', (
     api:get(ep2)
 ))
 
-# ~ delete5000() -> response
-# -- var('response', api:delete(?ep1?))
+
 # updated in 2.0.387
 def('delete5000', (
     api:delete(ep1)
 ))
 
-# ~ delete5001() -> response
-# -- var('response', api:delete(?ep2?))
 # updated in 2.0.387
 def('delete5001', (
     api:delete(ep2)

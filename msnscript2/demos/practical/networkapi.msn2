@@ -30,8 +30,6 @@ each(privips(), 'ip', (
 ))
 
 # asserts a post operation is successful to networkapi
-# ~ assert_post(data, expected) -> _
-# -- private(assert(equals(api:post(networkapi, data), expected)))
 # updated in 2.0.387
 def('assert_post', 'data', 'expected', private(
     assert(equals(api:post(networkapi, data), expected))
@@ -39,8 +37,6 @@ def('assert_post', 'data', 'expected', private(
 
 
 # asserts a get operation is successful to networkapi
-# ~ assert_get(expected) -> _
-# -- private(assert(equals(api:get(networkapi), expected)))
 # updated in 2.0.387
 def('assert_get', 'expected', private(
     assert(equals(api:get(networkapi), expected))

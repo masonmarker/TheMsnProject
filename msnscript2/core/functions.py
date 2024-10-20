@@ -50,7 +50,7 @@ def user_function_exec(inst, lines_ran):
             # incorrect amount of function arguments supplied
             except IndexError:
                 inst.interpreter.raise_incorrect_args(str(len(method.args)), str(
-                    inst.interpreter.arg_count(inst.args)), inst.line, inst.lines_ran, method)
+                    inst.interpreter.arg_count(inst.args)), inst.line, lines_ran, method)
             try:
                 inst.interpreter.vars[meth_argname] = Var(
                     meth_argname, arg)
