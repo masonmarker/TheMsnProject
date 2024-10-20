@@ -138,6 +138,8 @@ total_ints = 0
 # colors for colored printing,
 # defaults to "" until lazily loaded
 colors = ""
+# replacements for Interpreter.msn2_replace()
+replacements = None
 
 
 class Interpreter:
@@ -900,6 +902,7 @@ class Interpreter:
     # characters or values
     # TODO: implement linear interpretation
     def msn2_replace(self, script):
+        global replacements
         # Define the replacements
         replacements = {
             "<tag>": "#",
@@ -917,7 +920,7 @@ class Interpreter:
             "< >": " ",
             "<lt>": "<",
             "<gt>": ">",
-        }
+        } if replacements is None else replacements
 
         # do the above but faster and more efficient
         for key in replacements:

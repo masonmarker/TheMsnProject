@@ -4,10 +4,11 @@
 # date : 9/6/2023
 # updated in 2.0.387
 
+
 # helper for copydir()
 function('files:recurse', (
         # if file is directory, create directory in new location
-    if (and(file.isdir(recurse:old), not(recurse:old.equals("__pycache__"))), (
+    if (file.isdir(recurse:old), (
 
         # make new directory
         file.mkdir(recurse:newpath),
@@ -16,17 +17,17 @@ function('files:recurse', (
         @ recurse:thisdir_files = file.listdir(recurse:old),
 
         # create old path
-        recurse:thisdir_files.each('fl2', =>(
+        recurse:thisdir_files.each('fl2', (
 
             # obtain working file path
             @ recurse:old2 = cat(recurse:old, '/', fl2),
             @ recurse:newpath2 = cat(recurse:newpath, '/', fl2),
-
             # if file is directory, recurse, otherwise copy .msn2 library file
             if (file.isdir(recurse:old2), 
-                private(files:recurse(recurse:old2, recurse:newpath2)), 
+                private(files:recurse(recurse:old2, recurse:newpath2)),
                 # else
-                file.copy(recurse:old2, recurse:newpath2))
+                file.copy(recurse:old2, recurse:newpath2)
+            )
         ))       
 
     # otherwise, copy file to new location  
