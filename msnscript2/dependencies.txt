@@ -44,10 +44,6 @@ for JavaScript parsing
 pip install esprima
 pip install jsbeautifier
 
-you can install all of the above 'pip' installs via
-    "{python_alias} install_deps.py"
-if you plan on using the entirety of msn2's functionality,
-otherwise unnecessary dependencies will be installed.
 
 -- LANG DEPENDENCIES
     you will have a need to install these dependencies

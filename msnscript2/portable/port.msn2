@@ -131,7 +131,6 @@ each([
         ['requirements.txt', "[*] Copying requirements..."],
         ['msn2python.py', '[*] Copying msn2python script...'],
         ['msn2_settings.json', '[*] Copying settings...'],
-        ['install_deps.py', '[*] Copying dependency installer...'],
         ['msn2cli.py', '[*] Copying CLI...']
     ], 'r', port:include_resource(r.get(0), r.get(1)))
 

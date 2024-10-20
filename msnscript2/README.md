@@ -17,9 +17,6 @@ you may need to run a few pip installs before executing .msn2 programs.
 your program may or may not use the dependencies listed
 in the requirements.txt file.
 
-you can install all of these dependencies at once via ```{python_alias} install_deps.py```,
-which parses ```dependencies.txt``` and installs all of the dependencies listed.
-
 these dependencies can also be re-installed via the msn2 help pages if necessary
 as of 2.0.385. find these pages and much more with ```{python_alias} msn2cli.py help```
 
@@ -66,11 +63,6 @@ run ```{python_alias} msn2cli.py --help``` for more information on the msn2cli i
     specific scenarios, and are not recommended to be used. 
 
     the suggested syntax is the most updated, and safest way to code.
-
-### issues
-
-if running a script doesn't work for any reason (other than a code-based error),
-try reinstalling dependencies via ```{python_alias} install_deps.py```
 
 ### notes
 
