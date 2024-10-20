@@ -13,9 +13,9 @@ if yours is different, you should set your python alias under msn2_settings.json
 
 ### installing dependencies
 
-you may need to run a few pip installs before executing .msn2 programs.
-your program may or may not use the dependencies listed
-in the requirements.txt file.
+while globally installing dependencies isn't recommended, you can do this with ```{python_alias} msn2cli.py install```
+
+not all dependencies might be used in your programs, so it's recommended to install dependencies as needed.
 
 these dependencies can also be re-installed via the msn2 help pages if necessary
 as of 2.0.385. find these pages and much more with ```{python_alias} msn2cli.py help```

@@ -5,7 +5,7 @@
 # capabilities in this interpreter, as
 # this is a work in progress.
 #
-# docs: masonmarker.com/#/msn2docs
+# docs: masonmarker.com/projects/msn2
 # run '{python_alias} msn2cli.py help' for help
 #
 # Author : Mason Marker

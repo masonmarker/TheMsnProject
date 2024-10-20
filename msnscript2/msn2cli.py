@@ -73,6 +73,9 @@ def main(action, file, args, snippet):
                     _fix_file(f), args[0] if args else None), f)
             i = Interpreter()
             _timed_function(lambda: _run_snippets(i), "")
+        def _install_deps():
+            import os
+            os.system("pip install -r requirements.txt")
         return {
             "run": __run,
             "time": __time,
@@ -82,7 +85,8 @@ def main(action, file, args, snippet):
             "int": lambda: run('system/int.msn2'),
             "file": lambda: run('system/file.msn2'),
             "help": lambda: run('TUTORIAL/driver.msn2'),
-            "elements": lambda: run('tests/2.0.3x/practical/auto/clicked.msn2')
+            "elements": lambda: run('tests/2.0.3x/practical/auto/clicked.msn2'),
+            "install": _install_deps
         }
     cli_dispatch = _actions()
     if action in cli_dispatch:

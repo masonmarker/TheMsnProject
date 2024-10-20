@@ -5,7 +5,7 @@
 # version : 2.0.384
 
 # docs website 
-@ docs:website = 'https://masonmarker.com/#/msn2docs'
+@ docs:website = 'masonmarker.com/projects/msn2'
 
 # documentation page
 @ page:docs = script((
@@ -239,7 +239,7 @@
                         'style', 'bold'
                     )
                 )),
-                # if the path is correct, either navigate to https://masonmarker.com/#/msn2docs
+                # if the path is correct, either navigate to masonmarker.com/projects/msn2
                 # yourself, or load the documentation via 'd'
                 console:print(arr(
                     object(

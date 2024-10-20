@@ -1,23 +1,9 @@
 
 
-@ book = excel('C:\\Users\\mason\\OneDrive\\Desktop\\msn\\book.xlsx')
 
-@ sheet = book.sheet('sheet1')
 
-# clear from last run
-sheet.clear()
 
-# creating a 2D array of cell
-# numbers
-@ cells = (
-    [
-        [0, 0], 
-        [0, 1], 
-        [0, 2], 
-        [0, 3], 
-        [0, 4],
-        [1, 0], 
-        [2, 0], 
-        [3, 0],
-        [4, 0]
-    ])
+
+
+
+print('aweifjaweijfaowiejfaoiwejf')
