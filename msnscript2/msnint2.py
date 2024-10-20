@@ -73,6 +73,7 @@ from core.dispatch.functions import FUNCTION_DISPATCH
 from core.functions import user_function_exec
 
 # loops
+from core.parsing.vars import var_assign_or_transform
 from core.special.loops import bar_loop
 
 
@@ -150,6 +151,7 @@ total_ints = 0
 # colors for colored printing,
 # defaults to "" until lazily loaded
 colors = ""
+open_chars = {"(", ",", "{", "[", "=", "{="}
 
 
 class Interpreter:
@@ -342,15 +344,7 @@ class Interpreter:
                 elif inml:
                     ml += line
                 # block syntax (recommended for most cases)
-                elif (
-                    not inblock
-                    and line.endswith("(")
-                    or line.endswith(",")
-                    or line.endswith("{")
-                    or line.endswith("[")
-                    or line.endswith("=")
-                    or line.endswith("{=")
-                ):
+                elif not inblock and any(line.endswith(char) for char in open_chars):
                     for c in line:
                         if c == "(":
                             p += 1
@@ -438,9 +432,8 @@ class Interpreter:
         # new variable setting and modification syntax as of 12/20/2022
         # iterates to the first '=' sign, capturing the variable name in the
         # process (as it should)
-        # msn1 fallback
         if line[0] == "@":
-            return self.interpret_msnscript_1(line[1:])
+            return var_assign_or_transform(self, line)
 
         # determine if we're using JS
         if line.startswith("JS:"):
@@ -1209,71 +1202,8 @@ class Interpreter:
     def get_var(self, name):
         return self.vars[name].value
 
-
     def in_string(self, s, s2):
         return s > 0 or s2 > 0
-
-    def interpret_msnscript_1(self, line):
-        element = ""
-        variable = ""
-        for i in range(0, len(line)):
-            c = line[i]
-            if c != " ":
-                if c == "+" and line[i + 1] == "=":
-                    variable = element
-                    element = ""
-                    for j in range(i + 2, len(line)):
-                        element += line[j]
-
-                    # if element is a number
-                    if isinstance(element, float) or isinstance(element, int):
-                        self.vars[variable].value += self.interpret(element)
-                    # if element is a string
-                    elif isinstance(element, str):
-                        try:
-                            self.vars[variable].value += self.interpret(
-                                element)
-                        except:
-                            self.vars[variable].value += self.interpret(
-                                element)
-                    return self.vars[variable].value
-                elif c == "-" and line[i + 1] == "=":
-                    variable = element
-                    element = ""
-                    for j in range(i + 2, len(line)):
-                        element += line[j]
-                    self.vars[variable].value -= self.interpret(element)
-                    return self.vars[variable].value
-                elif c == "*" and line[i + 1] == "=":
-                    variable = element
-                    element = ""
-                    for j in range(i + 2, len(line)):
-                        element += line[j]
-                    self.vars[variable].value *= self.interpret(element)
-                    return self.vars[variable].value
-                elif c == "/" and line[i + 1] == "=":
-                    variable = element
-                    element = ""
-                    for j in range(i + 2, len(line)):
-                        element += line[j]
-                    self.vars[variable].value /= self.interpret(element)
-                    return self.vars[variable].value
-                elif c == "=":
-                    variable = element
-                    element = ""
-                    string = False
-                    array = False
-                    for j in range(i + 1, len(line)):
-                        if line[j] == '"':
-                            string = True
-                        if line[j] == "[":
-                            array = True
-                        element += line[j]
-                    self.vars[variable] = Var(
-                        variable, self.interpret(element))
-                    return self.vars[variable].value
-                else:
-                    element += c
 
     # scrapes all html elements from a URL
 
