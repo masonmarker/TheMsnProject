@@ -428,7 +428,7 @@ class Interpreter:
 
         # method-specific line reached
         if line.startswith("--"):
-            legacy_parse_func_body_decl(self, line)
+            return legacy_parse_func_body_decl(self, line)
         # new variable setting and modification syntax as of 12/20/2022
         # iterates to the first '=' sign, capturing the variable name in the
         # process (as it should)
