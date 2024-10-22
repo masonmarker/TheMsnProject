@@ -2,7 +2,8 @@
 
 from core.classes.instruction import Instruction
 
-def consume(inter, line, i, l, obj, inst_tree, func, objfunc):
+
+def consume_expression(inter, line, i, l, obj, inst_tree, func, objfunc):
     mergedargs = ""
     p = 1
     for j in range(i + 1, l - 1):
@@ -21,9 +22,15 @@ def consume(inter, line, i, l, obj, inst_tree, func, objfunc):
     objfunc = objfunc.strip()
     # create an instruction from parsed data
     inst = Instruction(line, func, obj, objfunc,
-                        args, inst_tree, inter)
+                       args, inst_tree, inter)
+
     # return interpretations
-    return mergedargs, args, func, objfunc, inst
+    return [mergedargs, args, func, objfunc, inst]
+
+
+def consume(inter, line, i, l, obj, inst_tree, func, objfunc):
+    return consume_expression(inter, line, i, l, obj, inst_tree, func, objfunc)
+
 
 def method_args(inter, line, j):
     argstring = ""
@@ -42,6 +49,7 @@ def method_args(inter, line, j):
             argstring += line[k]
     return argstring.split(","), k
 
+
 def get_args(inter, line):
     args = []
     l = len(line)
@@ -56,10 +64,8 @@ def get_args(inter, line):
     b = 0
     for i in range(l + 1):
         c = ""
-        try:
+        if i < len(line):
             c = line[i]
-        except:
-            None
         if c == "[" and not s2 > 0 and not s > 0:
             a += 1
         if c == "]" and not s2 > 0 and not s > 0:

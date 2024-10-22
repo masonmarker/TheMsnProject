@@ -523,9 +523,9 @@ class Interpreter:
         for i in range(l):
             if cont:
                 continue
-            try:
+            if i < len(line):
                 c = line[i]
-            except:
+            else:
                 break
             if c == " " and s == 0:
                 sp += 1
