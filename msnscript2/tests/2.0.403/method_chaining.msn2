@@ -239,3 +239,55 @@ v.equals(6).assert()
 MC:ASSERT:(@v = +(10, 10).add(1)).equals(21)
 MC:ASSERT:@v = +(10, 11).add(2).equals(23)
 
+# ----------------- testing with multi-line and @= variable setting -----------------
+
+(
+    @ test = +(4, 4).+(1),
+    @ test2 = +(4, 4).+(1).-(1),
+    assert(exists('test'), exists('test2')),
+    assert(test.equals(9)),
+    assert(test2.equals(8))
+)
+
+
+
+# ----------------- testing with custom classes -----------------
+
+# single variable set with chaining
+class('Thing', (
+    @stuff = arr(1, 2, 3).map('e', e.add(1))
+))
+@t = Thing()
+t.equals({'stuff': [2, 3, 4]}).assert()
+(@t = Thing()).keys().has('stuff').assert()
+Thing().keys().has('stuff').assert()
+Thing().stuff().equals([2, 3, 4]).assert()
+
+
+
+
+
+class('TwoAttributes', (
+    @attr1 = arr(1, 2, 3).map('e', e.add(1)),
+    @attr2 = arr(1, 2, 3).map('e', e.add(2))
+))
+
+TwoAttributes().equals({'attr1': [2, 3, 4], 'attr2': [3, 4, 5]}).assert()
+
+
+class('Thing2', (
+    @stuff2 = arr(1, 2, 3).map('e', e.add(2)),
+    @stuff3 = arr(1, 2, 3).map('e', e.add(3)),
+    def('add_to_stuff', 'self', 'val', self.stuff2(self.stuff2().append(val))),
+    def('add_to_stuff3', 'self', 'val', self.stuff3(self.stuff3().append(val)))
+))
+
+@t = Thing2()
+t.add_to_stuff(4)
+t.stuff2().equals([3, 4, 5, 4]).assert()
+t.add_to_stuff3(5)
+t.stuff3().equals([4, 5, 6, 5]).assert()
+
+
+
+

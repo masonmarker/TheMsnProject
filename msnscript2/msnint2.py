@@ -243,7 +243,7 @@ class Interpreter:
         return _line.startswith("#") or _line.startswith("::")
 
     # executes stored script
-    def execute(self, script):
+    def execute(self, script, include_temp_vars=True):
         # convert script to lines
         self.lines = []
         # for aggregate syntax support !{}
@@ -273,7 +273,9 @@ class Interpreter:
                 if line:
                     # execute the conditional line
                     # with import capabilities
-                    result = self.interpret(line)
+                    result = self.interpret(line,
+                                            top_level_inst=True, has_outer_function=False,
+                                            include_temp_vars=include_temp_vars)
                     keep_space = True
                     # if the conditional evaluated to True
                     if result:
@@ -310,7 +312,8 @@ class Interpreter:
                     self.vars[line] = Var(line, keep_block)
                 else:
                     # execute Python
-                    self.exec_python(keep_block)
+                    self.exec_python(
+                        keep_block, has_outer_function=False, include_temp_vars=include_temp_vars)
                 # reset python block and skipping flag
                 keep_block = ""
                 skipping = False
@@ -342,7 +345,7 @@ class Interpreter:
                     inml = False
                     ml += line[0: len(line) - 1]
                     self.interpret(ml, top_level_inst=True,
-                                   has_outer_function=False)
+                                   has_outer_function=False, include_temp_vars=include_temp_vars)
                     ml = ""
                 elif inml:
                     ml += line
@@ -369,12 +372,14 @@ class Interpreter:
                             ml = ""
                             inblock = False
                             self.interpret(
-                                inter, keep_space=keep_space, top_level_inst=True, has_outer_function=False)
+                                inter, keep_space=keep_space, top_level_inst=True,
+                                has_outer_function=False, include_temp_vars=include_temp_vars)
                             break
                         ml += c
                 else:
                     self.interpret(line, keep_space=keep_space,
-                                   top_level_inst=True, has_outer_function=False)
+                                   top_level_inst=True, has_outer_function=False,
+                                   include_temp_vars=include_temp_vars)
             self.current_line += 1
         return self.out
 
@@ -399,7 +404,8 @@ class Interpreter:
 
     def interpret(self, line, block={},
                   keep_space=False, is_chained=False,
-                  top_level_inst=False, has_outer_function=True):
+                  top_level_inst=False, has_outer_function=True, 
+                  include_temp_vars=True):
 
         # acquiring globals
         global total_ints, lock, lines_ran, auxlock, \
@@ -526,6 +532,10 @@ class Interpreter:
         # iterate through the line to determine if we're chaining
         # deoptimized approach, implemented for functionality
         a = get_args(self, line)[0]
+        # print()
+        # print(line)
+        # print(a)
+        # print()
         if len(a) == 1 and len(a[0]) == 4:
             new_args, take_return = self.get_new_args(a)
             if take_return:
@@ -631,23 +641,25 @@ class Interpreter:
         return self.loggedmethod[-1]
 
     def get_new_args(self, new_args):
-        # return [self._interpret_chain(exp) if len(exp) == 4 else exp for exp in self._get_new_args(new_args)]
         _gotten_new_args = self._get_new_args(new_args)
-        if _gotten_new_args[0][0].strip().startswith("@"):
-            # merge all arguments together and re-interpret
-            new_line = ""
-            # adds argset[0].**the next argument** to new_line
-            def recurse(argset):
-                nonlocal new_line
-                new_line += f"{argset[0]}."
-                if len(argset) == 3:
-                    new_line = new_line[:-1]
-                    return
-                elif len(argset) == 4:
-                    recurse(argset[3])
-            recurse(_gotten_new_args[0])
-            take_return = True
-            return self.interpret(new_line), take_return
+        _new_gotten_new_args = []
+        for argset in _gotten_new_args:
+            if argset[0].strip().startswith("@"):
+                new_line = ""
+                def recurse(argset):
+                    nonlocal new_line
+                    new_line += f"{argset[0]}."
+                    if len(argset) == 3:
+                        new_line = new_line[:-1]
+                        return
+                    elif len(argset) == 4:
+                        recurse(argset[3])
+                recurse(argset)
+                _new_gotten_new_args.append([new_line, 0, 0])
+            else:
+                _new_gotten_new_args.append(argset)
+        _gotten_new_args = _new_gotten_new_args
+        
         _new_args = []
         for exp in _gotten_new_args:
             if len(exp) == 4:
@@ -1306,10 +1318,10 @@ class Interpreter:
         return inter.interpret(line)
 
     # executing Python scripts
-    def exec_python(self, python_block, has_outer_function=True):
+    def exec_python(self, python_block, has_outer_function=True, include_temp_vars=True):
         # get the python script with arguments inserted
         py_script = str(self.interpret(
-            f"script({python_block})", has_outer_function=has_outer_function))
+            f"script({python_block})", has_outer_function=has_outer_function, include_temp_vars=include_temp_vars))
         # try to execute the script
         try:
             exec(py_script, self._globals, self._locals)

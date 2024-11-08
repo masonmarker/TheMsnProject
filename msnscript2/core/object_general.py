@@ -1,7 +1,8 @@
 """General object functions."""
 
 
-from core.classes.var import Var
+from core.classes.var import RESERVED_VARNAME_PREFIX, Var
+
 
 def f_copy(inter, line, args, **kwargs):
     try:
@@ -10,9 +11,9 @@ def f_copy(inter, line, args, **kwargs):
         return inter.err("Error copying object", e, line, kwargs["lines_ran"])
 
 
-
 def f_type(inter, line, args, **kwargs):
     return type(inter.parse(0, line, args)[2])
+
 
 def f_equals(inter, line, args, **kwargs):
     arg1 = inter.parse(0, line, args)[2]
@@ -20,6 +21,7 @@ def f_equals(inter, line, args, **kwargs):
         inter.parse(i, line, args)[-1] == arg1
         for i in range(1, len(args))
     )
+
 
 def f_class(inter, line, args, **kwargs):
     # new interpreter
@@ -29,12 +31,13 @@ def f_class(inter, line, args, **kwargs):
     # name must be a varname
     inter.check_varname(name, line)
     # execute the block in the private environment
-    new_int.execute(args[1][0])
+    new_int.execute(args[1][0], include_temp_vars=False)
     # creates a variable out of the new interpreters resources
     obj_to_add = {}
     for varname in new_int.vars:
-        val = new_int.vars[varname].value
-        obj_to_add[varname] = Var(varname, val)
+        if not varname.startswith(RESERVED_VARNAME_PREFIX):
+            val = new_int.vars[varname].value
+            obj_to_add[varname] = Var(varname, val)
     for methodname in new_int.methods:
         obj_to_add[methodname] = Var(
             f"{methodname}#method", new_int.methods[methodname]
@@ -42,11 +45,13 @@ def f_class(inter, line, args, **kwargs):
     inter.vars[name] = Var(name, obj_to_add)
     return obj_to_add
 
+
 def f_static(inter, line, args, **kwargs):
     try:
         return inter.parse(0, line, args)[2].value
     except Exception as e:
         inter.err("Error in static()", e, line, kwargs["lines_ran"])
+
 
 def f_getattr(inter, line, args, **kwargs):
     vn = inter.parse(0, line, args)[2]
@@ -54,6 +59,8 @@ def f_getattr(inter, line, args, **kwargs):
     inter.check_varname(vn, line)
     # get the attribute
     return inter.vars[vn].value[inter.parse(1, line, args)[2]]
+
+
 def f_setattr(inter, line, args, **kwargs):
     # current working object
     o = inter.vars[inter.parse(0, line, args)[2]].value
@@ -68,7 +75,7 @@ def f_setattr(inter, line, args, **kwargs):
     return val
 
 
-OBJECT_GENERAL_DISPATCH = {    
+OBJECT_GENERAL_DISPATCH = {
     "copy": f_copy,
     "type": f_type,
     "equals": f_equals,

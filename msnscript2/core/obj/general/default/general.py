@@ -165,30 +165,8 @@ def f_obj_default_assert_equals(inter, line, args, **kwargs):
             kwargs["lines_ran"],
         )
     return True
-# +(1, 2).+(5).-(10).assert()
-# (+(1, 2).-(3).+(3)).assert()
-# ((+(1, 2).-(3).+(3)).assert())
-
-# +(0, 1).assert()
-
-# +(5, 1).-(3).assert()
-
-# (True).assert()
-# (not(False)).assert()
-
-# # long
-# not(False).assert()
-
-# op.sub(5, 1).assert()
-# op.sub(5, 2).assert()
-
-# # create 0
-# op.add(1, 1).add(5, 4).sub(5, 5).sub(1).assert:not()
-
-# +(1, 2).add(13).-(4).assert:equals(12)
-
-# # different kinds
-# +(1, 2).add(-(2, 2).x(3)).assert:equals(3)
+def f_obj_default_interpret(inter, line, args, **kwargs):
+    return inter.interpret(kwargs["object"])
 
 
 OBJ_GENERAL_DEFAULT_GENERAL_DISPATCH = {
@@ -207,4 +185,5 @@ OBJ_GENERAL_DEFAULT_GENERAL_DISPATCH = {
     "slice": f_obj_default_slice,
     "index": f_obj_default_index,
     "export": f_obj_default_export,
+    "interpret": f_obj_default_interpret,
 }

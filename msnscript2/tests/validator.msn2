@@ -1823,6 +1823,11 @@ def('test_chained_methods', (
     assert(equals(+(1, 2).+(3), 6)),
     assert(equals(+(1, 2).+(3).+(4), 10)),
     assert(equals(+(1, 2).+(3).+(4).+(5), 15)),
+
+    # new chained methods
+    ("var('e', [1, 2, 3])").interpret(),
+    exists('e').assert() ??,
+    e.equals([1, 2, 3]).assert() ??,
         
     True
 ))
