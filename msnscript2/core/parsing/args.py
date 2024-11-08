@@ -3,71 +3,20 @@
 from core.classes.instruction import Instruction
 
 
-# macro('??', "__macro_??_line", assert(-(__macro_??_line)))
-
-# def('test_chained_methods', (
-#     # print_test('chained methods'),
-
-#     # general chained method using some math functions
-#     assert(+(1, 2).equals(3)),
-#     assert(not(+(3, 4).equals(5287345982.234958123049582))),
-#     assert(+(3, 4).equals(7)),
-#     assert(-(5, 4).equals(1)),
-
-#     # more than 2 chained methods
-#     assert(x(2, 3).+(5).equals(11)),
-#     assert(not(x(2, 3).+(5).equals(10))),
-#     assert(x(2, 3).+(4).-(5).equals(5)),
-
-#     # creating and working with it (this is non destructive)
-#     assert   (  var (  'a'  ,   12  )   .  add    (   4 )  . equals(16)),
-#     assert(exists('a'), a.equals(12), not(a.equals(13))),
-
-
-#     # with multiple arguments to the same function
-#     assert(equals(+(1, 2).+(3), 3)),
-
-
-#     # asserting with macros and post macros
-#     # creating the macro
-#     macro('CHAINED ADD ', '__chained_function', +(-(__chained_function), 1)),
-#     # basic tests
-#     equals(CHAINED ADD 2, 3) ??,
-#     not(equals(CHAINED ADD 2, 6)) ??,
-
-
-#     True
-# ))
-
-# test_chained_methods()
-
-
 def consume_expression(inter, line, i, l, obj, inst_tree, func, objfunc):
-
     # newly added, chaining methods
-
-    mergedargs = ""
-    p = 1
-    n = 0
-    chain_start = -1
-    chain_end = -1
-
     mergedargs = line[i + 1:l - 1]
-    # print('mergedargs', mergedargs)
-
     args, chaining_info, _ = get_args(
         inter, mergedargs, func=func, objfunc=objfunc, obj=obj)
-    # from pprint import pprint
-    # pprint(args)
 
-    # f = len(func)
     # clean function for handling
     func = func.strip()
     objfunc = objfunc.strip()
     inst = Instruction(line, func, obj, objfunc,
                        args, inst_tree, inter)
-    # return interpretations
-    return mergedargs, args, func, objfunc, inst, chaining_info
+    # return pieces of this instruction
+    return mergedargs, args, func, objfunc, Instruction(line, func, obj, objfunc,
+                                                        args, inst_tree, inter), chaining_info
 
 
 def consume(inter, line, i, l, obj, inst_tree, func, objfunc):
@@ -106,9 +55,7 @@ def get_args(inter, line, prev_args=[], chain_index=0,
     s2 = 0
     insingle = False
     b = 0
-    chain_start = 0
     chain_end = -1
-    is_chained = False
     complete_paren_count = 0
     for i in range(l + 1):
         c = ""
@@ -124,7 +71,6 @@ def get_args(inter, line, prev_args=[], chain_index=0,
             complete_paren_count += 1
             p -= 1
             if p < 0 and s == 0 and s2 == 0 and a == 0 and b == 0:
-                chain_start = i
                 chain_end = None
                 # determine if this is chained by iterating through spaces to the first period
                 for j in range(i + 1, l):
@@ -138,19 +84,14 @@ def get_args(inter, line, prev_args=[], chain_index=0,
 
                     if obj and objfunc:
                         final_line = f"{obj}.{objfunc}({line})"
-                        # print('FINAL LINE', final_line)
                     elif func:
                         final_line = f"{func}({line})"
                     else:
                         final_line = f"({line})"
 
                     a = get_args(
-                        inter, final_line, p=p, prev_arg=arg, 
+                        inter, final_line, p=p, prev_arg=arg,
                         chain_index=chain_index + 1, func=func, objfunc=objfunc, obj=obj)
-                    # print(a)
-                    # print(final_line)
-                    # print()
-                    # exit()
                     return a
 
             # while the next character is a whitespace, skip until there is a period

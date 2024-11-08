@@ -6,6 +6,7 @@
 # author : Mason Marker
 # date : 5/30/2023
 # updated in 2.0.388
+# updated in 2.0.403
 
 # fresh console
 import ('lib/os')
@@ -108,12 +109,12 @@ assert(a.equals(1))
 # arrays
 @ array = [1, 2, 3, 4, 5]
 
-array.(add(6),remove(3),filter('el', el.greater(2)))
+@array = array.add(6).remove(3).filter('el', el.greater(2))
 assert(array.equals([4, 5, 6]))
 
 # strings
 @ string = 'hello this is a string'
-@ char = string.(reverse(),upper(),get(0))
+@ char = (@string=string.reverse().upper()).get(0)
 assert(string.equals('GNIRTS A SI SIHT OLLEH'))
 assert(char.equals('G'))
 

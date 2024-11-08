@@ -5,7 +5,6 @@ from core.classes.var import Var
 
 
 def var_assign_or_transform(inter, line):
-    
     line = line[1:]
     element = ""
     variable = ""
@@ -14,10 +13,7 @@ def var_assign_or_transform(inter, line):
         if c != " ":
             if c == "+" and line[i + 1] == "=":
                 variable = element
-                element = ""
-                for j in range(i + 2, len(line)):
-                    element += line[j]
-
+                element = line[i + 2:]
                 # if element is a number
                 if isinstance(element, float) or isinstance(element, int):
                     inter.vars[variable].value += inter.interpret(element)
@@ -32,36 +28,22 @@ def var_assign_or_transform(inter, line):
                 return inter.vars[variable].value
             elif c == "-" and line[i + 1] == "=":
                 variable = element
-                element = ""
-                for j in range(i + 2, len(line)):
-                    element += line[j]
+                element = line[i + 2:]
                 inter.vars[variable].value -= inter.interpret(element)
                 return inter.vars[variable].value
             elif c == "*" and line[i + 1] == "=":
                 variable = element
-                element = ""
-                for j in range(i + 2, len(line)):
-                    element += line[j]
+                element = line[i + 2:]
                 inter.vars[variable].value *= inter.interpret(element)
                 return inter.vars[variable].value
             elif c == "/" and line[i + 1] == "=":
                 variable = element
-                element = ""
-                for j in range(i + 2, len(line)):
-                    element += line[j]
+                element = line[i + 2:]
                 inter.vars[variable].value /= inter.interpret(element)
                 return inter.vars[variable].value
             elif c == "=":
                 variable = element
-                element = ""
-                string = False
-                array = False
-                for j in range(i + 1, len(line)):
-                    if line[j] == '"':
-                        string = True
-                    if line[j] == "[":
-                        array = True
-                    element += line[j]
+                element = line[i + 1:]
                 inter.vars[variable] = Var(
                     variable, inter.interpret(element))
                 return inter.vars[variable].value

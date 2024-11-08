@@ -483,11 +483,13 @@ class Interpreter:
                 val = line[0: len(line) - len(token)]
                 self.vars[varname] = Var(varname, val)
                 return self.interpret(postmacros[token][2], top_level_inst=top_level_inst, has_outer_function=False)
+
         # variable replacement, generally unsafe, but replaces
         # all variable names as they're written the the expression after
         # the '*'
         if line[0] == "*":
             return self.interpret(self.replace_vars(line[1:]))
+
         # invoking user defined enclosing syntax
         for key in enclosed:
             start = enclosed[key][0]
@@ -500,6 +502,7 @@ class Interpreter:
                     varname, line[len(start): len(line) - len(end)]
                 )
                 return self.interpret(enclosed[key][3], has_outer_function=False)
+
         # checks for active Interpreter redirect request
         # generally slow, due to checking for the redirect
         if self.redirecting and not "stopredirect()" in line.replace(" ", ""):
@@ -524,7 +527,10 @@ class Interpreter:
         # deoptimized approach, implemented for functionality
         a = get_args(self, line)[0]
         if len(a) == 1 and len(a[0]) == 4:
-            return self.interpret(self.get_new_args(a)[0][0])
+            new_args, take_return = self.get_new_args(a)
+            if take_return:
+                return new_args
+            return self.interpret(new_args[0][0])
 
         func = ""
         objfunc = ""
@@ -560,14 +566,15 @@ class Interpreter:
                 # 2.0.403
                 # basic method chaining
                 if chaining_info["is_chained"]:
-                    args = self.get_new_args(args)
+                    args, take_return = self.get_new_args(args)
+                    if take_return:
+                        return args
                     return self.interpret_expression(
                         Instruction(line, func, obj, objfunc,
                                     args, inst_tree, self),
                         args, obj, objfunc, line, func, line,
                         is_chained=True, top_level_inst=top_level_inst
                     )
-
                 # standard interpretation
                 return self.interpret_expression(inst, args, obj,
                                                  objfunc, mergedargs, func, line,
@@ -624,7 +631,31 @@ class Interpreter:
         return self.loggedmethod[-1]
 
     def get_new_args(self, new_args):
-        return [self._interpret_chain(exp) if len(exp) == 4 else exp for exp in self._get_new_args(new_args)]
+        # return [self._interpret_chain(exp) if len(exp) == 4 else exp for exp in self._get_new_args(new_args)]
+        _gotten_new_args = self._get_new_args(new_args)
+        if _gotten_new_args[0][0].strip().startswith("@"):
+            # merge all arguments together and re-interpret
+            new_line = ""
+            # adds argset[0].**the next argument** to new_line
+            def recurse(argset):
+                nonlocal new_line
+                new_line += f"{argset[0]}."
+                if len(argset) == 3:
+                    new_line = new_line[:-1]
+                    return
+                elif len(argset) == 4:
+                    recurse(argset[3])
+            recurse(_gotten_new_args[0])
+            take_return = True
+            return self.interpret(new_line), take_return
+        _new_args = []
+        for exp in _gotten_new_args:
+            if len(exp) == 4:
+                adding = self._interpret_chain(exp)
+                _new_args.append(adding)
+            else:
+                _new_args.append(exp)
+        return _new_args, False
 
     def _get_new_args(self, args):
         def process_list(lst):

@@ -84,9 +84,9 @@ def f_private(inter, line, args, **kwargs):
     new_int = inter.new_int()
     for vname, entry in inter.vars.items():
         try:
-            new_int.vars[vname] = Var(vname, entry.value)
+            new_int.vars[vname] = Var(vname, entry.value, True)
         except:
-            new_int.vars[vname] = Var(vname, entry)
+            new_int.vars[vname] = Var(vname, entry, True)
     for mname, entry in inter.methods.items():
         new_int.methods[mname] = entry
     ret = new_int.interpret(args[0][0])

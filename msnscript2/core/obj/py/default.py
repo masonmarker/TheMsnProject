@@ -11,7 +11,6 @@ def f_py_else(inter, line: str, args, **kwargs):
             # check in globals
             return inter._globals[kwargs["objfunc"]]
         except Exception as e:
-            print(e)
             # raise error
             inter.no_var_err(
                 kwargs["objfunc"],

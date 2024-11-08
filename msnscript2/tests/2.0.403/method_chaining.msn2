@@ -218,7 +218,24 @@ cat("hel", "lo!").equals("hello!").assert():MC:ASSERT
 ([1, 2, 3, 4, 5, 6]).map('e', e.add(1)).map('e', e.sub(1)).equals([1, 2, 3, 4, 5, 6]).assert():MC:ASSERT
 
 
+# ----------------- testing with special syntaxes -----------------
+
+# testing with @ {} = {} variable setting syntax
+
+# testing as single expressions
+@ v   = +(3, 3).-(2)
+
+v.equals(4).assert()
+v.sub(2).equals(2).assert()
+# assert that the .sub() was permanent
+assert(v.equals(2))
 
 
+(@v = +(1, 2).add(3)).assert:equals(6)
+assert(v.equals(6))
+v.equals(6).assert()
+
+# using with macros
+MC:ASSERT:(@v = +(10, 10).add(1)).equals(21)
 
 
