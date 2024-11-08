@@ -26,8 +26,8 @@ def f_process(inter, line, args, **kwargs):
     # if linux
     elif os.name == "posix":
         inter.err("POSIX not yet implemented", "", line, kwargs["lines_ran"])
-        return None
-    return None
+        return
+    return
 def f_proc(inter, line, args, **kwargs):
     # import lib processes module if not imported
     if "lib/processes.msn2" not in inter.imports:

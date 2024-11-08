@@ -13,10 +13,10 @@ def get_column_index(title, sheet):
     for cell in sheet.iter_cols():
         if cell[0].value == title:
             return cell[0].column
-    return None
+    return
 
 def get_row_index(title, sheet):
     for cell in sheet.iter_rows():
         if cell[0].value == title:
             return cell[0].row
-    return None
+    return

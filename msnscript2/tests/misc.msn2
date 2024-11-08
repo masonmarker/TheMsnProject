@@ -2,11 +2,12 @@
 
 
 (
-    (True).assert(),
-    @ test = +(4, 4).+(1),
-    print(test),
-    @ test2 = +(4, 4).+(1).-(1),
-    assert(exists('test'), exists('test2')),
-    assert(test.equals(9)),
-    assert(test2.equals(8))
+    @v = script(hello! {="bruh"=}).add(ls(byeee)),
+    print(v)
 )
+
+
+
+
+
+

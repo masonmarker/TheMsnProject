@@ -29,7 +29,7 @@ def f_obj_general_workbook_sheet(inter, line, args, **kwargs):
         for name in workbook.sheetnames:
             if name.lower() == sheet.lower():
                 return Sheet(workbook[name], name, workbook, path)
-    return None
+    return
 
 
 def f_obj_general_workbook_save(inter, line, args, **kwargs):

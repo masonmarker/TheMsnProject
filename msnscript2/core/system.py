@@ -26,7 +26,7 @@ def f_env(inter, line, args, **kwargs):
         try:
             strenv += f"\t{varname} = {inter.shortened(v.value)}\n"
         except:
-            None
+            pass
     strenv += "\nmethods:\n"
     for methodname, Method in inter.methods.items():
         strenv += f"\t{methodname}("

@@ -404,7 +404,7 @@ class Interpreter:
 
     def interpret(self, line, block={},
                   keep_space=False, is_chained=False,
-                  top_level_inst=False, has_outer_function=True, 
+                  top_level_inst=False, has_outer_function=True,
                   include_temp_vars=True):
 
         # acquiring globals
@@ -646,6 +646,7 @@ class Interpreter:
         for argset in _gotten_new_args:
             if argset[0].strip().startswith("@"):
                 new_line = ""
+
                 def recurse(argset):
                     nonlocal new_line
                     new_line += f"{argset[0]}."
@@ -659,7 +660,7 @@ class Interpreter:
             else:
                 _new_gotten_new_args.append(argset)
         _gotten_new_args = _new_gotten_new_args
-        
+
         _new_args = []
         for exp in _gotten_new_args:
             if len(exp) == 4:
@@ -831,7 +832,7 @@ class Interpreter:
                 if objfunc in FUNCTION_DISPATCH["obj"]["general"][_type_object]:
                     return FUNCTION_DISPATCH["obj"]["general"][_type_object][objfunc](
                         self, line, args, vname=vname, objfunc=objfunc,
-                        object=object, obj=obj, lines_ran=lines_ran, apps=apps
+                        object=object, obj=obj, lines_ran=lines_ran, apps=apps, inst_tree=inst_tree
                     )
 
             # check for requests_html.HTML
@@ -1283,7 +1284,7 @@ class Interpreter:
 
     def raise_index_out_of_bounds(self, line, lines_ran, method):
         return self.err(
-            f"Index out of bounds in body of {method.name}",
+            f"Index out of bounds in body of {method.name if hasattr(method, 'name') else method}",
             f"Index out of bounds",
             line,
             lines_ran,

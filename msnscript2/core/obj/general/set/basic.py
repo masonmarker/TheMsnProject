@@ -1,7 +1,7 @@
 
 
 from core.common import aliases
-
+from core.errors import inter_raise_err
 
 def f_obj_set_add(inter, line, args, **kwargs):
     for i in range(len(args)):
