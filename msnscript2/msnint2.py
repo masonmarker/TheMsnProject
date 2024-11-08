@@ -519,26 +519,12 @@ class Interpreter:
         except:
             pass
 
+        # 2.0.403
         # iterate through the line to determine if we're chaining
+        # deoptimized approach, implemented for functionality
         a = get_args(self, line)[0]
         if len(a) == 1 and len(a[0]) == 4:
-            # print('HERE', line)
-            __new_args = []
-            # get the line to execute
-            for exp in self._get_new_args(a):
-                # print('EXP', exp)
-                if len(exp) == 4:
-                    __new_args.append(self._interpret_chain(exp))
-                else:
-                    __new_args.append(exp)
-            args = __new_args
-            # print('CONVERTED LINE:', args[0][0])
-            return self.interpret(args[0][0])
-        # print()
-        # print(line)
-        # print('ARGS GOTTEN: ', a)
-        # print()
-        # print(line, a)
+            return self.interpret(self.get_new_args(a)[0][0])
 
         func = ""
         objfunc = ""
@@ -560,34 +546,10 @@ class Interpreter:
                 func = ""
                 objfunc = ""
                 continue
-            # basic method creation
+            # legacy method declaration, not recommended for use,
+            # but kept for backwards compatibility
             if c == "~":
-                returnvariable = ""
-                self.loggedmethod.append("")
-                for j in range(i + 1, len(line)):
-                    if line[j] != " ":
-                        if line[j] == "(":
-                            args = self.method_args(line, j)
-                            for k in range(args[1], len(line)):
-                                if line[k] != " ":
-                                    if line[k] == "-" and line[k + 1] == ">":
-                                        for l in range(k + 2, len(line)):
-                                            if line[l] != " ":
-                                                returnvariable += line[l]
-                            break
-                        self.loggedmethod[-1] += line[j]
-                if self.loggedmethod[-1] not in self.methods.keys():
-                    self.methods[self.loggedmethod[-1]] = Method(
-                        self.loggedmethod[-1], self
-                    )
-                else:
-                    break
-                for arg in args[0]:
-                    if arg != "":
-                        self.vars[arg] = None
-                        self.methods[self.loggedmethod[-1]].add_arg(arg)
-                self.methods[self.loggedmethod[-1]].add_return(returnvariable)
-                return self.loggedmethod[-1]
+                return self.legacy_curly_func_decl(line, i)
 
             # interpreting a function
             elif c == "(":
@@ -598,63 +560,18 @@ class Interpreter:
                 # 2.0.403
                 # basic method chaining
                 if chaining_info["is_chained"]:
-
-                    args = self._get_new_args(args)
-
-
-
-                    # now we've promoted expressions without chaining to the top level
-                    # we should now iterate to each chained method
-                    _new_args_2 = []
-                    # print("OLD ARGS:", args)
-                    for exp in args:
-                        if len(exp) == 4:
-                            _new_args_2.append(self._interpret_chain(exp))
-                        else:
-                            _new_args_2.append(exp)
-                    args = _new_args_2
-
-                    # print('AFQTER CHAINING: ', args)
-                    # print("CHAINING INFO:", chaining_info)
-
-                    # print('IS CHAINED:', is_chained, chaining_info["is_chained"])
-                    # if top level
-                    # if chaining_info["is_chained"]:
-                    #     final_line = f"({args[0][0]})"
-                    #     r = self.interpret_expression(
-                    #         Instruction(final_line, "", "", "",
-                    #                     args, inst_tree, self),
-                    #         args, "", "", final_line, "", final_line,
-                    #         is_chained=True, top_level_inst=top_level_inst
-                    #     )
-                    #     # print(r)
-                    #     return r
-
-                    # args = get_args(self, args[0][0])
-
-                    # print(f'{line} || CHAINED COMPLETE: ', args
-                    # for exp, _, _ in args[1:]:
-                    #     # interpret this expression and set the result to the temporary variable
-                    #     temp.value = self.interpret(f"{temp.name}.{exp}")
-
-                    # # print('-' * 20)
-                    # # print('chaining info:', chaining_info)
-                    # # print('line:', line)
-                    # print('CHAINED ARGS:', args)
-                    # print(line, args[0][0])
-                    # return self.interpret(args[0][0])
-                    # # final_line =  line[:chaining_info["start"]] + temp.name + line[chaining_info["end"]:]
-                    # return the result of the outer function that had chaining as the result
-                    r = self.interpret_expression(
+                    args = self.get_new_args(args)
+                    return self.interpret_expression(
                         Instruction(line, func, obj, objfunc,
                                     args, inst_tree, self),
                         args, obj, objfunc, line, func, line,
                         is_chained=True, top_level_inst=top_level_inst
                     )
-                    # print('RETURNING CHAINED:', r, type(r))
-                    return r
-                # print('UNCHAINED ARGS:', args)
-                return self.interpret_expression(inst, args, obj, objfunc, mergedargs, func, line, top_level_inst=top_level_inst)
+
+                # standard interpretation
+                return self.interpret_expression(inst, args, obj,
+                                                 objfunc, mergedargs, func, line,
+                                                 top_level_inst=top_level_inst)
             if obj != "":
                 objfunc += c
             else:
@@ -677,48 +594,69 @@ class Interpreter:
             except:
                 return
 
+    def legacy_curly_func_decl(self, line, i):
+        returnvariable = ""
+        self.loggedmethod.append("")
+        for j in range(i + 1, len(line)):
+            if line[j] != " ":
+                if line[j] == "(":
+                    args = self.method_args(line, j)
+                    for k in range(args[1], len(line)):
+                        if line[k] != " ":
+                            if line[k] == "-" and line[k + 1] == ">":
+                                for l in range(k + 2, len(line)):
+                                    if line[l] != " ":
+                                        returnvariable += line[l]
+                    break
+                self.loggedmethod[-1] += line[j]
+        if self.loggedmethod[-1] not in self.methods.keys():
+            self.methods[self.loggedmethod[-1]] = Method(
+                self.loggedmethod[-1], self
+            )
+        else:
+            # break out of the loop that called this function
+            return
+        for arg in args[0]:
+            if arg != "":
+                self.vars[arg] = None
+                self.methods[self.loggedmethod[-1]].add_arg(arg)
+        self.methods[self.loggedmethod[-1]].add_return(returnvariable)
+        return self.loggedmethod[-1]
+
+    def get_new_args(self, new_args):
+        return [self._interpret_chain(exp) if len(exp) == 4 else exp for exp in self._get_new_args(new_args)]
+
     def _get_new_args(self, args):
         def process_list(lst):
             result = []
             promoted = []
-            first = True  # Flag to keep track of the first element at each level
+            first = True
             for elem in lst:
                 if isinstance(elem, list):
                     if len(elem) >= 4 and isinstance(elem[3], list):
-                        # Process the chain recursively
                         processed_chain, chain_promoted = process_list(
                             elem[3])
-                        # Flatten the chain if it has only one element
                         if len(processed_chain) == 1:
                             elem[3] = processed_chain[0]
                         else:
                             elem[3] = processed_chain
-                        # Keep the first element, promote subsequent ones
                         if first:
                             result.append(elem)
                             first = False
                         else:
                             promoted.append(elem)
-                        # Collect promoted elements from the chain
                         promoted.extend(chain_promoted)
                     else:
-                        # Handle elements without a chain
                         if first:
                             result.append(elem)
                             first = False
                         else:
                             promoted.append(elem)
                 else:
-                    # Non-list elements are added to the result
                     result.append(elem)
             return result, promoted
-
-        # Process the top-level args list
         processed_args, promoted_args = process_list(args)
-        # Combine processed args with promoted elements
-        final_result = processed_args + promoted_args
-        return final_result
-
+        return processed_args + promoted_args
 
     def _interpret_chain(self, chain_exp, vn=None, i=0, chain_line=""):
         if len(chain_exp) == 3:
@@ -741,7 +679,6 @@ class Interpreter:
             final_line = f"var('{vn}',{vn}.{chain_exp[0]},True),"
             # interpret the expression
             return self._interpret_chain(chain_exp[-1], vn, i + 1, chain_line + final_line)
-        
 
     def temp_safe_var(self):
         import random
@@ -753,8 +690,8 @@ class Interpreter:
 
     # interprets an expression
 
-    def interpret_expression(self, inst, args, obj, objfunc, 
-                             mergedargs, func, line, is_chained=False, 
+    def interpret_expression(self, inst, args, obj, objfunc,
+                             mergedargs, func, line, is_chained=False,
                              top_level_inst=False, has_outer_function=True):
 
         # if using_js
@@ -1290,7 +1227,7 @@ class Interpreter:
             line,
             lines_ran,
         )
-        
+
     def raise_ArgumentCountError(self, method: str, expected, actual, line, lines_ran):
         return self.err(
             f"Incorrect number of function arguments for {method}",
