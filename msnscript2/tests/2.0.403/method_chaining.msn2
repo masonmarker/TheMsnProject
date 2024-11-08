@@ -237,5 +237,5 @@ v.equals(6).assert()
 
 # using with macros
 MC:ASSERT:(@v = +(10, 10).add(1)).equals(21)
-
+MC:ASSERT:@v = +(10, 11).add(2).equals(23)
 

@@ -1,4 +1,6 @@
-# Updated suggested usage and syntax.
+# Latest, suggested usage and syntax.
+#
+# Get msn2 syntax highlighting from my VS Code extension: msn2-syntax-highlighting
 #
 # Usage not seen here is recommended in the 
 # previous version of this file.
@@ -6,7 +8,7 @@
 # author : Mason Marker
 # date : 5/30/2023
 # updated in 2.0.388
-# updated in 2.0.403
+# updated in 2.0.403: 11/8/2024
 
 # fresh console
 import ('lib/os')
@@ -53,6 +55,7 @@ assert(
         'world'
     ))
 )
+
 
 # as of 2.0.382, there is a new, simpler way to create functions
 # with def(name, ...args, body) -> function name
@@ -118,6 +121,59 @@ assert(array.equals([4, 5, 6]))
 assert(string.equals('GNIRTS A SI SIHT OLLEH'))
 assert(char.equals('G'))
 
+# ----------------------- LONG STRINGS -----------------------
+# install my VS Code extension, msn2-syntax-highlighting, for ls() and longstring() specific highlighting
+#
+# you can create long, complex strings with the ls() or longstring() calls (aliases).
+#
+# both calls have custom escape sequences for special characters, see below for examples
+#
+#      ls(hello!) -> "hello!"
+#
+# you can insert values into strings with the {==} insertion syntax
+#      ls(hello, {='world!'=}) -> "hello, world!"
+#
+# ls() and longstring() share the same escape sequences as some other special built in
+# functions, such as script() or HTML()
+#      ls(<tag>hello< >world<nl>) -> "#hello world\n"
+
+assert(equals(
+    ls(hello!),
+    "hello!"
+))
+
+assert(ls(hello, {='world!'=}).equals("hello, world!"))
+
+# the insertion logic is recursive, so you can repeat long strings
+ls(hello, {=ls(This is so cool! {="eh I guess so"=})=}).equals("hello, This is so cool! eh I guess so").assert()
+# or you can insert whatever logic you want ig
+ls(complex {=cat("kinda", " sorta").add(" not really")=}).equals("complex kinda sorta not really").assert()
+
+# testing some escape sequences
+ls(
+    This is a long string that we want to continue to<nl>
+    the next line, we also want a space and not to go to the next< >
+    line for this one.
+).equals("This is a long string that we want to continue to\nthe next line, we also want a space and not to go to the next line for this one.").assert()
+
+
+# ----------------------- METHOD CHAINING -----------------------
+# you've been mainly exposed to the functional, postfix-like syntax
+# of msn2 so far, but now we're going to dive into method chaining
+#
+# method chaining is an easier way to complete many operations in a single line
+#
+# CHAINING SYNTAX:
+# FUNC(farg1, farg2).OBJFUNC(f2arg1, f2arg2).OBJFUNC(f3arg1, f3arg2)
+#     *where FUNC is a built in system function, like print()*
+#     *and where OBJFUNC is a method attached to an object, like "var.add(1)" ('add' is the objfunc)*
+
+# simple examples
++(1, 2).-(3).equals(0).assert()
+
+ls(hello this is a {="string"=}).equals("hello this is a string").assert()
+@ v = [1, 2, 3]
+v.map('e', e.add(1)).equals([2, 3, 4]).assert()
 
 # ----------------------- RUNNING PYTHON -----------------------
 
@@ -382,7 +438,7 @@ class('person', (
 
 # advances time for a few years
 mason.(advance_time(3), advance_time(1))
-assert(equals(mason.age(), 26))
+assert(mason.age().equals(26))
 
 
 # class with constructor
@@ -391,7 +447,7 @@ class('person', (
     @ name = 'Unknown',
 
     # constructor
-    function('const', self.name(as('_t', self.name(), _t.upper())) , 'self')
+    function('const', self.name(self.name().upper()) , 'self')
 ))
 
 # creates a person
@@ -409,7 +465,7 @@ assert(equals(mason.name(), 'MASONATOR'))
 # ----------------------- THREADS -----------------------
 # threads are started with the thread(name, code) system call
 
-thread('t', (@g=0,wait(equals(g.inc(), 10))))
+thread('t', (@g=0,wait(g.inc().equals(10))))
 
 # joins with the thread
 join('t')
@@ -527,6 +583,7 @@ threadpool(3, assert(1))
 # end
 print('[+] suggested usage finished')
 print('[*] cleaning up...')
+
 
 # ------- WRAP UP -------
 
