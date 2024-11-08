@@ -183,5 +183,42 @@ file.delete(fpath).assert()
 
 # # ---------------- new default object functions ----------------
 
-# @ a = 1
-# (False).asf
+# then
+(1).then(assert(True))
+(0).then(assert(False))
+
+if(True, 1).then((True).assert(), assert(False))
+if(False, 1, 0).then(assert(False), assert(True)).assert()
+
+# testing with user functions
+@a = 0
+def('f', a.add(1))
+# returns 1 and works!
+f().assert()
+
+@a2 = 5
+def ('f2', 'f2:arg1', a2.sub(f2:arg1))
+f2(3).assert:equals(2)
+
+# postmacros
+postmacro(':MC:ASSERT', '__MC:ASSERT:__', assert(-(__MC:ASSERT:__)))
+
+# testing some with with postmacros
+1:MC:ASSERT
+True:MC:ASSERT
+not(False):MC:ASSERT
++(1, 2).equals(3):MC:ASSERT
+strip("    hello!  ").equals("hello!").assert():MC:ASSERT
+ls(asdf).equals("asdf").assert():MC:ASSERT
+ls(asdff).equals("asdff").assert():MC:ASSERT
+ls(asdf {="string insertion1"=} also {='string insertion 2'=}).equals("asdf string insertion1 also string insertion 2").assert():MC:ASSERT
+script(This is a script).equals("This is a script").assert():MC:ASSERT
+HTML(This is also a script).equals("This is also a script").assert():MC:ASSERT
+cat("hel", "lo!").equals("hello!").assert():MC:ASSERT
+([1, 2, 3, 4, 5, 6]).map('e', e.add(1)).map('e', e.sub(1)).equals([1, 2, 3, 4, 5, 6]).assert():MC:ASSERT
+
+
+
+
+
+

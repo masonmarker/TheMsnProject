@@ -1290,6 +1290,14 @@ class Interpreter:
             line,
             lines_ran,
         )
+        
+    def raise_ArgumentCountError(self, method: str, expected, actual, line, lines_ran):
+        return self.err(
+            f"Incorrect number of function arguments for {method}",
+            f"Expected {expected}, got {actual}",
+            line,
+            lines_ran,
+        )
 
     # throws msn2 error for Index out of bounds
 

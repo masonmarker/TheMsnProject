@@ -4,7 +4,7 @@
 
 
 from core.classes.var import Var
-
+from core.errors import inter_raise_err
 
 def f_obj_default_copy(inter, line, args, **kwargs):
     if kwargs["objfunc"] == "copy":
@@ -83,6 +83,26 @@ def f_obj_default_if(inter, line, args, **kwargs):
         if inter.interpret(args[1][0]):
             new_list.append(el)
     return new_list
+def f_obj_default_then(inter, line, args, **kwargs):
+    # if one argument
+    if len(args) == 1 and args[0][0] != "":
+        if kwargs["object"]:
+            return inter.parse(0, line, args)[2]
+        else:
+            return
+    # if two arguments
+    elif len(args) == 2:
+        if kwargs["object"]:
+            return inter.parse(0, line, args)[2]
+        else:
+            return inter.parse(1, line, args)[2]
+    return inter.raise_ArgumentCountError(
+        method="then",
+        expected="1 or 2",
+        actual=len(args),
+        line=line,
+        lines_ran=kwargs["lines_ran"],
+    )
 def f_obj_default_is(inter, line, args, **kwargs):
     return kwargs["object"] is inter.parse(0, line, args)[2]
 def f_obj_default_equals(inter, line, args, **kwargs):
@@ -181,6 +201,7 @@ OBJ_GENERAL_DEFAULT_GENERAL_DISPATCH = {
     "switch": f_obj_default_switch,
     "rename": f_obj_default_rename,
     "if": f_obj_default_if,
+    "then": f_obj_default_then,
     "is": f_obj_default_is,
     "equals": f_obj_default_equals,
     "slice": f_obj_default_slice,
