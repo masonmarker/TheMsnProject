@@ -59,12 +59,13 @@ import warnings
 import threading
 
 # classes
+from core.classes.instruction import Instruction
 from core.classes.var import Var
 from core.classes.method import Method
 from core.classes.exceptions.msn2exception import MSN2Exception
 
 # parsing
-from core.parsing.args import consume
+from core.parsing.args import consume, get_args
 from core.parsing.legacy.functions import legacy_parse_func_body_decl, legacy_parse_py_fallback
 from core.parsing.msn2_fallback import macro_msn2_fallback
 
@@ -331,7 +332,8 @@ class Interpreter:
                 # aggregate syntax !{} (not recommended for most cases)
                 if line.startswith("!{") and line.endswith("}"):
                     ml = line[2:-1]
-                    self.interpret(ml)
+                    self.interpret(ml, top_level_inst=True,
+                                   has_outer_function=False)
                     ml = ""
                 elif not inml and line.startswith("!{"):
                     inml = True
@@ -339,7 +341,8 @@ class Interpreter:
                 elif inml and line.endswith("}"):
                     inml = False
                     ml += line[0: len(line) - 1]
-                    self.interpret(ml)
+                    self.interpret(ml, top_level_inst=True,
+                                   has_outer_function=False)
                     ml = ""
                 elif inml:
                     ml += line
@@ -365,11 +368,13 @@ class Interpreter:
                             inter = ml
                             ml = ""
                             inblock = False
-                            self.interpret(inter, keep_space=keep_space)
+                            self.interpret(
+                                inter, keep_space=keep_space, top_level_inst=True, has_outer_function=False)
                             break
                         ml += c
                 else:
-                    self.interpret(line, keep_space=keep_space)
+                    self.interpret(line, keep_space=keep_space,
+                                   top_level_inst=True, has_outer_function=False)
             self.current_line += 1
         return self.out
 
@@ -392,16 +397,14 @@ class Interpreter:
         except:
             return None
 
-    def interpret(self, line, block={}, keep_space=False):
+    def interpret(self, line, block={},
+                  keep_space=False, is_chained=False,
+                  top_level_inst=False, has_outer_function=True):
 
         # acquiring globals
-        global total_ints
-        global lock
-        global auxlock
-        global auto_lock
-        global pointer_lock
-        global python_alias
-        global inst_tree
+        global total_ints, lock, lines_ran, auxlock, \
+            auto_lock, pointer_lock, python_alias, inst_tree
+
         # accounting
         total_ints += 1
         lines_ran.append(line)
@@ -420,6 +423,7 @@ class Interpreter:
         l = len(line)
         # whether the line should immediately continue or not
         cont = False
+
         if not line:
             return
 
@@ -455,7 +459,7 @@ class Interpreter:
         # user defined syntax
         for key in syntax:
             if line.startswith(key):
-                return self.run_syntax(key, line)
+                return self.run_syntax(key, line, has_outer_function=has_outer_function)
         # user defined macro
         for token in macros:
             if line.startswith(token):
@@ -468,7 +472,7 @@ class Interpreter:
                 # store extended for user defined syntax
                 self.vars[varname] = Var(varname, val)
                 # execute function
-                return self.interpret(macros[token][2])
+                return self.interpret(macros[token][2], top_level_inst=top_level_inst, has_outer_function=False)
         # user defined postmacro
         for token in postmacros:
             if line.endswith(token):
@@ -478,7 +482,7 @@ class Interpreter:
                 varname = postmacros[token][1]
                 val = line[0: len(line) - len(token)]
                 self.vars[varname] = Var(varname, val)
-                return self.interpret(postmacros[token][2])
+                return self.interpret(postmacros[token][2], top_level_inst=top_level_inst, has_outer_function=False)
         # variable replacement, generally unsafe, but replaces
         # all variable names as they're written the the expression after
         # the '*'
@@ -495,7 +499,7 @@ class Interpreter:
                 self.vars[varname] = Var(
                     varname, line[len(start): len(line) - len(end)]
                 )
-                return self.interpret(enclosed[key][3])
+                return self.interpret(enclosed[key][3], has_outer_function=False)
         # checks for active Interpreter redirect request
         # generally slow, due to checking for the redirect
         if self.redirecting and not "stopredirect()" in line.replace(" ", ""):
@@ -514,6 +518,27 @@ class Interpreter:
                     return _ret
         except:
             pass
+
+        # iterate through the line to determine if we're chaining
+        a = get_args(self, line)[0]
+        if len(a) == 1 and len(a[0]) == 4:
+            # print('HERE', line)
+            __new_args = []
+            # get the line to execute
+            for exp in self._get_new_args(a):
+                # print('EXP', exp)
+                if len(exp) == 4:
+                    __new_args.append(self._interpret_chain(exp))
+                else:
+                    __new_args.append(exp)
+            args = __new_args
+            # print('CONVERTED LINE:', args[0][0])
+            return self.interpret(args[0][0])
+        # print()
+        # print(line)
+        # print('ARGS GOTTEN: ', a)
+        # print()
+        # print(line, a)
 
         func = ""
         objfunc = ""
@@ -567,200 +592,69 @@ class Interpreter:
             # interpreting a function
             elif c == "(":
                 # consuming
-                mergedargs, args, func, objfunc, inst = consume(
+                mergedargs, args, func, objfunc, inst, chaining_info = consume(
                     self, line, i, l, obj, inst_tree, func, objfunc)
 
-                # if using_js
-                if self.using_js:
-                    return inst.convert_to_js(lock, lines_ran)
+                # 2.0.403
+                # basic method chaining
+                if chaining_info["is_chained"]:
 
-                # class attribute / method access
-                if obj in self.vars:
-                    vname = obj
-                    object = getattr(self.vars.get(
-                        obj), 'value', self.vars.get(obj))
+                    args = self._get_new_args(args)
 
-                    _type_object = type(object)
-                    try:
-                        # if the object is a class
-                        if objfunc in object:
-                            # if the object is a Method
-                            if isinstance(object[objfunc], Method):
-                                # get the Method object
-                                method = object[objfunc]
-                                # get the number of arguments to the method
-                                num_args = len(method.args)
-                                # args to pass to the function
-                                to_pass = [vname]
-                                # if there is no argument
-                                if args[0][0] != "":
-                                    # for each parsed argument
-                                    for k in range(num_args):
-                                        try:
-                                            to_pass.append(
-                                                self.parse(k, line, args)[2])
-                                        except:
-                                            None
-                                # create return variable
-                                ret_name = method.returns[0]
-                                # if the return variable doesn't exist
-                                if ret_name not in self.vars:
-                                    self.vars[ret_name] = Var(ret_name, None)
-                                # insert vname into args[0]
-                                args.insert(0, [vname])
-                                # execute method
-                                try:
-                                    method.run(to_pass, self, args)
-                                # Index out of bounds error
-                                except IndexError:
-                                    self.raise_incorrect_args(
-                                        str(len(method.args)),
-                                        str(self.arg_count(args) - 1),
-                                        line,
-                                        lines_ran,
-                                        method,
-                                    )
-                                try:
-                                    return eval(
-                                        str(self.vars[method.returns[0]].value), {
-                                        }, {}
-                                    )
-                                except:
-                                    try:
-                                        return str(self.vars[method.returns[0]].value)
-                                    except:
-                                        return str(self.vars[method.returns[0]])
-                            # otherwise if we're accessing an attribute
-                            # no arguments given
-                            if args[0][0] == "":
-                                return object[objfunc]
-                            # parameter provided, wants to set attribute
-                            param = self.parse(0, line, args)[2]
-                            self.vars[obj].value[objfunc] = param
-                            return param
-                    except MSN2Exception as e:
-                        raise e
-                    except:
-                        None
 
-                    # # as of 2.0.388,
-                    # # if the objfunc ends with '!',
-                    # # it becomes destructive
-                    # # and returns the object
-                    if objfunc.endswith("!"):
-                        return FUNCTION_DISPATCH["obj"]["general"]["!"](
-                            self, line, args, vname=vname, objfunc=objfunc, mergedargs=mergedargs
-                        )
 
-                    if objfunc in FUNCTION_DISPATCH["obj"]["general"]["default"]:
-                        return FUNCTION_DISPATCH["obj"]["general"]["default"][objfunc](
-                            self, line, args, vname=vname, objfunc=objfunc, mergedargs=mergedargs,
-                            object=object, obj=obj, lines_ran=lines_ran
-                        )
-
-                    # variable type specific methods
-
-                    # do the above but without code repetition
-                    # check for general functions
-                    if _type_object in FUNCTION_DISPATCH["obj"]["general"]:
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"][_type_object]:
-                            return FUNCTION_DISPATCH["obj"]["general"][_type_object][objfunc](
-                                self, line, args, vname=vname, objfunc=objfunc,
-                                object=object, obj=obj, lines_ran=lines_ran, apps=apps
-                            )
-
-                    # check for requests_html.HTML
-                    elif str(_type_object) in FUNCTION_DISPATCH["obj"]["general"]["class_based"]:
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_object]:
-                            return FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_object][objfunc](
-                                self, line, args, object=object, objfunc=objfunc
-                            )
+                    # now we've promoted expressions without chaining to the top level
+                    # we should now iterate to each chained method
+                    _new_args_2 = []
+                    # print("OLD ARGS:", args)
+                    for exp in args:
+                        if len(exp) == 4:
+                            _new_args_2.append(self._interpret_chain(exp))
                         else:
-                            return FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_object]["else"](
-                                self, line, args, object=object, objfunc=objfunc
-                            )
+                            _new_args_2.append(exp)
+                    args = _new_args_2
 
-                # user function execution requested
-                # user functions take priority
-                # over general msn2 functions
-                if func in self.methods:
-                    return user_function_exec(inst, lines_ran)
+                    # print('AFQTER CHAINING: ', args)
+                    # print("CHAINING INFO:", chaining_info)
 
-                # the  belowconditions interpret a line based on initial appearances
-                # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
-                # request for Interpreter redirect to a block of code
-                elif func in FUNCTION_DISPATCH:
-                    return FUNCTION_DISPATCH[func](
-                        self, line, args,
-                        inst=inst, lines_ran=lines_ran, total_ints=total_ints, msn2_none=msn2_none,
-                        macros=macros, postmacros=postmacros, enclosed=enclosed, syntax=syntax, python_alias=python_alias,
-                        auxlock=auxlock, pointer_lock=pointer_lock, timings_set=timings_set, thread_serial=thread_serial
+                    # print('IS CHAINED:', is_chained, chaining_info["is_chained"])
+                    # if top level
+                    # if chaining_info["is_chained"]:
+                    #     final_line = f"({args[0][0]})"
+                    #     r = self.interpret_expression(
+                    #         Instruction(final_line, "", "", "",
+                    #                     args, inst_tree, self),
+                    #         args, "", "", final_line, "", final_line,
+                    #         is_chained=True, top_level_inst=top_level_inst
+                    #     )
+                    #     # print(r)
+                    #     return r
+
+                    # args = get_args(self, args[0][0])
+
+                    # print(f'{line} || CHAINED COMPLETE: ', args
+                    # for exp, _, _ in args[1:]:
+                    #     # interpret this expression and set the result to the temporary variable
+                    #     temp.value = self.interpret(f"{temp.name}.{exp}")
+
+                    # # print('-' * 20)
+                    # # print('chaining info:', chaining_info)
+                    # # print('line:', line)
+                    # print('CHAINED ARGS:', args)
+                    # print(line, args[0][0])
+                    # return self.interpret(args[0][0])
+                    # # final_line =  line[:chaining_info["start"]] + temp.name + line[chaining_info["end"]:]
+                    # return the result of the outer function that had chaining as the result
+                    r = self.interpret_expression(
+                        Instruction(line, func, obj, objfunc,
+                                    args, inst_tree, self),
+                        args, obj, objfunc, line, func, line,
+                        is_chained=True, top_level_inst=top_level_inst
                     )
-
-                # for objects
-                elif obj in FUNCTION_DISPATCH["obj"]:
-                    if objfunc in FUNCTION_DISPATCH["obj"][obj]:
-                        return FUNCTION_DISPATCH["obj"][obj][objfunc](
-                            self, line, args,
-                            inst=inst, lines_ran=lines_ran, total_ints=total_ints, lock=lock
-                        )
-                    else:
-                        return FUNCTION_DISPATCH["obj"][obj]["else"](
-                            self, line, args,
-                            inst=inst, lines_ran=lines_ran, total_ints=total_ints, objfunc=objfunc
-                        )
-
-                # # object instance requested
-                # # if the function is in the variables
-                # # and the variable is a class
-                elif func in self.vars and isinstance(self.vars[func].value, dict):
-                    return FUNCTION_DISPATCH["obj"]["instance"]["new"](
-                        self, line, args, func=func
-                    )
-
-                # quicker conditional operator as functional prefix
-                elif len(func) > 0 and func[0] == "?":
-                    return FUNCTION_DISPATCH["special"]["?"](
-                        self, line, args, func=func
-                    )
-
-                # inline function, takes any amount of instructions
-                # returns the result of the last instruction
-                elif func == "" and objfunc == "":
-                    return FUNCTION_DISPATCH["=>"](self, line, args, inst=inst)
-                # if the function, when parsed, is an integer,
-                # then it is a loop that runs func times
-                elif (_i := self.get_int(func)) != None:
-                    return FUNCTION_DISPATCH["special"]["intloop"](
-                        self, line, args, _i=_i
-                    )
-
-                # if the function is a variable name
-                elif func in self.vars:
-                    return FUNCTION_DISPATCH["special"]["varloop"](
-                        self, line, args, func=func
-                    )
-
-                # functional syntax for easier to write loops
-                # cannot receive non literal or variable arguments, or any expression containing a '|'
-                # syntax:     3|5|i (prnt(i))
-                # prnts 3\n4\n5
-                # Functional syntax for loops like 3|5|i (prnt(i))
-                # elif func.count("|") == 2:
-                elif (_func_split := func.split("|")) and len(_func_split) == 3:
-                    return bar_loop(self, line, args, _func_split=_func_split)
-                # fallback
-                else:
-                    try:
-                        line = self.replace_vars2(line)
-                        return eval(line, {}, {})
-                    except:
-                        # maybe its a variable?
-                        try:
-                            return self.vars[line].value
-                        except:
-                            # ok hopefully its a string lol
-                            return line
+                    # print('RETURNING CHAINED:', r, type(r))
+                    return r
+                # print('UNCHAINED ARGS:', args)
+                return self.interpret_expression(inst, args, obj, objfunc, mergedargs, func, line, top_level_inst=top_level_inst)
             if obj != "":
                 objfunc += c
             else:
@@ -781,7 +675,277 @@ class Interpreter:
             try:
                 return eval(str(self.replace_vars(line)), {}, {})
             except:
-                return None
+                return
+
+    def _get_new_args(self, args):
+        def process_list(lst):
+            result = []
+            promoted = []
+            first = True  # Flag to keep track of the first element at each level
+            for elem in lst:
+                if isinstance(elem, list):
+                    if len(elem) >= 4 and isinstance(elem[3], list):
+                        # Process the chain recursively
+                        processed_chain, chain_promoted = process_list(
+                            elem[3])
+                        # Flatten the chain if it has only one element
+                        if len(processed_chain) == 1:
+                            elem[3] = processed_chain[0]
+                        else:
+                            elem[3] = processed_chain
+                        # Keep the first element, promote subsequent ones
+                        if first:
+                            result.append(elem)
+                            first = False
+                        else:
+                            promoted.append(elem)
+                        # Collect promoted elements from the chain
+                        promoted.extend(chain_promoted)
+                    else:
+                        # Handle elements without a chain
+                        if first:
+                            result.append(elem)
+                            first = False
+                        else:
+                            promoted.append(elem)
+                else:
+                    # Non-list elements are added to the result
+                    result.append(elem)
+            return result, promoted
+
+        # Process the top-level args list
+        processed_args, promoted_args = process_list(args)
+        # Combine processed args with promoted elements
+        final_result = processed_args + promoted_args
+        return final_result
+
+
+    def _interpret_chain(self, chain_exp, vn=None, i=0, chain_line=""):
+        if len(chain_exp) == 3:
+            # if chain_line ends in a ',', remove it
+            if chain_line.endswith(","):
+                chain_line = chain_line[:-1]
+            # based on func, obj and objfunc, create the final instruction
+            return [f"{chain_line},var('{vn}',{vn}.{chain_exp[0]},True),{vn})", 0, 0]
+
+        # interpret this expression
+        if i == 0:
+            # create a temporary variable for chaining
+            temp = self.temp_safe_var()
+            # initial line
+            init_line = f"(var('{temp.name}',{chain_exp[0]},True),"
+            return self._interpret_chain(chain_exp[-1], temp.name, i + 1, init_line)
+        else:
+            # otherwise, we're doing a chain interpretation
+            # get the variable name
+            final_line = f"var('{vn}',{vn}.{chain_exp[0]},True),"
+            # interpret the expression
+            return self._interpret_chain(chain_exp[-1], vn, i + 1, chain_line + final_line)
+        
+
+    def temp_safe_var(self):
+        import random
+        from core.classes.var import RESERVED_VARNAME_PREFIX
+        name = ""
+        while name == "" or name in self.vars:
+            name = f"{RESERVED_VARNAME_PREFIX}_temp{random.randint(0, 9999999)}"
+        return Var(name, None, force_allow_name=True)
+
+    # interprets an expression
+
+    def interpret_expression(self, inst, args, obj, objfunc, 
+                             mergedargs, func, line, is_chained=False, 
+                             top_level_inst=False, has_outer_function=True):
+
+        # if using_js
+        if self.using_js:
+            return inst.convert_to_js(lock, lines_ran)
+
+        # class attribute / method access
+        if obj in self.vars:
+            vname = obj
+            object = getattr(self.vars.get(
+                obj), 'value', self.vars.get(obj))
+
+            _type_object = type(object)
+            try:
+                # if the object is a class
+                if objfunc in object:
+                    # if the object is a Method
+                    if isinstance(object[objfunc], Method):
+                        # get the Method object
+                        method = object[objfunc]
+                        # get the number of arguments to the method
+                        num_args = len(method.args)
+                        # args to pass to the function
+                        to_pass = [vname]
+                        # if there is no argument
+                        if args[0][0] != "":
+                            # for each parsed argument
+                            for k in range(num_args):
+                                try:
+                                    to_pass.append(
+                                        self.parse(k, line, args)[2])
+                                except:
+                                    pass
+                        # create return variable
+                        ret_name = method.returns[0]
+                        # if the return variable doesn't exist
+                        if ret_name not in self.vars:
+                            self.vars[ret_name] = Var(ret_name, None)
+                        # insert vname into args[0]
+                        args.insert(0, [vname])
+                        # execute method
+                        try:
+                            method.run(to_pass, self, args)
+                        # Index out of bounds error
+                        except IndexError:
+                            self.raise_incorrect_args(
+                                str(len(method.args)),
+                                str(self.arg_count(args) - 1),
+                                line,
+                                lines_ran,
+                                method,
+                            )
+                        try:
+                            return eval(
+                                str(self.vars[method.returns[0]].value), {
+                                }, {}
+                            )
+                        except:
+                            try:
+                                return str(self.vars[method.returns[0]].value)
+                            except:
+                                return str(self.vars[method.returns[0]])
+                    # otherwise if we're accessing an attribute
+                    # no arguments given
+                    if args[0][0] == "":
+                        return object[objfunc]
+                    # parameter provided, wants to set attribute
+                    param = self.parse(0, line, args)[2]
+                    self.vars[obj].value[objfunc] = param
+                    return param
+            except MSN2Exception as e:
+                raise e
+            except:
+                pass
+            # # as of 2.0.388,
+            # # if the objfunc ends with '!',
+            # # it becomes destructive
+            # # and returns the object
+            if objfunc.endswith("!"):
+                return FUNCTION_DISPATCH["obj"]["general"]["!"](
+                    self, line, args, vname=vname, objfunc=objfunc, mergedargs=mergedargs
+                )
+            if objfunc in FUNCTION_DISPATCH["obj"]["general"]["default"]:
+                return FUNCTION_DISPATCH["obj"]["general"]["default"][objfunc](
+                    self, line, args, vname=vname, objfunc=objfunc, mergedargs=mergedargs,
+                    object=object, obj=obj, lines_ran=lines_ran
+                )
+
+            # variable type specific methods
+
+            # do the above but without code repetition
+            # check for general functions
+            if _type_object in FUNCTION_DISPATCH["obj"]["general"]:
+                if objfunc in FUNCTION_DISPATCH["obj"]["general"][_type_object]:
+                    return FUNCTION_DISPATCH["obj"]["general"][_type_object][objfunc](
+                        self, line, args, vname=vname, objfunc=objfunc,
+                        object=object, obj=obj, lines_ran=lines_ran, apps=apps
+                    )
+
+            # check for requests_html.HTML
+            elif str(_type_object) in FUNCTION_DISPATCH["obj"]["general"]["class_based"]:
+                if objfunc in FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_object]:
+                    return FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_object][objfunc](
+                        self, line, args, object=object, objfunc=objfunc
+                    )
+                else:
+                    return FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_object]["else"](
+                        self, line, args, object=object, objfunc=objfunc
+                    )
+        # user function execution requested
+        # user functions take priority
+        # over general msn2 functions
+        if func in self.methods:
+            return user_function_exec(inst, lines_ran)
+
+        # the  belowconditions interpret a line based on initial appearances
+        # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
+        # request for Interpreter redirect to a block of code
+        elif func in FUNCTION_DISPATCH:
+            return FUNCTION_DISPATCH[func](
+                self, line, args,
+                inst=inst, lines_ran=lines_ran, total_ints=total_ints, msn2_none=msn2_none,
+                macros=macros, postmacros=postmacros, enclosed=enclosed, syntax=syntax, python_alias=python_alias,
+                auxlock=auxlock, pointer_lock=pointer_lock, timings_set=timings_set, thread_serial=thread_serial,
+                is_chained=is_chained, top_level_inst=top_level_inst, has_outer_function=has_outer_function
+            )
+
+        # for objects
+        elif obj in FUNCTION_DISPATCH["obj"]:
+            if objfunc in FUNCTION_DISPATCH["obj"][obj]:
+                return FUNCTION_DISPATCH["obj"][obj][objfunc](
+                    self, line, args,
+                    inst=inst, lines_ran=lines_ran, total_ints=total_ints, lock=lock
+                )
+            else:
+                return FUNCTION_DISPATCH["obj"][obj]["else"](
+                    self, line, args,
+                    inst=inst, lines_ran=lines_ran, total_ints=total_ints, objfunc=objfunc
+                )
+
+        # # object instance requested
+        # # if the function is in the variables
+        # # and the variable is a class
+        elif func in self.vars and isinstance(self.vars[func].value, dict):
+            return FUNCTION_DISPATCH["obj"]["instance"]["new"](
+                self, line, args, func=func
+            )
+
+        # quicker conditional operator as functional prefix
+        elif len(func) > 0 and func[0] == "?":
+            return FUNCTION_DISPATCH["special"]["?"](
+                self, line, args, func=func
+            )
+
+        # inline function, takes any amount of instructions
+        # returns the result of the last instruction
+        elif func == "" and objfunc == "":
+            return FUNCTION_DISPATCH["=>"](self, line, args, inst=inst)
+        # if the function, when parsed, is an integer,
+        # then it is a loop that runs func times
+        elif (_i := self.get_int(func)) is not None:
+            return FUNCTION_DISPATCH["special"]["intloop"](
+                self, line, args, _i=_i
+            )
+
+        # if the function is a variable name
+        elif func in self.vars:
+            return FUNCTION_DISPATCH["special"]["varloop"](
+                self, line, args, func=func
+            )
+
+        # functional syntax for easier to write loops
+        # cannot receive non literal or variable arguments, or any expression containing a '|'
+        # syntax:     3|5|i (prnt(i))
+        # prnts 3\n4\n5
+        # Functional syntax for loops like 3|5|i (prnt(i))
+        # elif func.count("|") == 2:
+        elif (_func_split := func.split("|")) and len(_func_split) == 3:
+            return bar_loop(self, line, args, _func_split=_func_split)
+        # fallback
+        else:
+            try:
+                line = self.replace_vars2(line)
+                return eval(line, {}, {})
+            except:
+                # maybe its a variable?
+                try:
+                    return self.vars[line].value
+                except:
+                    # ok hopefully its a string lol
+                    return line
 
     # adds a new program wide syntax
 
@@ -810,11 +974,13 @@ class Interpreter:
 
     # ls: long string
     def ls(self, args):
+        # print(args)
         return self.msn2_replace(",".join([str(arg[0]) for arg in args]).strip())
 
     # replaces tokens in the string with certain
     # characters or values
     # TODO: implement linear interpretation
+
     def msn2_replace(self, script):
         from core.insertions import inter_msn2_replace
         return inter_msn2_replace(self, script)
@@ -839,14 +1005,14 @@ class Interpreter:
         ret.trying = self.trying
         return ret
 
-    def run_syntax(self, key, line):
+    def run_syntax(self, key, line, has_outer_function=True):
         # get everything between after syntax and before next index of syntax
         # or end of line
         inside = line[len(key): line.rindex(key)]
         invarname = syntax[key][0]
         function = syntax[key][1]
         self.vars[invarname] = Var(invarname, inside)
-        return self.interpret(function)
+        return self.interpret(function, has_outer_function=has_outer_function)
 
     def replace_vars2(self, line):
         for varname, var in self.vars.items():
@@ -917,8 +1083,8 @@ class Interpreter:
         return func_args, meth_argname, arg, ind
 
     # parses an argument from a function
-    def parse(self, arg_number, line, args):
-        return line, (as_s := args[arg_number][0]), self.interpret(as_s)
+    def parse(self, arg_number, line, args, top_level_inst=False):
+        return line, (as_s := args[arg_number][0]), self.interpret(as_s, top_level_inst)
 
     # gets the shortened version of a variable's value
     def shortened(self, needs_short):
@@ -1164,9 +1330,10 @@ class Interpreter:
         return inter.interpret(line)
 
     # executing Python scripts
-    def exec_python(self, python_block):
+    def exec_python(self, python_block, has_outer_function=True):
         # get the python script with arguments inserted
-        py_script = str(self.interpret(f"script({python_block})"))
+        py_script = str(self.interpret(
+            f"script({python_block})", has_outer_function=has_outer_function))
         # try to execute the script
         try:
             exec(py_script, self._globals, self._locals)

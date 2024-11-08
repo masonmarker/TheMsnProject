@@ -1211,15 +1211,15 @@ def('test_global_methods', (
     @v2 = v.copy(),
     assert(v.equals(v2)),
     # testing len()
-    assert(v.len().equals(4)),
+    assert(equals(v.len(), 4)),
     # testing val()
     assert(v.equals([1, 2, 3, 4])),
     # test casting methods
-    assert(v.str().equals('[1, 2, 3, 4]')),
+    assert(equals(v.str(), '[1, 2, 3, 4]')),
     @ string = 'hello world',
     # calling str() is like calling str(string) and is essentially the same as calling string
     # with extra, unnecessary steps
-    assert(string.str().equals('hello world')),
+    assert(equals(string.str(), 'hello world')),
     @ string = '[3, 4, 5, 65]',
     # testing -() explicitly
     # interprets msn2 code as a string
@@ -1233,11 +1233,11 @@ def('test_global_methods', (
     assert(array.equals([3, 4, 5, 65])),
     # test with floats
     @ float = 45.432,
-    assert(float.str().equals('45.432')),
+    assert(equals(float.str(), '45.432')),
     assert(float.equals(45.432)),
     # test with dictionaries
     @ dict = { 'a': 1, 'b': 2, 'c': 3 },
-    assert(dict.str().equals("{'a': 1, 'b': 2, 'c': 3}")),
+    assert(equals(dict.str(), "{'a': 1, 'b': 2, 'c': 3}")),
     assert(dict.equals({ 'a': 1, 'b': 2, 'c': 3 }, dictfrom('a', 1, 'b', 2, 'c', 3))),
     True
 ))
@@ -1787,6 +1787,47 @@ def('test_legacy_function_declaration', (
     True
 ))
 # ------------------------------------------------------------
+# ------------------------------ TESTING CHAINED METHODS ------------------------------
+# 2.0.403
+# testing a new interpretation method for ease of operation
+#
+# These are some basic tests, more comprehensive tests are made in tests/2.0.403/method_chaining.msn2
+# 
+# "finally, truthfully  
+def('test_chained_methods', (
+    print_test('chained methods'),
+
+    # general chained method using some math functions
+    assert(+(1, 2).equals(3)),
+    assert(not(+(3, 4).equals(5287345982.234958123049582))),
+    assert(+(3, 4).equals(7)),
+    assert(-(5, 4).equals(1)),
+
+    # more than 2 chained methods
+    assert(x(2, 3).+(5).equals(11)),
+    assert(not(x(2, 3).+(5).equals(10))),
+    assert(x(2, 3).+(4).-(5).equals(5)),
+    
+    # creating and working with it (this is non destructive)
+    assert   (  var (  'a'  ,   12  )   .  add    (   4 )  . equals(16)),
+    assert(exists('a'), a.equals(12), not(a.equals(13))),
+
+    # asserting with macros and post macros
+    # creating the macro
+    macro('CHAINED ADD ', '__chained_function', +(-(__chained_function), 1)),
+    # basic tests
+    equals(CHAINED ADD 2, 3) ??,
+    not(equals(CHAINED ADD 2, 6)) ??,
+
+    # with multiple arguments
+    assert(equals(+(1, 2).+(3), 6)),
+    assert(equals(+(1, 2).+(3).+(4), 10)),
+    assert(equals(+(1, 2).+(3).+(4).+(5), 15)),
+        
+    True
+))
+
+# ------------------------------------------------------------
 
 # ---------------------------------------------- RUNNING TESTS ----------------------------------------------
 
@@ -1841,8 +1882,11 @@ def('run_tests', (
 
     # testing macros
     TEST test_macros(),
-    
     TEST base_syntax_updates(),
+
+    # testing chained methods
+    TEST test_chained_methods(),
+
     # test is not run on another thread to avoid file reading conflicts
     private(assert(test_user_syntax())),
     # runs thread based test

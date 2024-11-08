@@ -101,7 +101,7 @@ def f_join(inter, line, args, **kwargs):
     for i in range(len(args)):
         name = inter.parse(i, line, args)[2]
         thread = inter.thread_by_name(name)
-        while thread == None:
+        while thread is None:
             thread = inter.thread_by_name(name)
         thread.join()
     return True

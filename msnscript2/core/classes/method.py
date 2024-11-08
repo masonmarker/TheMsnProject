@@ -23,7 +23,7 @@ class Method:
         # determines if the argument is a default value
 
         def default(self, func_insert, index):
-            return isinstance(self.args[index], list) and func_insert == None
+            return isinstance(self.args[index], list) and func_insert is None
 
         # runs the method with the arguments passed
 

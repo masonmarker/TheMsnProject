@@ -11,8 +11,15 @@ def f_var(inter, line: str, args, **kwargs):
     inter.check_varname(varname, line)
     # extract value
     value = inter.parse(1, line, args)[2]
+    unsafe = False
+    if len(args) == 3:
+        # get the unsafe argument
+        unsafe = inter.parse(2, line, args)[2]
+        # unsafe must be a bool
+        inter.type_err([(unsafe, (bool,))], line, kwargs["lines_ran"])
+    # get optional UNSAFE argument to force setting
     # add / set variable
-    inter.vars[varname] = Var(varname, value)
+    inter.vars[varname] = Var(varname, value, force_allow_name=unsafe)
     return value
 
 def f_exists(inter, line: str, args, **kwargs):
@@ -50,7 +57,7 @@ def f_add(inter, line: str, args, **kwargs):
     # case string or number
     else:
         inter.vars[first].value += second
-    return
+    return inter.vars[first].value
 
 def f_sub(inter, line, args, **kwargs):
     vn = inter.parse(0, line, args)[2]
@@ -77,7 +84,6 @@ def f_div(inter, line, args, **kwargs):
     inter.vars[vn].value /= other
     return inter.vars[vn].value
 def f_append(inter, line, args, **kwargs):
-    # variable name
     vn = inter.parse(0, line, args)[2]
     # vn must be a variable name
     inter.check_varname(vn, line)

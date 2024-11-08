@@ -16,7 +16,7 @@ def parse(inst, i):
     if inst.interpreter.is_py_str(strp):
         return f"`{inst.parse(i)}`"
     ret = inst.parse(i)
-    if ret == None:
+    if ret is None:
         ret = strp
     return ret
 
@@ -26,7 +26,7 @@ def parse_string(inst, string):
     if inst.interpreter.is_py_str(strp):
         return f"`{inst.interpreter.interpret(string)}`"
     ret = inst.interpreter.interpret(string)
-    if ret == None:
+    if ret is None:
         ret = strp
     return string
 

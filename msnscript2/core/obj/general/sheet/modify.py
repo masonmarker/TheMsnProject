@@ -102,7 +102,7 @@ def f_obj_general_sheet_add_to_column(inter, line, args, **kwargs):
         column += 1
         # find the first empty cell in the column
         for i in range(sheet.max_row + 1):
-            if sheet.cell(i + 1, column).value == None:
+            if sheet.cell(i + 1, column).value is None:
                 sheet.cell(i + 1, column, value)
                 return value
         return value
@@ -111,7 +111,7 @@ def f_obj_general_sheet_add_to_column(inter, line, args, **kwargs):
         column_index = get_column_index(column, sheet)
         # find the first empty cell in the column
         for i in range(sheet.max_row + 1):
-            if sheet.cell(i + 1, column_index).value == None:
+            if sheet.cell(i + 1, column_index).value is None:
                 sheet.cell(i + 1, column_index, value)
                 return value
     return value
@@ -131,7 +131,7 @@ def f_obj_general_sheet_add_to_row(inter, line, args, **kwargs):
         row += 1
         # find the first empty cell in the row
         for i in range(sheet.max_column):
-            if sheet.cell(row, i + 1).value == None:
+            if sheet.cell(row, i + 1).value is None:
                 sheet.cell(row, i + 1, value)
                 return value
         return value
@@ -140,7 +140,7 @@ def f_obj_general_sheet_add_to_row(inter, line, args, **kwargs):
         row_index = get_row_index(row, sheet)
         # find the first empty cell in the row
         for i in range(sheet.max_column):
-            if sheet.cell(row_index, i + 1).value == None:
+            if sheet.cell(row_index, i + 1).value is None:
                 sheet.cell(row_index, i + 1, value)
                 return value
     return value

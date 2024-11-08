@@ -27,7 +27,7 @@ def f_instance_new(inter, line, args, **kwargs):
         # value can be None
         try:
             instance[name] = inter.parse(curr_arg_num, line, args)[2]
-            if instance[name] == None:
+            if instance[name] is None:
                 instance[name] = var_obj[name].value
         # if not specified, field is default value
         except:

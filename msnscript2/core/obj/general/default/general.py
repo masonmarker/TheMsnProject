@@ -113,9 +113,69 @@ def f_obj_default_export(inter, line, args, **kwargs):
         inter.export_err(vname, line)
     inter.parent.vars[vname] = Var(vname, kwargs["object"])
     return kwargs["object"]
+def f_obj_default_assert(inter, line, args, **kwargs):
+    # asserts that the object is truthful
+    if not kwargs["object"]:
+        inter.err(
+            f"Assertion error in '{line}'",
+            "Object is not truthful.",
+            line,
+            kwargs["lines_ran"],
+        )
+    return True
+# asserts False
+def f_obj_default_assert_false(inter, line, args, **kwargs):
+    if kwargs["object"]:
+        inter.err(
+            f"Assertion error in '{line}'",
+            "Object is truthful, expected untruthful.",
+            line,
+            kwargs["lines_ran"],
+        )
+    return True
+def f_obj_default_assert_equals(inter, line, args, **kwargs):
+    # takes two arguments, should equal each other
+    arg1 = inter.parse(0, line, args)[2]
+    # if they are not equal
+    if kwargs["object"] != arg1:
+        inter.err(
+            f"Assertion error in '{line}'",
+            f"{kwargs['object']} does not equal {arg1}.",
+            line,
+            kwargs["lines_ran"],
+        )
+    return True
+# +(1, 2).+(5).-(10).assert()
+# (+(1, 2).-(3).+(3)).assert()
+# ((+(1, 2).-(3).+(3)).assert())
+
+# +(0, 1).assert()
+
+# +(5, 1).-(3).assert()
+
+# (True).assert()
+# (not(False)).assert()
+
+# # long
+# not(False).assert()
+
+# op.sub(5, 1).assert()
+# op.sub(5, 2).assert()
+
+# # create 0
+# op.add(1, 1).add(5, 4).sub(5, 5).sub(1).assert:not()
+
+# +(1, 2).add(13).-(4).assert:equals(12)
+
+# # different kinds
+# +(1, 2).add(-(2, 2).x(3)).assert:equals(3)
+
 
 OBJ_GENERAL_DEFAULT_GENERAL_DISPATCH = {
-    # misc operations
+    # all operations
+    "assert": f_obj_default_assert,
+    "assert:not": f_obj_default_assert_false,
+    "assert:equals": f_obj_default_assert_equals,
     "copy": f_obj_default_copy,
     "print": f_obj_default_print,
     "switch": f_obj_default_switch,

@@ -22,7 +22,7 @@ def f_function(inter, line: str, args, **kwargs):
         val = inter.parse(i, line, args)[2]
         # val must be a string
         inter.type_err([(val, (str,))], line, kwargs["lines_ran"])
-        if val == None:
+        if val is None:
             break
         new_method.add_arg(val)
     inter.methods[fname] = new_method

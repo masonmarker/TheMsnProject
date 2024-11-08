@@ -81,11 +81,15 @@ def inter_msn2_replace(inter, script):
 
 
 def f_script(inter, line, args, **kwargs):
+    if kwargs["is_chained"]:
+        args[0][0] = str(inter.interpret(args[0][0]))
     # inserts key tokens
     return inter.msn2_replace(args[0][0])
 
 
 def f_ls(inter, line, args, **kwargs):
+    if kwargs["is_chained"]:
+        args[0][0] = inter.interpret(args[0][0])
     return inter.ls(args)
 
 

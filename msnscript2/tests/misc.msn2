@@ -1,1 +1,74 @@
-print(round(1.5).+(2))
+
+import ('lib/console')
+
+
+print(ls(
+    The below should print the following:<nl>
+    hello!<nl>
+    asdf<nl>
+    asdff<nl>
+    asdf string insertion1 also string insertion 2<nl>
+    This is a script<nl>
+    This is also a script<nl>
+    True<nl>
+    True<nl>
+    3 <class 'int'><nl>
+    this is the number: 19<nl>
+    100<nl>
+    True <class 'bool'><nl>
+    False <class 'bool'><nl>
+))
+print('-------- COMPARING AGAINST --------')
+
+
+
+postmacro('!??', "__??_line", assert(-(__??_line).equals(False)))
+postmacro('<<', "__<<_line", assert(-(__<<_line)))
+macro('ASSERT ', "__>>_line", assert(-(__>>_line)))
+macro('PRINT ', '__PRINT_line', (
+    @__PRINT_arg=-(__PRINT_line),
+    print(__PRINT_arg, type(__PRINT_arg))
+))
+macro('PRINTLINE', '__PRINTLINE_line', print(__PRINTLINE_line))
+
+
+# working example
+False !??
+
+
+([1, 2, 3, 4, 5, 6]).map('e', e.add(1)).map('e', e.sub(1)).print()
+strip("    hello!  ").print()
+print(ls(asdf))
+ls(asdff).print()
+ls(asdf {="string insertion1"=} also {='string insertion 2'=}).print()
+script(This is a script).print()
+HTML(This is also a script).print()
+cat("hel", "lo!").equals("hello!").print()
+
+@t=[1, 2, 3]
+append('t', 3).equals([1, 2, 3, 3]).print()
+
+
+PRINT +(1, 2)
+
+var('number', 9)
+add('number', 10).print("this is the number: ")
+
+(@variable = {"hello!": 100}, variable.get('hello!')).print()
+
+
+
+
+
+@t=[1, 2, 3]
+PRINT (append('t', 4).equals([1, 2, 3, 4]))
+
+
+
+
+
+# class should be bool or int, not str
+PRINT append('t', 4).equals([1, 2, 3, 4])
+
+print('------------- TESTING --------------')
+

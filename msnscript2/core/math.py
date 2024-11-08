@@ -12,7 +12,7 @@ def _try_func_math(inter, func, line, **kwargs):
 def f_symbolminus(inter, line, args, **kwargs):
     return _try_func_math(
         inter,
-        lambda: hyphen(kwargs["inst"]),
+        lambda: hyphen(**kwargs),
         line,
         **kwargs,
     )

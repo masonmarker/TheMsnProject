@@ -93,6 +93,7 @@ def f_obj_str_upper(inter, line, args, **kwargs):
     return inter.vars[kwargs["vname"]].value
 def f_obj_str_lower(inter, line, args, **kwargs):
     inter.vars[kwargs["vname"]].value = inter.vars[kwargs["vname"]].value.lower()
+    return inter.vars[kwargs["vname"]].value
 def f_obj_str_cut(inter, line, args, **kwargs):
     start = inter.parse(0, line, args)[2]
     end = inter.parse(1, line, args)[2]

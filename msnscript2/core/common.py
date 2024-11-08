@@ -1,6 +1,8 @@
 """Common utilities."""
 
 # writes to a file
+
+
 def file_write(inst, lock, lines_ran):
     lock.acquire()
     path = inst.parse(0)
@@ -28,6 +30,7 @@ def file_append(inst, lock, lines_ran):
     lock.release()
     return towrite
 
+
 def multi_lined(inst):
     ret = None
     for i in range(len(inst.args)):
@@ -41,9 +44,10 @@ def aliases(func, aliases):
     return {alias: func for alias in aliases}
 
 
-def hyphen(inst):
+def hyphen(inst, **kwargs):
     if len(inst.args) == 1:
-        return inst.interpreter.interpret(inst.parse(0))
+        return inst.interpreter.interpret(inst.parse(0),
+                                          top_level_inst=kwargs["top_level_inst"])
     # subtracts all arguments from the first argument
     else:
         ret = inst.parse(0)

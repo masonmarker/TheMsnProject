@@ -5,6 +5,7 @@ from core.classes.var import Var
 
 
 def var_assign_or_transform(inter, line):
+    
     line = line[1:]
     element = ""
     variable = ""

@@ -1,5 +1,13 @@
 
 
+def assert_err(inter, line, assertion, failed, lines_ran):
+    return inter.err(
+        f"Assertion error in '{line}'",
+        assertion,
+        failed,
+        lines_ran,
+    )
+
 
 def f_assert(inter, line: str, args, **kwargs):
     for i in range(len(args)):
@@ -8,12 +16,7 @@ def f_assert(inter, line: str, args, **kwargs):
             failed = ""
             for arg in args:
                 failed += f"{assertion} "
-            inter.err(
-                f"Assertion error in '{line}'",
-                assertion,
-                failed,
-                kwargs["lines_ran"],
-            )
+            assert_err(inter, line, assertion, failed, kwargs["lines_ran"])
     return True
 
 
@@ -30,14 +33,9 @@ def f_assert_err(inter, line: str, args, **kwargs):
         except:
             thrown = True
         if not thrown:
-            inter.err(
-                f"Assertion error, expected error",
-                "No error thrown where one was expected",
-                line,
-                kwargs["lines_ran"],
-            )
+            assert_err(
+                inter, line, "No error thrown where one was expected", "", kwargs["lines_ran"])
     return True
-
 
 
 ASSERTIONS_DISPATCH = {
