@@ -40,9 +40,9 @@ verify()
 reset()
 # -----------
 @ _n = []
-array.each('_e', (
+array.each('_e',
     if(not(_e.equals(75)), _n.append(_e))
-))
+)
 @ array = _n
 # -----------
 verify()

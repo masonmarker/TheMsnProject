@@ -20,7 +20,7 @@ file.create(path)
 2(file.append(path, "hello world\n"))
 
 # asserts text was written
-assert(equals(file.read(path), "hello world\nhello world\n"))
+assert(file.read(path).equals("hello world\nhello world\n"))
 
 # erases all text in the file
 file.clear(path)

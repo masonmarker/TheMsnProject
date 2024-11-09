@@ -1,3 +1,6 @@
+from core.out.utils import bordered
+
+
 def inter_raise_err(inter, err, msg, inst_tree):
     from core.classes.exceptions.msn2exception import MSN2Exception
     # if we're not trying something, and there's an error,
@@ -7,7 +10,7 @@ def inter_raise_err(inter, err, msg, inst_tree):
         words_printed = ""
         # max subinstructions to show
         MAX_SUBINSTRUCTIONS = 14
-        
+
         # prints the error
 
         def print_err(array):
@@ -152,5 +155,6 @@ def inter_raise_err(inter, err, msg, inst_tree):
         )
         # add to log
         inter.log += f"{words_printed}\n"
-    raise MSN2Exception(
-        f"MSN2 Exception thrown, see above for details. line: {inst_tree[list(inst_tree.keys())[-1]]}")
+    raise MSN2Exception("\n" +
+                        bordered(
+                            f"MSN2 Exception thrown, see above for details.\nError on line: {inst_tree[list(inst_tree.keys())[-1]][1]}\nError: {err}\n{msg}"))

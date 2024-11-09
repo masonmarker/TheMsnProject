@@ -20,6 +20,8 @@ print('index of 3 in [1, 2, 3, 4, 5] is' , << [1, 2, 3, 4, 5].index(3) >>)
 macro('IM HUNGRY FOR PI', '__unused', 3.14)
 
 assert(equals(IM HUNGRY FOR PI, 3.14))
+assert((IM HUNGRY FOR PI).equals(3.14))
+assert((IM HUNGER FOR PI).notequals(5))
 
 # triple nested for loop
 @i=0

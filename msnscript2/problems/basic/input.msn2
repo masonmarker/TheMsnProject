@@ -9,8 +9,8 @@
 import ('lib/os')
 os:clear()
 
-try(while((
-    @inp=input('type a number: '), inp.int()), 
+try(while(@inp=input('type a number: '), inp.int(), 
     inp.print('input: ')))
+
 
 print('bye!!')

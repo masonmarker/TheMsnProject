@@ -50,6 +50,6 @@
         "7": "Changed '{python_alias} msn2cli.py portable' functionality to exclude __pycache__ folders",
         "8": "Removed 'install_deps.py' script and associated documentation throughout the codebase",
         "9": "Added CLI command 'install' to globally install dependencies",
-        "10": "Added default object function '.then()' for chaining"
+        "10": "Added default object methods .then(), .as(), .and(), .or(), .not() for chaining"
     }
 }

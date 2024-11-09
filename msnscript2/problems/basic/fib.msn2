@@ -19,4 +19,4 @@ def('fib', 'n', 'i', (
 # -----------------------------------------------------------
 
 # running the recursive function
-for(1, 10, 'i', print(fib(1, i)))
+for(1, 10, 'i', fib(1, i).print())

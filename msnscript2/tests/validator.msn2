@@ -1585,6 +1585,48 @@ def('test_sets', (
 ))
 # -------------------------------------------
 
+# ------------------ TESTING NEW CHAINING DEFAULT OBJECT METHODS ------------------
+# tests the new chaining default object methods
+def('test_new_chaining_default_obj_methods', (
+    print_test('new chaining default object methods'),
+
+    # create a variable
+    @a = 5,
+    
+    # testing conditionals
+    a.and(True).or(False),
+    assert:err(a.and()),
+    assert:err(a.or()),
+    a.sub(5).or(True) ??,
+    a.add(1).and(True, (True).or(False)) ??,
+    a.equals(1).assert(),
+
+    @b = False,
+    assert:err(b.not(awef)) ??,
+    b.not().assert(),
+    assert(b.not().assert()),
+    b.as('wef').not().assert(),
+    
+    @ c = 5,
+    c.as('d').add(d).equals(10).assert(),
+
+    @ d = 5,
+    # effectively performs d * 3
+    d.as('e', 'f').add(e, f).equals(15).assert(),    
+
+    # with chaining and the 'as' default object function,
+    # we actually just get new variable setting syntax
+    (30).as('b'),
+    
+    # assert the variable was set
+    assert(exists('b'), b.equals(30)),
+
+    # "(1000.0000).as('x', 'y', 'z')" returns the original value of 1000.0000
+    (1000.0000).as('x', 'y', 'z').add(x, y, z).equals(4000).assert() ??,
+    True
+))
+
+
 # ------------------ TESTING PYTHON SNIPPET \\ ------------------
 # declaring some python code
 \\
@@ -1884,6 +1926,7 @@ def('run_tests', (
     TEST test_try(),
     TEST test_new_string_functions(),
     TEST test_legacy_function_declaration(),
+    TEST test_new_chaining_default_obj_methods(),
 
     # testing macros
     TEST test_macros(),

@@ -1382,10 +1382,5 @@ class Interpreter:
 
     # prints text with a box around it
     def bordered(text):
-        lines = text.splitlines()
-        width = max(len(s) for s in lines)
-        res = ["┌" + "─" * width + "┐"]
-        for s in lines:
-            res.append("│" + (s + " " * width)[:width] + "│")
-        res.append("└" + "─" * width + "┘")
-        return "\n".join(res)
+        from core.out.utils import bordered
+        return bordered(text)

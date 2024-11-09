@@ -131,6 +131,8 @@ def f_obj_default_export(inter, line, args, **kwargs):
         inter.check_varname(vname, line)
         # vname must exist in current context as a variable
         inter.export_err(vname, line)
+    else:
+        vname = kwargs["vname"]
     inter.parent.vars[vname] = Var(vname, kwargs["object"])
     return kwargs["object"]
 def f_obj_default_assert(inter, line, args, **kwargs):
@@ -167,6 +169,64 @@ def f_obj_default_assert_equals(inter, line, args, **kwargs):
     return True
 def f_obj_default_interpret(inter, line, args, **kwargs):
     return inter.interpret(kwargs["object"])
+def f_obj_default_notequals(inter, line, args, **kwargs):
+    for i in range(len(args)):
+        if kwargs["object"] == inter.parse(i, line, args)[2]:
+            return False
+    return True
+def f_obj_default_and(inter, line, args, **kwargs):
+    """Determines the boolean result of kwargs["object"] and all parsed arguments."""
+    if inter.arg_count(args) == 0:
+        return inter.err(
+            "Error in and()",
+            "No arguments provided.",
+            line,
+            kwargs["lines_ran"],
+        )
+    if not kwargs["object"]:
+        return False
+    for i in range(len(args)):
+        if not inter.parse(i, line, args)[2]:
+            return False
+    return True
+def f_obj_default_or(inter, line, args, **kwargs):
+    """Determines the boolean result of kwargs["object"] or any parsed arguments."""
+    if inter.arg_count(args) == 0:
+        return inter.err(
+            "Error in or()",
+            "No arguments provided.",
+            line,
+            kwargs["lines_ran"],
+        )
+    if kwargs["object"]:
+        return True
+    for i in range(len(args)):
+        if inter.parse(i, line, args)[2]:
+            return True
+    return False
+def f_obj_default_not(inter, line, args, **kwargs):
+    """Determines the boolean result of not kwargs["object"]."""
+    # throw an error if arguments are provided
+    if inter.arg_count(args) != 0:
+        return inter.raise_ArgumentCountError(
+            method="not",
+            expected="0",
+            actual=len(args),
+            line=line,
+            lines_ran=kwargs["lines_ran"],
+        )
+    return not kwargs["object"]
+def f_obj_default_len(inter, line, args, **kwargs):
+    return len(kwargs["object"])
+def f_obj_default_as(inter, line, args, **kwargs):
+    """stores this value as a variable."""
+    # takes infinite string arguments
+    for i in range(len(args)):
+        vname = inter.parse(i, line, args)[2]
+        # check vname
+        inter.check_varname(vname, line)
+        inter.vars[vname] = Var(vname, kwargs["object"])
+    return kwargs["object"]
 
 
 OBJ_GENERAL_DEFAULT_GENERAL_DISPATCH = {
@@ -179,11 +239,19 @@ OBJ_GENERAL_DEFAULT_GENERAL_DISPATCH = {
     "switch": f_obj_default_switch,
     "rename": f_obj_default_rename,
     "if": f_obj_default_if,
-    "then": f_obj_default_then,
     "is": f_obj_default_is,
     "equals": f_obj_default_equals,
+    "notequals": f_obj_default_notequals,
     "slice": f_obj_default_slice,
     "index": f_obj_default_index,
     "export": f_obj_default_export,
     "interpret": f_obj_default_interpret,
+    "len": f_obj_default_len,
+    
+    # chaining emphasis
+    "then": f_obj_default_then,
+    "and": f_obj_default_and,
+    "or": f_obj_default_or,
+    "not": f_obj_default_not,
+    "as": f_obj_default_as
 }
