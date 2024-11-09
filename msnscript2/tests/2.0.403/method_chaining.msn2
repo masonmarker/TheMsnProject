@@ -294,7 +294,19 @@ t.add_to_stuff(+(1, 2).-(3)).equals([3, 4, 5, 4, 0]).assert()
 
 
 
+# ------------------ COMPLEX COMBINATIONS OF SYNTAXES ------------------
 
+
+
+print(ls(Whats up with you?, I'm just chilling).add("!"))
+
+
+
+print(ls(Whats up with you?, I'm just chilling).add("!"))
+
+(
+    script(hello!{=" bye"=}).add("hi!").equals("hello! byehi!").assert(),
+)
 
 
 

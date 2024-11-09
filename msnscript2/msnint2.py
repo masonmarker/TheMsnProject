@@ -532,10 +532,6 @@ class Interpreter:
         # iterate through the line to determine if we're chaining
         # deoptimized approach, implemented for functionality
         a = get_args(self, line)[0]
-        # print()
-        # print(line)
-        # print(a)
-        # print()
         if len(a) == 1 and len(a[0]) == 4:
             new_args, take_return = self.get_new_args(a)
             if take_return:

@@ -54,10 +54,14 @@ def get_args(inter, line, prev_args=[], chain_index=0,
     indouble = False
     s2 = 0
     insingle = False
+    inbacktick = False
+    bt = 0
     b = 0
     chain_end = -1
     complete_paren_count = 0
+    in_ls = False
     for i in range(l + 1):
+        # print(line[:i], in_ls)
         c = ""
         if i < l:
             c = line[i]
@@ -67,6 +71,17 @@ def get_args(inter, line, prev_args=[], chain_index=0,
             a -= 1
         if c == "(" and not s2 > 0 and not s > 0:
             p += 1
+            if func == "ls":
+                in_ls = True
+                # iterate up to the next ')' to get the arguments
+                ls_args = ""
+                for k in range(i + 1, l):
+                    if line[k] == ")":
+                        break
+                    ls_args += line[k]
+                # add as an arg
+                args.append([ls_args, i + 1, i + 1 + len(ls_args)])
+                return args, {"is_chained": False}, k
         if c == ")" and not s2 > 0 and not s > 0:
             complete_paren_count += 1
             p -= 1
@@ -80,15 +95,12 @@ def get_args(inter, line, prev_args=[], chain_index=0,
                         chain_end = j
                         break
                 if chain_end:
-                    # print(line)
-
                     if obj and objfunc:
                         final_line = f"{obj}.{objfunc}({line})"
                     elif func:
                         final_line = f"{func}({line})"
                     else:
                         final_line = f"({line})"
-
                     a = get_args(
                         inter, final_line, p=p, prev_arg=arg,
                         chain_index=chain_index + 1, func=func, objfunc=objfunc, obj=obj)
@@ -128,18 +140,28 @@ def get_args(inter, line, prev_args=[], chain_index=0,
                 b += 1
             if c == "}":
                 b -= 1
+
         if not indouble and not s2 > 0 and c == '"':
             s += 1
             indouble = True
         elif indouble and c == '"':
             s -= 1
             indouble = False
+
+        if not inbacktick and not s2 > 0 and c == "`":
+            bt += 1
+            inbacktick = True
+        elif inbacktick and c == "`":
+            bt -= 1
+            inbacktick = False
+
         if not insingle and not s > 0 and c == "'":
             s2 += 1
             insingle = True
         elif insingle and c == "'":
             s2 -= 1
             insingle = False
+
         if c == "," and s == 0 and s2 == 0 and p == 0 and a == 0 and b == 0:
             args.append([arg, start, start + len(arg)])
             start = i + 1

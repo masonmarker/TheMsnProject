@@ -1,4 +1,7 @@
 
+from core.classes.var import Var
+
+
 def f_alias(inter, line, args, **kwargs):
     global python_alias
     if args[0][0] == "":

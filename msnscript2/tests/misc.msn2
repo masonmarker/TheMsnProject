@@ -1,13 +1,2 @@
 
-
-
-(
-    @v = script(hello! {="bruh"=}).add(ls(byeee)),
-    print(v)
-)
-
-
-
-
-
-
+print('statement: ', ls(Whats up with you?, I'm just chilling))
