@@ -18,6 +18,8 @@ replacements = {
     "< >": " ",
     "<lt>": "<",
     "<gt>": ">",
+    "<sq>": "'",
+    "<dq>": '"'
 }
 
 # other functions
