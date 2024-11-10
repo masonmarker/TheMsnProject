@@ -1,6 +1,7 @@
 """Joint functions and dispatch table."""
 
 # utilties
+from core.classes.containers.container import Container
 from core.common import aliases
 
 # classes
@@ -17,6 +18,7 @@ from core.classes.auto.toolbar import ToolBar
 from core.classes.auto.scrollbar import ScrollBar
 
 # common
+from core.containers.container_obj import OBJ_GENERAL_CONTAINER_DISPATCH
 from core.obj.ai.default import OBJ_AI_DEFAULT_DISPATCH
 from core.obj.ai.info import OBJ_AI_INFO_DISPATCH
 from core.obj.ai.querying import OBJ_AI_QUERYING_DISPATCH
@@ -119,6 +121,9 @@ from core.auto.toolbar.general import OBJ_GENERAL_TOOLBAR_GENERAL_DISPATCH
 # special functions
 from core.special.loops import SPECIAL_LOOPS_DISPATCH
 
+# containers
+from core.containers.containers import CONTAINERS_DISPATCH
+
 # misc
 from core.misc import MISC_DISPATCH
 
@@ -155,6 +160,7 @@ FUNCTION_DISPATCH = {
     **EXCEL_DISPATCH,
     **CAST_DISPATCH,
     **CONDITIONALS_DISPATCH,
+    **CONTAINERS_DISPATCH,
 
     # special calls
     "special": {
@@ -226,12 +232,15 @@ FUNCTION_DISPATCH = {
                 **OBJ_GENERAL_APPELEMENT_GENERAL_DISPATCH,
                 **OBJ_GENERAL_SCROLLBAR_GENERAL_DISPATCH,
             },
+            # container based classes
+            Container: {
+                **OBJ_GENERAL_CONTAINER_DISPATCH,
+            },
 
             "class_based": {
                 **OBJ_GENERAL_CLASS_BASED_REQUESTS_HTML_HTMLSession_DISPATCH,
                 **OBJ_GENERAL_CLASS_BASED_REQUESTS_HTML_HTML_DISPATCH,
             },
-
 
             "default": {
                 **OBJ_GENERAL_DEFAULT_CHAINED_DISPATCH,
