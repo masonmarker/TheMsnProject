@@ -8,14 +8,12 @@
 
 # creating a private context for breaking
 private(for (0, string.len(), 'i', (
-        if (equals(string.get(i), substring.get(0)), =>(
-            for (0, substring.len(), 'j', =>(
-                if (equals(string.get(i.+(j)), substring.get(j)), =>(
-                    if (equals(op.-(substring.len(), 1), j), =>(
-
+        if (string.get(i).equals(substring.get(0)), (
+            for (0, substring.len(), 'j', (
+                if (string.get(+(i ,j)).equals(substring.get(j)), (
+                    if (substring.len().sub(1).equals(j), (
                         # brings i to the parent context
                         i.export(),
-
                         # leaves the private context
                         break(),
                         print('this should never be printed')

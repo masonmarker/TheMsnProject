@@ -5,39 +5,27 @@
 # capabilities in this interpreter, as
 # this is a work in progress.
 #
-# docs: masonmarker.com/#/msn2docs
+# docs: masonmarker.com/projects/msn2
 # run '{python_alias} msn2cli.py help' for help
 #
 # Author : Mason Marker
 # Start date : 09/15/2022
 
 
-# TODO
-# speed up function interpretation
-# by determining obj and func by argument count first
-# as opposed to iterating through all functions.
-# do this and/or determine closest function after each character
-# consumption.
-# this also entails testing and reordering function priority to
-# maximize speed.
-#
+# _TODO updated 10/16/2024
 # TODO
 # implement string parsing of the same character at which
 # it was defined. ex: "hello \"world\"" -> hello "world"
 # currently, this is not possible
 #
-# TODO (less important)
-# split interpreter up into multiple files
-# for better readability
-#
-# TODO
-# implement warnings and warning handling, as this
-# language was designed to be safe yet flexible
-#
 # TODO
 # implement linear interpretation in areas of heavy logic, this applies
 # incredibly non linear approaches in several blocks
 # such as <<>> or functions such as script()
+#
+# TODO
+# implement warnings and warning handling, as this
+# language was designed to be safe yet flexible
 #
 # TODO
 # implement an interpretation for block syntax
@@ -48,26 +36,11 @@
 # ensure no code repetition
 # (it definitely exists)
 
-# TODO
-# 2.0.400
-#
-# * MSN2 code conversion to JavaScript
-# - be able to generate JavaScript code
-#   from MSN2 code
-#
-#  ----- Less Important -----
-# * CHROME BROWSER
-# - finish lib/auto/chrome class extension
-#
-# * PRIVATE FUNCTIONS
-# - complete all of their work similarly to a function in any other language,
-#   where the function can access external variables, and variables local
-#   to the function will never be accessable to any external context unless specified.
 
 # the current logical implementation is conceptual,
 # deoptimized, and exists to prove functionality as speed can
 # be enhanced later, however, opportunities for speed enhancement
-# are still implemented if less major.
+# are still being implemented.
 
 # NOTE
 # Python runner's alias are determined by
@@ -81,25 +54,34 @@
 # importing necessary dependencies
 # for all lines of execution
 import os
+import json
+import warnings
 import threading
 
-# variables
-from var import Var
+# classes
+from core.classes.instruction import Instruction
+from core.classes.var import Var
+from core.classes.method import Method
+from core.classes.exceptions.msn2exception import MSN2Exception
 
-# instructions
-from instruction import Instruction
-# methods
-from method import Method
+# parsing
+from core.parsing.args import consume, get_args
+from core.parsing.legacy.functions import legacy_parse_func_body_decl, legacy_parse_py_fallback
+from core.parsing.msn2_fallback import macro_msn2_fallback
 
-# function dispatch table
-from functions import FUNCTION_DISPATCH
+# functions
+from core.dispatch.functions import FUNCTION_DISPATCH
+from core.functions import user_function_exec
+
+# loops
+from core.parsing.vars import var_assign_or_transform
+from core.special.loops import bar_loop
+
 
 # remove warnings for calling of integers: "10()"
-import warnings
+
 
 warnings.filterwarnings("ignore", category=SyntaxWarning)
-
-# variables
 
 
 # path to the common settings file
@@ -109,8 +91,6 @@ settings_path = "msn2_settings.json"
 latest_version = None
 # if settings does not exist
 if not os.path.exists(settings_path):
-    import json
-
     # get the latest version number from system/latest.json
     with open("system/latest.json") as f:
         # using the variable declared above
@@ -125,14 +105,17 @@ if not os.path.exists(settings_path):
             },
             f,
         )
+
+
+# interprets MSNScript2, should create a new interpreter for each execution iteration
 # global settings
 settings = None
 # python alias is in the msn2 settings json
 python_alias = "python"
+# automation
+apps = {}
 # obtains the python alias
 with open("msn2_settings.json") as f:
-    import json
-
     settings = json.load(f)
     python_alias = settings["settings"]["runner_alias"]
 # msn2 implementation of None
@@ -166,14 +149,10 @@ models = None
 inst_tree = {}
 lines_ran = []
 total_ints = 0
-# automation
-apps = {}
 # colors for colored printing,
-# defaults to nothing until assigned
+# defaults to "" until lazily loaded
 colors = ""
-
-
-# interprets MSNScript2, should create a new interpreter for each execution iteration
+open_chars = {"(", ",", "{", "[", "=", "{="}
 
 
 class Interpreter:
@@ -186,8 +165,6 @@ class Interpreter:
             settings["settings"]["has_ran"] = True
             # write to the json file
             with open(settings_path, "w") as f:
-                import json
-
                 json.dump(settings, f)
         # get the latest version number from system/latest.json
         with open("system/latest.json") as f:
@@ -201,8 +178,6 @@ class Interpreter:
             settings["version"] = latest_version
             # write to the json file
             with open(settings_path, "w") as f:
-                import json
-
                 json.dump(settings, f)
         # set the current settings
         self.settings = settings["settings"]
@@ -268,7 +243,7 @@ class Interpreter:
         return _line.startswith("#") or _line.startswith("::")
 
     # executes stored script
-    def execute(self, script):
+    def execute(self, script, include_temp_vars=True):
         # convert script to lines
         self.lines = []
         # for aggregate syntax support !{}
@@ -298,7 +273,9 @@ class Interpreter:
                 if line:
                     # execute the conditional line
                     # with import capabilities
-                    result = self.interpret(line)
+                    result = self.interpret(line,
+                                            top_level_inst=True, has_outer_function=False,
+                                            include_temp_vars=include_temp_vars)
                     keep_space = True
                     # if the conditional evaluated to True
                     if result:
@@ -335,7 +312,8 @@ class Interpreter:
                     self.vars[line] = Var(line, keep_block)
                 else:
                     # execute Python
-                    self.exec_python(keep_block)
+                    self.exec_python(
+                        keep_block, has_outer_function=False, include_temp_vars=include_temp_vars)
                 # reset python block and skipping flag
                 keep_block = ""
                 skipping = False
@@ -357,28 +335,22 @@ class Interpreter:
                 # aggregate syntax !{} (not recommended for most cases)
                 if line.startswith("!{") and line.endswith("}"):
                     ml = line[2:-1]
-                    self.interpret(ml)
+                    self.interpret(ml, top_level_inst=True,
+                                   has_outer_function=False)
                     ml = ""
                 elif not inml and line.startswith("!{"):
                     inml = True
                     ml += line[2:]
                 elif inml and line.endswith("}"):
                     inml = False
-                    ml += line[0 : len(line) - 1]
-                    self.interpret(ml)
+                    ml += line[0: len(line) - 1]
+                    self.interpret(ml, top_level_inst=True,
+                                   has_outer_function=False, include_temp_vars=include_temp_vars)
                     ml = ""
                 elif inml:
                     ml += line
                 # block syntax (recommended for most cases)
-                elif (
-                    not inblock
-                    and line.endswith("(")
-                    or line.endswith(",")
-                    or line.endswith("{")
-                    or line.endswith("[")
-                    or line.endswith("=")
-                    or line.endswith("{=")
-                ):
+                elif not inblock and any(line.endswith(char) for char in open_chars):
                     for c in line:
                         if c == "(":
                             p += 1
@@ -399,11 +371,15 @@ class Interpreter:
                             inter = ml
                             ml = ""
                             inblock = False
-                            self.interpret(inter, keep_space=keep_space)
+                            self.interpret(
+                                inter, keep_space=keep_space, top_level_inst=True,
+                                has_outer_function=False, include_temp_vars=include_temp_vars)
                             break
                         ml += c
                 else:
-                    self.interpret(line, keep_space=keep_space)
+                    self.interpret(line, keep_space=keep_space,
+                                   top_level_inst=True, has_outer_function=False,
+                                   include_temp_vars=include_temp_vars)
             self.current_line += 1
         return self.out
 
@@ -426,16 +402,15 @@ class Interpreter:
         except:
             return None
 
-    def interpret(self, line, block={}, keep_space=False):
+    def interpret(self, line, block={},
+                  keep_space=False, is_chained=False,
+                  top_level_inst=False, has_outer_function=True,
+                  include_temp_vars=True):
 
         # acquiring globals
-        global total_ints
-        global lock
-        global auxlock
-        global auto_lock
-        global pointer_lock
-        global python_alias
-        global inst_tree
+        global total_ints, lock, lines_ran, auxlock, \
+            auto_lock, pointer_lock, python_alias, inst_tree
+
         # accounting
         total_ints += 1
         lines_ran.append(line)
@@ -447,14 +422,14 @@ class Interpreter:
         if self.breaking:
             return self.breaking_return
         # strip line for interpretation
-        try:
-            if not keep_space:
-                line = line.strip()
-        except:
+        if not keep_space and hasattr(line, 'strip'):
+            line = line.strip()
+        else:
             return
         l = len(line)
         # whether the line should immediately continue or not
         cont = False
+
         if not line:
             return
 
@@ -463,90 +438,34 @@ class Interpreter:
 
         # method-specific line reached
         if line.startswith("--"):
-            line = line[2:]
-            try:
-                if not self.methods[self.loggedmethod[-1]].ended:
-                    self.methods[self.loggedmethod[-1]].add_body(line)
-            except:
-                None
-            return
+            return legacy_parse_func_body_decl(self, line)
         # new variable setting and modification syntax as of 12/20/2022
         # iterates to the first '=' sign, capturing the variable name in the
         # process (as it should)
-        # msn1 fallback
         if line[0] == "@":
-            return self.interpret_msnscript_1(line[1:])
-            # determine if we're using JS
+            return var_assign_or_transform(self, line)
+
+        # determine if we're using JS
         if line.startswith("JS:"):
             self.using_js = True
             return self.using_js
         if line.endswith(":JS"):
             self.using_js = False
             return self.using_js
+
         # python fallback mode specification,
         # both <<>> and
         if line.startswith("<<"):
-            # parse all text in the line for text surrounded by |
-            funccalls = []
-            infunc = False
-            func = ""
-            for i in range(line.rindex(">>")):
-                if line[i] == "|" and not infunc:
-                    infunc = True
-                elif line[i] == "|" and infunc:
-                    infunc = False
-                    funccalls.append(func)
-                    func = ""
-                elif infunc:
-                    func += line[i]
-            for function in funccalls:
-                ret = self.interpret(function)
-                if isinstance(ret, str):
-                    line = line.replace(f"|{function}|", f'"{str(ret)}"')
-                else:
-                    line = line.replace(f"|{function}|", str(ret))
-            line = line[2:-2]
-            try:
-                return eval(line)
-            except:
-                return line
+            return legacy_parse_py_fallback(self, line)
 
         # embedded MSN2 interpretation macro
         if line.startswith("<2>"):
-            # parse all text in the line for text surrounded by %
-            funccalls = []
-            infunc = False
-            func = ""
-            for i in range(3, line.rindex("<2>")):
-                if line[i] == "%" and not infunc:
-                    infunc = True
-                elif line[i] == "%" and infunc:
-                    infunc = False
-                    funccalls.append(func)
-                    func = ""
-                elif infunc:
-                    func += line[i]
-
-            # for each msn2 evaluation
-            for function in funccalls:
-                ret = self.interpret(function)
-                if isinstance(ret, str):
-                    line = line.replace(f"%{function}%", f'"{str(ret)}"')
-                else:
-                    line = line.replace(f"%{function}%", str(ret))
-            line = line[3:-3]
-            try:
-                return self.interpret(line)
-            except:
-                try:
-                    return eval(line, {}, {})
-                except:
-                    return line
+            return macro_msn2_fallback(self, line)
 
         # user defined syntax
         for key in syntax:
             if line.startswith(key):
-                return self.run_syntax(key, line)
+                return self.run_syntax(key, line, has_outer_function=has_outer_function)
         # user defined macro
         for token in macros:
             if line.startswith(token):
@@ -555,11 +474,11 @@ class Interpreter:
                     return macros[token][3]
                 # variable name
                 varname = macros[token][1]
-                val = line[len(token) :]
+                val = line[len(token):]
                 # store extended for user defined syntax
                 self.vars[varname] = Var(varname, val)
                 # execute function
-                return self.interpret(macros[token][2])
+                return self.interpret(macros[token][2], top_level_inst=top_level_inst, has_outer_function=False)
         # user defined postmacro
         for token in postmacros:
             if line.endswith(token):
@@ -567,14 +486,16 @@ class Interpreter:
                 if len(postmacros[token]) == 4:
                     return postmacros[token][3]
                 varname = postmacros[token][1]
-                val = line[0 : len(line) - len(token)]
+                val = line[0: len(line) - len(token)]
                 self.vars[varname] = Var(varname, val)
-                return self.interpret(postmacros[token][2])
+                return self.interpret(postmacros[token][2], top_level_inst=top_level_inst, has_outer_function=False)
+
         # variable replacement, generally unsafe, but replaces
         # all variable names as they're written the the expression after
         # the '*'
         if line[0] == "*":
             return self.interpret(self.replace_vars(line[1:]))
+
         # invoking user defined enclosing syntax
         for key in enclosed:
             start = enclosed[key][0]
@@ -584,9 +505,10 @@ class Interpreter:
                     return enclosed[key][4]
                 varname = enclosed[key][2]
                 self.vars[varname] = Var(
-                    varname, line[len(start) : len(line) - len(end)]
+                    varname, line[len(start): len(line) - len(end)]
                 )
-                return self.interpret(enclosed[key][3])
+                return self.interpret(enclosed[key][3], has_outer_function=False)
+
         # checks for active Interpreter redirect request
         # generally slow, due to checking for the redirect
         if self.redirecting and not "stopredirect()" in line.replace(" ", ""):
@@ -604,7 +526,17 @@ class Interpreter:
                 if not isinstance(_ret, type) and not isinstance(_ret, type(eval)):
                     return _ret
         except:
-            None
+            pass
+
+        # 2.0.403
+        # iterate through the line to determine if we're chaining
+        # deoptimized approach, implemented for functionality
+        a = get_args(self, line)[0]
+        if len(a) == 1 and len(a[0]) == 4:
+            new_args, take_return = self.get_new_args(a)
+            if take_return:
+                return new_args
+            return self.interpret(new_args[0][0])
 
         func = ""
         objfunc = ""
@@ -614,9 +546,9 @@ class Interpreter:
         for i in range(l):
             if cont:
                 continue
-            try:
+            if i < len(line):
                 c = line[i]
-            except:
+            else:
                 break
             if c == " " and s == 0:
                 sp += 1
@@ -626,2509 +558,33 @@ class Interpreter:
                 func = ""
                 objfunc = ""
                 continue
-            # basic method creation
+            # legacy method declaration, not recommended for use,
+            # but kept for backwards compatibility
             if c == "~":
-                returnvariable = ""
-                self.loggedmethod.append("")
-                for j in range(i + 1, len(line)):
-                    if line[j] != " ":
-                        if line[j] == "(":
-                            args = self.method_args(line, j)
-                            for k in range(args[1], len(line)):
-                                if line[k] != " ":
-                                    if line[k] == "-" and line[k + 1] == ">":
-                                        for l in range(k + 2, len(line)):
-                                            if line[l] != " ":
-                                                returnvariable += line[l]
-                            break
-                        self.loggedmethod[-1] += line[j]
-                if self.loggedmethod[-1] not in self.methods.keys():
-                    self.methods[self.loggedmethod[-1]] = Method(
-                        self.loggedmethod[-1], self
-                    )
-                else:
-                    break
-                for arg in args[0]:
-                    if arg != "":
-                        self.vars[arg] = None
-                        self.methods[self.loggedmethod[-1]].add_arg(arg)
-                self.methods[self.loggedmethod[-1]].add_return(returnvariable)
-                return self.loggedmethod[-1]
+                return self.legacy_curly_func_decl(line, i)
 
             # interpreting a function
             elif c == "(":
-                mergedargs = ""
-                p = 1
-                for j in range(i + 1, l - 1):
-                    c2 = line[j]
-                    if p == 0:
-                        break
-                    if c2 == "(":
-                        p += 1
-                    if c2 == ")":
-                        p -= 1
-                    mergedargs += c2
-                args = self.get_args(mergedargs)
-                f = len(func)
-                # clean function for handling
-                func = func.strip()
-                objfunc = objfunc.strip()
-                # create an instruction from parsed data
-                inst = Instruction(line, func, obj, objfunc, args, inst_tree, self)
-                # retrieving arguments
-                # if using_js
-                if self.using_js:
-                    return inst.convert_to_js(lock, lines_ran)
-
-                # class attribute / method access
-                if obj in self.vars:
-                    vname = obj
-                    try:
-                        var = self.get_var(vname)
-                    except:
-                        var = self.vars[vname]
-                    try:
-                        object = self.vars[obj].value
-                    except:
-                        object = self.vars[obj]
-                    try:
-                        # if the object is a class
-                        if objfunc in object:
-                            # if the object is a Method
-                            if type(object[objfunc]) == Method:
-                                # get the Method object
-                                method = object[objfunc]
-                                # get the number of arguments to the method
-                                num_args = len(method.args)
-                                # args to pass to the function
-                                to_pass = [vname]
-                                # if there is no argument
-                                if args[0][0] != "":
-                                    # for each parsed argument
-                                    for k in range(num_args):
-                                        try:
-                                            to_pass.append(self.parse(k, line, args)[2])
-                                        except:
-                                            None
-                                # create return variable
-                                ret_name = method.returns[0]
-                                # if the return variable doesn't exist
-                                if ret_name not in self.vars:
-                                    self.vars[ret_name] = Var(ret_name, None)
-                                # insert vname into args[0]
-                                args.insert(0, [vname])
-                                # execute method
-                                try:
-                                    method.run(to_pass, self, args)
-                                # Index out of bounds error
-                                except IndexError:
-                                    self.raise_incorrect_args(
-                                        str(len(method.args)),
-                                        str(self.arg_count(args) - 1),
-                                        line,
-                                        lines_ran,
-                                        method,
-                                    )
-                                try:
-                                    return eval(
-                                        str(self.vars[method.returns[0]].value), {}, {}
-                                    )
-                                except:
-                                    try:
-                                        return str(self.vars[method.returns[0]].value)
-                                    except:
-                                        return str(self.vars[method.returns[0]])
-                            # otherwise if we're accessing an attribute
-                            # no arguments given
-                            if args[0][0] == "":
-                                return object[objfunc]
-                            # parameter provided, wants to set attribute
-                            param = self.parse(0, line, args)[2]
-                            self.vars[obj].value[objfunc] = param
-                            return param
-                    except self.MSN2Exception as e:
-                        raise e
-                    except:
-                        None
-
-                    # # as of 2.0.388,
-                    # # if the objfunc ends with '!',
-                    # # it becomes destructive
-                    # # and returns the object
-                    if objfunc.endswith("!"):
-                        return FUNCTION_DISPATCH["obj"]["general"]["!"](
-                            self, line, args, vname=vname, objfunc=objfunc, mergedargs=mergedargs
-                        )
-
-                    if objfunc in FUNCTION_DISPATCH["obj"]["general"]["default"]:
-                        return FUNCTION_DISPATCH["obj"]["general"]["default"][objfunc](
-                            self, line, args, vname=vname, objfunc=objfunc, mergedargs=mergedargs, 
-                            object=object, obj=obj, lines_ran=lines_ran
-                        )
-
-                    # variable type specific methods
-                    
-                    # number specific functions
-                    if (
-                        isinstance(object, int)
-                        or isinstance(object, float)
-                        or isinstance(object, complex)
-                    ):
-                        
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["number"]:
-                            return FUNCTION_DISPATCH["obj"]["general"]["number"][objfunc](
-                                self, line, args, vname=vname, objfunc=objfunc,
-                                object=object, obj=obj, lines_ran=lines_ran
-                            )
-                            
-                        # more basic functions
-                        return self.vars[vname].value
-
-                    # set based functions
-                    elif isinstance(object, set):
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["set"]:
-                            return FUNCTION_DISPATCH["obj"]["general"]["set"][objfunc](
-                                self, line, args, vname=vname, objfunc=objfunc,
-                                object=object, obj=obj, lines_ran=lines_ran
-                            )
-
-                    # array based functions
-                    elif isinstance(object, list):
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["list"]:
-                            return FUNCTION_DISPATCH["obj"]["general"]["list"][objfunc](
-                                self, line, args, vname=vname, objfunc=objfunc,
-                                object=object, obj=obj, lines_ran=lines_ran
-                            )
-                    # if the object is a string
-                    elif isinstance(object, str):
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["str"]:
-                            return FUNCTION_DISPATCH["obj"]["general"]["str"][objfunc](
-                                self, line, args, vname=vname, objfunc=objfunc,
-                                object=object, obj=obj, lines_ran=lines_ran, f=f
-                            )
-
-                    elif (_type_o := str(type(object))) in FUNCTION_DISPATCH["obj"]["general"]["class_based"]:
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_o]:
-                            return FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_o][objfunc](
-                                self, line, args, object=object, 
-                            )
-                        else:
-                            return FUNCTION_DISPATCH["obj"]["general"]["class_based"]["else"](
-                                self, line, args, object=object, 
-                            )
-                    # check for requests_html.HTML
-                    elif _type_o in FUNCTION_DISPATCH["obj"]["general"]["class_based"]:
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_o]:
-                            return FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_o][objfunc](
-                                self, line, args, object=object, objfunc=objfunc,
-                            )
-                        else:
-                            return FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_o]["else"](
-                                self, line, args, object=object, objfunc=objfunc
-                            )                    
-                    
-                    
-                    # working with Excel sheets
-                    elif isinstance(object, self.Sheet):
-                        # active elements
-                        title = object.title
-                        workbook = object.workbook
-                        path = object.path
-                        sheet = object.sheet
-                        # gets the value of a cell
-                        if objfunc == "get":
-                            # column of the cell
-                            column = self.parse(0, line, args)[2]
-                            # row of the cell
-                            row = self.parse(1, line, args)[2]
-                            # returns the value of the cell
-                            return sheet.cell(row + 1, column + 1).value
-                        # sets the value of a cell
-                        if objfunc == "set":
-                            # column of the cell
-                            column = self.parse(0, line, args)[2]
-                            # row of the cell
-                            row = self.parse(1, line, args)[2]
-                            # row and column must be int
-                            self.type_err(
-                                [(column, (int,)), (row, (int,))], line, lines_ran
-                            )
-                            # value to set the cell to
-                            value = self.parse(2, line, args)[2]
-                            # sets the value of the cell
-                            sheet.cell(row + 1, column + 1, value)
-                            # returns the sheet
-                            return value
-                        # clears the sheet
-                        if objfunc == "clear":
-                            # clears the sheet
-                            for row in sheet.iter_rows():
-                                for cell in row:
-                                    cell.value = None
-                            # returns the sheet
-                            return object
-                        # gets the populated cell values of a column
-                        # if the argument is a number, it gets the value of that column
-                        # if the argument is a string, it gets the value of the column with that title
-                        if objfunc == "column":
-                            # column, either an integer or string
-                            col = self.parse(0, line, args)[2]
-                            # col must be int or str
-                            self.type_err([(col, (int, str))], line, lines_ran)
-                            column_values = []
-                            # if number
-                            if isinstance(col, int):
-                                col += 1
-                                column_values = [
-                                    row.value
-                                    for row in sheet.iter_cols(min_col=col, max_col=col)
-                                    for row in cell
-                                    if row.value != None
-                                ]
-                            # otherwise, get column by title
-                            elif isinstance(col, str):
-                                # for each column
-                                column_values = [
-                                    row.value
-                                    for row in sheet.iter_cols()
-                                    if row[0].value == col
-                                    for row in cell
-                                    if row.value != None
-                                ]
-                            return column_values
-                        # gets the populated cell values of a row
-                        # if the argument is a number, it gets the value of that column
-                        # if the argument is a string, it gets the value of the column with that title
-                        if objfunc == "row":
-                            # row, either an integer or string
-                            r = self.parse(0, line, args)[2]
-                            # r must be int or str
-                            self.type_err([(r, (int, str))], line, lines_ran)
-                            row_values = []
-                            # if number
-                            if isinstance(r, int):
-                                r += 1
-                                row_values = [
-                                    row.value
-                                    for row in sheet.iter_rows(min_row=r, max_row=r)
-                                    for row in cell
-                                    if row.value != None
-                                ]
-                            # otherwise, get row by title
-                            elif isinstance(r, str):
-                                # for each row
-                                row_values = [
-                                    row.value
-                                    for row in sheet.iter_rows()
-                                    if row[0].value == r
-                                    for row in cell
-                                    if row.value != None
-                                ]
-                            return row_values
-
-                        # gets the index of a column with a given title
-                        def get_column_index(title):
-                            for cell in sheet.iter_cols():
-                                if cell[0].value == title:
-                                    return cell[0].column
-                            return None
-
-                        def get_row_index(title):
-                            for cell in sheet.iter_rows():
-                                if cell[0].value == title:
-                                    return cell[0].row
-                            return None
-
-                        # rewrite the above method, but with
-                        # if the argument is a number, it gets the value of that column
-                        # if the argument is a string, it gets the value of the column with that title
-                        if objfunc == "set_column":
-                            # column, either an integer or string
-                            col = self.parse(0, line, args)[2]
-                            # col must be int or str
-                            self.type_err([(col, (int, str))], line, lines_ran)
-                            # iterable of values
-                            values = self.parse(1, line, args)[2]
-                            # check that values is an iterable
-                            self.check_iterable(values, line)
-                            # if number
-                            if isinstance(col, int):
-                                col += 1
-                                for i in range(len(values)):
-                                    sheet.cell(i + 1, col, values[i])
-                            # otherwise, get column by title
-                            elif isinstance(col, str):
-                                # for each column
-                                for cell in sheet.iter_cols():
-                                    # if the title matches
-                                    if cell[0].value == col:
-                                        # get the column values
-                                        for i in range(len(values)):
-                                            sheet.cell(
-                                                i + 1, get_column_index(col), values[i]
-                                            )
-                            return values
-                        # sets a row to an array of values
-                        # if the argument is a number, it gets the value of that column
-                        # if the argument is a string, it gets the value of the column with that title
-                        elif objfunc == "set_row":
-                            # row, either an integer or string
-                            r = self.parse(0, line, args)[2]
-                            # must be int or str
-                            self.type_err([(r, (int, str))], line, lines_ran)
-                            # array of values
-                            values = self.parse(1, line, args)[2]
-                            # check that values is an iterable
-                            self.check_iterable(values, line)
-                            # if number
-                            if isinstance(r, int):
-                                r += 1
-                                for i in range(len(values)):
-                                    sheet.cell(r, i + 1, values[i])
-                            # otherwise, get row by title
-                            elif isinstance(r, str):
-                                # for each row
-                                for cell in sheet.iter_rows():
-                                    # if the title matches
-                                    if cell[0].value == r:
-                                        # get the row values
-                                        for i in range(len(values)):
-                                            sheet.cell(
-                                                get_row_index(r), i + 1, values[i]
-                                            )
-                            return values
-                        # reqrite the above method, but with
-                        # if the argument is a number, it gets the value of that column
-                        # if the argument is a string, it gets the value of the column with that title
-                        elif objfunc == "add_to_column":
-                            # column
-                            column = self.parse(0, line, args)[2]
-                            # column should be an int or str
-                            self.type_err([(column, (int, str))], line, lines_ran)
-                            # value to add
-                            value = self.parse(1, line, args)[2]
-                            # if number
-                            if isinstance(column, int):
-                                column += 1
-                                # find the first empty cell in the column
-                                for i in range(sheet.max_row + 1):
-                                    if sheet.cell(i + 1, column).value == None:
-                                        sheet.cell(i + 1, column, value)
-                                        return value
-                                return value
-                            # otherwise, get column by title
-                            elif isinstance(column, str):
-                                column_index = get_column_index(column)
-                                # find the first empty cell in the column
-                                for i in range(sheet.max_row + 1):
-                                    if sheet.cell(i + 1, column_index).value == None:
-                                        sheet.cell(i + 1, column_index, value)
-                                        return value
-                            return value
-                        # adds a value to a row
-                        # if the argument is a number, it gets the value of that column
-                        # if the argument is a string, it gets the value of the column with that title
-                        elif objfunc == "add_to_row":
-                            # row
-                            row = self.parse(0, line, args)[2]
-                            # row should be an int or str
-                            self.type_err([(row, (int, str))], line, lines_ran)
-                            # value to add
-                            value = self.parse(1, line, args)[2]
-                            # if number
-                            if isinstance(row, int):
-                                row += 1
-                                # find the first empty cell in the row
-                                for i in range(sheet.max_column):
-                                    if sheet.cell(row, i + 1).value == None:
-                                        sheet.cell(row, i + 1, value)
-                                        return value
-                                return value
-                            # otherwise, get row by title
-                            elif isinstance(row, str):
-                                row_index = get_row_index(row)
-                                # find the first empty cell in the row
-                                for i in range(sheet.max_column):
-                                    if sheet.cell(row_index, i + 1).value == None:
-                                        sheet.cell(row_index, i + 1, value)
-                                        return value
-                            return value
-                        # performs code for each row
-                        # takes 2 arguments, a string for the row variable
-                        # and a function to perform on each row
-                        elif objfunc == "each_row":
-                            # variable
-                            row_var = self.parse(0, line, args)[2]
-                            # check varname
-                            self.check_varname(row_var, line)
-                            ret = None
-                            # for each cell
-                            for cell in sheet.iter_rows():
-                                # set the variable to the row
-                                self.vars[row_var] = Var(
-                                    row_var, [cell[i].value for i in range(len(cell))]
-                                )
-                                # execute the function
-                                ret = self.interpret(args[1][0])
-                            return ret
-                        # writes a matrix (2D array) to this Excel Worksheet
-                        # with the offsets given by the second and third arguments,
-                        # if no second or third arguments, then the matrix is written
-                        # starting at the first cell
-                        elif objfunc == "import_matrix":
-                            # get the 2D list
-                            matrix = self.parse(0, line, args)[2]
-                            # matrix must be a list
-                            self.type_err([(matrix, (list,))], line, lines_ran)
-                            # default offset
-                            offsetx = 0
-                            offsety = 0
-                            # if there is a second argument
-                            if len(args) == 2:
-                                offsetx = self.parse(1, line, args)[2]
-                            if len(args) == 3:
-                                offsetx = self.parse(1, line, args)[2]
-                                offsety = self.parse(2, line, args)[2]
-                            # for each row
-                            for i in range(len(matrix)):
-                                # for each column
-                                for j in range(len(matrix[i])):
-                                    w = matrix[i][j]
-                                    # if w is an AppElement, write its name
-                                    if "name" in dir(w):
-                                        w = w.name
-                                    sheet.cell(i + offsety + 1, j + offsetx + 1, w)
-                            return matrix
-                        # if nothing else, return the object
-                        return object
-                    # working with Excel
-                    elif isinstance(object, self.Workbook):
-                        # active workbook
-                        workbook = object.workbook
-                        path = object.path
-                        # gets or creates a sheet in the workbook
-                        if objfunc == "sheet":
-                            # title of the new sheet
-                            title = self.parse(0, line, args)[2]
-                            # title should be a string or int
-                            self.type_err([(title, (str, int))], line, lines_ran)
-                            # if title is a string
-                            if isinstance(title, str):
-                                # if the sheet has already been created,
-                                # return the created sheet
-                                for name in workbook.sheetnames:
-                                    if name.lower() == title.lower():
-                                        return self.Sheet(
-                                            workbook[name], name, workbook, path
-                                        )
-                                # creates the sheet
-                                sheet = workbook.create_sheet(title)
-                                # returns the sheet
-                                return self.Sheet(sheet, title, workbook, path)
-                            # title is integer,
-                            # return the sheet at that index
-                            else:
-                                for i, sheet in enumerate(workbook.sheetnames):
-                                    if i == title:
-                                        return self.Sheet(
-                                            workbook[sheet], sheet, workbook, path
-                                        )
-                            return None
-                        # saves the workbook
-                        if objfunc == "save":
-                            workbook.save(path)
-                            return object
-                        # closes the workbook
-                        if objfunc == "close" or objfunc == "stop" or objfunc == "kill":
-                            workbook.close()
-                            return object
-                        # otherwise return the object
-                        return object
-                    # GENERAL METHODS
-                    # gets the immediate children of the parent window
-
-                    def children(parent_window):
-                        return [
-                            self.AppElement(child, child.window_text())
-                            for child in window.children()
-                        ]
-
-                    # gets a child at an index
-                    # prints the children
-
-                    def child(parent_window, index):
-                        child = children(parent_window)[index]
-                        return self.AppElement(child, child.window_text())
-
-                    # finds a child with subtext in its name
-
-                    def find_children(parent_window, subtext):
-                        subtext = subtext.lower()
-                        return [
-                            self.AppElement(child, child.window_text())
-                            for child in window.children()
-                            if subtext in child.window_text().lower()
-                        ]
-
-                    # recursively searches the child tree for a certain object type
-                    # dont allow ElementAmbiguousError
-
-                    def recursive_search(
-                        parent_window, type, as_type, object_string_endswith=None
-                    ):
-                        found = []
-                        # get the children
-                        # use kwargs to avoid ElementAmbiguousError
-                        # kwargs is a criteria to reduce a list by process, class_name, control_type, content_only and/or title.
-                        kwargs = {"process": parent_window.process_id()}
-                        c = parent_window.children(**kwargs)
-                        for child in c:
-                            if isinstance(child, type) or (
-                                object_string_endswith
-                                and str(child).endswith(object_string_endswith)
-                            ):
-                                found += [as_type(child, child.window_text())]
-                            found += recursive_search(
-                                child, type, as_type, object_string_endswith
-                            )
-                        return found
-
-                    # prints all elements
-
-                    def print_elements(parent_window, retrieve_elements):
-                        for i, element in enumerate(retrieve_elements(parent_window)):
-                            print(i, ":")
-                            print(element)
-                        return None
-
-                    # finds an element containing the substring specified
-
-                    def find_elements(parent_window, subtext, retrieve_elements):
-                        elements = []
-                        subtext = subtext.lower()
-                        for element in retrieve_elements(parent_window):
-                            if subtext in element.name.lower():
-                                elements.append(
-                                    self.AppElement(element, element.window_text())
-                                )
-                        return elements
-
-                    # finds the exact elements specified
-
-                    def find_elements_exact(parent_window, text, retrieve_elements):
-                        elements = []
-                        for element in retrieve_elements(parent_window):
-                            if text == element.name:
-                                elements.append(
-                                    self.AppElement(element, element.window_text())
-                                )
-                        return elements
-
-                    # waits for the first element to appear containing the substring specified
-                    # is not case sensitive
-
-                    def wait_for_element_subtext(
-                        parent_window, retrieve_elements, subtext, timeout=None
-                    ):
-                        subtext = subtext.lower()
-                        # subfunction for locating the element
-
-                        def find_element_():
-                            try:
-                                for element in retrieve_elements(parent_window):
-                                    if subtext in element.name.lower():
-                                        return self.AppElement(
-                                            element, element.window_text()
-                                        )
-                            except:
-                                pass
-
-                        if not timeout:
-                            while True:
-                                if (_ret := find_element_()) is not None:
-                                    return _ret
-                        else:
-                            import time
-
-                            # get the current time
-                            start_time = time.time()
-                            # while the time elapsed is less than the timeout
-                            while time.time() - start_time < timeout:
-                                if (_ret := find_element_()) is not None:
-                                    return _ret
-
-                    # waits for the first element to appear with the exact text specified
-
-                    def wait_for_element_exact(
-                        parent_window, retrieve_elements, text, timeout=None
-                    ):
-                        # subfunction for locating the element
-                        def find_element_():
-                            try:
-                                for element in retrieve_elements(parent_window):
-                                    if text == element.name:
-                                        return self.AppElement(
-                                            element, element.window_text()
-                                        )
-                            except:
-                                pass
-
-                        if not timeout:
-                            while True:
-                                if (_ret := find_element_()) is not None:
-                                    return _ret
-                        else:
-                            import time
-
-                            # get the current time
-                            start_time = time.time()
-                            # while the time elapsed is less than the timeout
-                            while time.time() - start_time < timeout:
-                                if (_ret := find_element_()) is not None:
-                                    return _ret
-
-                    # waits for the first element to appear in all children containing the substring specified with the type specified
-
-                    def wait_for_type_subtext_all(
-                        parent_window, type, as_type, subtext, timeout=None
-                    ):
-                        return wait_for_element_subtext(
-                            parent_window,
-                            lambda parent_window: recursive_search(
-                                parent_window, type, as_type
-                            ),
-                            subtext,
-                            timeout=timeout,
-                        )
-
-                    # wait for the first element to appear in all children with the exact text specified with the type specified
-
-                    def wait_for_type_exact_all(
-                        parent_window, type, as_type, text, timeout=None
-                    ):
-                        return wait_for_element_exact(
-                            parent_window,
-                            lambda parent_window: recursive_search(
-                                parent_window, type, as_type
-                            ),
-                            text,
-                            timeout=timeout,
-                        )
-
-                    # waits for a child to exist with text containing subtext
-
-                    def wait_for_text(parent_window, subtext, timeout=None):
-                        return wait_for_element_subtext(
-                            parent_window, children, subtext, timeout=timeout
-                        )
-
-                    # waits for a child to exist in the entire child tree containing subtext
-
-                    def wait_for_text_all(parent_window, subtext, timeout=None):
-                        return wait_for_element_subtext(
-                            parent_window, all_children, subtext, timeout=timeout
-                        )
-
-                    # waits for a child to exist with text exactly equal to text
-
-                    def wait_for_text_exact(parent_window, text, timeout=None):
-                        return wait_for_element_exact(
-                            parent_window, children, text, timeout=timeout
-                        )
-
-                    # waits for a child to exist in the entire child tree with text exactly equal to text
-
-                    def wait_for_text_exact_all(parent_window, text, timeout=None):
-                        return wait_for_element_exact(
-                            parent_window, all_children, text, timeout=timeout
-                        )
-
-                    # prints all children of a parent window
-
-                    def print_children(parent_window):
-                        return print_elements(parent_window, children)
-
-                    # gets all children in the child tree
-                    def all_children(parent_window):
-                        found = []
-                        for child in parent_window.children():
-                            found.append(self.AppElement(child, child.window_text()))
-                            found += all_children(child)
-                        return found
-
-                    # prints the child tree of a parent window
-
-                    def print_all_children(parent_window):
-                        return print_elements(parent_window, all_children)
-
-                    # gets from all children at an index
-
-                    def all_child(parent_window, index):
-                        return all_children(parent_window)[index]
-
-                    # finds all children with subtext in their name
-
-                    def find_all_children(parent_window, subtext):
-                        return find_elements(parent_window, subtext, all_children)
-
-                    # finds all children from an exact text
-
-                    def find_all_children_exact(parent_window, text):
-                        return find_elements_exact(parent_window, text, all_children)
-
-                    # ---------------------------
-
-                    # NARROWING GENERAL METHODS
-                    # recursively gets all menus existing in the parent_window tree
-                    # accumulates all instances of pywinauto.controls.uia_controls.MenuWrapper
-
-                    def menus(parent_window):
-                        return recursive_search(
-                            parent_window,
-                            pywinauto.controls.uia_controls.MenuWrapper,
-                            self.Menu,
-                        )
-
-                    # gets a single menu
-
-                    def menu(parent_window, index):
-                        return menus(parent_window)[index]
-
-                    # prints all the menus
-
-                    def print_menus(parent_window):
-                        return print_elements(parent_window, menus)
-
-                    # finds a menu with subtext in its name
-
-                    def find_menus(parent_window, subtext):
-                        return find_elements(parent_window, subtext, menus)
-
-                    # gets all toolbars
-                    def toolbars(parent_window):
-                        return recursive_search(
-                            parent_window,
-                            pywinauto.controls.uia_controls.ToolbarWrapper,
-                            self.ToolBar,
-                        )
-
-                    def print_toolbars(parent_window):
-                        return print_elements(parent_window, toolbars)
-
-                    def toolbar(parent_window, index):
-                        return toolbars(parent_window)[index]
-
-                    def find_toolbars(parent_window, subtext):
-                        return find_elements(parent_window, subtext, toolbars)
-
-                    # recursively gets all instances of pywinauto.controls.uia_controls.ButtonWrapper
-                    def buttons(parent_window):
-                        return recursive_search(
-                            parent_window,
-                            pywinauto.controls.uia_controls.ButtonWrapper,
-                            self.Button,
-                        )
-
-                    def button(parent_window, index):
-                        return buttons(parent_window)[index]
-
-                    def print_buttons(parent_window):
-                        return print_elements(parent_window, buttons)
-
-                    def find_buttons(parent_window, subtext):
-                        return find_elements(parent_window, subtext, buttons)
-
-                    # for hyperlinks
-                    def links(parent_window):
-                        return recursive_search(
-                            parent_window,
-                            int,
-                            self.Link,
-                            object_string_endswith="Hyperlink",
-                        )
-
-                    def link(parent_window, index):
-                        return links(parent_window)[index]
-
-                    def print_links(parent_window):
-                        return print_elements(parent_window, links)
-
-                    def find_links(parent_window, subtext):
-                        return find_elements(parent_window, subtext, links)
-
-                    def find_links_exact(parent_window, text):
-                        return find_elements_exact(parent_window, text, links)
-
-                    # for tabitems
-                    def tabitems(parent_window):
-                        return recursive_search(
-                            parent_window,
-                            int,
-                            self.TabItem,
-                            object_string_endswith="TabItem",
-                        )
-
-                    def tabitem(parent_window, index):
-                        return tabitems(parent_window)[index]
-
-                    def print_tabitems(parent_window):
-                        return print_elements(parent_window, tabitems)
-
-                    def find_tabitems(parent_window, subtext):
-                        return find_elements(parent_window, subtext, tabitems)
-
-                    def find_tabitems_exact(parent_window, text):
-                        return find_elements_exact(parent_window, text, tabitems)
-
-                    # for tabcontrols
-                    def tabcontrols(parent_window):
-                        return recursive_search(
-                            parent_window,
-                            int,
-                            self.AppElement,
-                            object_string_endswith="TabControl",
-                        )
-
-                    def tabcontrol(parent_window, index):
-                        return tabcontrols(parent_window)[index]
-
-                    def print_tabcontrols(parent_window):
-                        return print_elements(parent_window, tabcontrols)
-
-                    def find_tabcontrols(parent_window, subtext):
-                        return find_elements(parent_window, subtext, tabcontrols)
-
-                    def find_tabcontrols_exact(parent_window, text):
-                        return find_elements_exact(parent_window, text, tabcontrols)
-
-                    # for EditWrapper
-                    def inputs(parent_window):
-                        return recursive_search(
-                            parent_window,
-                            pywinauto.controls.uia_controls.EditWrapper,
-                            self.Input,
-                        )
-
-                    def input(parent_window, index):
-                        return inputs(parent_window)[index]
-
-                    def print_inputs(parent_window):
-                        return print_elements(parent_window, inputs)
-
-                    def find_inputs(parent_window, subtext):
-                        return find_elements(parent_window, subtext, inputs)
-
-                    def find_inputs_exact(parent_window, text):
-                        return find_elements_exact(parent_window, text, inputs)
-
-                    # for ButtonWrapper but endswith CheckBox
-                    def checkboxes(parent_window):
-                        return recursive_search(
-                            parent_window,
-                            int,
-                            self.Button,
-                            object_string_endswith="CheckBox",
-                        )
-
-                    def checkbox(parent_window, index):
-                        return checkboxes(parent_window)[index]
-
-                    def print_checkboxes(parent_window):
-                        return print_elements(parent_window, checkboxes)
-
-                    def find_checkboxes(parent_window, subtext):
-                        return find_elements(parent_window, subtext, checkboxes)
-
-                    def find_checkboxes_exact(parent_window, text):
-                        return find_elements_exact(parent_window, text, checkboxes)
-
-                    # for Image
-                    def images(parent_window):
-                        return recursive_search(
-                            parent_window,
-                            int,
-                            self.AppElement,
-                            object_string_endswith="Image",
-                        )
-
-                    def image(parent_window, index):
-                        return images(parent_window)[index]
-
-                    def print_images(parent_window):
-                        return print_elements(parent_window, images)
-
-                    def find_images(parent_window, subtext):
-                        return find_elements(parent_window, subtext, images)
-
-                    def find_images_exact(parent_window, text):
-                        return find_elements_exact(parent_window, text, images)
-
-                    # for Tables
-                    def tables(parent_window):
-                        return recursive_search(
-                            parent_window,
-                            int,
-                            self.Table,
-                            object_string_endswith="Table",
-                        )
-
-                    def table(parent_window, index):
-                        return tables(parent_window)[index]
-
-                    def print_tables(parent_window):
-                        return print_elements(parent_window, tables)
-
-                    def find_tables(parent_window, subtext):
-                        return find_elements(parent_window, subtext, tables)
-
-                    def find_tables_exact(parent_window, text):
-                        return find_elements_exact(parent_window, text, tables)
-
-                    # for GroupBoxes
-                    def groupboxes(parent_window):
-                        return recursive_search(
-                            parent_window,
-                            int,
-                            self.AppElement,
-                            object_string_endswith="GroupBox",
-                        )
-
-                    def groupbox(parent_window, index):
-                        return groupboxes(parent_window)[index]
-
-                    def print_groupboxes(parent_window):
-                        return print_elements(parent_window, groupboxes)
-
-                    def find_groupboxes(parent_window, subtext):
-                        return find_elements(parent_window, subtext, groupboxes)
-
-                    def find_groupboxes_exact(parent_window, text):
-                        return find_elements_exact(parent_window, text, groupboxes)
-
-                    # for Panes
-                    def panes(parent_window):
-                        return recursive_search(
-                            parent_window,
-                            int,
-                            self.AppElement,
-                            object_string_endswith="Pane",
-                        )
-
-                    def pane(parent_window, index):
-                        return panes(parent_window)[index]
-
-                    def print_panes(parent_window):
-                        return print_elements(parent_window, panes)
-
-                    def find_panes(parent_window, subtext):
-                        return find_elements(parent_window, subtext, panes)
-
-                    def find_panes_exact(parent_window, text):
-                        return find_elements_exact(parent_window, text, panes)
-
-                    # for ListItems
-                    def listitems(parent_window):
-                        return recursive_search(
-                            parent_window,
-                            pywinauto.controls.uia_controls.ListItemWrapper,
-                            self.AppElement,
-                            object_string_endswith="ListItem",
-                        )
-
-                    def listitem(parent_window, index):
-                        return listitems(parent_window)[index]
-
-                    def print_listitems(parent_window):
-                        return print_elements(parent_window, listitems)
-
-                    def find_listitems(parent_window, subtext):
-                        return find_elements(parent_window, subtext, listitems)
-
-                    def find_listitems_exact(parent_window, text):
-                        return find_elements_exact(parent_window, text, listitems)
-
-                    # for documents
-                    def documents(parent_window):
-                        return recursive_search(
-                            parent_window,
-                            int,
-                            self.AppElement,
-                            object_string_endswith="Document",
-                        )
-
-                    def document(parent_window, index):
-                        return documents(parent_window)[index]
-
-                    def print_documents(parent_window):
-                        return print_elements(parent_window, documents)
-
-                    def find_documents(parent_window, subtext):
-                        return find_elements(parent_window, subtext, documents)
-
-                    def find_documents_exact(parent_window, text):
-                        return find_elements_exact(parent_window, text, documents)
-
-                    # for decendants
-                    def descendants(parent_window):
-                        return recursive_search(parent_window, int, self.AppElement)
-
-                    # ---------------------------
-                    # GENERALIZING METHOD CALLS FOR ELEMENT DISCOVERY
-
-                    def callables(
-                        window,
-                        # array elements
-                        objfunc1,
-                        objfunc1_method,
-                        # print the elements
-                        objfunc2,
-                        objfunc2_method,
-                        # get a certain element
-                        objfunc3,
-                        objfunc3_method,
-                        # find elements with subtext in their names
-                        objfunc4,
-                        objfunc4_method,
-                        # find elements with exact text in their names
-                        objfunc5=None,
-                        objfunc5_method=None,
-                        # waits for the first element of a certain type with subtext in name
-                        objfunc6=None,
-                        objfunc6_method=None,
-                        type1=None,
-                        as_type1=None,
-                        # waits for the first element of a certain type with exact text in name
-                        objfunc7=None,
-                        objfunc7_method=None,
-                        type2=None,
-                        as_type2=None,
-                    ):
-
-                        # RETRIEVING CHILDREN
-                        # gets the available child reference keywords
-                        if objfunc == objfunc1:
-                            return objfunc1_method(window)
-                        # prints the children
-                        if objfunc == objfunc2:
-                            return objfunc2_method(window)
-                        # gets a certain child
-                        # first argument is the index of the child
-                        if objfunc == objfunc3:
-                            return objfunc3_method(window, self.parse(0, line, args)[2])
-                        # finds children with subtext in their names
-                        if objfunc == objfunc4:
-                            return objfunc4_method(window, self.parse(0, line, args)[2])
-                        if objfunc == objfunc5:
-                            return objfunc5_method(window, self.parse(0, line, args)[2])
-
-                        # waits for the first child of a certain type with exact text in its name
-                        if objfunc == objfunc6:
-                            # if 1 argument, there is no timeout
-                            if len(args) == 1:
-                                return wait_for_type_exact_all(
-                                    window,
-                                    type1,
-                                    as_type1,
-                                    self.parse(0, line, args)[2],
-                                )
-                            elif len(args) == 2:
-                                return wait_for_type_exact_all(
-                                    window,
-                                    type1,
-                                    as_type1,
-                                    self.parse(0, line, args)[2],
-                                    self.parse(1, line, args)[2],
-                                )
-                        # waits for the first child of a certain type with subtext in its name
-                        if objfunc == objfunc7:
-                            # if 1 argument, there is no timeout
-                            if len(args) == 1:
-                                return wait_for_type_subtext_all(
-                                    window,
-                                    type2,
-                                    as_type2,
-                                    self.parse(0, line, args)[2],
-                                )
-                            elif len(args) == 2:
-                                return wait_for_type_subtext_all(
-                                    window,
-                                    type2,
-                                    as_type2,
-                                    self.parse(0, line, args)[2],
-                                    self.parse(1, line, args)[2],
-                                )
-
-                        return "<msnint2 no callable>"
-
-                    # ---------------------------
-
-                    # moves the mouse to the center of an element, and clicks it
-
-                    def clk(window, button="left", waittime=0):
-                        import time
-                        from pywinauto import mouse
-
-                        # set the focus to this element
-                        window.set_focus()
-                        # wait for the element to be ready
-                        time.sleep(waittime)
-                        # get the new coordinates of this element after the focus
-                        coords = window.get_properties()["rectangle"].mid_point()
-                        # click the mouse
-                        mouse.click(button=button, coords=coords)
-                        # return the object
-                        return object
-
-                    # determines if a point is visible within a rectangle
-
-                    def has_point(object, x, y):
-                        try:
-                            rect = object.get_properties()["rectangle"]
-                            # if implemented
-                            return (
-                                rect.top <= y <= rect.bottom
-                                and rect.left <= x <= rect.right
-                            )
-                        except:
-                            print(str(object))
-                            return True
-
-                    # recursively get the first object that has the point
-                    # the first object that has the point and no children
-
-                    def rec(root, x, y):
-                        # if the root has children
-                        if root.children():
-                            # for each child
-                            for child in root.children():
-                                # if the child has the point
-                                if has_point(child, x, y):
-                                    # return the child
-                                    return rec(child, x, y)
-                        # if the root has no children
-                        else:
-                            # return the root
-                            return self.AppElement(root, root.window_text())
-
-                    # get all objects that have the point
-                    def get_all(root, x, y):
-                        all = []
-                        # if the root has children
-                        if root.children():
-                            # for each child
-                            for child in root.children():
-                                # if the child has the point
-                                if has_point(child, x, y):
-                                    # add the child to the list
-                                    all.append(
-                                        self.AppElement(child, child.window_text())
-                                    )
-                                    # get all of the child's children
-                                    all += get_all(child, x, y)
-                        # return the list
-                        return all
-
-                    # presses multiple keys at the same time
-                    def press_simul(kys):
-                        sending = ""
-                        # keys down
-                        for key in kys:
-                            sending += "{" + key + " down}"
-                        # keys up
-                        for key in kys:
-                            sending += "{" + key + " up}"
-                        return sending
-
-                    # function for converting keys requiring a shift press
-                    #   example: a '3' should be converted to {VK_SHIFT down}3{VK_SHIFT up}
-                    #   example: a '"' should be converted to {VK_SHIFT down}'{VK_SHIFT up}
-                    #   example: a 'E' should be converted to {VK_SHIFT down}e{VK_SHIFT up}
-                    # this function is mainly for converting an exerpt of code to a typable
-                    # string for pywinauto to type
-                    def convert_keys(keystrokes):
-                        new = ""
-                        special = {
-                            "!": "1",
-                            "@": "2",
-                            "#": "3",
-                            "$": "4",
-                            "%": "5",
-                            "^": "6",
-                            "&": "7",
-                            "*": "8",
-                            "(": "9",
-                            ")": "0",
-                            "_": "-",
-                            "+": "=",
-                            "{": "[",
-                            "}": "]",
-                            "|": "\\",
-                            ":": ";",
-                            '"': "'",
-                            "<": ",",
-                            ">": ".",
-                            "?": "/",
-                            "~": "`",
-                            " ": " ",
-                        }
-                        # for each keystroke
-                        for key in keystrokes:
-                            if key == " ":
-                                # if the key is a space
-                                new += " "
-                            elif key in special:
-                                # if the key is a special character
-                                new += (
-                                    "{VK_SHIFT down}" + special[key] + "{VK_SHIFT up}"
-                                )
-                            elif key.isupper():
-                                # if the key is uppercase
-                                new += "{VK_SHIFT down}" + key.lower() + "{VK_SHIFT up}"
-                            else:
-                                # if the key is not a special character
-                                new += key
-                        return new
-
-                    # types keys with a delay between each key
-
-                    def type_keys_with_delay(window, text, delay):
-                        e = False
-                        import time
-                        import pywinauto
-
-                        for char in text:
-                            try:
-                                window.type_keys(char, with_spaces=True)
-                            except:
-                                if not e:
-                                    window.set_focus()
-                                    e = True
-                                pywinauto.keyboard.send_keys(char)
-                            time.sleep(delay)
-
-                    # parses object functions for discovering types
-                    # of elements
-
-                    def search(window):
-                        import pywinauto
-
-                        ret = "<msnint2 no callable>"
-                        # RETRIEVING CHILDREN
-                        # gets the available child reference keywords
-                        if (
-                            chldrn := callables(
-                                window,
-                                "children",
-                                children,
-                                "print_children",
-                                print_children,
-                                "child",
-                                child,
-                                "find_children",
-                                find_children,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = chldrn
-                        # working with the entire child tree
-                        elif (
-                            all_chldrn := callables(
-                                window,
-                                "all_children",
-                                all_children,
-                                "print_all_children",
-                                print_all_children,
-                                "all_child",
-                                all_child,
-                                "find_all_children",
-                                find_all_children,
-                                "find_all_children_exact",
-                                find_all_children_exact,
-                                objfunc6="wait_for_child",
-                                objfunc6_method=wait_for_type_exact_all,
-                                type1=pywinauto.controls.uiawrapper.UIAWrapper,
-                                as_type1=self.AppElement,
-                                objfunc7="wait_for_child_exact",
-                                objfunc7_method=wait_for_type_subtext_all,
-                                type2=pywinauto.controls.uiawrapper.UIAWrapper,
-                                as_type2=self.AppElement,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = all_chldrn
-                        # getting all menus
-                        elif (
-                            mns := callables(
-                                window,
-                                "menus",
-                                menus,
-                                "print_menus",
-                                print_menus,
-                                "menu",
-                                menu,
-                                "find_menus",
-                                find_menus,
-                                objfunc5=None,
-                                objfunc5_method=None,
-                                objfunc6="wait_for_menu_exact",
-                                objfunc6_method=wait_for_type_exact_all,
-                                type1=pywinauto.controls.uia_controls.MenuWrapper,
-                                as_type1=self.Menu,
-                                objfunc7="wait_for_menu",
-                                objfunc7_method=wait_for_type_subtext_all,
-                                type2=pywinauto.controls.uia_controls.MenuWrapper,
-                                as_type2=self.Menu,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = mns
-                        # gets all toolbars
-                        elif (
-                            tbrs := callables(
-                                window,
-                                "toolbars",
-                                toolbars,
-                                "print_toolbars",
-                                print_toolbars,
-                                "toolbar",
-                                toolbar,
-                                "find_toolbars",
-                                find_toolbars,
-                                objfunc5=None,
-                                objfunc5_method=None,
-                                objfunc6="wait_for_toolbar_exact",
-                                objfunc6_method=wait_for_type_exact_all,
-                                type1=pywinauto.controls.uia_controls.ToolbarWrapper,
-                                as_type1=self.ToolBar,
-                                objfunc7="wait_for_toolbar",
-                                objfunc7_method=wait_for_type_subtext_all,
-                                type2=pywinauto.controls.uia_controls.ToolbarWrapper,
-                                as_type2=self.ToolBar,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = tbrs
-                        # gets all buttons
-                        elif (
-                            btns := callables(
-                                window,
-                                "buttons",
-                                buttons,
-                                "print_buttons",
-                                print_buttons,
-                                "button",
-                                button,
-                                "find_buttons",
-                                find_buttons,
-                                objfunc5=None,
-                                objfunc5_method=None,
-                                objfunc6="wait_for_button_exact",
-                                objfunc6_method=wait_for_type_exact_all,
-                                type1=pywinauto.controls.uia_controls.ButtonWrapper,
-                                as_type1=self.Button,
-                                objfunc7="wait_for_button",
-                                objfunc7_method=wait_for_type_subtext_all,
-                                type2=pywinauto.controls.uia_controls.ButtonWrapper,
-                                as_type2=self.Button,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = btns
-                        # gets all tabitems
-                        elif (
-                            tbs := callables(
-                                window,
-                                "tabitems",
-                                tabitems,
-                                "print_tabitems",
-                                print_tabitems,
-                                "tabitem",
-                                tabitem,
-                                "find_tabitems",
-                                find_tabitems,
-                                objfunc5=None,
-                                objfunc5_method=None,
-                                objfunc6="wait_for_tabitem_exact",
-                                objfunc6_method=wait_for_type_exact_all,
-                                type1=int,
-                                as_type1=self.TabItem,
-                                objfunc7="wait_for_tabitem",
-                                objfunc7_method=wait_for_type_subtext_all,
-                                type2=int,
-                                as_type2=self.TabItem,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = tbs
-                        # gets all links
-                        elif (
-                            lnks := callables(
-                                window,
-                                "links",
-                                links,
-                                "print_links",
-                                print_links,
-                                "link",
-                                link,
-                                "find_links",
-                                find_links,
-                                objfunc5=None,
-                                objfunc5_method=None,
-                                objfunc6="wait_for_link_exact",
-                                objfunc6_method=wait_for_type_exact_all,
-                                type1=int,
-                                as_type1=self.Hyperlink,
-                                objfunc7="wait_for_link",
-                                objfunc7_method=wait_for_type_subtext_all,
-                                type2=int,
-                                as_type2=self.Hyperlink,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = lnks
-                        # gets all Inputs
-                        elif (
-                            inpts := callables(
-                                window,
-                                "inputs",
-                                inputs,
-                                "print_inputs",
-                                print_inputs,
-                                "input",
-                                input,
-                                "find_inputs",
-                                find_inputs,
-                                objfunc6="wait_for_input_exact",
-                                objfunc6_method=wait_for_type_exact_all,
-                                type1=pywinauto.controls.uia_controls.EditWrapper,
-                                as_type1=self.Input,
-                                objfunc7="wait_for_input",
-                                objfunc7_method=wait_for_type_subtext_all,
-                                type2=pywinauto.controls.uia_controls.EditWrapper,
-                                as_type2=self.Input,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = inpts
-                        # gets all checkboxes
-                        elif (
-                            chks := callables(
-                                window,
-                                "checkboxes",
-                                checkboxes,
-                                "print_checkboxes",
-                                print_checkboxes,
-                                "checkbox",
-                                checkbox,
-                                "find_checkboxes",
-                                find_checkboxes,
-                                objfunc6="wait_for_checkbox_exact",
-                                objfunc6_method=wait_for_type_exact_all,
-                                type1=pywinauto.controls.uia_controls.ButtonWrapper,
-                                as_type1=self.Button,
-                                objfunc7="wait_for_checkbox",
-                                objfunc7_method=wait_for_type_subtext_all,
-                                type2=pywinauto.controls.uia_controls.ButtonWrapper,
-                                as_type2=self.Button,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = chks
-                        # gets all images
-                        elif (
-                            imgs := callables(
-                                window,
-                                "images",
-                                images,
-                                "print_images",
-                                print_images,
-                                "image",
-                                image,
-                                "find_images",
-                                find_images,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = imgs
-                        # gets all tables
-                        elif (
-                            tbls := callables(
-                                window,
-                                "tables",
-                                tables,
-                                "print_tables",
-                                print_tables,
-                                "table",
-                                table,
-                                "find_tables",
-                                find_tables,
-                                objfunc6="wait_for_table_exact",
-                                objfunc6_method=wait_for_type_exact_all,
-                                type1=pywinauto.controls.uia_controls.ListViewWrapper,
-                                as_type1=self.Table,
-                                objfunc7="wait_for_table",
-                                objfunc7_method=wait_for_type_subtext_all,
-                                type2=pywinauto.controls.uia_controls.ListViewWrapper,
-                                as_type2=self.Table,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = tbls
-                        # get all GroupBoxes
-                        elif (
-                            grps := callables(
-                                window,
-                                "groupboxes",
-                                groupboxes,
-                                "print_groupboxes",
-                                print_groupboxes,
-                                "groupbox",
-                                groupbox,
-                                "find_groupboxes",
-                                find_groupboxes,
-                                objfunc6="wait_for_groupbox_exact",
-                                objfunc6_method=wait_for_type_exact_all,
-                                type1=int,
-                                as_type1=self.AppElement,
-                                objfunc7="wait_for_groupbox",
-                                objfunc7_method=wait_for_type_subtext_all,
-                                type2=int,
-                                as_type2=self.AppElement,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = grps
-                        # for Panes
-                        elif (
-                            pns := callables(
-                                window,
-                                "panes",
-                                panes,
-                                "print_panes",
-                                print_panes,
-                                "pane",
-                                pane,
-                                "find_panes",
-                                find_panes,
-                                objfunc6="wait_for_pane_exact",
-                                objfunc6_method=wait_for_type_exact_all,
-                                type1=int,
-                                as_type1=self.AppElement,
-                                objfunc7="wait_for_pane",
-                                objfunc7_method=wait_for_type_subtext_all,
-                                type2=int,
-                                as_type2=self.AppElement,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = pns
-                        # for ListItems
-                        elif (
-                            lsts := callables(
-                                window,
-                                "listitems",
-                                listitems,
-                                "print_listitems",
-                                print_listitems,
-                                "listitem",
-                                listitem,
-                                "find_listitems",
-                                find_listitems,
-                                objfunc6="wait_for_listitem_exact",
-                                objfunc6_method=wait_for_type_exact_all,
-                                type1=pywinauto.controls.uia_controls.ListItemWrapper,
-                                as_type1=self.AppElement,
-                                objfunc7="wait_for_listitem",
-                                objfunc7_method=wait_for_type_subtext_all,
-                                type2=pywinauto.controls.uia_controls.ListItemWrapper,
-                                as_type2=self.AppElement,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = lsts
-                        # for TabControls
-                        elif (
-                            tabs := callables(
-                                window,
-                                "tabcontrols",
-                                tabcontrols,
-                                "print_tabcontrols",
-                                print_tabcontrols,
-                                "tabcontrol",
-                                tabcontrol,
-                                "find_tabcontrols",
-                                find_tabcontrols,
-                                objfunc6="wait_for_tabcontrol_exact",
-                                objfunc6_method=wait_for_type_exact_all,
-                                type1=int,
-                                as_type1=self.AppElement,
-                                objfunc7="wait_for_tabcontrol",
-                                objfunc7_method=wait_for_type_subtext_all,
-                                type2=int,
-                                as_type2=self.AppElement,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = tabs
-                        # for Documents
-                        elif (
-                            docs := callables(
-                                window,
-                                "documents",
-                                documents,
-                                "print_documents",
-                                print_documents,
-                                "document",
-                                document,
-                                "find_documents",
-                                find_documents,
-                                objfunc6="wait_for_document_exact",
-                                objfunc6_method=wait_for_type_exact_all,
-                                type1=int,
-                                as_type1=self.AppElement,
-                                objfunc7="wait_for_document",
-                                objfunc7_method=wait_for_type_subtext_all,
-                                type2=int,
-                                as_type2=self.AppElement,
-                            )
-                        ) != "<msnint2 no callable>":
-                            ret = docs
-                        return ret
-
-                    # if the object is a pywinauto application
-                    # KNOWN ISSUES:
-                    #   - I've tested this on a Windows 11 laptop and it doesn't
-                    #     work for some reason
-                    if isinstance(object, self.App):
-                        # return for an app
-                        ret = object
-                        # path to the application to work with
-                        path = object.path
-                        # actual pwinauto application object
-                        app = object.application
-                        # window
-                        window = app.window() if app else None
-                        # thread based operation
-                        p_thread = False
-                        if objfunc.endswith(":lock"):
-                            p_thread = True
-                            objfunc = objfunc[:-5]
-                            auto_lock.acquire()
-                        # element discovery with search()
-                        if (srch := search(window)) != "<msnint2 no callable>":
-                            ret = srch
-                        # STARTING AND STOPPING APPLICATIONS
-                        if objfunc == "start":
-                            from pywinauto.application import Application
-
-                            # create and start the application
-                            if not object.application:
-                                object.application = Application(backend="uia").start(
-                                    path
-                                )
-                            # add to global apps
-                            global apps
-                            apps[len(apps) + 1] = object
-                            ret = object.application
-                        # kills the application
-                        elif (
-                            objfunc == "stop" or objfunc == "kill" or objfunc == "close"
-                        ):
-                            # kill the application
-                            ret = app.kill()
-                        # gets the top_window
-                        elif objfunc == "print_tree":
-                            ret = app.dump_tree()
-                        # gets a connection to this application
-                        elif objfunc == "connection":
-                            from pywinauto.application import Application
-
-                            ret = self.App(
-                                object.path,
-                                Application(backend="uia").connect(
-                                    process=object.application.process
-                                ),
-                            )
-                        # gets information about this application
-                        # gets the text of the window
-                        elif objfunc == "text":
-                            ret = window.window_text()
-                        # gets the window
-                        elif objfunc == "window":
-                            ret = window
-                        # gets the handle
-                        elif objfunc == "handle":
-                            ret = window.handle
-                        # chrome based children collection
-
-                        def chrome_children_():
-                            chrome_window = app.window(title_re=".*Chrome.")
-                            chrome_handle = chrome_window.handle
-                            wd = app.window(handle=chrome_handle)
-                            document = wd.child_window(
-                                found_index=0, class_name="Chrome_RenderWidgetHostHWND"
-                            )
-                            return document.descendants()
-
-                        # GOOGLE CHROME ONLY
-                        if objfunc == "chrome_children":
-                            # if not arguments
-                            if args[0][0] == "":
-                                ret = chrome_children_()
-                            # if one argument, check if the first argument is contained
-                            elif len(args) == 1:
-                                subtext = self.parse(0, line, args)[2].lower()
-                                # subtext must be str
-                                self.type_err([(subtext, (str,))], line, lines_ran)
-                                ret = [
-                                    self.AppElement(d, d.window_text())
-                                    for d in chrome_children_()
-                                    if subtext in d.window_text().lower()
-                                ]
-                            # if two arguments, check if the first argument is exact
-                            elif len(args) == 2:
-                                subtext = self.parse(0, line, args)[2]
-                                # subtext must be str
-                                self.type_err([(subtext, (str,))], line, lines_ran)
-                                ret = [
-                                    self.AppElement(d, d.window_text())
-                                    for d in chrome_children_()
-                                    if subtext == d.window_text()
-                                ]
-
-                        # waits for a child containing text
-                        elif objfunc == "wait_for_text":
-                            # if no timeout provided
-                            if len(args) == 1:
-                                txt = self.parse(0, line, args)[2]
-                                # text should be str
-                                self.type_err([(txt, (str,))], line, lines_ran)
-                                ret = wait_for_text(window, txt)
-                            # if timeout provided
-                            elif len(args) == 2:
-                                txt = self.parse(0, line, args)[2]
-                                timeout = self.parse(1, line, args)[2]
-                                # text should be str and timeout should be float or int or complex
-                                self.type_err(
-                                    [(txt, (str,)), (timeout, (float, int, complex))],
-                                    line,
-                                    lines_ran,
-                                )
-                                ret = wait_for_text(window, txt, timeout=timeout)
-                        # waits for a child containing text in the entire child tree
-                        elif objfunc == "wait_for_text_all":
-                            # if no timeout provided
-                            if len(args) == 1:
-                                txt = self.parse(0, line, args)[2]
-                                # text should be str
-                                self.type_err([(txt, (str,))], line, lines_ran)
-                                ret = wait_for_text_all(window, txt)
-                            elif len(args) == 2:
-                                txt = self.parse(0, line, args)[2]
-                                timeout = self.parse(1, line, args)[2]
-                                # text should be str and timeout should be float or int or complex
-                                self.type_err(
-                                    [(txt, (str,)), (timeout, (float, int, complex))],
-                                    line,
-                                    lines_ran,
-                                )
-                                ret = wait_for_text_all(window, txt, timeout=timeout)
-
-                        # waits for a child containing the exact text
-                        elif objfunc == "wait_for_text_exact":
-                            # if no timeout provided
-                            if len(args) == 1:
-                                txt = self.parse(0, line, args)[2]
-                                # text should be str
-                                self.type_err([(txt, (str,))], line, lines_ran)
-                                ret = wait_for_text_exact(window, txt)
-                            elif len(args) == 2:
-                                txt = self.parse(0, line, args)[2]
-                                timeout = self.parse(1, line, args)[2]
-                                # text should be str and timeout should be float or int or complex
-                                self.type_err(
-                                    [(txt, (str,)), (timeout, (float, int, complex))],
-                                    line,
-                                    lines_ran,
-                                )
-                                ret = wait_for_text_exact(window, txt, timeout=timeout)
-                        # waits for a child containing the exact text in the entire child tree
-                        elif objfunc == "wait_for_text_exact_all":
-                            # if no timeout provided
-                            if len(args) == 1:
-                                txt = self.parse(0, line, args)[2]
-                                # text should be str
-                                self.type_err([(txt, (str,))], line, lines_ran)
-                                ret = wait_for_text_exact_all(window, txt)
-                            elif len(args) == 2:
-                                txt = self.parse(0, line, args)[2]
-                                timeout = self.parse(1, line, args)[2]
-                                # text should be str and timeout should be float or int or complex
-                                self.type_err(
-                                    [(txt, (str,)), (timeout, (float, int, complex))],
-                                    line,
-                                    lines_ran,
-                                )
-                                ret = wait_for_text_exact_all(
-                                    window, txt, timeout=timeout
-                                )
-
-                        # APPLICATION ACTIONS
-                        # sends keystrokes to the application
-                        # takes one argument, being the keystrokes to send
-                        elif objfunc == "write":
-                            writing = self.parse(0, line, args)[2]
-                            # writing should be a str
-                            self.type_err([(writing, (str,))], line, lines_ran)
-                            try:
-                                # sends keystrokes to the application
-                                ret = window.type_keys(writing, with_spaces=True)
-                            except:
-                                # with_spaces not allowed
-                                ret = window.type_keys(
-                                    convert_keys(writing), with_spaces=True
-                                )
-                        # writes special characters into the console
-                        # takes one argument, being the special characters to write
-                        elif objfunc == "write_special":
-                            # keystrokes
-                            keystrokes = self.parse(0, line, args)[2]
-                            # keystrokes should be a str
-                            self.type_err([(keystrokes, (str,))], line, lines_ran)
-                            # convert to special characters
-                            ret = window.type_keys(
-                                convert_keys(keystrokes), with_spaces=True
-                            )
-
-                        # presses keys at the same time
-                        elif objfunc == "press":
-                            kys = []
-                            for i in range(len(args)):
-                                kys.append(self.parse(i, line, args)[2])
-                            # presses the keys at the same time
-                            ret = window.type_keys(press_simul(kys))
-                        # sends keystrokes to the application
-                        # takes one argument, being the keystrokes to send
-                        elif objfunc == "send_keys":
-                            # import pywinauto.keyboard
-                            import pywinauto
-
-                            keystrokes = self.parse(0, line, args)[2]
-                            # keystrokes should be a str
-                            self.type_err([(keystrokes, (str,))], line, lines_ran)
-                            # sends keystrokes to the application
-                            ret = pywinauto.keyboard.send_keys(
-                                convert_keys(keystrokes), with_spaces=True
-                            )
-
-                        # gets the element that is currently hovered over
-                        # recurses through all children, determining which elements have
-                        # the mouses position
-                        elif objfunc == "hovered":
-                            # import win32api
-                            import win32api
-
-                            # get the root window of this application
-                            root = window.top_level_parent()
-                            # get the current mouse position
-                            x, y = win32api.GetCursorPos()
-                            # recursively find all children from the root window
-                            # that have the point specified
-                            ret = get_all(root, x, y)
-                        # opens the developer tools
-                        elif objfunc == "inspect":
-                            # presses the shortcut keys to open the developer tools
-                            ret = window.type_keys("{F12}")
-                            # waits for the inspect window to appear
-                            wait_for_text_all(window, "Console")
-                        # closes the developer tools
-                        elif objfunc == "close_inspect":
-                            # presses the shortcut keys to close the developer tools
-                            ret = window.type_keys("{F12}")
-                        # refreshes the page
-                        elif objfunc == "refresh":
-                            # presses the shortcut keys to refresh the page
-                            ret = window.type_keys("{F5}")
-                        # presses the enter key
-                        elif objfunc == "enter":
-                            # presses the enter key
-                            ret = window.type_keys("{ENTER}")
-                        # presses the escape key
-                        elif objfunc == "escape":
-                            # presses the escape key
-                            ret = window.type_keys("{ESC}")
-                        # page down
-                        elif objfunc == "page_down":
-                            # presses the page down key
-                            ret = window.type_keys("{PGDN}")
-                        # page up
-                        elif objfunc == "page_up":
-                            # presses the page up key
-                            ret = window.type_keys("{PGUP}")
-                        # release auto_lock
-                        if p_thread:
-                            auto_lock.release()
-                        # return the object
-                        return ret
-
-                    # if the object is a pywinauto window element
-                    elif isinstance(object, self.AppElement):
-                        # returning
-                        ret = object
-                        # get the window of the AppElement object
-                        window = object.window
-                        # get the text of the AppElement object
-                        name = object.name
-                        # function to move the mouse from start to end,
-                        # with a speed of speed
-
-                        def movemouse(start, end, speed):
-                            import time
-                            from pywinauto import mouse
-
-                            # reverse the speed, so a speed of 50 gives
-                            # end_range of 50, and a speed of 75 gives
-                            # end_range of 25
-                            # dragging the mouse
-                            # presses the mouse down at the coordinates
-                            mouse.press(coords=start)
-                            end_range = 100 - speed
-                            for i in range(0, end_range):
-                                mouse.move(
-                                    coords=(
-                                        int(start[0] + (end[0] - start[0]) / 100 * i),
-                                        int(start[1] + (end[1] - start[1]) / 100 * i),
-                                    )
-                                )
-                                time.sleep(0.001)
-
-                            # releases the mouse at the end coordinates
-                            mouse.release(coords=end)
-
-                        p_thread = False
-                        # thread based functions
-                        # if the function is a thread based function
-                        if objfunc.endswith(":lock"):
-                            p_thread = True
-                            auto_lock.acquire()
-                            objfunc = objfunc[:-5]
-                        # OBTAINING DIFFERENT TYPES OF CHILDREN
-                        # get the element window
-                        if objfunc == "window":
-                            ret = window
-                        # element discovery with search()
-                        if (srch := search(window)) != "<msnint2 no callable>":
-                            ret = srch
-                        # getting information about the current window
-                        # gets the window text
-                        elif objfunc == "text":
-                            ret = window.window_text()
-                        # GETTING LOCATION OF THE WINDOW
-                        elif objfunc == "top":
-                            ret = window.get_properties()["rectangle"].top
-                        elif objfunc == "bottom":
-                            ret = window.get_properties()["rectangle"].bottom
-                        elif objfunc == "left":
-                            ret = window.get_properties()["rectangle"].left
-                        elif objfunc == "right":
-                            ret = window.get_properties()["rectangle"].right
-                        elif objfunc == "center" or objfunc == "mid_point":
-                            ret = window.get_properties()["rectangle"].mid_point()
-                        # getting the rectangle overall
-                        elif objfunc == "rectangle":
-                            ret = [
-                                window.get_properties()["rectangle"].top,
-                                window.get_properties()["rectangle"].bottom,
-                                window.get_properties()["rectangle"].left,
-                                window.get_properties()["rectangle"].right,
-                            ]
-                        # computes the diameter of the window
-                        elif objfunc == "width":
-                            try:
-                                left = window.get_properties()["rectangle"].left
-                                right = window.get_properties()["rectangle"].right
-                                ret = right - left
-                            except:
-                                ret = None
-                        # computes the height of the window
-                        elif objfunc == "height":
-                            try:
-                                top = window.get_properties()["rectangle"].top
-                                bottom = window.get_properties()["rectangle"].bottom
-                                ret = bottom - top
-                            except:
-                                ret = None
-                        # getting adjacent elements
-                        # could or could not be decendants
-                        # operation is very slow, should be used mainly
-                        # for element discovery
-                        elif objfunc == "element_above":
-                            from pywinauto import mouse
-
-                            # pixels above
-                            pixels = self.parse(0, line, args)[2]
-                            # pixels should be int
-                            self.type_err([(pixels, (int,))], line, lines_ran)
-                            # get the root window of this application
-                            root = object.top_level_parent()
-                            # get the top middle point of this element
-                            top = object.get_properties()["rectangle"].top - pixels
-                            mid = object.get_properties()["rectangle"].mid_point()[0]
-                            # if there exist two arguments, move the mouse to that location
-                            if len(args) == 2:
-                                mouse.move(coords=(mid, top))
-                            # recursively find all children from the root window
-                            # that have the point specified
-                            ret = rec(root, mid, top)
-                        elif objfunc == "element_below":
-                            from pywinauto import mouse
-
-                            # pixels above
-                            pixels = self.parse(0, line, args)[2]
-                            # pixels should be int
-                            self.type_err([(pixels, (int,))], line, lines_ran)
-                            # get the root window of this application
-                            root = object.top_level_parent()
-                            # get the top middle point of this element
-                            bottom = (
-                                object.get_properties()["rectangle"].bottom + pixels
-                            )
-                            mid = object.get_properties()["rectangle"].mid_point()[0]
-                            if len(args) == 2:
-                                mouse.move(coords=(mid, bottom))
-                            # recursively find all children from the root window
-                            # that have the point specified
-                            ret = rec(root, mid, bottom)
-                        elif objfunc == "element_left":
-                            from pywinauto import mouse
-
-                            # pixels to the left
-                            pixels = self.parse(0, line, args)[2]
-                            # pixels should be int
-                            self.type_err([(pixels, (int,))], line, lines_ran)
-                            # get the root window of this application
-                            root = object.top_level_parent()
-                            # get the left middle point of this element
-                            left = object.get_properties()["rectangle"].left - pixels
-                            mid = object.get_properties()["rectangle"].mid_point()[1]
-                            if len(args) == 2:
-                                mouse.move(coords=(left, mid))
-                            # recursively find all children from the root window
-                            # that have the point specified
-                            ret = rec(root, left, mid)
-                        elif objfunc == "element_right":
-                            from pywinauto import mouse
-
-                            # pixels to the right
-                            pixels = self.parse(0, line, args)[2]
-                            # pixels should be int
-                            self.type_err([(pixels, (int,))], line, lines_ran)
-                            # get the root window of this application
-                            root = object.top_level_parent()
-                            # get the right middle point of this element
-                            right = object.get_properties()["rectangle"].right + pixels
-                            mid = object.get_properties()["rectangle"].mid_point()[1]
-                            if len(args) == 2:
-                                mouse.move(coords=(right, mid))
-                            # recursively find all children from the root window
-                            # that have the point specified
-                            ret = rec(root, right, mid)
-                        # focus on the window
-                        elif objfunc == "focus":
-                            ret = window.set_focus()
-                        # scrolls to the window
-                        elif objfunc == "scroll":
-                            from pywinauto import mouse
-
-                            ret = mouse.scroll(
-                                coords=(
-                                    window.get_properties()["rectangle"].mid_point()[0],
-                                    window.get_properties()["rectangle"].mid_point()[1],
-                                )
-                            )
-                        # drags this element to either another AppElement
-                        elif objfunc == "drag":
-                            # if one argument and that argument isinstance(AppElement)
-                            first = self.parse(0, line, args)[2]
-                            # first should be AppElement
-                            self.type_err(
-                                [(first, (self.AppElement,))], line, lines_ran
-                            )
-                            # midpoint of the element to drag to
-                            start = (
-                                window.get_properties()["rectangle"].mid_point()[0],
-                                window.get_properties()["rectangle"].mid_point()[1],
-                            )
-                            end = (
-                                first.get_properties()["rectangle"].mid_point()[0],
-                                first.get_properties()["rectangle"].mid_point()[1],
-                            )
-
-                            # slowly moves the mouse to the end coordinates
-                            # this is to prevent the mouse from moving too fast
-                            # and not dragging the object
-                            # the farther the distance, the longer it takes
-                            # to move the mouse
-                            speed = 50
-                            if len(args) == 2:
-                                speed = self.parse(1, line, args)[2]
-                                # speed should be int
-                                self.type_err([(speed, (int,))], line, lines_ran)
-                            # drags the mouse
-                            movemouse(start, end, speed)
-                            ret = True
-                        # drags this AppElement to coordinates
-                        elif objfunc == "drag_coords":
-                            start = (
-                                window.get_properties()["rectangle"].mid_point()[0],
-                                window.get_properties()["rectangle"].mid_point()[1],
-                            )
-                            startcoord = self.parse(0, line, args)[2]
-                            endcoord = self.parse(1, line, args)[2]
-                            # both startcoord and endcoord should be int
-                            self.type_err(
-                                [(startcoord, (int,)), (endcoord, (int,))],
-                                line,
-                                lines_ran,
-                            )
-                            end = (startcoord, endcoord)
-                            # gets the speed, if specified
-                            speed = 50
-                            if len(args) == 3:
-                                speed = self.parse(2, line, args)[2]
-                                # speed should be int
-                                self.type_err([(speed, (int,))], line, lines_ran)
-                            # drags the mouse
-                            movemouse(start, end, speed)
-                            ret = True
-                        # WINDOW ACTIONS
-                        # sends keystrokes to the application
-                        # takes one argument, being the keystrokes to send
-                        elif objfunc == "write":
-                            writing = self.parse(0, line, args)[2]
-                            # writing should be str
-                            self.type_err([(writing, (str,))], line, lines_ran)
-                            timeout = False
-                            # if a timeout between keystrokes is offered
-                            if len(args) == 2:
-                                timeout = True
-                            if timeout:
-                                delay = self.parse(1, line, args)[2]
-                                # delay should be float or int or complex
-                                self.type_err(
-                                    [(delay, (float, int, complex))], line, lines_ran
-                                )
-                                ret = type_keys_with_delay(window, writing, delay)
-                            else:
-                                try:
-                                    ret = window.type_keys(writing, with_spaces=True)
-                                except:
-                                    window.set_focus()
-                                    ret = window.type_keys(writing)
-                        # presses backspace
-                        # if no arguments, presses it one time
-                        # else, presses it the first argument many times
-                        if objfunc == "backspace":
-                            window.set_focus()
-                            # no argument
-                            if args[0][0] == "":
-                                ret = window.type_keys("{BACKSPACE}")
-                            # else, send {BACKSPACE} that many times
-                            else:
-                                times = self.parse(0, line, args)[2]
-                                # times should be int
-                                self.type_err([(times, (int,))], line, lines_ran)
-                                ret = window.type_keys("{BACKSPACE}" * times)
-                        # presses the enter key
-                        elif objfunc == "enter":
-                            ret = window.type_keys("{ENTER}")
-                        # hovers over the window
-                        elif objfunc == "hover":
-                            from pywinauto import mouse
-
-                            # hovers the mouse over the window, using the mid point of the element
-                            ret = mouse.move(
-                                coords=(
-                                    window.get_properties()["rectangle"].mid_point()
-                                )
-                            )
-                        # different types of AppElements
-                        # if the appelement is a button
-                        if isinstance(object, self.Button):
-                            # clicks the button
-                            if objfunc == "click" or objfunc == "left_click":
-                                ret = object.click()
-                            # left clicks the button
-                            elif objfunc == "right_click":
-                                ret = object.right_click()
-                            ret = object
-                        # working with Links
-                        elif isinstance(object, self.Link):
-                            waittime = (
-                                self.parse(0, line, args)[2] if args[0][0] != "" else 1
-                            )
-
-                            # waittime should be float or int or complex
-                            self.type_err(
-                                [(waittime, (float, int, complex))], line, lines_ran
-                            )
-                            # clicks the link
-                            if objfunc == "click" or objfunc == "left_click":
-                                ret = clk(window, waittime=waittime)
-                            # right clicks the link
-                            elif objfunc == "right_click":
-                                ret = clk(window, button="right", waittime=waittime)
-                            ret = object
-                        # working with Tables
-                        elif isinstance(object, self.Table):
-                            # get table
-                            table = object.window
-                            # gets a row by index, based on the above logic
-
-                            def row(index):
-                                row = []
-                                items = []
-                                try:
-                                    cols = table.column_count()
-                                except NotImplementedError:
-                                    # not implemented
-                                    cols = 5
-                                    items = table.items()
-                                for i in range(cols):
-                                    try:
-                                        try:
-                                            wrapper = table.cell(row=index, column=i)
-                                        except:
-                                            # table.items() gets a 1D list of items,
-                                            # compute the index of the item
-                                            # based on 'i' and 'index'
-                                            wrapper = items[i + index * cols]
-
-                                        row.append(
-                                            self.AppElement(
-                                                wrapper, wrapper.window_text()
-                                            )
-                                        )
-                                    except:
-                                        break
-                                return row
-
-                            # gets a column by index
-
-                            def col(index):
-                                col = []
-                                for i in range(table.column_count()):
-                                    try:
-                                        wrapper = table.cell(row=i, column=index)
-                                        col.append(
-                                            self.AppElement(
-                                                wrapper, wrapper.window_text()
-                                            )
-                                        )
-                                    except:
-                                        break
-                                return col
-
-                            # gets a cell at a row and column
-                            if objfunc == "get":
-                                # get column
-                                col = self.parse(0, line, args)[2]
-                                # get row
-                                row = self.parse(1, line, args)[2]
-                                # column and row should be int
-                                self.type_err(
-                                    [(col, (int,)), (row, (int,))], line, lines_ran
-                                )
-                                wrapper = table.cell(row=row, column=col)
-                                # gets the cell
-                                ret = self.AppElement(wrapper, wrapper.window_text())
-                            # try to accumulate all the rows
-                            # up to sys.maxsize
-                            elif objfunc == "matrix":
-                                import sys
-
-                                matrix = []
-                                for i in range(sys.maxsize):
-                                    try:
-                                        if _r := row(i):
-                                            matrix.append(_r)
-                                        else:
-                                            break
-                                    except:
-                                        break
-                                ret = matrix
-                            # gets a row
-                            elif objfunc == "row":
-                                ind = self.parse(0, line, args)[2]
-                                # ind should be int
-                                self.type_err([(ind, (int,))], line, lines_ran)
-                                ret = row(ind)
-                            # gets a column
-                            elif objfunc == "column":
-                                ind = self.parse(0, line, args)[2]
-                                # ind should be int
-                                self.type_err([(ind, (int,))], line, lines_ran)
-                                ret = col(ind)
-                        # working with ToolBars
-                        elif isinstance(object, self.ToolBar):
-                            toolbar_window = object.window
-                            # gets the buttons of the toolbar
-                            if objfunc == "buttons":
-                                ret = [
-                                    toolbar_window.button(i)
-                                    for i in range(toolbar_window.button_count())
-                                ]
-                            # prints the buttons of this toolbar
-                            if objfunc == "print_buttons":
-                                for i in range(toolbar_window.button_count()):
-                                    print(i, ":", toolbar_window.button(i))
-                                ret = None
-                            # gets a button at an index
-                            if objfunc == "button":
-                                ret = toolbar_window.button(
-                                    self.parse(0, line, args)[2]
-                                )
-                            # finds all buttons with subtext in their names
-                            if objfunc == "find_buttons":
-                                txt = self.parse(0, line, args)[2]
-                                # txt should be str
-                                self.type_err([(txt, (str,))], line, lines_ran)
-                                ret = find_buttons(toolbar_window, txt)
-                            ret = object
-                        # working with scrollbars
-                        elif isinstance(object, self.ScrollBar):
-                            scrollbar_window = object.window
-                            if objfunc == "scroll_down":
-                                ret = scrollbar_window.scroll_down(
-                                    amount="page", count=1
-                                )
-                        # extra methods such that this AppElement requires different logic
-                        if objfunc == "click" or objfunc == "left_click":
-                            waittime = (
-                                self.parse(0, line, args)[2] if args[0][0] != "" else 1
-                            )
-                            # waittime must be float or int or complex
-                            self.type_err(
-                                [(waittime, (float, int, complex))], line, lines_ran
-                            )
-                            ret = clk(window, waittime=waittime)
-                        elif objfunc == "right_click":
-                            waittime = (
-                                self.parse(0, line, args)[2] if args[0][0] != "" else 1
-                            )
-                            # waittime must be float or int or complex
-                            self.type_err(
-                                [(waittime, (float, int, complex))], line, lines_ran
-                            )
-                            ret = clk(window, button="right", waittime=waittime)
-                        # if thread based, release the lock
-                        if p_thread:
-                            auto_lock.release()
-                        return ret
-                    # if the object is a dictionary
-                    elif isinstance(object, dict):
-                        if objfunc in FUNCTION_DISPATCH["obj"]["general"]["dict"]:
-                            return FUNCTION_DISPATCH["obj"]["general"]["dict"][objfunc](
-                                self, line, args, object=object, vname=vname
-                            )
-
-                # user function execution requested
-                # user functions take priority
-                # over general msn2 functions
-                if func in self.methods:
-                    from functions import user_function_exec
-                    return user_function_exec(inst, lines_ran)
-
-                # the  belowconditions interpret a line based on initial appearances
-                # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
-                # request for Interpreter redirect to a block of code
-                elif func in FUNCTION_DISPATCH:
-                    return FUNCTION_DISPATCH[func](
-                        self, line, args, 
-                        inst=inst, lines_ran=lines_ran, total_ints=total_ints, msn2_none=msn2_none, 
-                        macros=macros, postmacros=postmacros, enclosed=enclosed, syntax=syntax, python_alias=python_alias,
-                        auxlock=auxlock, pointer_lock=pointer_lock
+                # consuming
+                mergedargs, args, func, objfunc, inst, chaining_info = consume(
+                    self, line, i, l, obj, inst_tree, func, objfunc)
+
+                # 2.0.403
+                # basic method chaining
+                if chaining_info["is_chained"]:
+                    args, take_return = self.get_new_args(args)
+                    if take_return:
+                        return args
+                    return self.interpret_expression(
+                        Instruction(line, func, obj, objfunc,
+                                    args, inst_tree, self),
+                        args, obj, objfunc, line, func, line,
+                        is_chained=True, top_level_inst=top_level_inst
                     )
-                    
-                # for objects
-                elif obj in FUNCTION_DISPATCH["obj"]:
-                    if objfunc in FUNCTION_DISPATCH["obj"][obj]:
-                        return FUNCTION_DISPATCH["obj"][obj][objfunc](
-                            self, line, args, 
-                            inst=inst, lines_ran=lines_ran, total_ints=total_ints, lock=lock
-                        )
-                    else:
-                        return FUNCTION_DISPATCH["obj"][obj]["else"](
-                            self, line, args,
-                            inst=inst, lines_ran=lines_ran, total_ints=total_ints, objfunc=objfunc
-                        )
-
-                # # object instance requested
-                # # if the function is in the variables
-                # # and the variable is a class
-                elif func in self.vars and isinstance(self.vars[func].value, dict):
-                    return FUNCTION_DISPATCH["obj"]["instance"]["new"](
-                        self, line, args, func=func
-                    )
-
-                # quicker conditional operator as functional prefix
-                elif len(func) > 0 and func[0] == "?":
-                    return FUNCTION_DISPATCH["special"]["?"](
-                        self, line, args, func=func
-                    )
-                    
-                # inline function, takes any amount of instructions
-                # returns the result of the last instruction
-                elif func == "" and objfunc == "":
-                    return FUNCTION_DISPATCH["=>"](self, line, args, inst=inst)
-                # if the function, when parsed, is an integer,
-                # then it is a loop that runs func times
-                elif (_i := self.get_int(func)) != None:
-                    return FUNCTION_DISPATCH["special"]["intloop"](
-                        self, line, args, _i=_i
-                    )
-
-                # if the function is a variable name
-                elif func in self.vars:
-                    return FUNCTION_DISPATCH["special"]["varloop"](
-                        self, line, args, func=func
-                    )
-                
-                
-                # mouse pointer operations
-                elif obj.startswith("pointer"):
-                    # thread based action?
-                    p_thread = False
-                    # return
-                    ret = "<msnint2 class>"
-                    # determine if thread based pointer action has been requested
-                    if obj.endswith(":lock"):
-                        p_thread = True
-                        pointer_lock.acquire()
-                    # run the function
-                    ret = FUNCTION_DISPATCH["obj"]["pointer"][objfunc](
-                        self, line, args,
-                    )
-                    if p_thread:
-                        pointer_lock.release()
-                    return ret
-
-                # functional syntax for easier to write loops
-                # cannot receive non literal or variable arguments, or any expression containing a '|'
-                # syntax:     3|5|i (prnt(i))
-                # prnts 3\n4\n5
-                # Functional syntax for loops like 3|5|i (prnt(i))
-                # elif func.count("|") == 2:
-                elif (_func_split := func.split("|")) and len(_func_split) == 3:
-                    start = self.interpret(_func_split[0])
-                    end = self.interpret(_func_split[1])
-                    loopvar = _func_split[2]
-                    
-                    self.vars[loopvar] = Var(loopvar, start)
-                    
-                    step = 1 if start < end else -1
-
-                    for i in range(start, end, step):
-                        self.vars[loopvar].value = i
-                        self.interpret(args[0][0])
-                    return
-                # fallback
-                else:
-                    try:
-                        line = self.replace_vars2(line)
-                        return eval(line, {}, {})
-                    except:
-                        # maybe its a variable?
-                        try:
-                            return self.vars[line].value
-                        except:
-                            # ok hopefully its a string lol
-                            return line
+                # standard interpretation
+                return self.interpret_expression(inst, args, obj,
+                                                 objfunc, mergedargs, func, line,
+                                                 top_level_inst=top_level_inst)
             if obj != "":
                 objfunc += c
             else:
@@ -3149,7 +605,324 @@ class Interpreter:
             try:
                 return eval(str(self.replace_vars(line)), {}, {})
             except:
-                return None
+                return
+
+    def legacy_curly_func_decl(self, line, i):
+        returnvariable = ""
+        self.loggedmethod.append("")
+        for j in range(i + 1, len(line)):
+            if line[j] != " ":
+                if line[j] == "(":
+                    args = self.method_args(line, j)
+                    for k in range(args[1], len(line)):
+                        if line[k] != " ":
+                            if line[k] == "-" and line[k + 1] == ">":
+                                for l in range(k + 2, len(line)):
+                                    if line[l] != " ":
+                                        returnvariable += line[l]
+                    break
+                self.loggedmethod[-1] += line[j]
+        if self.loggedmethod[-1] not in self.methods.keys():
+            self.methods[self.loggedmethod[-1]] = Method(
+                self.loggedmethod[-1], self
+            )
+        else:
+            # break out of the loop that called this function
+            return
+        for arg in args[0]:
+            if arg != "":
+                self.vars[arg] = None
+                self.methods[self.loggedmethod[-1]].add_arg(arg)
+        self.methods[self.loggedmethod[-1]].add_return(returnvariable)
+        return self.loggedmethod[-1]
+
+    def get_new_args(self, new_args):
+        _gotten_new_args = self._get_new_args(new_args)
+        _new_gotten_new_args = []
+        for argset in _gotten_new_args:
+            if argset[0].strip().startswith("@"):
+                new_line = ""
+
+                def recurse(argset):
+                    nonlocal new_line
+                    new_line += f"{argset[0]}."
+                    if len(argset) == 3:
+                        new_line = new_line[:-1]
+                        return
+                    elif len(argset) == 4:
+                        recurse(argset[3])
+                recurse(argset)
+                _new_gotten_new_args.append([new_line, 0, 0])
+            else:
+                _new_gotten_new_args.append(argset)
+        _gotten_new_args = _new_gotten_new_args
+
+        _new_args = []
+        for exp in _gotten_new_args:
+            if len(exp) == 4:
+                adding = self._interpret_chain(exp)
+                _new_args.append(adding)
+            else:
+                _new_args.append(exp)
+        return _new_args, False
+
+    def _get_new_args(self, args):
+        def process_list(lst):
+            result = []
+            promoted = []
+            first = True
+            for elem in lst:
+                if isinstance(elem, list):
+                    if len(elem) >= 4 and isinstance(elem[3], list):
+                        processed_chain, chain_promoted = process_list(
+                            elem[3])
+                        if len(processed_chain) == 1:
+                            elem[3] = processed_chain[0]
+                        else:
+                            elem[3] = processed_chain
+                        if first:
+                            result.append(elem)
+                            first = False
+                        else:
+                            promoted.append(elem)
+                        promoted.extend(chain_promoted)
+                    else:
+                        if first:
+                            result.append(elem)
+                            first = False
+                        else:
+                            promoted.append(elem)
+                else:
+                    result.append(elem)
+            return result, promoted
+        processed_args, promoted_args = process_list(args)
+        return processed_args + promoted_args
+
+    def _interpret_chain(self, chain_exp, vn=None, i=0, chain_line=""):
+        if len(chain_exp) == 3:
+            # if chain_line ends in a ',', remove it
+            if chain_line.endswith(","):
+                chain_line = chain_line[:-1]
+            # based on func, obj and objfunc, create the final instruction
+            return [f"{chain_line},var('{vn}',{vn}.{chain_exp[0]},True),{vn})", 0, 0]
+
+        # interpret this expression
+        if i == 0:
+            # create a temporary variable for chaining
+            temp = self.temp_safe_var()
+            # initial line
+            init_line = f"(var('{temp.name}',{chain_exp[0]},True),"
+            return self._interpret_chain(chain_exp[-1], temp.name, i + 1, init_line)
+        else:
+            # otherwise, we're doing a chain interpretation
+            # get the variable name
+            final_line = f"var('{vn}',{vn}.{chain_exp[0]},True),"
+            # interpret the expression
+            return self._interpret_chain(chain_exp[-1], vn, i + 1, chain_line + final_line)
+
+    def temp_safe_var(self):
+        import random
+        from core.classes.var import RESERVED_VARNAME_PREFIX
+        name = ""
+        while name == "" or name in self.vars:
+            name = f"{RESERVED_VARNAME_PREFIX}_temp{random.randint(0, 9999999)}"
+        return Var(name, None, force_allow_name=True)
+
+    # interprets an expression
+
+    def interpret_expression(self, inst, args, obj, objfunc,
+                             mergedargs, func, line, is_chained=False,
+                             top_level_inst=False, has_outer_function=True):
+
+        # if using_js
+        if self.using_js:
+            return inst.convert_to_js(lock, lines_ran)
+
+        # class attribute / method access
+        if obj in self.vars:
+            vname = obj
+            object = getattr(self.vars.get(
+                obj), 'value', self.vars.get(obj))
+
+            _type_object = type(object)
+            try:
+                # if the object is a class
+                if objfunc in object:
+                    # if the object is a Method
+                    if isinstance(object[objfunc], Method):
+                        # get the Method object
+                        method = object[objfunc]
+                        # get the number of arguments to the method
+                        num_args = len(method.args)
+                        # args to pass to the function
+                        to_pass = [vname]
+                        # if there is no argument
+                        if args[0][0] != "":
+                            # for each parsed argument
+                            for k in range(num_args):
+                                try:
+                                    to_pass.append(
+                                        self.parse(k, line, args)[2])
+                                except:
+                                    pass
+                        # create return variable
+                        ret_name = method.returns[0]
+                        # if the return variable doesn't exist
+                        if ret_name not in self.vars:
+                            self.vars[ret_name] = Var(ret_name, None)
+                        # insert vname into args[0]
+                        args.insert(0, [vname])
+                        # execute method
+                        try:
+                            method.run(to_pass, self, args)
+                        # Index out of bounds error
+                        except IndexError:
+                            self.raise_incorrect_args(
+                                str(len(method.args)),
+                                str(self.arg_count(args) - 1),
+                                line,
+                                lines_ran,
+                                method,
+                            )
+                        try:
+                            return eval(
+                                str(self.vars[method.returns[0]].value), {
+                                }, {}
+                            )
+                        except:
+                            try:
+                                return str(self.vars[method.returns[0]].value)
+                            except:
+                                return str(self.vars[method.returns[0]])
+                    # otherwise if we're accessing an attribute
+                    # no arguments given
+                    if args[0][0] == "":
+                        return object[objfunc]
+                    # parameter provided, wants to set attribute
+                    param = self.parse(0, line, args)[2]
+                    self.vars[obj].value[objfunc] = param
+                    return param
+            except MSN2Exception as e:
+                raise e
+            except:
+                pass
+            # # as of 2.0.388,
+            # # if the objfunc ends with '!',
+            # # it becomes destructive
+            # # and returns the object
+            if objfunc.endswith("!"):
+                return FUNCTION_DISPATCH["obj"]["general"]["!"](
+                    self, line, args, vname=vname, objfunc=objfunc, mergedargs=mergedargs
+                )
+            if objfunc in FUNCTION_DISPATCH["obj"]["general"]["default"]:
+                return FUNCTION_DISPATCH["obj"]["general"]["default"][objfunc](
+                    self, line, args, vname=vname, objfunc=objfunc, mergedargs=mergedargs,
+                    object=object, obj=obj, lines_ran=lines_ran
+                )
+
+            # variable type specific methods
+
+            # do the above but without code repetition
+            # check for general functions
+            if _type_object in FUNCTION_DISPATCH["obj"]["general"]:
+                if objfunc in FUNCTION_DISPATCH["obj"]["general"][_type_object]:
+                    return FUNCTION_DISPATCH["obj"]["general"][_type_object][objfunc](
+                        self, line, args, vname=vname, objfunc=objfunc,
+                        object=object, obj=obj, lines_ran=lines_ran, apps=apps, inst_tree=inst_tree
+                    )
+
+            # check for requests_html.HTML
+            elif str(_type_object) in FUNCTION_DISPATCH["obj"]["general"]["class_based"]:
+                if objfunc in FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_object]:
+                    return FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_object][objfunc](
+                        self, line, args, object=object, objfunc=objfunc
+                    )
+                else:
+                    return FUNCTION_DISPATCH["obj"]["general"]["class_based"][_type_object]["else"](
+                        self, line, args, object=object, objfunc=objfunc
+                    )
+        # user function execution requested
+        # user functions take priority
+        # over general msn2 functions
+        if func in self.methods:
+            return user_function_exec(inst, lines_ran)
+
+        # the  belowconditions interpret a line based on initial appearances
+        # beneath these conditions will the Interpreter then parse the arguments from the line as a method call
+        # request for Interpreter redirect to a block of code
+        elif func in FUNCTION_DISPATCH:
+            return FUNCTION_DISPATCH[func](
+                self, line, args,
+                inst=inst, lines_ran=lines_ran, total_ints=total_ints, msn2_none=msn2_none,
+                macros=macros, postmacros=postmacros, enclosed=enclosed, syntax=syntax, python_alias=python_alias,
+                auxlock=auxlock, pointer_lock=pointer_lock, timings_set=timings_set, thread_serial=thread_serial,
+                is_chained=is_chained, top_level_inst=top_level_inst, has_outer_function=has_outer_function
+            )
+
+        # for objects
+        elif obj in FUNCTION_DISPATCH["obj"]:
+            if objfunc in FUNCTION_DISPATCH["obj"][obj]:
+                return FUNCTION_DISPATCH["obj"][obj][objfunc](
+                    self, line, args,
+                    inst=inst, lines_ran=lines_ran, total_ints=total_ints, lock=lock
+                )
+            else:
+                return FUNCTION_DISPATCH["obj"][obj]["else"](
+                    self, line, args,
+                    inst=inst, lines_ran=lines_ran, total_ints=total_ints, objfunc=objfunc
+                )
+
+        # # object instance requested
+        # # if the function is in the variables
+        # # and the variable is a class
+        elif func in self.vars and isinstance(self.vars[func].value, dict):
+            return FUNCTION_DISPATCH["obj"]["instance"]["new"](
+                self, line, args, func=func
+            )
+
+        # quicker conditional operator as functional prefix
+        elif len(func) > 0 and func[0] == "?":
+            return FUNCTION_DISPATCH["special"]["?"](
+                self, line, args, func=func
+            )
+
+        # inline function, takes any amount of instructions
+        # returns the result of the last instruction
+        elif func == "" and objfunc == "":
+            return FUNCTION_DISPATCH["=>"](self, line, args, inst=inst)
+        # if the function, when parsed, is an integer,
+        # then it is a loop that runs func times
+        elif (_i := self.get_int(func)) is not None:
+            return FUNCTION_DISPATCH["special"]["intloop"](
+                self, line, args, _i=_i
+            )
+
+        # if the function is a variable name
+        elif func in self.vars:
+            return FUNCTION_DISPATCH["special"]["varloop"](
+                self, line, args, func=func
+            )
+
+        # functional syntax for easier to write loops
+        # cannot receive non literal or variable arguments, or any expression containing a '|'
+        # syntax:     3|5|i (prnt(i))
+        # prnts 3\n4\n5
+        # Functional syntax for loops like 3|5|i (prnt(i))
+        # elif func.count("|") == 2:
+        elif (_func_split := func.split("|")) and len(_func_split) == 3:
+            return bar_loop(self, line, args, _func_split=_func_split)
+        # fallback
+        else:
+            try:
+                line = self.replace_vars2(line)
+                return eval(line, {}, {})
+            except:
+                # maybe its a variable?
+                try:
+                    return self.vars[line].value
+                except:
+                    # ok hopefully its a string lol
+                    return line
 
     # adds a new program wide syntax
 
@@ -3178,84 +951,16 @@ class Interpreter:
 
     # ls: long string
     def ls(self, args):
+        # print(args)
         return self.msn2_replace(",".join([str(arg[0]) for arg in args]).strip())
 
     # replaces tokens in the string with certain
     # characters or values
     # TODO: implement linear interpretation
+
     def msn2_replace(self, script):
-        # Define the replacements
-        replacements = {
-            "<tag>": "#",
-            "<nl>": "\n",
-            # deep newline
-            "<dnl>": "\\n",
-            "<rp>": ")",
-            "<lp>": "(",
-            "<rb>": "]",
-            "<lb>": "[",
-            "<rcb>": "}",
-            "<lcb>": "{",
-            "(,)": ",",
-            "<or>": "||",
-            "< >": " ",
-            "<lt>": "<",
-            "<gt>": ">",
-        }
-
-        # do the above but faster and more efficient
-        for key in replacements:
-            script = script.replace(key, replacements[key])
-
-        # replaces whats in between the tags
-        # with the interpretation of whats between the tags
-        #
-        # interpretation  is with self.interpret(script)
-        #
-        # script(
-        #     {='hello1'=}
-
-        #     {=
-        #         cat('hello',
-        #             {='hi there'=}
-        #         )
-        #     =}
-        # )
-        #
-        def recurse_tags(scr, force_string=False):
-            # get the first tag
-            # if there is no tag, return the script
-            if (first := scr.find(tag)) == -1:
-                return scr
-            # find the matching end tag
-            stack = []
-            i = first + len(tag)
-            while i < len(scr):
-                if scr[i : i + len(endtag)] == endtag:
-                    if len(stack) == 0:
-                        break
-                    stack.pop()
-                    i += len(endtag)
-                elif scr[i : i + len(tag)] == tag:
-                    stack.append(tag)
-                    i += len(tag)
-                else:
-                    i += 1
-            # recursively interpret the code between the tags
-            interpreted_code = self.interpret(recurse_tags(scr[first + len(tag) : i]))
-            if force_string:
-                interpreted_code = f'"{interpreted_code}"'
-            new_scr = f"{scr[:first]}{interpreted_code}{scr[i+len(endtag):]}"
-            # recursively continue replacing tags in the remaining script
-            return recurse_tags(new_scr)
-
-        # applying '{=' '=}' tags
-        tag = "{="
-        endtag = "=}"
-        with_msn2 = recurse_tags(script)
-        return with_msn2
-
-    #
+        from core.insertions import inter_msn2_replace
+        return inter_msn2_replace(self, script)
 
     # determines the number of arguments based on the args array
     def arg_count(self, args):
@@ -3267,22 +972,8 @@ class Interpreter:
 
     # returns True if should go to the next file to import
     def imp(self, i, line, args, can_exit):
-        path = self.parse(i, line, args)[2]
-        # path must be a string
-        self.type_err([(path, (str,))], line, lines_ran)
-        if not path.endswith(".msn2"):
-            path += ".msn2"
-        if path in can_exit:
-            return False
-        can_exit.add(path)
-        contents = ""
-        with open(path) as f:
-            contents = f.readlines()
-            script = ""
-            for line in contents:
-                script += line
-        self.logg("importing library", path)
-        return script
+        from core.system import import_msn2
+        return import_msn2(self, i, line, args, can_exit, lines_ran)
 
     # creates a child interpreter
     def new_int(self):
@@ -3291,17 +982,14 @@ class Interpreter:
         ret.trying = self.trying
         return ret
 
-    def run_syntax(self, key, line):
+    def run_syntax(self, key, line, has_outer_function=True):
         # get everything between after syntax and before next index of syntax
         # or end of line
-        inside = line[len(key) : line.rindex(key)]
-        # variable name
+        inside = line[len(key): line.rindex(key)]
         invarname = syntax[key][0]
-        # function to be run
         function = syntax[key][1]
-        # store the in between for the user function
         self.vars[invarname] = Var(invarname, inside)
-        return self.interpret(function)
+        return self.interpret(function, has_outer_function=has_outer_function)
 
     def replace_vars2(self, line):
         for varname, var in self.vars.items():
@@ -3372,9 +1060,8 @@ class Interpreter:
         return func_args, meth_argname, arg, ind
 
     # parses an argument from a function
-    def parse(self, arg_number, line, args):
-        # put the self.convert_arg() logic here instead:
-        return line, (as_s := args[arg_number][0]), self.interpret(as_s)
+    def parse(self, arg_number, line, args, top_level_inst=False):
+        return line, (as_s := args[arg_number][0]), self.interpret(as_s, top_level_inst)
 
     # gets the shortened version of a variable's value
     def shortened(self, needs_short):
@@ -3476,154 +1163,8 @@ class Interpreter:
 
     # general error printing
     def err(self, err, msg, line, lines_ran):
-        # if we're not trying something, and there's an error,
-        # print the error
-        if not self.trying:
-            # the total words printed for this error
-            words_printed = ""
-            # prints the error
-
-            def print_err(array):
-                # print the error
-                self.styled_print(array)
-                # add to words printed
-                nonlocal words_printed
-                words_printed += str(array)
-
-            # printing the traceback
-            print_err(
-                [
-                    {"text": "MSN2 Traceback:\n", "style": "bold", "fore": "green"},
-                    {"text": (divider := "-" * 15), "style": "bold", "fore": "green"},
-                ]
-            )
-            _branches = []
-            root_nums = {root_num for _, (root_num, _) in inst_tree.items()}
-            # for k, (root_num, code_line) in inst_tree.items():
-            #     root_nums.add(root_num)
-            # #root_nums = list(set(root_nums))
-            # #root_nums.sort()
-            for root_num in sorted(root_nums):
-                branches = []
-                for k, (root_num2, code_line2) in inst_tree.items():
-                    if root_num2 == root_num:
-                        branches.append(code_line2)
-                _branches.append(branches)
-            # print the traceback
-            # only the last 7 branches
-            for i, _branch in enumerate((new_branches := _branches[-7:])):
-                # color of the text
-                _branch_color = "black"
-                # if this is the last branch
-                if is_caller := i == len(new_branches) - 1:
-                    _branch_color = "red"
-                else:
-                    _branch_color = "white"
-                # print the caller
-                if (_b := _branch[0].strip()) != "":
-                    print_err(
-                        [
-                            {"text": ">> ", "style": "bold", "fore": "black"},
-                            {
-                                "text": self.shortened(_b),
-                                "style": "bold",
-                                "fore": _branch_color,
-                            },
-                            {
-                                "text": " <<< " if is_caller else "",
-                                "style": "bold",
-                                "fore": "yellow",
-                            },
-                            {
-                                "text": "SOURCE" if is_caller else "",
-                                "style": "bold",
-                                "fore": "yellow",
-                            },
-                        ]
-                    )
-                # if branches more than 3
-                if len(_branch) > 4 and not is_caller:
-                    # print the lines branching off
-                    print_err(
-                        [
-                            {"text": "    at   ", "style": "bold", "fore": "black"},
-                            {
-                                "text": self.shortened(_branch[0].strip()),
-                                "style": "bold",
-                                "fore": _branch_color,
-                            },
-                        ]
-                    )
-                    # print ...
-                    print_err(
-                        [
-                            {"text": "    at   ", "style": "bold", "fore": "black"},
-                            {
-                                "text": f"... ({len(_branch) - 4} more)",
-                                "style": "bold",
-                                "fore": "black",
-                            },
-                        ]
-                    )
-                # if branches less than 3
-                else:
-                    if len(_branch) > 7:
-                        # print the before elipses
-                        print_err(
-                            [
-                                {"text": "    at   ", "style": "bold", "fore": "black"},
-                                {
-                                    "text": f"... ({len(_branch) - 7} more)",
-                                    "style": "bold",
-                                    "fore": "black",
-                                },
-                            ]
-                        )
-                        for i, _branch2 in enumerate(_branch[len(_branch) - 7 :]):
-                            print_err(
-                                [
-                                    {
-                                        "text": "    at   ",
-                                        "style": "bold",
-                                        "fore": "black",
-                                    },
-                                    {
-                                        "text": self.shortened(_branch2.strip()),
-                                        "style": "bold",
-                                        "fore": _branch_color,
-                                    },
-                                ]
-                            )
-                    else:
-                        for _branch2 in _branch[1:]:
-                            print_err(
-                                [
-                                    {
-                                        "text": "    at   ",
-                                        "style": "bold",
-                                        "fore": "black",
-                                    },
-                                    {
-                                        "text": self.shortened(_branch2.strip()),
-                                        "style": "bold",
-                                        "fore": _branch_color,
-                                    },
-                                ]
-                            )
-            # print the finishing divider
-            print_err([{"text": divider, "style": "bold", "fore": "green"}])
-            # print this error with print_err()
-            print_err(
-                [
-                    {"text": "[-] ", "style": "bold", "fore": "red"},
-                    {"text": err, "style": "bold", "fore": "red"},
-                    {"text": "\n"},
-                    {"text": msg, "style": "bold", "fore": "red"},
-                ]
-            )
-            # add to log
-            self.log += f"{words_printed}\n"
-        raise self.MSN2Exception("MSN2 Exception thrown, see above for details")
+        from core.errors import inter_raise_err
+        return inter_raise_err(self, err, msg, inst_tree)
 
     # throws a keyerror
     def raise_key(self, key, line):
@@ -3727,11 +1268,19 @@ class Interpreter:
             lines_ran,
         )
 
+    def raise_ArgumentCountError(self, method: str, expected, actual, line, lines_ran):
+        return self.err(
+            f"Incorrect number of function arguments for {method}",
+            f"Expected {expected}, got {actual}",
+            line,
+            lines_ran,
+        )
+
     # throws msn2 error for Index out of bounds
 
     def raise_index_out_of_bounds(self, line, lines_ran, method):
         return self.err(
-            f"Index out of bounds in body of {method.name}",
+            f"Index out of bounds in body of {method.name if hasattr(method, 'name') else method}",
             f"Index out of bounds",
             line,
             lines_ran,
@@ -3766,15 +1315,17 @@ class Interpreter:
         return inter.interpret(line)
 
     # executing Python scripts
-    def exec_python(self, python_block):
+    def exec_python(self, python_block, has_outer_function=True, include_temp_vars=True):
         # get the python script with arguments inserted
-        py_script = str(self.interpret(f"script({python_block})"))
+        py_script = str(self.interpret(
+            f"script({python_block})", has_outer_function=has_outer_function, include_temp_vars=include_temp_vars))
         # try to execute the script
         try:
             exec(py_script, self._globals, self._locals)
         except Exception as e:
             # send an error
-            self.err("Error running Python script", str(e), py_script, lines_ran)
+            self.err("Error running Python script",
+                     str(e), py_script, lines_ran)
         return py_script
 
     def var_exists(self, varname):
@@ -3803,130 +1354,8 @@ class Interpreter:
     def get_var(self, name):
         return self.vars[name].value
 
-    # extracts the argument lines from the merged arguments passed
-    def get_args(self, line):
-        args = []
-        l = len(line)
-        arg = ""
-        start = 0
-        p = 0
-        a = 0
-        s = 0
-        indouble = False
-        s2 = 0
-        insingle = False
-        b = 0
-        for i in range(l + 1):
-            c = ""
-            try:
-                c = line[i]
-            except:
-                None
-            if c == "[" and not s2 > 0 and not s > 0:
-                a += 1
-            if c == "]" and not s2 > 0 and not s > 0:
-                a -= 1
-            if c == "(" and not s2 > 0 and not s > 0:
-                p += 1
-            if c == ")" and not s2 > 0 and not s > 0:
-                p -= 1
-            if not self.in_string(s, s2):
-                if c == "{":
-                    b += 1
-                if c == "}":
-                    b -= 1
-            if not indouble and not s2 > 0 and c == '"':
-                s += 1
-                indouble = True
-            elif indouble and c == '"':
-                s -= 1
-                indouble = False
-            if not insingle and not s > 0 and c == "'":
-                s2 += 1
-                insingle = True
-            elif insingle and c == "'":
-                s2 -= 1
-                insingle = False
-            # print(line)
-            # print (f"""
-            # c: {c}
-            # p: {p}
-            # a: {a}
-            # s: {s}
-            # s2: {s2}
-
-            # """)
-            if c == "," and s == 0 and s2 == 0 and p == 0 and a == 0 and b == 0:
-                args.append([arg, start, start + len(arg)])
-                start = i + 1
-                arg = ""
-                continue
-            elif i == l:
-                args.append([arg, start, start + len(arg)])
-            arg += c
-        return args
-
     def in_string(self, s, s2):
         return s > 0 or s2 > 0
-
-    def interpret_msnscript_1(self, line):
-        element = ""
-        variable = ""
-        for i in range(0, len(line)):
-            c = line[i]
-            if c != " ":
-                if c == "+" and line[i + 1] == "=":
-                    variable = element
-                    element = ""
-                    for j in range(i + 2, len(line)):
-                        element += line[j]
-
-                    # if element is a number
-                    if isinstance(element, float) or isinstance(element, int):
-                        self.vars[variable].value += self.interpret(element)
-                    # if element is a string
-                    elif isinstance(element, str):
-                        try:
-                            self.vars[variable].value += self.interpret(element)
-                        except:
-                            self.vars[variable].value += self.interpret(element)
-                    return self.vars[variable].value
-                elif c == "-" and line[i + 1] == "=":
-                    variable = element
-                    element = ""
-                    for j in range(i + 2, len(line)):
-                        element += line[j]
-                    self.vars[variable].value -= self.interpret(element)
-                    return self.vars[variable].value
-                elif c == "*" and line[i + 1] == "=":
-                    variable = element
-                    element = ""
-                    for j in range(i + 2, len(line)):
-                        element += line[j]
-                    self.vars[variable].value *= self.interpret(element)
-                    return self.vars[variable].value
-                elif c == "/" and line[i + 1] == "=":
-                    variable = element
-                    element = ""
-                    for j in range(i + 2, len(line)):
-                        element += line[j]
-                    self.vars[variable].value /= self.interpret(element)
-                    return self.vars[variable].value
-                elif c == "=":
-                    variable = element
-                    element = ""
-                    string = False
-                    array = False
-                    for j in range(i + 1, len(line)):
-                        if line[j] == '"':
-                            string = True
-                        if line[j] == "[":
-                            array = True
-                        element += line[j]
-                    self.vars[variable] = Var(variable, self.interpret(element))
-                    return self.vars[variable].value
-                else:
-                    element += c
 
     # scrapes all html elements from a URL
 
@@ -3953,195 +1382,5 @@ class Interpreter:
 
     # prints text with a box around it
     def bordered(text):
-        lines = text.splitlines()
-        width = max(len(s) for s in lines)
-        res = ["┌" + "─" * width + "┐"]
-        for s in lines:
-            res.append("│" + (s + " " * width)[:width] + "│")
-        res.append("└" + "─" * width + "┘")
-        return "\n".join(res)
-
-    # exception
-    class MSN2Exception(Exception):
-        pass
-
-    
-    # class for an App
-
-    class App:
-        # constructor
-        def __init__(self, path, application=None, name=None, extension=None):
-            # path of application being launched
-            self.path = path
-            if name:
-                self.name = name
-                self.extension = extension
-            else:
-                _spl = path.split("\\")[-1].split(".")
-                # extension of the application
-                self.extension = _spl[-1]
-                self.name = _spl[0]
-            # pwinauto application object
-            self.application = application
-
-    # element for an application
-    class AppElement:
-        # constructor
-        def __init__(self, window, name):
-
-            # creates a modified window
-            self.window = window
-            # # set the window
-            # self.window = window
-            # set the name
-            self.name = name
-
-        # gets the text of the window
-        def window_text(self):
-            return self.name
-
-        # gets all children of the window
-        def children(self):
-            return self.window.children()
-
-        # sets the focus to the window
-        def set_focus(self):
-            self.window.set_focus()
-
-        # gets the properties of the window
-        def get_properties(self):
-            return self.window.get_properties()
-
-        # gets the highest level parent of this element
-        def top_level_parent(self):
-            return self.window.top_level_parent()
-
-        # computes the height of the window
-        def height(self):
-            try:
-                return (
-                    self.window.get_properties()["rectangle"].bottom
-                    - self.window.get_properties()["rectangle"].top
-                )
-            except:
-                return
-
-        # computes the width of the window
-
-        def width(self):
-            try:
-                return (
-                    self.window.get_properties()["rectangle"].right
-                    - self.window.get_properties()["rectangle"].left
-                )
-            except:
-                return
-
-        # string
-
-        def __str__(self):
-            return Interpreter.bordered(
-                f'Text: {self.name if self.name else "[No Text Found]"}\nSize:\
-{f"{self.width()}x{self.height()}"}\nObject:\n{self.window}'
-            )
-
-    # class for a button
-    class Button(AppElement):
-        # constructor
-        def __init__(self, window, name):
-            # call super constructor
-            super().__init__(window, name)
-
-        # clicks the button
-
-        def click(self):
-            self.window.click()
-
-        # right clicks the button
-
-        def right_click(self):
-            self.window.click_input(button="right")
-
-    # class for a Link
-
-    class Link(AppElement):
-        # constructor
-        def __init__(self, window, name):
-            # call super constructor
-            super().__init__(window, name)
-
-    # class for a Menu
-
-    class Menu(AppElement):
-        # constructor
-        def __init__(self, window, name):
-            # call super constructor
-            super().__init__(window, name)
-
-    # class for a ToolBar
-
-    class ToolBar(AppElement):
-        # constructor
-        def __init__(self, window, name):
-            # call super constructor
-            super().__init__(window, name)
-
-    # class for a scrollbar
-
-    class ScrollBar(AppElement):
-        # constructor
-        def __init__(self, window, name):
-            # call super constructor
-            super().__init__(window, name)
-
-    # class for TabItems
-
-    class TabItem(AppElement):
-        # constructor
-        def __init__(self, window, name):
-            # call super constructor
-            super().__init__(window, name)
-
-    # class for Hyperlink
-
-    class Hyperlink(AppElement):
-        # constructor
-        def __init__(self, window, name):
-            # call super constructor
-            super().__init__(window, name)
-
-    # class for Inputs
-
-    class Input(AppElement):
-        # constructor
-        def __init__(self, window, name):
-            # call super constructor
-            super().__init__(window, name)
-
-        # types text into the input
-        def type_keys(self, text):
-            self.window.type_keys(text)
-
-    # class for Tables
-
-    class Table(AppElement):
-        # constructor
-        def __init__(self, window, name):
-            # call super constructor
-            super().__init__(window, name)
-
-    # ------------------------------------
-    # working with Excel
-
-    class Workbook:
-        # constructor
-        def __init__(self, workbook, path) -> None:
-            self.workbook = workbook
-            self.path = path
-
-    # sheet class
-    class Sheet(Workbook):
-        def __init__(self, sheet, title, workbook, path) -> None:
-            super().__init__(workbook, path)
-            self.sheet = sheet
-            self.title = title
+        from core.out.utils import bordered
+        return bordered(text)

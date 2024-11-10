@@ -39,5 +39,17 @@
         "16": "Deprecated <msn2element> and <msn2> inserts, only {==} inserts are allowed within calls such as script() or longstring()",
         "17": "trace.before() with no arguments now returns the total number of interpretations",
         "18": "Changed alias() with no arguments to return the current python_alias"
+    },
+    "2.0.403": {
+        "1": "CHAINING! See TUTORIAL/suggestedusage2.msn2 :: Implemented chaining for the standard instruction, for example: +(1, 2).add(3).print()",
+        "2": "Restructured core functionality layout in core/ for readability, scalability, and maintainability",
+        "3": "Moved javascript generation functions and files to core/using_js/",
+        "4": "Updated env() and env(arg)",
+        "5": "Fixed bugs with excel() and corresponding classes/functions",
+        "6": "Fixed python -> msn2 -> python tutorial in TUTORIAL/python/",
+        "7": "Changed '{python_alias} msn2cli.py portable' functionality to exclude __pycache__ folders",
+        "8": "Removed 'install_deps.py' script and associated documentation throughout the codebase",
+        "9": "Added CLI command 'install' to globally install dependencies",
+        "10": "Added default object methods .then(), .as(), .and(), .or(), .not() for chaining"
     }
 }

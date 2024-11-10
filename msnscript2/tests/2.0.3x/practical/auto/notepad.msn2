@@ -3,9 +3,12 @@
 # author : Mason Marker
 # date : 5/30/2023
 
+
+
+
 # declare and open notepad
 @ notepad = app('notepad.exe')
-notepad.start()
+notepad.start:lock()
 
 # type a message
 notepad.write('hello!')

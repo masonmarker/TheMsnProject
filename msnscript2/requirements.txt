@@ -14,3 +14,4 @@ pyperclip
 esprima
 jsbeautifier
 click
+jsonschema

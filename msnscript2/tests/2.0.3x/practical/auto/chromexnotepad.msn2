@@ -19,7 +19,7 @@ chrome.write('what is the current stock price of apple?')
 chrome.enter()
 
 # waits for a child window containing AAPL
-@ window_with_AAPL = chrome.wait_for_text('USD ')
+@ window_with_AAPL = chrome.wait_for_text('AAPL ')
 
 
 

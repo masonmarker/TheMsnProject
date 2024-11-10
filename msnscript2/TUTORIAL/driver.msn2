@@ -19,6 +19,7 @@ import ('TUTORIAL/_pages/dependencies')
 import ('TUTORIAL/_pages/commands')
 import ('TUTORIAL/_pages/docs')
 import ('TUTORIAL/_pages/run_a_program')
+import ('TUTORIAL/_pages/changelog')
 import ('TUTORIAL/_pages/settings')
 
 # error key
@@ -78,6 +79,7 @@ def('nav_menu', (
     list_page('2', 'Suggested Usage'),
     list_page('3', 'Commands'),
     list_page('4', 'Documentation'),
+    list_page('5', 'Change Log'),
     list_page('s', 'Settings'),
 
     # quit option
@@ -130,6 +132,7 @@ function('page', ret('page', script((
         )))
     )),
     '4', page(page:docs),
+    '5', page(page:changelog),
     's', page(page:settings),
     'r', page(page:run_a_program),
     'q', script(stop()),

@@ -1211,15 +1211,15 @@ def('test_global_methods', (
     @v2 = v.copy(),
     assert(v.equals(v2)),
     # testing len()
-    assert(v.len().equals(4)),
+    assert(equals(v.len(), 4)),
     # testing val()
     assert(v.equals([1, 2, 3, 4])),
     # test casting methods
-    assert(v.str().equals('[1, 2, 3, 4]')),
+    assert(equals(v.str(), '[1, 2, 3, 4]')),
     @ string = 'hello world',
     # calling str() is like calling str(string) and is essentially the same as calling string
     # with extra, unnecessary steps
-    assert(string.str().equals('hello world')),
+    assert(equals(string.str(), 'hello world')),
     @ string = '[3, 4, 5, 65]',
     # testing -() explicitly
     # interprets msn2 code as a string
@@ -1233,11 +1233,11 @@ def('test_global_methods', (
     assert(array.equals([3, 4, 5, 65])),
     # test with floats
     @ float = 45.432,
-    assert(float.str().equals('45.432')),
+    assert(equals(float.str(), '45.432')),
     assert(float.equals(45.432)),
     # test with dictionaries
     @ dict = { 'a': 1, 'b': 2, 'c': 3 },
-    assert(dict.str().equals("{'a': 1, 'b': 2, 'c': 3}")),
+    assert(equals(dict.str(), "{'a': 1, 'b': 2, 'c': 3}")),
     assert(dict.equals({ 'a': 1, 'b': 2, 'c': 3 }, dictfrom('a', 1, 'b', 2, 'c', 3))),
     True
 ))
@@ -1585,6 +1585,48 @@ def('test_sets', (
 ))
 # -------------------------------------------
 
+# ------------------ TESTING NEW CHAINING DEFAULT OBJECT METHODS ------------------
+# tests the new chaining default object methods
+def('test_new_chaining_default_obj_methods', (
+    print_test('new chaining default object methods'),
+
+    # create a variable
+    @a = 5,
+    
+    # testing conditionals
+    a.and(True).or(False),
+    assert:err(a.and()),
+    assert:err(a.or()),
+    a.sub(5).or(True) ??,
+    a.add(1).and(True, (True).or(False)) ??,
+    a.equals(1).assert(),
+
+    @b = False,
+    assert:err(b.not(awef)) ??,
+    b.not().assert(),
+    assert(b.not().assert()),
+    b.as('wef').not().assert(),
+    
+    @ c = 5,
+    c.as('d').add(d).equals(10).assert(),
+
+    @ d = 5,
+    # effectively performs d * 3
+    d.as('e', 'f').add(e, f).equals(15).assert(),    
+
+    # with chaining and the 'as' default object function,
+    # we actually just get new variable setting syntax
+    (30).as('b'),
+    
+    # assert the variable was set
+    assert(exists('b'), b.equals(30)),
+
+    # "(1000.0000).as('x', 'y', 'z')" returns the original value of 1000.0000
+    (1000.0000).as('x', 'y', 'z').add(x, y, z).equals(4000).assert() ??,
+    True
+))
+
+
 # ------------------ TESTING PYTHON SNIPPET \\ ------------------
 # declaring some python code
 \\
@@ -1691,7 +1733,7 @@ def('test_try', (
 # in 2.0.388, there are new string functions
 # these functions are tested correctly in the below test function
 def('test_new_string_functions', (
-    print_test('try'),
+    print_test('new string functions'),
     # resets the test string
     def('reset', @ a = "hello, how are you?"),
     reset(),
@@ -1753,7 +1795,84 @@ def ('test_long_strings', (
 
     True
 ))
+# ------------------------------------------------------------
 
+
+# ------------------------------ TESTING LEGACY FUNCTIONS ------------------------------
+def('test_legacy_function_declaration', (
+    print_test('legacy function declarations'),
+
+    # creating a function with the old syntax
+    ~ f(arg1, arg2) -> f_return,
+        # body of the function with '--'
+        -- @f_return = arg1 + arg2,
+
+    # running the function is the same
+    equals(f(3, 4), 7) ??,
+    equals(f(0, 0), 0) ??,
+
+    # nested functions
+    ~ f2(arg1, arg2) -> f2_return,
+        -- @_f2_var = 5,
+
+        # creating a nested function
+        ~ _f2(arg3, arg4) -> _f2_return,
+            -- @ _f2_return = arg3 + arg4,
+            # end body with end()
+            end(),
+        -- @_f2_var += 4,
+        -- @f2_return = _f2(arg1, arg2.+(_f2_var)),
+
+    equals(f2(3, 4), 16) ??,
+    equals(f2(0, 0), 9) ??,
+
+    True
+))
+# ------------------------------------------------------------
+# ------------------------------ TESTING CHAINED METHODS ------------------------------
+# 2.0.403
+# testing a new interpretation method for ease of operation
+#
+# These are some basic tests, more comprehensive tests are made in tests/2.0.403/method_chaining.msn2
+# 
+# "finally, truthfully  
+def('test_chained_methods', (
+    print_test('chained methods'),
+
+    # general chained method using some math functions
+    assert(+(1, 2).equals(3)),
+    assert(not(+(3, 4).equals(5287345982.234958123049582))),
+    assert(+(3, 4).equals(7)),
+    assert(-(5, 4).equals(1)),
+
+    # more than 2 chained methods
+    assert(x(2, 3).+(5).equals(11)),
+    assert(not(x(2, 3).+(5).equals(10))),
+    assert(x(2, 3).+(4).-(5).equals(5)),
+    
+    # creating and working with it (this is non destructive)
+    assert   (  var (  'a'  ,   12  )   .  add    (   4 )  . equals(16)),
+    assert(exists('a'), a.equals(12), not(a.equals(13))),
+
+    # asserting with macros and post macros
+    # creating the macro
+    macro('CHAINED ADD ', '__chained_function', +(-(__chained_function), 1)),
+    # basic tests
+    equals(CHAINED ADD 2, 3) ??,
+    not(equals(CHAINED ADD 2, 6)) ??,
+
+    # with multiple arguments
+    assert(equals(+(1, 2).+(3), 6)),
+    assert(equals(+(1, 2).+(3).+(4), 10)),
+    assert(equals(+(1, 2).+(3).+(4).+(5), 15)),
+
+    # new chained methods
+    ("var('e', [1, 2, 3])").interpret(),
+    exists('e').assert() ??,
+    e.equals([1, 2, 3]).assert() ??,
+        
+    True
+))
 
 # ------------------------------------------------------------
 
@@ -1806,11 +1925,16 @@ def('run_tests', (
     TEST test_python_snippets(),
     TEST test_try(),
     TEST test_new_string_functions(),
+    TEST test_legacy_function_declaration(),
+    TEST test_new_chaining_default_obj_methods(),
+
     # testing macros
-    TEST (
-        assert(test_macros())
-    ),
+    TEST test_macros(),
     TEST base_syntax_updates(),
+
+    # testing chained methods
+    TEST test_chained_methods(),
+
     # test is not run on another thread to avoid file reading conflicts
     private(assert(test_user_syntax())),
     # runs thread based test

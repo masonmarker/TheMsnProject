@@ -25,6 +25,7 @@ macro('TESTLS ', 'tests:long_string:line', (
 
 # testing empty string
 TESTLS ls() | ""
+TESTLS ls (   )  |  ""
 
 # creating a generic long string
 TESTLS longstring(This is a long string, but it also has a comma.) | "This is a long string, but it also has a comma."

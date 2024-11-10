@@ -108,6 +108,19 @@ def('fizzbuzz6', 1|max|i (
         )
     )
 ))
+# ----------------------------- Algorithm 7 -----------------------------
+# 2.0.403 syntax enhancements
+# early 2.0.403 - very slow
+def('fizzbuzz7', for(1,max,'i',i.%(3).equals(0).then(
+    i.%(5).equals(0).then(
+        'FizzBuzz',
+        'Fizz'
+    ),
+    i.%(5).equals(0).then(
+        'Buzz',
+        i
+    )
+)))
 
 
 # ----------------------------- Tests -----------------------------
@@ -140,3 +153,7 @@ print('algo 5:', timer:runtime(), 'sec.')
 timer:start()
 fizzbuzz6()
 print('algo 6:', timer:runtime(), 'sec.')
+
+timer:start()
+fizzbuzz7()
+print('algo 7:', timer:runtime(), 'sec.')

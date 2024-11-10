@@ -8,9 +8,6 @@ var('serial:serials', {})
 
 
 # opens a serialization slot
-# ~ serial_open(name) -> __serial_return
-#     -- serial:serials.set(name, 0)
-#     -- var('__serial_return', name)
 def('serial:open', 'serial:open:name', (
     serial:serials.set(serial:open:name, 0),
     serial:open:name

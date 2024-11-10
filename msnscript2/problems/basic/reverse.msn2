@@ -8,7 +8,7 @@ import ('lib/timer.msn2')
 
 # global string to test
 @ string = 'hello world'
-@ expected = (@__=string,__.reverse())
+@ expected = reverse(string)
 
 
 # test index
@@ -22,7 +22,7 @@ macro('TEST', '__line', (
     timer:start(),
 
     # assert the test is correct
-    assert(equals(-(__line), expected)),
+    -(__line).equals(expected).assert(),
 
     # print the time
     print('test', test_ind , ':', timer:runtime(), 's'),
