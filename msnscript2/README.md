@@ -65,7 +65,8 @@ run ```{python_alias} msn2cli.py --help``` for more information on the msn2cli i
     the suggested syntax is the most updated, and safest way to code.
 
 ### known issues
-find language interity related issues under the issues tab of this repository.
+
+find language integrity related issues under the issues tab of this repository.
 
 ### notes
 
