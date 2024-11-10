@@ -1,13 +1,13 @@
-msnscript2/projects/personal/
-msnscript2/msn2_settings.json
-msnscript2/tests/speed/lineprofile/msn2_settings.json
-msnscript2/portable/msn2/
-msnscript2/dev_files/
-msnscript2/localstorage/
-msnscript2/msnint2-processes/
+projects/personal/
+msn2_settings.json
+tests/speed/lineprofile/msn2_settings.json
+portable/msn2/
+dev_files/
+localstorage/
+msnint2-processes/
 
 # msn2 language files
-msnscript2/_exec/
+_exec/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
