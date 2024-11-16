@@ -1,0 +1,29 @@
+name: Update MSNScript2
+
+
+on:
+  schedule:
+   # daily at midnight UTC
+    - cron: '0 0 * * *'
+
+jobs:
+  update-subtree:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Pulls latest changes for msnscript2 subtree repo
+        run: |
+          git subtree pull --prefix=msnscript2 https://github.com/masonmarker/msnscript2.git master --squash
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add msnscript2
+          git commit -m "Update msnscript2 subtree [CI skip]" || echo "No changes to commit"
+          git push
