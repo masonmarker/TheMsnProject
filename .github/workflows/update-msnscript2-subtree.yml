@@ -18,7 +18,7 @@ jobs:
 
       - name: Pulls latest changes for msnscript2 subtree repo
         run: |
-          git subtree pull --prefix=msnscript2 https://github.com/masonmarker/msnscript2.git master --squash
+          git subtree pull --prefix=msnscript2 https://github.com/masonmarker/msnscript2.git master
 
       - name: Commit and push changes
         run: |
