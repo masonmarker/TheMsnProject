@@ -1,8 +1,7 @@
 # TheMsnProject - My Beginnings
 
----
 
-## (MOVED) MSN2
+### (MOVED) MSN2
 
 My programming language, msn2, has moved to its own repository, find its new home here: [msnscript2](https://github.com/masonmarker/msnscript2)
 
